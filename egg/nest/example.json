@@ -1,0 +1,6 @@
+{
+  "vocab_size": [10, 15],
+  "n_epoch": [15],
+  "random_seed": [0, 1, 2, 3],
+  "batch_size": [256]
+}

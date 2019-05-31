@@ -1,0 +1,18 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+#
+#
+# Sender input; Label (target output)
+# note that comment lines prefixed by # are ignored
+# delimiter is #
+# Input is expected to be a space-delimited vector, output to be a single label, the two items are colon-delimited
+0 0 0;0
+0 0 1;1
+0 1 0;1
+1 0 0;1
+0 1 1;2
+1 1 0;2
+1 0 1;2
+1 1 1;3

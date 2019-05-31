@@ -1,0 +1,10 @@
+{
+  "vocab_size": [1024],
+  "n_epochs": [200],
+  "random_seed": [0, 1, 2, 3, 4],
+  "batch_size": [32],
+  "lr": [0.0001, 0.001, 0.01],
+  "temperature": [1.0, 10.0],
+  "p_corrupt": [0.0, 0.5, 1.0],
+  "early_stopping_thr": [1.1]
+}
