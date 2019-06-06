@@ -1,14 +1,14 @@
 # OBJECTS GAME
 
 *objects_game* is a simple Sender/Receiver game where Sender sees a target vector of discrete properties
--e.g. [1, 2, 3, 0] for a game with 4 dimensions and features
- in the [0, 3] range- and sends a variable length message
+-e.g. [1, 2, 3, 1] for a game with 4 dimensions and features
+ in the [1, 3] range- and sends a variable length message
  to Receiver. Receiver, conditioned on that message, has to 
 point to the right target among a set of distractors.
 
 This game is a variant of [1].
 
-A picture that describes the architecture of the game can be found [here](pics/archs.jpeg)
+A picture that describes the architecture of the game can be found [here](pics/archs.jpeg) (the no-image option is not currently implemented).
 
 Example command:
 ```bash
@@ -40,19 +40,17 @@ Please refer to [this script](../../core/util.py) for a comprehensive list of no
 Parameters to customize the default ([4, 4, 4, 4 ,4]) vectors for the game.
 
 #### Data Generation
- * `--perceptual_dimension` -- the prototypcal vector: the discrete values that each dimension can take. For instance if we set --perceptual_dimension [3, 4, 5, 1], the game will be played with 4-dimensional vectors where the first dimension can be one of {1, 2, 3}, the second one of {1, 2, 3, 4} etc., leading to 3 * 4 * 5 * 1 = 60 distinct possible vectors. (default: [4, 4, 4, 4, 4])
+ * `--perceptual_dimensions` -- the prototype vector: the discrete values that each dimension can take. For instance if we set --perceptual_dimensions [3, 4, 5, 1], the game will be played with 4-dimensional vectors where the first dimension can be one of {1, 2, 3}, the second one of {1, 2, 3, 4} etc., leading to 3 * 4 * 5 * 1 = 60 distinct possible vectors. (default: [4, 4, 4, 4, 4])
  * `--n_distractors` -- number of additional vectors that the receiver will see. If the target vector (shown to Sender) [3, 4, 3] and n_distractors is 2, Receiver will have to choose the position of the target given the following input (where vector order is randomly determined): [ [4, 2, 5], [3, 4, 3], [1, 4, 2] ] (correct answer 2, second position). (default: 3)
  * `--train_samples` -- number of distinct tuples in the training set. A tuple is a unique combination of target+distractor(s). (default: 1e6)
  * `--validation_samples` -- number of distinct tuples in the validation set. (default: 1e4)
  * `--test_samples` -- number of distinct tuples in the test set. (default: 1e3)
 
 #### Data Loading
- * `--load_data_path` -- path to .npz data file containing splits in numpy array format. Each split has dimension of `split_size X n_distracotrs X n_features`.
-
-n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it will be 5.`
+ * `--load_data_path` -- path to .npz data file containing splits in numpy array format. Each split has dimension `split_size X n_distracotrs X n_features`. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5.`
 
 The file can be manually created but it's safer to use the dumped file created when `--dump_data_folder` is set.
-If manually created it should contain train, validation and test split in the described format plus the prototypical vector of perceptual_dimensions used in the splits (e.g. [3, 3, 3] if the splits only contains 3-D vectors with each dimension taking values in the range [1, 3] ), and the number of distractors seen by the Receiver. 
+If manually created, it should contain train, validation and test splits in the format illustrated below, plus the prototype vector of perceptual_dimensions used in the splits (e.g. [3, 3, 3] if the splits only contains 3-D vectors with each dimension taking values in the range [1, 3]`), and the number of distractors seen by the Receiver. 
  
  *Note* that if `--load_data_path` is used {train|validation|test}_samples and n_distractors can be set but they will be ignored as they will be inferred from the data file.
  
