@@ -1,10 +1,10 @@
 # OBJECTS GAME
 
-*objects_game* is a simple Sender/Receiver game where the Sender sees a Target as a vector of discrete properties
--e.g. [1, 2, 3, 0] for a game with 4 dimensions and all features
- in the range of [0, 3)- and sends a variable length message
- to Receiver that conditioned on that message has to 
-point to the right target among a set of distractor+target.
+*objects_game* is a simple Sender/Receiver game where Sender sees a target vector of discrete properties
+-e.g. [1, 2, 3, 0] for a game with 4 dimensions and features
+ in the [0, 3] range- and sends a variable length message
+ to Receiver. Receiver, conditioned on that message, has to 
+point to the right target among a set of distractors.
 
 This game is a variant of [1].
 
@@ -31,24 +31,20 @@ python -m egg.zoo.objects_game.train \
     --shuffle_train_data
 ```
 
-The basic structure of this game is similar to the one of the [external_game](../external_game/README.md)
+The basic structure of this game is similar to the one of the [external_game](../external_game/README.md). Please refer to that for game configurations and training hyper-parameters. However, the input is different, as here it consists of discrete-valued vectors where the values that each dimension take can vary and can be specified as a parameter to the game. 
+Additionally, the receiver is shown the target AND a fixed number of distractors and has to point to the position of the target among the randomly shuffled distractors.
 
-Please refer to that for game configurations and training hyper-parameters.
-
-What differs is the input which consist of discrete-valued vectors where the values that each dimension take can vary and can be specified as a parameter of the game. 
-Additionally, the receiver is challanged by being shown the target AND a fixed number of distractors. Note that the receiver does NOT know which one is target, having the receiver finding the target position is precisely the goal we want to pursue for this game.
-
-Please refer to [this](../../core/util.py) for a comprehensive list of not-game-specific parameters.
+Please refer to [this script](../../core/util.py) for a comprehensive list of not-game-specific parameters.
 
 ## Vector parameters:
 Parameters to customize the default ([4, 4, 4, 4 ,4]) vectors for the game.
 
 #### Data Generation
- * `--perceptual_dimenisons` -- the prototypcal vector: the discrete values that each dimension can take. For instance if we set --perceptual_dimension [3, 4, 5, 1], the first dimension can be one {1, 2, 3}, the second one of {1, 2, 3, 4} etc., leading to 3 * 4 * 5 * 1 = 60 distinct possible vectors. (default: [4, 4, 4, 4, 4])
- * `--n_distractors` -- number of additional vectors that the receiver will see. If the target vector were (the one that was shown to the sender and that should reflect the message it sent) [3, 4, 3] and n_distractors is 2, the receiver will have to choose the position of the target given the following input: [ [4, 2, 5], [3, 4, 3], [1, 4, 2] ] (correct answer 2, secondo potision). (deafault: 3)
- * `--train_samples` -- number of distinct tuples in the training set. Note that with tuples we refer to the combination of target + distarctor(s). (default: 1e6)
- * `--validation_samples` -- number of distinct tuples in the validation set. Note that with tuples we refer to the combination of target + distarctor(s). (default: 1e4)
- * `--test_samples` -- number of distinct tuples in the test set. Note that with tuples we refer to the combination of target + distarctor(s). (default: 1e3)
+ * `--perceptual_dimension` -- the prototypcal vector: the discrete values that each dimension can take. For instance if we set --perceptual_dimension [3, 4, 5, 1], the game will be played with 4-dimensional vectors where the first dimension can be one of {1, 2, 3}, the second one of {1, 2, 3, 4} etc., leading to 3 * 4 * 5 * 1 = 60 distinct possible vectors. (default: [4, 4, 4, 4, 4])
+ * `--n_distractors` -- number of additional vectors that the receiver will see. If the target vector (shown to Sender) [3, 4, 3] and n_distractors is 2, Receiver will have to choose the position of the target given the following input (where vector order is randomly determined): [ [4, 2, 5], [3, 4, 3], [1, 4, 2] ] (correct answer 2, second position). (default: 3)
+ * `--train_samples` -- number of distinct tuples in the training set. A tuple is a unique combination of target+distractor(s). (default: 1e6)
+ * `--validation_samples` -- number of distinct tuples in the validation set. (default: 1e4)
+ * `--test_samples` -- number of distinct tuples in the test set. (default: 1e3)
 
 #### Data Loading
  * `--load_data_path` -- path to .npz data file containing splits in numpy array format. Each split has dimension of `split_size X n_distracotrs X n_features`.
