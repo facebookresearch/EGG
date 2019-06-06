@@ -1,6 +1,6 @@
 # Dealing with command-line (CL) parameters
 
-Majority of the games would have some similar command-line parameters, such as size of the batch, size of the vocabulary
+Most games have a set of similar command-line parameters, such as size of the batch, size of the vocabulary
 that is used to communicate over the channel, where the checkpoint models are stored, the random seed to be used, etc.
 
 To simplify this boilerplate configuration, EGG provides a pre-defined set of common parameters. When relevant, those parameters 
