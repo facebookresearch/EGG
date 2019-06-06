@@ -20,13 +20,13 @@ from egg.zoo.external_game.archs import Sender, Receiver, ReinforceReceiver
 def get_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_data', type=str, default=None,
-                        help='Path for the train data')
+                        help='Path to the train data')
     parser.add_argument('--validation_data', type=str, default=None,
-                        help='Path for the validation data')
+                        help='Path to the validation data')
     parser.add_argument('--dump_data', type=str, default=None,
-                        help='Path for the data to be dumped')
+                        help='Path to the data for which to produce output information')
     parser.add_argument('--dump_output', type=str, default=None,
-                        help='Path for the dump')
+                        help='Path for dumping output information')
 
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
                         help='Number of batches per epoch (default: 1000)')
