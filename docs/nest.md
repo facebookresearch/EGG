@@ -50,7 +50,7 @@ be shared (e.g., if the number of workers is 2x the number of GPUs, each GPU wil
 `nest_local` has the following parameters:
  * `game` is a path to the game module to be run (e.g. egg.zoo.mnist_autoenc.train);
  * `sweep` is a path to the json file defining the grid of hyperparameters to be searched through;
- * `preview/dry_run` suppresses running any job, simply producing output and creating the output directory layout;
+ * `preview/dry_run` suppresses running any job, simply producing the NEST-generated output and creating the output directory layout;
  * `n_workers` specifies the number of worker jobs;
  * `name` optional name of the search, which is used for naming the directory with the outputs of the runs. If not specified,
      `nest` will infer it from the `game` parameter (e.g., `mnist_autoenc` if the `game` parameter is set to `egg.zoo.mnist_autoenc.train`)
