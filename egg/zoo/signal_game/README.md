@@ -2,7 +2,7 @@ This code implements the signalling game described in [1]. The game proceeds as 
  * Sender is shown a target image alognside with one or many distractor images,
  * Sender sends a one-symbol message to Receiver,
  * Receiver obtains Sender's message and all images in random order,
- * Receiver predicts which of the received images is the target one
+ * Receiver predicts which of the received images is the target one and agents are rewarded if the prediction is correct.
 
 The game can be launched with the following command (with appropriate path to the data):
 ```bash
