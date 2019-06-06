@@ -40,7 +40,7 @@ This is a list of representative games implemented at the moment:
  * [`egg/zoo/objects_game`](/egg/zoo/objects_game): A Sender/Receiver game where the Sender sees a target as a vectors of discrete properties
  (*e.g.* [1, 2, 3, 0] for a game with 4 dimensions) and Receiver has to recognize the target among a set of vectors.
 
-We are adding games all the times: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
+We are adding games all the time: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
 
 More details on each game's command line parameters are provided in the games' directories.
 
