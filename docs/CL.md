@@ -13,7 +13,7 @@ In order to set these parameters, two steps are needed:
  
 Behind the scenes, EGG will populate the list of parameters and will call the `parse_args()` method of the ArgumentParser instance.
 
-Overall, the standard usage is supposed to look like that:
+Overall, the standard usage is supposed to look as follows:
 ```python
 import argparse
 import egg.core as core
@@ -32,22 +32,22 @@ if __name__ == '__main__':
     
 ```
     
-The list of the supported "common" parameters can be found in [util.py](util.py) and it includes both parameters that are used 
+The list of the supported "common" parameters can be found in [util.py](util.py) and it includes both parameters that are read 
 by EGG itself and those that could be used by the user. Below we briefly discuss them.
 
 ### EGG-used parameters
 These parameters are used by EGG internally:
 
-* `random_seed` - used by EGG itself to set the random seed for both CPU and CUDA (if available). If not specified from CL,
-    it stores an auto-generated value, that can be retrieved and re-used later (e.g. if, after a run, you want to re-run it);
+* `random_seed` - used by EGG to set the random seed for both CPU and CUDA (if available). If not specified from CL,
+    it will store an auto-generated value, that can be retrieved and re-used later (e.g., if, after a run, you want to replicate it);
 * `no_cuda` - disables the use of CUDA even when it is available. By default, EGG uses CUDA when present;
 * `load_from_checkpoint` - if specified, EGG loads model, optimizer, and trainer state from the specified file;
-* `checkpoint_dir` and `checkpoint_freq` - if specified, checkpoints would be stored every `checkpoint_freq` epochs to 
+* `checkpoint_dir` and `checkpoint_freq` - if specified, checkpoints wil be stored every `checkpoint_freq` epochs to 
     `checkpoint_dir`. The names of the checkpoints would be `{number_of_epochs}.tar`;
 
 ### Pre-defined convenience parameters
 These parameters are simply defined for the user's convenience. They can be used or ignored; although we advice to use 
-them if that fits, so that the names are uniform across the games. The pre-implemented games in the _zoo_ use those parameters when 
+them if they fit your game, so that the names are uniform across games. The pre-implemented games in the _zoo_ use those parameters when 
 appropriate.
 
 * `n_epochs` should be used to set the number of training epochs;
