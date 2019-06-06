@@ -1,11 +1,11 @@
-The `external_game` is a Sender/Receiver game where inputs and labels (target outputs) come from a CSV file (as in [this example](classification.data)). This allows the user to exploit EGG functionalities entirely from the command line, with no need to directly adapt the code.
+We call this the `external_game` because it is a Sender/Receiver game where inputs and labels (target outputs) come from an external CSV file (as in [this example](classification.data)). This allows the user to exploit EGG functionalities entirely from the command line, with no need to directly adapt the code.
 
-Communication takes place via variable-length messages. Both agents are implemented as single-layer recurrent cells. The game supports training with the Gumbel-Softmax relaxation of the communication
-channel or by REINFORCE (with 0-1 reward based on accuracy of the Receiver output). Other parameters can be controlled via command-line options, as specified below.
+Communication takes place via variable-length messages. Both agents are implemented as single-layer recurrent cells. The game supports training with Gumbel-Softmax relaxation of the communication
+channel (in which case we optimize a differentiable loss) or by REINFORCE (with 0-1 reward based on accuracy of the Receiver output). Other parameters can be controlled via command-line options, as specified below.
 
-As illustrated by [this example](classification.data), input files contain two fields, separated by a semi-colon `;`. The first field specifies a vector-valued input to Sender (vector values are space-delimited), the second specifies a multi-class label (an integer), that must be predicted by the Receiver. Note that the script assumes that class labels range from 0 to the largest integer found in the relevant field of the training file. For example, even if the training file contains only class labels 2 and 4, the script will assume that this is a 5-way classification problem, with class labels ranging from 0 to 4.
+As illustrated by [this example](classification.data), the input files contain two fields, separated by a semi-colon `;`. The first field specifies a vector-valued input to Sender (vector values are space-delimited), the second specifies a multi-class label (an integer), that must be predicted by the Receiver. Note that the script assumes that class labels range from 0 to the largest integer found in the relevant field of the training file. For example, even if the training file contains only class labels 2 and 4, the script will assume that this is a 5-way classification problem, with class labels ranging from 0 to 4.
 
-The `game.py` script of this game supports two exclusive regimes. The first is used to train a model and the second is used to dump messages and Receiver outputs given a pre-trained model given and some input data. The script assumes the training regime unless a dataset for dumping is provided (with the `--dump_data` parameter and loading the trained model from a checkpoint created in training mode). When in `dump` regime and if some non-default model parameters were used at training time, one needs to specify them again. In both regimes, the number of input features and output classes is automatically inferred from the training set (which means that the latter must be passed as an argument in `dump` mode as well--the new input data would suffice to infer the input feature dimensionality, but not necessarily the output classes).
+The `game.py` script of this game supports two exclusive regimes. The first is used to train a model and the second is used to dump messages and Receiver outputs given a pre-trained model and some input data (for evaluation and analysis). The script assumes the training regime unless a dataset for dumping is provided (with the `--dump_data` parameter and loading the trained model from a checkpoint created in training mode). When in `dump` regime and if some non-default model parameters were used at training time, one needs to specify them again. In both regimes, the number of input features and output classes is automatically inferred from the training set (which means that the latter must be passed as an argument in `dump` mode as well--the new input data would suffice to infer the input feature dimensionality, but not necessarily the output classes).
 
 
 The game can be run as follows (training regime):
@@ -22,7 +22,7 @@ python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/classi
     --load_from_checkpoint=150.tar
 
 ```
-Note that here we re-used the training data as the dump data for convenience, but a more typical case will be one in which they are in a separate test file. Note also that we still have to specify the model parameters (`--train_mode=gs --max_len=2` in this case).
+Note that here we re-used the training data as test data for convenience, but a more typical case will be one in which the latter are from a separate test file. Note also that we still have to specify the model parameters (`--train_mode=gs --max_len=2` in this case).
 
 Training with REINFORCE is similar, and several other options are illustrated by the following example:
 ```bash
@@ -31,14 +31,13 @@ python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/binary
      --lr=0.005 --max_len=2 --vocab_size=4 --receiver_hidden=30 --sender_hidden=30 --sender_entropy_coeff=1e-1 --checkpoint_dir=./
 
 ```
-To dump the results to the file `dump.txt` (again, recycling the same data we did for training for dumping), we run:
+To output the results to the file `out.txt` (again, recycling the same data we did for training for dumping), we run:
 ```bash
 python egg/zoo/external_game/game.py --dump_data=./egg/zoo/external_game/binary_classification.data
      --train_data=./egg/zoo/external_game/binary_classification.data \
      --train_mode=rf --vocab_size=4 --receiver_hidden=30 --sender_hidden=30 \
-    --max_len=2 --load_from_checkpoint=250.tar --dump_output=dump.txt
+    --max_len=2 --load_from_checkpoint=250.tar --dump_output=out.txt
 ```
-
 The format of the dumped output (printed to stdout or to a file) is as follows:
 ```
 input_vector;sender_message;receiver_output;gold_label_value
@@ -59,8 +58,7 @@ where:
      `{n_epochs}.tar`.
  * `load_from_checkpoint` -- loads the model and optimizer state from a checkpoint. If `--n_epochs` is larger than that
     in the checkpoint, training will continue.
- * `dump_data`/`dump_output` -- if `dump_data` is specified, input/message/output/gold label are dumped for this 
-     dataset. If `dump_output` is not specified, the dump is printed to stdout, otherwise, it is written into the speficied `data_output` file.
+ * `dump_data`/`dump_output` -- if a `dump_data` file is specified, input/message/output/gold label are produced for the inputs in the file. If `dump_output` is not used, the dump is printed to stdout, otherwise, it is written into the speficied `data_output` file.
 
 ## Model parameters:
  * `sender_cell/receiver_cell` -- the recurrent cell type used by the agents; can be any of {rnn, gru, lstm} (default: rnn).
