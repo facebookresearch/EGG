@@ -21,9 +21,9 @@ Key features:
 To fully leverage EGG one would need at least [a high-level familiarity](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)
 with PyTorch. However, to get a taste of communication games without writing any code, you could try [a dataset-based game](/egg/zoo/external_game), which allow you to experiment with different signaling games by simply editing input files. 
 
-## List of implemented games
+## Partial list of implemented games
 
-The list of the games implemented at the moment:
+This is a list of representative games implemented at the moment:
  * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering
  the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization
  done by Reinforce and Gumbel-Softmax relaxation.
@@ -40,7 +40,7 @@ The list of the games implemented at the moment:
  * [`egg/zoo/objects_game`](/egg/zoo/objects_game): A Sender/Receiver game where the Sender sees a target as a vectors of discrete properties
  (*e.g.* [1, 2, 3, 0] for a game with 4 dimensions) and Receiver has to recognize the target among a set of vectors.
 
-We hope the list will constantly grow! Submit an issue if there is something you want to have implemented and  included.
+We are adding games all the times: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
 
 More details on each game's command line parameters are provided in the games' directories.
 
