@@ -46,7 +46,7 @@ More details on each game's command line parameters are provided in the games' d
 
 ### An important technical point
 
-EGG supports Reinforce and Gumbel-Softmax optimization of the *communication channel*. This is logically independent of whether the game *loss* is differentiable. In practice, EGG supports the following natural combinations: differentiable game loss with either Reinforce or Gumbel-Softmax channel optimization (as illustrated in the [MNIST autoencoder game tutorial](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) and non-differentiable game loss with Reinforce channel optimization (as in the reinforce option of the [External Game](/egg/zoo/external_game).
+EGG supports Reinforce and Gumbel-Softmax optimization of the *communication channel*. This is logically independent of whether the game *loss* is differentiable. In practice, EGG supports the following natural combinations: differentiable game loss with either Reinforce or Gumbel-Softmax channel optimization (as illustrated in the [MNIST autoencoder game tutorial](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)) and non-differentiable game loss with Reinforce channel optimization (as in the reinforce option of the [External Game](/egg/zoo/external_game)).
 
 ## Installing EGG
 
