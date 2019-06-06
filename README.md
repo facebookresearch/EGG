@@ -14,7 +14,7 @@ communication protocols.
 
 Key features:
  * Primitives for implementing a single-symbol or variable-length communication (with vanilla RNNs, GRUs, or LSTMs);
- * Training with REINFORCE and Gumbel-Softmax relaxation via a common interface;
+ * Training with optimization of the communication channel with REINFORCE or Gumbel-Softmax relaxation via a common interface;
  * Simplified configuration of the general components, such as checkpointing, optimization, tensorboard support, etc;
  * Provides a simple CUDA-aware command-line tool for grid-search over parameters of the games.
 
@@ -25,7 +25,7 @@ with PyTorch. However, to get a taste of communication games without writing any
 
 The list of the games implemented at the moment:
  * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering
- the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with optimization
+ the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization
  done by Reinforce and Gumbel-Softmax relaxation.
  * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more
  distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender.
@@ -43,6 +43,10 @@ The list of the games implemented at the moment:
 We hope the list will constantly grow! Submit an issue if there is something you want to have implemented and  included.
 
 More details on each game's command line parameters are provided in the games' directories.
+
+### An important technical point
+
+EGG supports Reinforce and Gumbel-Softmax optimization of the *communication channel*. This is logically independent of whether the game *loss* is differentiable. In practice, EGG supports the following natural combinations: differentiable game loss with either Reinforce or Gumbel-Softmax channel optimization (as illustrated in the [MNIST autoencoder game tutorial](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) and non-differentiable game loss with Reinforce channel optimization (as in the reinforce option of the [External Game](/egg/zoo/external_game).
 
 ## Installing EGG
 
