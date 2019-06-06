@@ -1,4 +1,4 @@
-Here you can find a set of the games/tasks that are used in the [paper](arxiv.org).
+Here you can find a set of the games/tasks that are used in this [paper](arxiv.org).
 
 # Structure
 
