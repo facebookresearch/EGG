@@ -5,8 +5,7 @@
 
 EGG is a toolkit that allows researchers to quickly implement multi-agent games with discrete channel communication. In 
 such games, the agents are trained to communicate with each other and jointly solve a task. Often, the way they communicate is not explicitly determined, allowing agents to come up with their own 'language' in order to solve the task.
-Such setups opens a plethora of possibilities in studying the interaction between the emergent language, 
-the task being solved, the agents' models, etc. and they have become a vibrant area of research. The purpose of EGG is to offer researchers an easy and fast entry point into this research area.
+Such setup opens a plethora of possibilities in studying emergent language and the impact of the nature of task being solved, the agents' models, etc. This subject is a vibrant area of research often considered as a prerequisite for general AI. The purpose of EGG is to offer researchers an easy and fast entry point into this research area.
 
 EGG is based on [PyTorch](https://pytorch.org/) and provides: (a) simple, yet powerful components for implementing 
 communication between agents, (b) a diverse set of pre-implemented games, (c) an interface to analyse the emergent 
@@ -26,7 +25,7 @@ with PyTorch. However, to get a taste of communication games without writing any
 This is a list of representative games implemented at the moment:
  * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering
  the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization
- done by Reinforce and Gumbel-Softmax relaxation ([open](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) in Colab).
+ done by Reinforce and Gumbel-Softmax relaxation.
  * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more
  distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender.
  This implementation is based on Diane Bouchacourt's code.
