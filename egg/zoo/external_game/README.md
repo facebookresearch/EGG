@@ -14,7 +14,7 @@ python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/classi
     --validation_data=./egg/zoo/external_game/classification.data --n_epoch=150 --train_mode=gs --random_seed=21 \
     --lr=1e-2 --max_len=2 --checkpoint_dir=./
 ```
-After training, a model file named `150.tar` will be saved in the current directory.
+After training, a model file named `150.tar` (which refers to the ```n_epoch``` value) will be saved in the current directory.
 Next, switching to the `dump` regime, the trained model can be run on new data, with output behaviour printed to standard output (as in this example), or to a text file (as shown below).
 ```bash
 python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/classification.data   \
