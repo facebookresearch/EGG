@@ -6,7 +6,7 @@
  to Receiver. Receiver, conditioned on that message, has to 
 point to the right target among a set of distractors.
 
-This game is a variant of [1].
+This game is a variant of [1], and we call it the object game because the vectors can be thought of as attribute-value descriptions of different objects.
 
 A picture that describes the architecture of the game can be found [here](pics/archs.jpeg) (the no-image option is not currently implemented).
 
