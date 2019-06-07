@@ -1,4 +1,6 @@
-Here you can find a set of the games/tasks that are used in this [paper](arxiv.org).
+Here you can find a set of the games/tasks that are used the following paper:
+ * _Information Minimization In Emergent Languages_. Eugene Kharitonov, Rahma Chaabouni, Diane Bouchacourt, Marco Baroni.
+ [arxiv](https://arxiv.org/abs/1905.13687).
 
 # Structure
 
