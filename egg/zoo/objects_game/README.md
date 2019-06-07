@@ -51,30 +51,16 @@ Instead of generating train, validation and test splits through the parameters l
 
  * `--load_data_path` -- path to a .npz data file containing splits in compressed numpy array format. 
 
-When  --load_data_path is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` and specifying the directory where to save them, and then load them with `--load_data_path`. Otherwise, a manually generated data file can be loaded as well. 
-
-It must be in .npz format and should have the following field:
- * {train|valid|test} -- these fields contain the tensor with the tuples seen by the receiver. Each tensor has dimension split_size X n_distractors+1 X n_features. split_size is the total number of trials played by the agents in the {train|valid|test} phase. In n_distractors+1 the +1 is due to the presence of the target vector. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5. 
- * {train|valid|test}_labels -- a 1-D array of size split_size that contains the idx of the target in the lineup of target+distractor for each trial.
- * --perceptual_dimensions -- the prototype vector used to generate the splits if they were manually created according to one, otherwise a dummy vector works as well as long as it has the same number of dimensions as the vectors in the splits
+When  --load_data_path is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` and specifying the directory where to save them, and then load them with `--load_data_path`.
+Otherwise, a manually generated data file can be loaded as well.  It must be in .npz format and should have the following fields:
+ * {train|valid|test} -- these fields contain the tensor with the tuples seen by the receiver. Each tensor has dimension split_size X n_distractors+1 X n_features. split_size is the total number of trials played by the agents in the {train|valid|test} phase. Note that the +1 term added to n_distractors is due to the presence of the target vector. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5. 
+ * {train|valid|test}\_labels -- a 1-D array of size split_size that contains the idx of the target in the lineup of target+distractor(s) for each trial.
+ * perceptual_dimensions -- the prototype vector used to generate the splits if they were manually created, otherwise a dummy vector with the same number of dimensions as the vectors in the splits
  * n_distractors -- the number of distractors used
  
- Note that if --load_data_path is used {train|validation|test}_samples and n_distractors can be set as command line argument but they will be ignored as they will be inferred from the data file.
+ Note that if `--load_data_path` is used, the `--{train|validation|test}\_samples` and `--n_distractors` command-line options will be ignored, as the relevant information will be inferred from the data file.
  
- --load_data_path is a mutually exclusive argument with --perceptual_dimensions. They cannot be used at the same time as it would not be clear if the game should be using the loaded data or generate new vectors and tuples according to the prototypical one.
-
-
- * `--load_data_path` -- path to .npz data file containing splits in numpy array format. Each split has dimension `split_size X n_distracotrs X n_features`. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5.`
-
-The file can be manually created but it's safer to use the dumped file created when `--dump_data_folder` is set.
-If manually created, it should contain train, validation and test splits in the format illustrated below, plus the prototype vector of perceptual_dimensions used in the splits (e.g. [3, 3, 3] if the splits only contains 3-D vectors with each dimension taking values in the range [1, 3]`), and the number of distractors seen by the Receiver. 
- 
- *Note* that if `--load_data_path` is used {train|validation|test}_samples and n_distractors can be set but they will be ignored as they will be inferred from the data file.
- 
- `--load_data_path` is a mutual exclusive argument with `--perceptual_dimensions`. They cannot be used at the same time as it would not be clear if the game should be using the loaded data or generate new vectors and tuples according to the prototypical one.
-
-A sample data file is provided [here](sample_data).
-
+`--load_data_path` and `--perceptual_dimensions` (as a command-line option, *not* as a field in the .npz file!) are mutually exclusive. They cannot be used at the same time as it would not be clear if the game should be using the loaded data or generate new vectors and tuples according to the prototype specified through `--perceptual_dimensions`.
 
 ## Agents architecture
  * `--sender_hidden` -- Size of the hidden layer of Sender (default: 50)
