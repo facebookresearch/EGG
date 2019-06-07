@@ -51,16 +51,15 @@ Instead of generating train, validation and test splits at run time through the 
 
  * `--load_data_path` -- path to a .npz data file containing splits in compressed numpy array format. 
 
-When  `--load_data_path` is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` and specifying the directory where to save them, and then loaded with `--load_data_path`.
+When  `--load_data_path` is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` (see below) and specifying the directory where to save them, and then loaded with `--load_data_path`.
 Otherwise, a manually generated data file can be loaded as well.  It must be in .npz format and should have the following fields:
  * {train|valid|test} -- these fields contain the tensor with the tuples seen by the receiver. Each tensor has dimension split_size X n_distractors+1 X n_features. split_size is the total number of trials played by the agents in the {train|valid|test} phase. Note that the +1 term added to n_distractors is due to the presence of the target vector. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5. 
  * {train|valid|test}\_labels -- a 1-D array of size split_size that contains the idx of the target in the lineup of target+distractor(s) for each trial.
- * perceptual_dimensions -- a prototype vector specifying dimensions and values in the same format as the `--perceptual_dimensions` command-line option.
  * n_distractors -- the number of distractors used.
  
  Note that if `--load_data_path` is used, the `--{train|validation|test}\_samples` and `--n_distractors` command-line options will be ignored, as the relevant information will be inferred from the data file.
  
-`--load_data_path` and `--perceptual_dimensions` (as a command-line option, *not* as a field in the .npz file!) are mutually exclusive. They cannot be used at the same time as it would not be clear if the game should be using the loaded data or generate new vectors and tuples according to the prototype specified through `--perceptual_dimensions`.
+`--load_data_path` and `--perceptual_dimensions`are mutually exclusive. They cannot be used at the same time as it would not be clear if the game should be using the loaded data or generate new vectors and tuples according to the prototype specified through `--perceptual_dimensions`.
 
 ## Agents architecture
  * `--sender_hidden` -- Size of the hidden layer of Sender (default: 50)
@@ -83,22 +82,22 @@ Otherwise, a manually generated data file can be loaded as well.  It must be in 
  * `--validation_freq` -- the validation would be run every `validation_freq` epochs. (default: 1)
 
 ## Communication channel parameters
-The communication channel can be tuned with the following parameters that are the same ones that can be used used throughout all the games implemented in EGG so far. <br/>
+The communication channel can be tuned with the following parameters that are the same ones that can be used throughout all the games implemented in EGG so far. <br/>
 
  * `vocab_size` -- the number of unique symbols in the vocabulary (inluding `<eos>`!). `<eos>` is conventionally mapped to 0. (default: 10)
  * `max_len` -- the maximal length of the message. Receiver's output is processed either after the `<eos>` symbol is received
  or after `max_len` symbols, and further symbols are ignored. (default: 1)
 
 ## Seeding
- * `data_seed` -- a seed value to control the pseudo-random process that generate train, validation and test splits (for reproducibility purposes). (default: 111)
+ * `data_seed` -- a seed value to control the pseudo-random process that generates train, validation and test splits (for reproducibility purposes). (default: 111)
  * `random_seed` -- a seed value to control the pseudo-random process that initializes the game and network(s) parameters (for reproducibility purposes). (default: 
  
- `Note` that if you want to keep the data_generation process stable *i.e* having the same datasets across training run while varying the game network initialization you could so by keeping `--data_seed` fixed and vary `--random_seed`
+ Note that if you want to keep the data generation process stable, i.e, using the same datasets across training runs while varying the game network initialization, you can do so by keeping `--data_seed` fixed and varying `--random_seed`.
 
 ## Dumping
- * `--output_json` -- If set, egg will output validation stats in json format (default: False)
+ * `--output_json` -- If set, EGG will output validation stats in json format (default: False)
  * `--dump_data_folder` -- path to folder where .npz file with dumped data will be created
- * `--dump_msg_folder` -- path to folder where a file with the output of the model will be saved
+ * `--dump_msg_folder` -- path to folder where a file with the output of the run will be saved
  
 The name of the file created will be:
 ```
@@ -112,19 +111,20 @@ messages_{perceptual_dimensions}_vocab_{vocab_size}' \
                         '_scell_{sender_cell}_rcell_{receiver_cell}.msg
 ```
 
-The file contain the namespace (list of arguments given to the command line parser) as the first line.
+The file contains the list of arguments given to the command line parser as first line.
 The format of the dumped output is as follows:
 
 ```
-input_vector -> sender_message -> receiver_output (label=gold_label_value)
+input_vector -> receiver_input -> sender_message -> receiver_output (label=gold_label_value)
 ```
 where:
-* `input_vector` is the input vector, in comma-delimited format
-* `sender_message` is the message sent by the Sender, in comma-delimited format
+* `input_vector` is the input target vector, in comma-delimited format
+* `receiver_input` is the input to Receiver, that is, the set of target+distractor vectors, delimited by colons (note that the vectors are in the same random order in which they are presented to Receiver, and the target is not explicitly marked)
+* `sender_message` is the message sent by Sender, in comma-delimited format
 * `receiver_output` is the label value produced by the Receiver
 * `gold_label_value` is the gold label for the current input
 
-At the end of the file the number of unique messages with their occurrences will be printed.
+Statistics about the overall number of unique messages and their distribution are printed at the end of the file.
  
 ## Debug
  * `debug` -- used to run egg with pdb (python debugger) enabled
