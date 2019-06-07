@@ -80,8 +80,8 @@ where:
  * `train_mode` -- whether Gumbel-Softmax (`gs`) or Reinforce-based (`rf`) training is used (default: gs). If Reinforce 
     is specified, then both Sender and Receiver sample their outputs and the 0-1 accuracy of the Receiver label compared to the gold one is optimized. In case of 
     Gumbel-Softmax relaxation, Receiver is deterministic and the optimized loss is cross-entropy.
- * `sender_entropy_coeff/receiver_entropy_coeff` -- the regularisation coefficients for the
- entropy term in the loss; used to encourage exploration in Reinforce (default: 1e-2).
+ * `sender_entropy_coeff/receiver_entropy_coeff` -- if Reinforce is used, the regularisation coefficients for the
+ entropy term in the loss (default: 1e-2).
  * `temperature` -- if Gumbel-Softmax is used, temperature parameter (default: 1.0)
  * `n_epochs` -- number of training epochs (default: 10).
  * `batch_size` -- size of a batch. Note that it will be capped by dataset size (e.g., if the training dataset has
