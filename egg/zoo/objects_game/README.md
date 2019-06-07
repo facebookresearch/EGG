@@ -55,8 +55,8 @@ When  `--load_data_path` is not set, the vectors populating the splits are gener
 Otherwise, a manually generated data file can be loaded as well.  It must be in .npz format and should have the following fields:
  * {train|valid|test} -- these fields contain the tensor with the tuples seen by the receiver. Each tensor has dimension split_size X n_distractors+1 X n_features. split_size is the total number of trials played by the agents in the {train|valid|test} phase. Note that the +1 term added to n_distractors is due to the presence of the target vector. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5. 
  * {train|valid|test}\_labels -- a 1-D array of size split_size that contains the idx of the target in the lineup of target+distractor(s) for each trial.
- * perceptual_dimensions -- the prototype vector used to generate the splits if they were manually created, otherwise a dummy vector with the same number of dimensions as the vectors in the splits
- * n_distractors -- the number of distractors used
+ * perceptual_dimensions -- a prototype vector specifying dimensions and values in the same format as the `--perceptual_dimensions` command-line option.
+ * n_distractors -- the number of distractors used.
  
  Note that if `--load_data_path` is used, the `--{train|validation|test}\_samples` and `--n_distractors` command-line options will be ignored, as the relevant information will be inferred from the data file.
  
