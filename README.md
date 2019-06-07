@@ -103,7 +103,7 @@ Please read the contribution [guide](CONTRIBUTING.md).
 Run pytest:
 
 ```
-pytest --v
+pytest --verbose
 ```
 
 All tests should pass.
