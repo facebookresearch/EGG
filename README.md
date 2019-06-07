@@ -39,6 +39,7 @@ This is a list of representative games implemented at the moment:
  * [`egg/zoo/external_game`](/egg/zoo/external_game): A signaling game that takes inputs and ground-truth outputs from CSV files. 
  * [`egg/zoo/objects_game`](/egg/zoo/objects_game): A Sender/Receiver game where the Sender sees a target as a vectors of discrete properties
  (*e.g.* [1, 2, 3, 0] for a game with 4 dimensions) and Receiver has to recognize the target among a set of vectors.
+ * [`egg/zoo/language_bottleneck`](/egg/zoo/language_bottleneck) contains a set of games that study the information bottleneck property of the discrete communication channels. This poperty is illustrated in an EGG-based example of MNIST-based style transfer without an adversary ([notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb)).
 
 We are adding games all the time: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
 
