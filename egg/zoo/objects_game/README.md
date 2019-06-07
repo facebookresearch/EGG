@@ -99,7 +99,7 @@ The communication channel can be tuned with the following parameters that are th
  * `--dump_data_folder` -- path to folder where .npz file with dumped data will be created
  * `--dump_msg_folder` -- path to folder where a file with the output of the run will be saved
  
-The name of the file created will be:
+The name of the created file will be:
 ```
 messages_{perceptual_dimensions}_vocab_{vocab_size}' \
                         '_maxlen_{max_len}_bsize_{batch_size}' \
