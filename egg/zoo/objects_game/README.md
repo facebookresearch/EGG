@@ -47,11 +47,11 @@ Parameters to customize the default ([4, 4, 4, 4 ,4]) vectors for the game.
  * `--test_samples` -- number of distinct tuples in the test set. (default: 1e3)
 
 #### Data Loading
-Instead of generating train, validation and test splits through the parameters listed in the previous section, an external data file can be loaded with the following argument:
+Instead of generating train, validation and test splits at run time through the parameters listed in the previous section, an external data file can be loaded with the following argument:
 
  * `--load_data_path` -- path to a .npz data file containing splits in compressed numpy array format. 
 
-When  --load_data_path is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` and specifying the directory where to save them, and then load them with `--load_data_path`.
+When  `--load_data_path` is not set, the vectors populating the splits are generated according to the parameters described in the previous section. Such datasets can be saved in the correct format using `--dump_data_folder` and specifying the directory where to save them, and then loaded with `--load_data_path`.
 Otherwise, a manually generated data file can be loaded as well.  It must be in .npz format and should have the following fields:
  * {train|valid|test} -- these fields contain the tensor with the tuples seen by the receiver. Each tensor has dimension split_size X n_distractors+1 X n_features. split_size is the total number of trials played by the agents in the {train|valid|test} phase. Note that the +1 term added to n_distractors is due to the presence of the target vector. n_features is simply the number of dimensions that each vector has, in the default case of [4, 4, 4, 4, 4] it would be 5. 
  * {train|valid|test}\_labels -- a 1-D array of size split_size that contains the idx of the target in the lineup of target+distractor(s) for each trial.
