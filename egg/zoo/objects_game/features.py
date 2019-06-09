@@ -71,7 +71,7 @@ class VectorsLoader:
         self.test_samples = test.shape[0]
 
         self.n_distractors = train.shape[1] - 1
-        self.perceptual_dimensions = data['perceptual_dimensions']
+        self.perceptual_dimensions = [-1] * train.shape[-1]
         self._n_features = len(self.perceptual_dimensions)
 
         return (train, train_labels), (valid, valid_labels), (test, test_labels)
@@ -116,21 +116,19 @@ class VectorsLoader:
     def get_iterators(self):
         if self.load_data_path:
             train, valid, test = self.load_data(self.load_data_path)
+        else: # if load_data_path wasn't given then I need to generate the tuple
+            world_dim = reduce(lambda x, y: x*y, self.perceptual_dimensions)
+            possible_tuples = compute_binomial(world_dim, self.n_distractors+1)
+
+            list_of_dim = [range(1, elem+1) for elem in self.perceptual_dimensions]
+            all_vectors = list(itertools.product(*list_of_dim))
+
+            train, valid, test = self.generate_tuples(data=all_vectors)
+            assert possible_tuples > self.train_samples + self.validation_samples + self.test_samples , f'Not enough data for requested split sizes. Reduced split samples or increase perceptual_dimensions'
 
         # batch size must be smaller than every split size. every split size must be greater than 0
         assert self.train_samples > 0 and self.validation_samples > 0 and self.test_samples > 0, 'Train size, validation size and test size must all be greater than 0'
         assert self.train_samples > self.batch_size and self.validation_samples > self.batch_size and self.test_samples > self.batch_size, 'Batch size cannot be smaller than any split size'
-
-        world_dim = reduce(lambda x, y: x*y, self.perceptual_dimensions)
-        possible_tuples = compute_binomial(world_dim, self.n_distractors+1)
-
-        assert possible_tuples > self.train_samples + self.validation_samples + self.test_samples , f'Not enough data for requested split sizes. Reduced split samples or increase perceptual_dimensions'
-        list_of_dim = [range(1, elem+1) for elem in self.perceptual_dimensions]
-        all_vectors = list(itertools.product(*list_of_dim))
-
-        # if load_data_path wasn't given then I need to generate the tuples
-        if not self.load_data_path:
-            train, valid, test = self.generate_tuples(data=all_vectors)
 
         train_dataset = TupleDataset(*train)
         valid_dataset = TupleDataset(*valid)
@@ -150,14 +148,9 @@ class VectorsLoader:
                     valid_labels=valid[1],
                     test=test[0],
                     test_labels=test[1],
-                    perceptual_dimensions=np.array(self.perceptual_dimensions),
                     n_distractors=self.n_distractors)
 
-        self.print_expected_accuracy()
         return train_it, validation_it, test_it
-
-    def print_expected_accuracy(self):
-        pass
 
 class TupleDataset(data.Dataset):
     def __init__(self, tuples, target_idxs):

@@ -154,7 +154,7 @@ class Trainer:
 
             if self.validation_data is not None and self.validation_freq > 0 and self.epoch % self.validation_freq == 0:
                 validation_loss, rest = self.eval()
-                _message('test', self.epoch, validation_loss, rest, self.as_json)
+                _message('validation', self.epoch, validation_loss, rest, self.as_json)
 
                 if self.early_stopping:
                     self.early_stopping.update_values(validation_loss, rest, train_loss, rest, self.epoch)
