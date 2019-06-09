@@ -59,11 +59,15 @@ Generally, we assume that you use PyTorch 1.0.0 or newer (1.1.0 is advised) and 
     ```
  2. EGG can be installed as a package to be used as a library
     ```
-    pip install git+ssh://git@github.com/fairinternal/EGG.git
+    pip install git+ssh://git@github.com/facebookresearch/EGG.git
+    ```
+    or via https
+    ```
+    pip install git+https://github.com/facebookresearch/EGG.git
     ```
     Alternatively, EGG can be cloned and installed in editable mode, so that the copy can be changed:
     ```
-    git clone git@github.com:fairinternal/EGG.git && cd EGG
+    git clone git@github.com:facebookresearch/EGG.git && cd EGG
     pip install --editable .
     ```
  3.
