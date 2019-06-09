@@ -103,10 +103,6 @@ def check_args(args):
     # can't set data loading and data dumping at the same time
     assert not (args.load_data_path and  args.dump_data_folder), "Cannot set folder to dump data while setting path to vectors to be loaded. Are you trying to dump the same vectors that you are loading?"
 
-    if args.load_data_path:
-        with np.load(args.load_data_path) as loaded_data:
-            args.perceptual_dimensions = loaded_data['perceptual_dimensions']
-
     args.dump_msg_folder = pathlib.Path(args.dump_msg_folder) if args.dump_msg_folder is not None else None
 
     if (not args.evaluate) and args.dump_msg_folder:
@@ -141,9 +137,12 @@ if __name__ == "__main__":
     if opts.max_len > 1:
         baseline_msg = 'Cannot yet compute "smart" baseline value for messages of length greater than 1'
     else:
-        baseline_msg = f'| Baselines measures with {opts.n_distractors} distractors and messages of max_len = {opts.max_len}:\n' \
-            f'| Dummy random baseline: accuracy = {1 / (opts.n_distractors + 1)}\n' \
-            f'| "Smart" baseline with perceptual_dimensions {opts.perceptual_dimensions} = {compute_baseline_accuracy(opts.n_distractors, opts.max_len, *opts.perceptual_dimensions)}'
+        baseline_msg = f'\n| Baselines measures with {opts.n_distractors} distractors and messages of max_len = {opts.max_len}:\n' \
+            f'| Dummy random baseline: accuracy = {1 / (opts.n_distractors + 1)}\n'
+        if -1 not in opts.perceptual_dimensions:
+            baseline_msg += f'| "Smart" baseline with perceptual_dimensions {opts.perceptual_dimensions} = {compute_baseline_accuracy(opts.n_distractors, opts.max_len, *opts.perceptual_dimensions)}\n'
+        else:
+            baseline_msg += f'| Data was loaded froman external file, thus no perceptual_dimension vector was provided, "smart baseline" cannot be computed\n'
 
     print(baseline_msg)
 
