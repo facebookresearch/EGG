@@ -25,7 +25,7 @@ with PyTorch. However, to get a taste of communication games without writing any
 This is a list of representative games implemented at the moment:
  * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering
  the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization
- done by Reinforce and Gumbel-Softmax relaxation.
+ done by Reinforce and Gumbel-Softmax relaxation ([notebook](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)).
  * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more
  distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender.
  This implementation is based on Diane Bouchacourt's code.
