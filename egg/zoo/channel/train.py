@@ -131,7 +131,6 @@ def main(params):
     test_loader = UniformLoader(opts.n_features)
 
     sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
-    receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
 
     if opts.mode.lower() == 'rf':
         sender = core.RnnSenderReinforce(sender,
@@ -139,10 +138,12 @@ def main(params):
                                    cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
                                    force_eos=force_eos)
         if opts.receiver_cell == 'transformer':
+            receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
             receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
                                                              opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
                                                              opts.receiver_num_layers)
         else:
+            receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
             receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
                                                  opts.receiver_hidden, cell=opts.receiver_cell,
                                                  num_layers=opts.receiver_num_layers)
@@ -164,7 +165,7 @@ def main(params):
     else:
         raise NotImplementedError(f'Unknown training mode, {opts.mode}')
 
-    optimizer = core.build_optimizer(game.params())
+    optimizer = core.build_optimizer(game.parameters())
 
     early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
 
