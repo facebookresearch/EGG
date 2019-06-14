@@ -70,7 +70,7 @@ def main(params):
     sender = Sender(opts.vocab_size)  # the "data" transform part of an agent
     sender = core.GumbelSoftmaxWrapper(sender, temperature=1.0)  # wrapping into a GS interface
 
-    receiver = Receiver(opts.vocab_size)
+    receiver = Receiver()
     receiver = core.SymbolReceiverWrapper(receiver, vocab_size=opts.vocab_size,
                                           agent_input_size=400)
     # setting up as a standard Sender/Receiver game with 1 symbol communication
