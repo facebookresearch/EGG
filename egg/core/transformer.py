@@ -29,7 +29,7 @@ class TransformerEncoder(torch.nn.Module):
         # NB: they use a different one
         self.embedding = nn.Embedding(vocab_size, embed_dim)
 
-        self.padding_idx = 0
+        self.embed_dim = embed_dim
         self.max_source_positions = max_len
         self.embed_scale = math.sqrt(embed_dim)
         self.embed_positions = SinusoidalPositionEmbedding(max_len, embed_dim) if positional_embedding else None
@@ -47,6 +47,9 @@ class TransformerEncoder(torch.nn.Module):
 
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
 
+    def init_parameters(self):
+        nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim ** -0.5)
+
     def forward(self, src_tokens, encoder_padding_mask=None):
         # embed tokens and positions
         x = self.embed_scale * self.embedding(src_tokens)
@@ -58,16 +61,10 @@ class TransformerEncoder(torch.nn.Module):
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
 
-        # compute padding mask
-        #encoder_padding_mask = src_tokens.eq(self.padding_idx)
-        #if not encoder_padding_mask.any():
-        #    encoder_padding_mask = None
-
         # encoder layers
         for layer in self.layers:
             x = layer(x, encoder_padding_mask)
 
-        #if self.normalize:
         x = self.layer_norm(x)
 
         #  T x B x C -> B x T x C
@@ -114,53 +111,4 @@ class TransformerEncoderLayer(nn.Module):
         nn.init.constant_(self.fc1.bias, 0.)
         nn.init.xavier_uniform_(self.fc2.weight)
         nn.init.constant_(self.fc2.bias, 0.)
-
-class Model(torch.nn.Module):
-    def __init__(self, enc, emb_dim, out_dim):
-        super().__init__()
-
-        self.enc = enc
-        self.fc = torch.nn.Linear(emb_dim, out_dim)
-
-    def forward(self, x):
-        x = self.enc(x)
-        x = self.fc(x[:, -1, :])
-        return x
-
-
-if __name__ == '__main__':
-    torch.manual_seed(7)
-
-    encoder = TransformerEncoder(vocab_size=3, max_len=4, embed_dim=10, num_heads=1, n_layers=1,
-                                 hidden_size=10, positional_embedding=True)
-    model = Model(encoder, emb_dim=10, out_dim=2)
-
-    BATCH_X = torch.tensor([[1, 1, 1],
-                            [1, 0, 0],
-                            [1, 0, 1],
-                            [1, 1, 0],
-
-                            [0, 0, 0],
-                            [0, 1, 1],
-                            [0, 0, 0],
-                            [0, 1, 0]
-                            ]).long() + 1
-    # 0 is padding
-
-    #BATCH_Y = torch.tensor([1, 0, 1, 1, 0, 1, 0, 1]).long()
-    BATCH_Y = torch.tensor([1, 1, 1, 1, 0, 0, 0, 0]).long()
-
-    optim = torch.optim.Adam(params=model.parameters())
-
-    for i in range(1000):
-        optim.zero_grad()
-
-        output = model(BATCH_X)
-        loss = F.cross_entropy(output, BATCH_Y)
-        loss.backward()
-        optim.step()
-
-        if i % 50 == 0:
-            acc = (output.argmax(dim=1) == BATCH_Y).float().mean()
-            print(f'acc = {acc}')
 
