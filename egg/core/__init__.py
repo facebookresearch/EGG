@@ -38,5 +38,6 @@ __all__ = [
     'move_to',
     'get_summary_writer',
     'close',
-    'SymbolReceiverWrapper'
+    'SymbolReceiverWrapper',
+    'TransformerReceiverDeterministic'
 ]
