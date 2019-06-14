@@ -30,15 +30,13 @@ class Sender(nn.Module):
 
 
 class Receiver(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self):
         super(Receiver, self).__init__()
-        self.fc1 = nn.Linear(vocab_size, 400)
-        self.fc2 = nn.Linear(400, 784)
+        self.fc = nn.Linear(400, 784)
 
     def forward(self, x, _input):
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
+        x = F.leaky_relu(x)
+        x = self.fc(x)
         return torch.sigmoid(x)
 
 
@@ -71,7 +69,10 @@ def main(params):
     # initialize the agents and the game
     sender = Sender(opts.vocab_size)  # the "data" transform part of an agent
     sender = core.GumbelSoftmaxWrapper(sender, temperature=1.0)  # wrapping into a GS interface
+
     receiver = Receiver(opts.vocab_size)
+    receiver = core.SymbolReceiverWrapper(receiver, vocab_size=opts.vocab_size,
+                                          agent_input_size=400)
     # setting up as a standard Sender/Receiver game with 1 symbol communication
     game = core.SymbolGameGS(sender, receiver, loss)
     # This callback would be called at the end of each epoch by the Trainer; it reduces the sampling
