@@ -46,6 +46,7 @@ class TransformerEncoder(torch.nn.Module):
         self.dropout = p_dropout
 
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
+        self.init_parameters()
 
     def init_parameters(self):
         nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim ** -0.5)
