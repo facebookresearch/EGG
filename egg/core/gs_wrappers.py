@@ -126,6 +126,21 @@ class RelaxedEmbedding(nn.Embedding):
             return F.embedding(x, self.weight, self.padding_idx, self.max_norm, self.norm_type, self.scale_grad_by_freq, self.sparse)
 
 
+class SymbolReceiverWrapper(nn.Module):
+    """
+    An optional wrapper for single-symbol Receiver, both Gumbel-Softmax and Reinforce. Receives a message, embeds it,
+    and passes to the wrapped agent.
+    """
+    def __init__(self, agent, vocab_size, agent_input_size):
+        super(SymbolReceiverWrapper, self).__init__()
+        self.agent = agent
+        self.embedding = RelaxedEmbedding(vocab_size, agent_input_size)
+
+    def forward(self, message, input=None):
+        embedded_message = self.embedding(message)
+        return self.agent(embedded_message, input)
+
+
 class RnnSenderGS(nn.Module):
     """
     Gumbel Softmax wrapper for Sender that outputs variable-length sequence of symbols.

@@ -9,7 +9,7 @@ from egg.core.early_stopping import BaseEarlyStopper, EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
                           SymbolGameGS, RelaxedEmbedding,
                           RnnSenderGS, RnnReceiverGS,
-                          SenderReceiverRnnGS)
+                          SenderReceiverRnnGS, SymbolReceiverWrapper)
 
 from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  ReinforceDeterministicWrapper, RnnReceiverReinforce,
@@ -37,5 +37,6 @@ __all__ = [
     'dump_sender_receiver',
     'move_to',
     'get_summary_writer',
-    'close'
+    'close',
+    'SymbolReceiverWrapper'
 ]
