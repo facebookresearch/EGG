@@ -35,7 +35,10 @@ class Receiver(nn.Module):
         self.fc = nn.Linear(400, 784)
 
     def forward(self, x, _input):
-        x = F.leaky_relu(x)
+        # Under GS-based optimization, the embedding layer of SymbolReceiverWrapper would be 
+        # essentially a linear layer. Since there is no point in having two linear layers
+        # sequentially, we put a non-linearity
+        x = F.leaky_relu(x)  
         x = self.fc(x)
         return torch.sigmoid(x)
 
