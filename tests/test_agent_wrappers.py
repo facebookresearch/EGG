@@ -118,3 +118,24 @@ def test_game_reinforce():
     trainer.train(5000)
 
     assert (sender.agent.fc1.weight.t().argmax(dim=1) == BATCH_Y).all(), str(sender.agent.fc1.weight)
+
+
+def test_symbol_wrapper():
+    core.init()
+
+    receiver = core.SymbolReceiverWrapper(Receiver(), vocab_size=15, agent_input_size=5)
+
+    # when trained with REINFORCE, the message would be encoded as long ids
+    message_rf = torch.randint(high=15, size=(16,)).long()
+    output_rf = receiver(message_rf)
+
+    assert output_rf.size() == torch.Size((16, 5))
+
+    # when trained with Gumbel-Softmax, the message would be encoded as one-hots
+    message_gs = torch.zeros((16, 15))
+    message_gs.scatter_(1, message_rf.unsqueeze(1), 1.0)  # same message, one-hot-encoded
+    output_gs = receiver(message_gs)
+
+    assert output_rf.eq(output_gs).all().item() == 1
+
+
