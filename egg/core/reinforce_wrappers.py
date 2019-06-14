@@ -9,6 +9,8 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
 
+from .transformer import TransformerEncoder
+
 
 class ReinforceWrapper(nn.Module):
     """
@@ -508,3 +510,49 @@ class SenderReceiverRnnReinforce(nn.Module):
     def update_baseline(self, name, value):
         self.n_points[name] += 1
         self.mean_baseline[name] += (value.detach().mean().item() - self.mean_baseline[name]) / self.n_points[name]
+
+
+class TransformerReceiverDeterministic(nn.Module):
+    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True):
+        super(TransformerReceiverDeterministic, self).__init__()
+        self.agent = agent
+        self.encoder = TransformerEncoder(vocab_size=vocab_size,
+                                          max_len=max_len,
+                                          embed_dim=emb_dim,
+                                          num_heads=num_heads,
+                                          n_layers=num_layers,
+                                          hidden_size=n_hidden,
+                                          positional_embedding=positional_emb)
+
+    def forward(self, message, input=None, lengths=None):
+        if lengths is None:
+            lengths = _find_lengths(message)
+
+        # TODO: pass mask to transformer directly
+
+        padding_mask = torch.zeros_like(message).byte()
+
+        for i in range(message.size(0)):
+            l = lengths[i]
+            padding_mask[i, l+1:] = 1
+
+        transformed = self.encoder(message, padding_mask)
+
+        sliced = []
+        for i, l in enumerate(lengths):
+            if l == transformed.size(1):
+                l = -1
+            sliced.append(transformed[i, l, :])
+        # TODO: double check what's happening
+
+        transformed = torch.stack(sliced)
+
+        #print('transformed', transformed)
+        #agent_output = self.agent(transformed[:, -1, :], input)
+        agent_output = self.agent(transformed, input)
+        #print('agent outtput', agent_output)
+
+        logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
+        entropy = logits
+
+        return agent_output, logits, entropy

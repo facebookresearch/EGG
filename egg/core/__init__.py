@@ -14,7 +14,7 @@ from .gs_wrappers import (GumbelSoftmaxWrapper,
 from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  ReinforceDeterministicWrapper, RnnReceiverReinforce,
                                  RnnSenderReinforce, SenderReceiverRnnReinforce,
-                                 RnnReceiverDeterministic)
+                                 RnnReceiverDeterministic, TransformerReceiverDeterministic)
 
 __all__ = [
     'Trainer',
