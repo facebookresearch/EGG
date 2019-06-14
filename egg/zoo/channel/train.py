@@ -33,7 +33,8 @@ def get_params(params):
                         help='Number hidden layers of receiver. Only in reinforce (default: 1)')
     parser.add_argument('--sender_num_layers', type=int, default=1,
                         help='Number hidden layers of receiver. Only in reinforce (default: 1)')
-
+    parser.add_argument('--receiver_num_heads', type=int, default=8,
+                        help='Number of attention heads for Transformer Receiver (default: 8)')
     parser.add_argument('--sender_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Sender (default: 10)')
     parser.add_argument('--receiver_embedding', type=int, default=10,
@@ -42,7 +43,7 @@ def get_params(params):
     parser.add_argument('--sender_cell', type=str, default='rnn',
                         help='Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)')
     parser.add_argument('--receiver_cell', type=str, default='rnn',
-                        help='Type of the cell used for Receiver {rnn, gru, lstm} (default: rnn)')
+                        help='Type of the model used for Receiver {rnn, gru, lstm, transformer} (default: rnn)')
 
 
     parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
@@ -66,6 +67,9 @@ def get_params(params):
                         help="Early stopping threshold on accuracy (defautl: 0.9999)")
 
     args = core.init(parser, params)
+
+    assert not (args.receiver_cell == 'transformer' and args.mode == 'gs'), \
+        "Currently transformer receiver is only supported for Reinforce-based training"
     return args
 
 
@@ -134,7 +138,12 @@ def main(params):
                                    opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
                                    cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
                                    force_eos=force_eos)
-        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
+        if opts.receiver_cell == 'transformer':
+            receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
+                                                             opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
+                                                             opts.receiver_num_layers)
+        else:
+            receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
                                                  opts.receiver_hidden, cell=opts.receiver_cell,
                                                  num_layers=opts.receiver_num_layers)
 
@@ -155,10 +164,7 @@ def main(params):
     else:
         raise NotImplementedError(f'Unknown training mode, {opts.mode}')
 
-    optimizer = torch.optim.Adam([
-        {'params': game.sender.parameters(), 'lr': opts.lr},
-        {'params': game.receiver.parameters(), 'lr': opts.lr}
-    ])
+    optimizer = core.build_optimizer(game.params())
 
     early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
 
