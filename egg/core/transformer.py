@@ -21,6 +21,10 @@ class SinusoidalPositionEmbedding(nn.Module):
 
 
 class TransformerEncoder(torch.nn.Module):
+    """
+    Implements a basic Transformer Encoder module with fixed Sinusoidal embeddings.
+    Initializations of the parameters are adopted from fairseq.
+    """
     def __init__(self, vocab_size, max_len, embed_dim, num_heads, n_layers, hidden_size,
                  p_dropout=0.0,
                  positional_embedding=True):
@@ -75,11 +79,12 @@ class TransformerEncoder(torch.nn.Module):
 
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0):
+    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0):
         super().__init__()
         self.embed_dim = embed_dim
 
-        self.self_attn = torch.nn.MultiheadAttention(embed_dim=self.embed_dim, num_heads=num_heads, dropout=0.0)
+        self.self_attn = torch.nn.MultiheadAttention(embed_dim=self.embed_dim, num_heads=num_heads,
+                                                     dropout=attention_dropout)
         self.self_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
         self.dropout = dropout
@@ -87,7 +92,9 @@ class TransformerEncoderLayer(nn.Module):
         self.normalize_before = True
         self.fc1 = torch.nn.Linear(self.embed_dim, encoder_ffn_embed_dim)
         self.fc2 = torch.nn.Linear(encoder_ffn_embed_dim, self.embed_dim)
-        self.final_layer_norm = torch.nn.LayerNorm(self.embed_dim)
+        # it seems there are two ways to apply layer norm - before (in tensor2tensor code)
+        # or after (the original paper). We resort to the first as it is suggested to be more robust
+        self.layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
         self.init_parameters()
 
@@ -99,7 +106,7 @@ class TransformerEncoderLayer(nn.Module):
         x = residual + x
 
         residual = x
-        x = self.final_layer_norm(x)
+        x = self.layer_norm(x)
         x = F.relu(self.fc1(x))
         # fairseq has an activation dropout here
         x = self.fc2(x)
