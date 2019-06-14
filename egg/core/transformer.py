@@ -22,10 +22,10 @@ class SinusoidalPositionEmbedding(nn.Module):
 
 class TransformerEncoder(torch.nn.Module):
     def __init__(self, vocab_size, max_len, embed_dim, num_heads, n_layers, hidden_size,
+                 p_dropout=0.0,
                  positional_embedding=True):
         super().__init__()
 
-        #self.dropout = 0.0
         # NB: they use a different one
         self.embedding = nn.Embedding(vocab_size, embed_dim)
 
@@ -43,19 +43,17 @@ class TransformerEncoder(torch.nn.Module):
             )
             for _ in range(n_layers)
         ])
+        self.dropout = p_dropout
 
-        #self.normalize = False
-        #if self.normalize:
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
 
     def forward(self, src_tokens, encoder_padding_mask=None):
-        #print(encoder_padding_mask)
         # embed tokens and positions
         x = self.embed_scale * self.embedding(src_tokens)
 
         if self.embed_positions is not None:
             x = self.embed_positions(x)
-        #x = F.dropout(x, p=self.dropout, training=self.training)
+        x = F.dropout(x, p=self.dropout, training=self.training)
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
@@ -79,37 +77,43 @@ class TransformerEncoder(torch.nn.Module):
 
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim):
+    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0):
         super().__init__()
         self.embed_dim = embed_dim
 
         self.self_attn = torch.nn.MultiheadAttention(embed_dim=self.embed_dim, num_heads=num_heads, dropout=0.0)
         self.self_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
-        #self.dropout = 0.0
-        #self.activation_dropout = 0.0
+        self.dropout = dropout
 
         self.normalize_before = True
-        self.fc1 = torch.nn.Linear(self.embed_dim, encoder_ffn_embed_dim) #Linear(self.embed_dim, encoder_ffn_embed_dim)
-        self.fc2 = torch.nn.Linear(encoder_ffn_embed_dim, self.embed_dim) #Linear(encoder_ffn_embed_dim, self.embed_dim)
+        self.fc1 = torch.nn.Linear(self.embed_dim, encoder_ffn_embed_dim)
+        self.fc2 = torch.nn.Linear(encoder_ffn_embed_dim, self.embed_dim)
         self.final_layer_norm = torch.nn.LayerNorm(self.embed_dim)
+
+        self.init_parameters()
 
     def forward(self, x, encoder_padding_mask):
         residual = x
         x = self.self_attn_layer_norm(x)
         x, _ = self.self_attn(query=x, key=x, value=x, key_padding_mask=encoder_padding_mask)
-        #x = F.dropout(x, p=self.dropout, training=self.training)
+        x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
 
         residual = x
         x = self.final_layer_norm(x)
         x = F.relu(self.fc1(x))
-        #x = F.dropout(x, p=self.activation_dropout, training=self.training)
+        # fairseq has an activation dropout here
         x = self.fc2(x)
-        #x = F.dropout(x, p=self.dropout, training=self.training)
+        x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
         return x
 
+    def init_parameters(self):
+        nn.init.xavier_uniform_(self.fc1.weight)
+        nn.init.constant_(self.fc1.bias, 0.)
+        nn.init.xavier_uniform_(self.fc2.weight)
+        nn.init.constant_(self.fc2.bias, 0.)
 
 class Model(torch.nn.Module):
     def __init__(self, enc, emb_dim, out_dim):
