@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
 
-from .transformer import TransformerEncoder
+from .transformer import TransformerEncoder, TransformerDecoder
 
 
 class ReinforceWrapper(nn.Module):
@@ -547,12 +547,79 @@ class TransformerReceiverDeterministic(nn.Module):
 
         transformed = torch.stack(sliced)
 
-        #print('transformed', transformed)
-        #agent_output = self.agent(transformed[:, -1, :], input)
         agent_output = self.agent(transformed, input)
-        #print('agent outtput', agent_output)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
         entropy = logits
 
         return agent_output, logits, entropy
+
+
+class TransformerSenderReinforce(nn.Module):
+    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, num_layers=1, force_eos=False):
+        super(TransformerSenderReinforce, self).__init__()
+        self.agent = agent
+
+        self.force_eos = force_eos
+
+        self.max_len = max_len
+
+        if force_eos: self.max_len -= 1
+
+        self.transformer = TransformerDecoder(vocab_size=vocab_size, embed_dim=emb_dim,
+                                              max_len=max_len, n_decoder_layers=num_layers,
+                                              attention_heads=n_heads, ffn_embed_dim=ffn_embed_dim)
+
+        self.hidden_to_output = nn.Linear(n_hidden, vocab_size)
+        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.sos_embedding = nn.Parameter(torch.zeros(emb_dim))
+        self.emb_dim = emb_dim
+        self.vocab_size = vocab_size
+
+    def forward(self, x):
+        batch_size = x.size(0)
+        encoder_state = self.agent(x)
+
+        self_input = self.sos_embedding(batch_size, -1)
+        padded_input = torch.zeros((batch_size, self.max_len))
+
+        sequence = []
+        logits = []
+        entropy = []
+
+        for step in range(self.max_len):
+            full_input = torch.cat([self_input, padded_input[:, step + 1:]])
+
+            mask = torch.ones((batch_size, self.max_len))
+            mask[:, :step+1] = 0
+
+            output = self.transformer()
+
+
+
+
+            step_logits = F.log_softmax(self.hidden_to_output(h_t), dim=1)
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+
+            if self.training:
+                x = distr.sample()
+            else:
+                x = step_logits.argmax(dim=1)
+            logits.append(distr.log_prob(x))
+
+            input = self.embedding(x)
+            sequence.append(x)
+
+        sequence = torch.stack(sequence).permute(1, 0)
+        logits = torch.stack(logits).permute(1, 0)
+        entropy = torch.stack(entropy).permute(1, 0)
+
+        if self.force_eos:
+            zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
+
+            sequence = torch.cat([sequence, zeros.long()], dim=1)
+            logits = torch.cat([logits, zeros], dim=1)
+            entropy = torch.cat([entropy, zeros], dim=1)
+
+        return sequence, logits, entropy
