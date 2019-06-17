@@ -163,12 +163,15 @@ class Trainer:
         if self.checkpoint_path:
             self.save_checkpoint()
 
-    def save_checkpoint(self):
+    def save_checkpoint(self, name=''):
         """
         Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
         """
         self.checkpoint_path.mkdir(exist_ok=True)
-        path = self.checkpoint_path / f'{self.epoch}.tar'
+        if name:
+            path = self.checkpoint_path / f'{name}_{self.epoch}.tar'
+        else:
+            path = self.checkpoint_path / f'{self.epoch}.tar'
         torch.save(self.get_state(), path)
 
     def get_state(self):
