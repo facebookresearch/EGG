@@ -585,7 +585,7 @@ class TransformerSenderReinforce(nn.Module):
 
         input = self.sos_embedding.expand(batch_size, -1).unsqueeze(1)
 
-        padded_input = torch.zeros((batch_size, self.max_len, self.emb_dim))
+        padded_input = torch.zeros((batch_size, self.max_len, self.emb_dim)).to(symbol.device)
 
         sequence = []
         logits = []
@@ -595,7 +595,7 @@ class TransformerSenderReinforce(nn.Module):
             full_input = torch.cat([input, padded_input[:, step + 1:]], dim=1)
             mask = torch.ones((batch_size, self.max_len)).byte()
             mask[:, :step+1] = 0
-
+            mask = mask.to(symbol.device)
             output = self.transformer(embedded_input=full_input,
                                       encoder_out=encoder_state, self_attn_mask=mask)
 
