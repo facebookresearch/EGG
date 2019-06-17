@@ -129,6 +129,10 @@ class SymbolGameReinforce(nn.Module):
 
 def _find_lengths(messages):
     """
+    :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
+    :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).
+    If no <eos> is found, the full length is returned (i.e. messages.size(1)).
+
     >>> messages = torch.tensor([[1, 1, 0, 0, 0, 1], [1, 1, 1, 10, 100500, 5]])
     >>> lengths = _find_lengths(messages)
     >>> lengths
