@@ -539,14 +539,11 @@ class TransformerReceiverDeterministic(nn.Module):
 
         transformed = self.encoder(message, padding_mask)
 
-        print(transformed.size(), transformed[0, :])
         sliced = []
         for i, l in enumerate(lengths):
             if l == transformed.size(1):
                 l = -1
             sliced.append(transformed[i, l, :])
-        # TODO: double check what's happening
-
         transformed = torch.stack(sliced)
 
         agent_output = self.agent(transformed, input)
