@@ -524,27 +524,30 @@ class TransformerReceiverDeterministic(nn.Module):
                                           n_layers=num_layers,
                                           hidden_size=n_hidden,
                                           positional_embedding=positional_emb)
+        self.max_len = max_len
 
     def forward(self, message, input=None, lengths=None):
         if lengths is None:
             lengths = _find_lengths(message)
 
-        # TODO: pass mask to transformer directly
+        batch_size = message.size(0)
 
-        padding_mask = torch.zeros_like(message).byte()
+        len_indicators = torch.arange(self.max_len).expand((batch_size, self.max_len)).to(lengths.device)
+        # [1, 2, 3, ...]
+        # [1, 2, 3, ...]
+        lengths_expanded = lengths.unsqueeze(1)
 
-        for i in range(message.size(0)):
-            l = lengths[i]
-            padding_mask[i, l+1:] = 1
+        padding_mask = len_indicators < lengths_expanded
+
+        #padding_mask = torch.zeros_like(message).byte()
+        #for i in range(message.size(0)):
+        #    l = lengths[i]
+        #    padding_mask[i, l+1:] = 1
 
         transformed = self.encoder(message, padding_mask)
 
-        sliced = []
-        for i, l in enumerate(lengths):
-            if l == transformed.size(1):
-                l = -1
-            sliced.append(transformed[i, l, :])
-        transformed = torch.stack(sliced)
+        slice_index = torch.clap(lengths, max=self.max_len-1)
+        transformed = torch.index_select(transformed, dim=1, index=slice_index)
 
         agent_output = self.agent(transformed, input)
 

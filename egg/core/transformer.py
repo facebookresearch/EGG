@@ -189,6 +189,8 @@ class TransformerDecoderLayer(nn.Module):
 
         self.layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
+        self.init_parameters()
+
     def init_parameters(self):
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.constant_(self.fc1.bias, 0.)
