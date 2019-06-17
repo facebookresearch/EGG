@@ -1,5 +1,5 @@
 This code implements the signalling game described in [1]. The game proceeds as follows:
- * Sender is shown a target image alognside with one or many distractor images,
+ * Sender is shown a target image alongside with one or many distractor images,
  * Sender sends a one-symbol message to Receiver,
  * Receiver obtains Sender's message and all images in random order,
  * Receiver predicts which of the received images is the target one and agents are rewarded if the prediction is correct.
