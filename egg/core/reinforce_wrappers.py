@@ -564,7 +564,8 @@ class TransformerSenderReinforce(nn.Module):
 
         self.max_len = max_len
 
-        if force_eos: self.max_len -= 1
+        if force_eos:
+            self.max_len -= 1
 
         self.transformer = TransformerDecoder(embed_dim=emb_dim,
                                               max_len=max_len, n_decoder_layers=num_layers,
@@ -629,13 +630,3 @@ class TransformerSenderReinforce(nn.Module):
         return sequence, logits, entropy
 
 
-if __name__ == '__main__':
-    agent = torch.nn.Linear(10, 10)
-
-    model = TransformerSenderReinforce(agent=agent,
-                                       vocab_size=10, num_layers=1,
-                                       emb_dim=10, max_len=4, n_heads=2, ffn_embed_dim=10)
-
-    x = torch.zeros((1, 10))
-
-    model(x)
