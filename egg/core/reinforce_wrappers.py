@@ -537,18 +537,15 @@ class TransformerReceiverDeterministic(nn.Module):
         # [1, 2, 3, ...]
         lengths_expanded = lengths.unsqueeze(1)
 
-        padding_mask = len_indicators < lengths_expanded
-
-        #padding_mask = torch.zeros_like(message).byte()
-        #for i in range(message.size(0)):
-        #    l = lengths[i]
-        #    padding_mask[i, l+1:] = 1
+        padding_mask = len_indicators >= lengths_expanded
 
         transformed = self.encoder(message, padding_mask)
 
-        slice_index = torch.clap(lengths, max=self.max_len-1)
-        transformed = torch.index_select(transformed, dim=1, index=slice_index)
-
+        slice_index = torch.clamp(lengths, max=self.max_len-1).cpu()
+        slice = []
+        for i, index in enumerate(slice_index):
+            slice.append(transformed[i, index, :])
+        transformed = torch.stack(slice)
         agent_output = self.agent(transformed, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
