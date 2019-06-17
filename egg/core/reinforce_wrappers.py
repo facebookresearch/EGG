@@ -517,35 +517,36 @@ class TransformerReceiverDeterministic(nn.Module):
     def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
-        self.encoder = TransformerEncoder(vocab_size=vocab_size,
-                                          max_len=max_len,
+        # we will use a special symbol prepended to the input messages which would have term id of `vocab_size`.
+        # Hence we increase the vocab size and the max length
+        self.encoder = TransformerEncoder(vocab_size=vocab_size + 1,
+                                          max_len=max_len + 1,
                                           embed_dim=emb_dim,
                                           num_heads=num_heads,
                                           n_layers=num_layers,
                                           hidden_size=n_hidden,
                                           positional_embedding=positional_emb)
         self.max_len = max_len
+        self.sos_id = vocab_size
 
     def forward(self, message, input=None, lengths=None):
+        batch_size = message.size(0)
+
+        prefix = self.sos_id.unsqueeze(0).expand((batch_size, 1, 1))
+
+        message = torch.cat([prefix, message], dim=1)
+
         if lengths is None:
             lengths = _find_lengths(message)
 
-        batch_size = message.size(0)
-
-        len_indicators = torch.arange(self.max_len).expand((batch_size, self.max_len)).to(lengths.device)
-        # [1, 2, 3, ...]
-        # [1, 2, 3, ...]
+        # max_len + 1 due to the prepended symbol
+        len_indicators = torch.arange(self.max_len + 1).expand((batch_size, self.max_len + 1)).to(lengths.device)
         lengths_expanded = lengths.unsqueeze(1)
-
         padding_mask = len_indicators >= lengths_expanded
 
         transformed = self.encoder(message, padding_mask)
-
-        slice_index = torch.clamp(lengths, max=self.max_len-1).cpu()
-        slice = []
-        for i, index in enumerate(slice_index):
-            slice.append(transformed[i, index, :])
-        transformed = torch.stack(slice)
+        # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
+        transformed = transformed[:, 0, :]
         agent_output = self.agent(transformed, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
