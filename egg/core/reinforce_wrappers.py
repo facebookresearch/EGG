@@ -529,6 +529,8 @@ class TransformerReceiverDeterministic(nn.Module):
         if lengths is None:
             lengths = _find_lengths(message)
 
+        # TODO: pass mask to transformer directly
+
         padding_mask = torch.zeros_like(message).byte()
 
         for i in range(message.size(0)):
@@ -536,7 +538,17 @@ class TransformerReceiverDeterministic(nn.Module):
             padding_mask[i, l+1:] = 1
 
         transformed = self.encoder(message, padding_mask)
-        transformed = transformed.contiguous().view(message.size(0), -1)
+
+        print(transformed.size(), transformed[0, :])
+        sliced = []
+        for i, l in enumerate(lengths):
+            if l == transformed.size(1):
+                l = -1
+            sliced.append(transformed[i, l, :])
+        # TODO: double check what's happening
+
+        transformed = torch.stack(sliced)
+
         agent_output = self.agent(transformed, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)

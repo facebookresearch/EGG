@@ -138,7 +138,7 @@ def main(params):
                                    cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
                                    force_eos=force_eos)
         if opts.receiver_cell == 'transformer':
-            receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding * opts.max_len)
+            receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
             receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
                                                              opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
                                                              opts.receiver_num_layers)
