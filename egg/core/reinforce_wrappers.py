@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -538,6 +539,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
         transformed = self.encoder(message, padding_mask)
 
+        print(transformed.size(), transformed[0, :])
         sliced = []
         for i, l in enumerate(lengths):
             if l == transformed.size(1):
@@ -556,7 +558,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
 
 class TransformerSenderReinforce(nn.Module):
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, num_layers=1, force_eos=False):
+    def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim, force_eos=False):
         super(TransformerSenderReinforce, self).__init__()
         self.agent = agent
 
@@ -570,56 +572,63 @@ class TransformerSenderReinforce(nn.Module):
                                               max_len=max_len, n_decoder_layers=num_layers,
                                               attention_heads=n_heads, ffn_embed_dim=ffn_embed_dim)
 
-        self.hidden_to_output = nn.Linear(n_hidden, vocab_size)
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.embedding_to_vocab = nn.Linear(emb_dim, vocab_size)
+
         self.sos_embedding = nn.Parameter(torch.zeros(emb_dim))
         self.emb_dim = emb_dim
         self.vocab_size = vocab_size
 
-    def forward(self, x):
-        batch_size = x.size(0)
-        encoder_state = self.agent(x)
+        self.embed_tokens = torch.nn.Embedding(vocab_size, emb_dim)
+        self.embed_scale = math.sqrt(emb_dim)
 
-        self_input = self.sos_embedding(batch_size, -1)
-        padded_input = torch.zeros((batch_size, self.max_len))
+    def forward(self, symbol):
+        batch_size = symbol.size(0)
+        encoder_state = self.agent(symbol)
+
+        input = self.sos_embedding.expand(batch_size, -1).unsqueeze(1)
+
+        padded_input = torch.zeros((batch_size, self.max_len, self.emb_dim))
 
         sequence = []
         logits = []
         entropy = []
 
         for step in range(self.max_len):
-            full_input = torch.cat([self_input, padded_input[:, step + 1:]])
+            full_input = torch.cat([input, padded_input[:, step + 1:]], dim=1)
 
             mask = torch.ones((batch_size, self.max_len))
             mask[:, :step+1] = 0
+            mask = mask.byte()
 
-            output = self.transformer()
+            output = self.transformer(embedded_input=full_input,
+                                      encoder_out=encoder_state, self_attn_mask=mask)
 
-
-
-
-            step_logits = F.log_softmax(self.hidden_to_output(h_t), dim=1)
+            step_logits = F.log_softmax(self.embedding_to_vocab(output[:, -1, :]), dim=1)
             distr = Categorical(logits=step_logits)
             entropy.append(distr.entropy())
 
             if self.training:
-                x = distr.sample()
+                symbol = distr.sample()
             else:
-                x = step_logits.argmax(dim=1)
-            logits.append(distr.log_prob(x))
+                symbol = step_logits.argmax(dim=1)
 
-            input = self.embedding(x)
-            sequence.append(x)
+            logits.append(distr.log_prob(symbol))
+            sequence.append(symbol)
 
-        sequence = torch.stack(sequence).permute(1, 0)
-        logits = torch.stack(logits).permute(1, 0)
-        entropy = torch.stack(entropy).permute(1, 0)
-
-        if self.force_eos:
-            zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
-
-            sequence = torch.cat([sequence, zeros.long()], dim=1)
-            logits = torch.cat([logits, zeros], dim=1)
-            entropy = torch.cat([entropy, zeros], dim=1)
+            new_embedding = self.embed_tokens(symbol) * self.embed_scale
+            input = torch.cat([input, new_embedding.unsqueeze(1)], dim=1)
 
         return sequence, logits, entropy
+
+
+if __name__ == '__main__':
+    agent = torch.nn.Linear(10, 10)
+
+    model = TransformerSenderReinforce(agent=agent,
+                                       vocab_size=10, num_layers=1,
+                                       emb_dim=10, max_len=2, n_heads=2, ffn_embed_dim=10)
+
+    x = torch.zeros((1, 10))
+
+
+    model(x)

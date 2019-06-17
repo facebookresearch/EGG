@@ -129,8 +129,8 @@ class TransformerDecoder(torch.nn.Module):
 
         self.dropout = dropout
 
-        self.embed_tokens = torch.nn.Embedding(vocab_size, embed_dim)
-        self.embed_scale = math.sqrt(embed_dim)
+        #self.embed_tokens = torch.nn.Embedding(vocab_size, embed_dim)
+        #self.embed_scale = math.sqrt(embed_dim)
 
         self.embed_positions = SinusoidalPositionEmbedding(max_len, embed_dim)
 
@@ -145,15 +145,17 @@ class TransformerDecoder(torch.nn.Module):
         self.init_parameters()
 
     def init_parameters(self):
-        nn.init.normal_(self.embed_out, mean=0, std=self.output_embed_dim ** -0.5)
+        pass
+        #nn.init.normal_(self.embed_out, mean=0, std=self.output_embed_dim ** -0.5)
         # TODO: rest
 
-    def forward(self, prev_output_tokens, encoder_out, self_attn_mask):
+    def forward(self, embedded_input, encoder_out, self_attn_mask):
         # embed tokens and positions
-        x = self.embed_scale * self.embed_tokens(prev_output_tokens)
-        x = self.embed_positions(x)
+        #x = self.embed_scale * self.embed_tokens(prev_output_tokens)
 
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.embed_positions(embedded_input)
+
+        x = F.dropout(embedded_input, p=self.dropout, training=self.training)
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)
