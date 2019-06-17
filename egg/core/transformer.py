@@ -123,14 +123,11 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerDecoder(torch.nn.Module):
-    def __init__(self, vocab_size, embed_dim, max_len, n_decoder_layers,
+    def __init__(self, embed_dim, max_len, n_decoder_layers,
                  attention_heads, ffn_embed_dim, dropout=0.0):
         super().__init__()
 
         self.dropout = dropout
-
-        #self.embed_tokens = torch.nn.Embedding(vocab_size, embed_dim)
-        #self.embed_scale = math.sqrt(embed_dim)
 
         self.embed_positions = SinusoidalPositionEmbedding(max_len, embed_dim)
 
@@ -142,17 +139,8 @@ class TransformerDecoder(torch.nn.Module):
 
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
 
-        self.init_parameters()
-
-    def init_parameters(self):
-        pass
-        #nn.init.normal_(self.embed_out, mean=0, std=self.output_embed_dim ** -0.5)
-        # TODO: rest
-
     def forward(self, embedded_input, encoder_out, self_attn_mask):
-        # embed tokens and positions
-        #x = self.embed_scale * self.embed_tokens(prev_output_tokens)
-
+        # embed positions
         x = self.embed_positions(embedded_input)
 
         x = F.dropout(embedded_input, p=self.dropout, training=self.training)
@@ -211,15 +199,12 @@ class TransformerDecoderLayer(nn.Module):
             key=x,
             value=x,
             key_padding_mask=self_attn_mask)
-        print('self attn', attn)
 
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
 
-        # encoder attn loop
         residual = x
         x = self.encoder_attn_layer_norm(x)
-        # "encoder" states are not padded
         x, attn = self.encoder_attn(
             query=x,
             key=encoder_out,
