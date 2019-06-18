@@ -42,6 +42,9 @@ def get_params(params):
     parser.add_argument('--receiver_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
 
+    parser.add_argument('--causal_sender', default=False, action='store_true')
+    parser.add_argument('--causal_receiver', default=False, action='store_true')
+
     parser.add_argument('--sender_generate_style', type=str, default='in-place', choices=['standard', 'in-place'],
                         help='How the next symbol is generated within the TransformerDecoder (default: in-place)')
 
@@ -134,7 +137,8 @@ def main(params):
                                                  opts.sender_num_layers, opts.sender_num_heads,
                                                  ffn_embed_dim=opts.sender_hidden,
                                                  force_eos=opts.force_eos,
-                                                 generate_style=opts.sender_generate_style)
+                                                 generate_style=opts.sender_generate_style,
+                                                 causal=opts.causal_sender)
     else:
         sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
 
@@ -146,7 +150,7 @@ def main(params):
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
                                                          opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
-                                                         opts.receiver_num_layers)
+                                                         opts.receiver_num_layers, causal=opts.causal_receiver)
     else:
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
         receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,

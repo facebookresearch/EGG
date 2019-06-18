@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
+import numpy as np
+
 
 from .transformer import TransformerEncoder, TransformerDecoder
 
@@ -518,11 +520,12 @@ class SenderReceiverRnnReinforce(nn.Module):
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True):
+    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True,
+                 causal=False):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
-        # we will use a special symbol prepended to the input messages which would have term id of `vocab_size`.
-        # Hence we increase the vocab size and the max length
+        # in the non-causal case, we will use a special symbol prepended to the input messages which would have
+        # term id of `vocab_size`. Hence we increase the vocab size and the max length
         self.encoder = TransformerEncoder(vocab_size=vocab_size + 1,
                                           max_len=max_len + 1,
                                           embed_dim=emb_dim,
@@ -532,24 +535,43 @@ class TransformerReceiverDeterministic(nn.Module):
                                           positional_embedding=positional_emb)
         self.max_len = max_len
         self.sos_id = torch.tensor([vocab_size]).long()
+        self.causal = causal
 
     def forward(self, message, input=None, lengths=None):
         if lengths is None:
             lengths = _find_lengths(message)
 
         batch_size = message.size(0)
-        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
-        message = torch.cat([prefix, message], dim=1)
-        lengths = lengths + 1
 
-        max_len = message.size(1)
-        len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
-        lengths_expanded = lengths.unsqueeze(1)
-        padding_mask = len_indicators >= lengths_expanded
+        if not self.causal:
+            prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
+            message = torch.cat([prefix, message], dim=1)
+            lengths = lengths + 1
 
-        transformed = self.encoder(message, padding_mask)
-        # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
-        transformed = transformed[:, 0, :]
+            max_len = message.size(1)
+            len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+            lengths_expanded = lengths.unsqueeze(1)
+            padding_mask = len_indicators >= lengths_expanded
+
+            transformed = self.encoder(message, padding_mask)
+            # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
+            transformed = transformed[:, 0, :]
+        else:
+            max_len = message.size(1)
+            len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+            lengths_expanded = lengths.unsqueeze(1)
+            padding_mask = len_indicators >= lengths_expanded
+
+            attn_mask = torch.triu(torch.ones(max_len, max_len).byte(), diagonal=1).to(lengths.device)
+            attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
+            transformed = self.encoder(message, key_padding_mask=padding_mask, attn_mask=attn_mask)
+
+            last_embeddings = []
+            for i, l in enumerate(lengths.clamp(max=self.max_len-1).cpu()):
+                last_embeddings.append(transformed[i, l, :])
+            transformed = torch.stack(last_embeddings)
+
+
         agent_output = self.agent(transformed, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
@@ -560,8 +582,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
 class TransformerSenderReinforce(nn.Module):
     def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
-                 generate_style='standard',
-                 force_eos=False):
+                 generate_style='standard', causal=False, force_eos=False):
         """
         :param agent:
         :param vocab_size:
@@ -570,6 +591,7 @@ class TransformerSenderReinforce(nn.Module):
         :param num_layers:
         :param n_heads:
         :param ffn_embed_dim:
+        :param causal: whether embedding of a particular symbol should one depend on the symbols to the left
         :param generate_style: Two alternatives: 'standard' and 'in-place'. Suppose we are generating 4th symbol,
             after three symbols [s1 s2 s3] were generated.
             Then,
@@ -583,6 +605,7 @@ class TransformerSenderReinforce(nn.Module):
         self.force_eos = force_eos
         assert generate_style in ['standard', 'in-place']
         self.generate_style = generate_style
+        self.causal = causal
 
         self.max_len = max_len
 
@@ -605,17 +628,22 @@ class TransformerSenderReinforce(nn.Module):
 
     def generate_standard(self, encoder_state):
         batch_size = encoder_state.size(0)
+        device = encoder_state.device
 
         sequence = []
         logits = []
         entropy = []
 
-        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1).to(device)
         input = special_symbol
 
         for step in range(self.max_len):
-            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
-            output = self.transformer(embedded_input=input, encoder_out=encoder_state)
+            if self.causal:
+                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)
+                attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
+            else:
+                attn_mask = None
+            output = self.transformer(embedded_input=input, encoder_out=encoder_state, attn_mask=attn_mask)
             step_logits = F.log_softmax(self.embedding_to_vocab(output[:, -1, :]), dim=1)
 
             distr = Categorical(logits=step_logits)
@@ -634,17 +662,23 @@ class TransformerSenderReinforce(nn.Module):
 
     def generate_inplace(self, encoder_state):
         batch_size = encoder_state.size(0)
+        device = encoder_state.device
 
         sequence = []
         logits = []
         entropy = []
 
-        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1).to(encoder_state.device)
         output = []
         for step in range(self.max_len):
             input = torch.cat(output + [special_symbol], dim=1)
-            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
-            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state)
+            if self.causal:
+                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)
+                attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
+            else:
+                attn_mask = None
+
+            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state, attn_mask=attn_mask)
             step_logits = F.log_softmax(self.embedding_to_vocab(embedded[:, -1, :]), dim=1)
 
             distr = Categorical(logits=step_logits)

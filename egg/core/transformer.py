@@ -56,7 +56,7 @@ class TransformerEncoder(torch.nn.Module):
     def init_parameters(self):
         nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim ** -0.5)
 
-    def forward(self, src_tokens, encoder_padding_mask=None):
+    def forward(self, src_tokens, key_padding_mask=None, attn_mask=None):
         # embed tokens and positions
         x = self.embed_scale * self.embedding(src_tokens)
 
@@ -69,7 +69,7 @@ class TransformerEncoder(torch.nn.Module):
 
         # encoder layers
         for layer in self.layers:
-            x = layer(x, encoder_padding_mask)
+            x = layer(x, key_padding_mask, attn_mask)
 
         x = self.layer_norm(x)
 
@@ -99,10 +99,10 @@ class TransformerEncoderLayer(nn.Module):
 
         self.init_parameters()
 
-    def forward(self, x, encoder_padding_mask):
+    def forward(self, x, key_padding_mask=None, attn_mask=None):
         residual = x
         x = self.self_attn_layer_norm(x)
-        x, _att = self.self_attn(query=x, key=x, value=x, key_padding_mask=encoder_padding_mask)
+        x, _att = self.self_attn(query=x, key=x, value=x, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
 
@@ -139,7 +139,7 @@ class TransformerDecoder(torch.nn.Module):
 
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
 
-    def forward(self, embedded_input, encoder_out, self_attn_mask):
+    def forward(self, embedded_input, encoder_out, key_mask=None, attn_mask=None):
         # embed positions
         embedded_input = self.embed_positions(embedded_input)
 
@@ -150,7 +150,7 @@ class TransformerDecoder(torch.nn.Module):
 
         # decoder layers
         for layer in self.layers:
-            x, attn = layer(x, encoder_out, self_attn_mask=self_attn_mask)
+            x, attn = layer(x, encoder_out, key_mask=key_mask, attn_mask=attn_mask)
 
         x = self.layer_norm(x)
 
@@ -199,20 +199,23 @@ class TransformerDecoderLayer(nn.Module):
 
     def forward(self, x,
                 encoder_out,
-                self_attn_mask=None):
+                key_mask=None,
+                attn_mask=None):
         residual = x
         x = self.self_attn_layer_norm(x)
         x, attn = self.self_attn(
             query=x,
             key=x,
             value=x,
-            key_padding_mask=self_attn_mask)
+            key_padding_mask=key_mask,
+            attn_mask=attn_mask)
 
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
 
         residual = x
         x = self.encoder_attn_layer_norm(x)
+        # would be a single vector, so no point in attention at all
         x, attn = self.encoder_attn(
             query=x,
             key=encoder_out,
