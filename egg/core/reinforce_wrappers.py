@@ -614,7 +614,8 @@ class TransformerSenderReinforce(nn.Module):
         input = special_symbol
 
         for step in range(self.max_len):
-            output = self.transformer(embedded_input=input, encoder_out=encoder_state, self_attn_mask=None)
+            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
+            output = self.transformer(embedded_input=input, encoder_out=encoder_state)
             step_logits = F.log_softmax(self.embedding_to_vocab(output[:, -1, :]), dim=1)
 
             distr = Categorical(logits=step_logits)
@@ -642,7 +643,8 @@ class TransformerSenderReinforce(nn.Module):
         output = []
         for step in range(self.max_len):
             input = torch.cat(output + [special_symbol], dim=1)
-            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state, self_attn_mask=None)
+            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
+            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state)
             step_logits = F.log_softmax(self.embedding_to_vocab(embedded[:, -1, :]), dim=1)
 
             distr = Categorical(logits=step_logits)
