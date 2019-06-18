@@ -33,28 +33,28 @@ def get_params(params):
                         help='Number hidden layers of receiver. Only in reinforce (default: 1)')
     parser.add_argument('--sender_num_layers', type=int, default=1,
                         help='Number hidden layers of receiver. Only in reinforce (default: 1)')
-
+    parser.add_argument('--receiver_num_heads', type=int, default=8,
+                        help='Number of attention heads for Transformer Receiver (default: 8)')
+    parser.add_argument('--sender_num_heads', type=int, default=8,
+                        help='Number of self-attention heads for Transformer Sender (default: 8)')
     parser.add_argument('--sender_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Sender (default: 10)')
     parser.add_argument('--receiver_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
 
-    parser.add_argument('--sender_cell', type=str, default='rnn',
-                        help='Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)')
-    parser.add_argument('--receiver_cell', type=str, default='rnn',
-                        help='Type of the cell used for Receiver {rnn, gru, lstm} (default: rnn)')
+    parser.add_argument('--sender_generate_style', type=str, default='in-place', choices=['standard', 'in-place'],
+                        help='How the next symbol is generated within the TransformerDecoder (default: in-place)')
 
+    parser.add_argument('--sender_cell', type=str, default='rnn',
+                        help='Type of the cell used for Sender {rnn, gru, lstm, transformer} (default: rnn)')
+    parser.add_argument('--receiver_cell', type=str, default='rnn',
+                        help='Type of the model used for Receiver {rnn, gru, lstm, transformer} (default: rnn)')
 
     parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
                         help='The entropy regularisation coefficient for Sender (default: 1e-1)')
     parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-1,
                         help='The entropy regularisation coefficient for Receiver (default: 1e-1)')
 
-    parser.add_argument('--temperature', type=float, default=1.0,
-                        help="GS temperature for the sender (default: 1.0)")
-    parser.add_argument('--mode', type=str, default='rf',
-                        help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {rf, gs}"
-                             "(default: rf)")
     parser.add_argument('--probs', type=str, default='uniform',
                         help="Prior distribution over the concepts (default: uniform)")
     parser.add_argument('--length_cost', type=float, default=0.0,
@@ -63,9 +63,10 @@ def get_params(params):
     parser.add_argument('--name', type=str, default='model',
                         help="Name for your checkpoint (default: model)")
     parser.add_argument('--early_stopping_thr', type=float, default=0.9999,
-                        help="Early stopping threshold on accuracy (defautl: 0.9999)")
+                        help="Early stopping threshold on accuracy (default: 0.9999)")
 
     args = core.init(parser, params)
+
     return args
 
 
@@ -126,39 +127,39 @@ def main(params):
     # single batches with 1s on the diag
     test_loader = UniformLoader(opts.n_features)
 
-    sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
-    receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
+    if opts.sender_cell == 'transformer':
+        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_embedding)
+        sender = core.TransformerSenderReinforce(sender, opts.vocab_size,
+                                                 opts.sender_embedding, opts.max_len,
+                                                 opts.sender_num_layers, opts.sender_num_heads,
+                                                 ffn_embed_dim=opts.sender_hidden,
+                                                 force_eos=opts.force_eos,
+                                                 generate_style=opts.sender_generate_style)
+    else:
+        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
 
-    if opts.mode.lower() == 'rf':
         sender = core.RnnSenderReinforce(sender,
                                    opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
                                    cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
                                    force_eos=force_eos)
-        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
-                                                 opts.receiver_hidden, cell=opts.receiver_cell,
-                                                 num_layers=opts.receiver_num_layers)
-
-        game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
-                                               receiver_entropy_coeff=opts.receiver_entropy_coeff,
-                                               length_cost=opts.length_cost)
-
-        callback = None
-    elif opts.mode.lower() == 'gs':
-        sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                   cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature,
-                                   force_eos=force_eos)
-        receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_embedding,
-                    opts.receiver_hidden, cell=opts.receiver_cell)
-
-        game = core.SenderReceiverRnnGS(sender, receiver, loss, opts.length_cost)
-        callback = sender.update_temp(0.95, 0.1)
+    if opts.receiver_cell == 'transformer':
+        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
+        receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
+                                                         opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
+                                                         opts.receiver_num_layers)
     else:
-        raise NotImplementedError(f'Unknown training mode, {opts.mode}')
+        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
+        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
+                                             opts.receiver_hidden, cell=opts.receiver_cell,
+                                             num_layers=opts.receiver_num_layers)
 
-    optimizer = torch.optim.Adam([
-        {'params': game.sender.parameters(), 'lr': opts.lr},
-        {'params': game.receiver.parameters(), 'lr': opts.lr}
-    ])
+    game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
+                                           receiver_entropy_coeff=opts.receiver_entropy_coeff,
+                                           length_cost=opts.length_cost)
+
+    callback = None
+
+    optimizer = core.build_optimizer(game.parameters())
 
     early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
 
@@ -169,7 +170,7 @@ def main(params):
     if opts.checkpoint_dir:
         trainer.save_checkpoint(name=f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}')
 
-    dump(trainer.game, opts.n_features, device, opts.mode.lower() == 'gs')
+    dump(trainer.game, opts.n_features, device, False)
     core.close()
 
 

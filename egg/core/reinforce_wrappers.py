@@ -3,11 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
+
+from .transformer import TransformerEncoder, TransformerDecoder
 
 
 class ReinforceWrapper(nn.Module):
@@ -126,6 +129,10 @@ class SymbolGameReinforce(nn.Module):
 
 def _find_lengths(messages):
     """
+    :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
+    :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).
+    If no <eos> is found, the full length is returned (i.e. messages.size(1)).
+
     >>> messages = torch.tensor([[1, 1, 0, 0, 0, 1], [1, 1, 1, 10, 100500, 5]])
     >>> lengths = _find_lengths(messages)
     >>> lengths
@@ -508,3 +515,173 @@ class SenderReceiverRnnReinforce(nn.Module):
     def update_baseline(self, name, value):
         self.n_points[name] += 1
         self.mean_baseline[name] += (value.detach().mean().item() - self.mean_baseline[name]) / self.n_points[name]
+
+
+class TransformerReceiverDeterministic(nn.Module):
+    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True):
+        super(TransformerReceiverDeterministic, self).__init__()
+        self.agent = agent
+        # we will use a special symbol prepended to the input messages which would have term id of `vocab_size`.
+        # Hence we increase the vocab size and the max length
+        self.encoder = TransformerEncoder(vocab_size=vocab_size + 1,
+                                          max_len=max_len + 1,
+                                          embed_dim=emb_dim,
+                                          num_heads=num_heads,
+                                          n_layers=num_layers,
+                                          hidden_size=n_hidden,
+                                          positional_embedding=positional_emb)
+        self.max_len = max_len
+        self.sos_id = torch.tensor([vocab_size]).long()
+
+    def forward(self, message, input=None, lengths=None):
+        if lengths is None:
+            lengths = _find_lengths(message)
+
+        batch_size = message.size(0)
+        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
+        message = torch.cat([prefix, message], dim=1)
+        lengths = lengths + 1
+
+        max_len = message.size(1)
+        len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+        lengths_expanded = lengths.unsqueeze(1)
+        padding_mask = len_indicators >= lengths_expanded
+
+        transformed = self.encoder(message, padding_mask)
+        # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
+        transformed = transformed[:, 0, :]
+        agent_output = self.agent(transformed, input)
+
+        logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
+        entropy = logits
+
+        return agent_output, logits, entropy
+
+
+class TransformerSenderReinforce(nn.Module):
+    def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
+                 generate_style='standard',
+                 force_eos=False):
+        """
+        :param agent:
+        :param vocab_size:
+        :param emb_dim:
+        :param max_len:
+        :param num_layers:
+        :param n_heads:
+        :param ffn_embed_dim:
+        :param generate_style: Two alternatives: 'standard' and 'in-place'. Suppose we are generating 4th symbol,
+            after three symbols [s1 s2 s3] were generated.
+            Then,
+            'standard': [s1 s2 s3] -> [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
+            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
+        :param force_eos:
+        """
+        super(TransformerSenderReinforce, self).__init__()
+        self.agent = agent
+
+        self.force_eos = force_eos
+        assert generate_style in ['standard', 'in-place']
+        self.generate_style = generate_style
+
+        self.max_len = max_len
+
+        if force_eos:
+            self.max_len -= 1
+
+        self.transformer = TransformerDecoder(embed_dim=emb_dim,
+                                              max_len=max_len, n_decoder_layers=num_layers,
+                                              attention_heads=n_heads, ffn_embed_dim=ffn_embed_dim)
+
+        self.embedding_to_vocab = nn.Linear(emb_dim, vocab_size)
+
+        self.special_symbol_embedding = nn.Parameter(torch.zeros(emb_dim))
+        self.emb_dim = emb_dim
+        self.vocab_size = vocab_size
+
+        self.embed_tokens = torch.nn.Embedding(vocab_size, emb_dim)
+        nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.emb_dim ** -0.5)
+        self.embed_scale = math.sqrt(emb_dim)
+
+    def generate_standard(self, encoder_state):
+        batch_size = encoder_state.size(0)
+
+        sequence = []
+        logits = []
+        entropy = []
+
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        input = special_symbol
+
+        for step in range(self.max_len):
+            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
+            output = self.transformer(embedded_input=input, encoder_out=encoder_state)
+            step_logits = F.log_softmax(self.embedding_to_vocab(output[:, -1, :]), dim=1)
+
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+            if self.training:
+                symbols = distr.sample()
+            else:
+                symbols = step_logits.argmax(dim=1)
+            logits.append(distr.log_prob(symbols))
+            sequence.append(symbols)
+
+            new_embedding = self.embed_tokens(symbols) * self.embed_scale
+            input = torch.cat([input, new_embedding.unsqueeze(dim=1)], dim=1)
+
+        return sequence, logits, entropy
+
+    def generate_inplace(self, encoder_state):
+        batch_size = encoder_state.size(0)
+
+        sequence = []
+        logits = []
+        entropy = []
+
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        output = []
+        for step in range(self.max_len):
+            input = torch.cat(output + [special_symbol], dim=1)
+            # no point in masking, as we always take the last embedding, which has peeked over everything on the left
+            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state)
+            step_logits = F.log_softmax(self.embedding_to_vocab(embedded[:, -1, :]), dim=1)
+
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+            if self.training:
+                symbols = distr.sample()
+            else:
+                symbols = step_logits.argmax(dim=1)
+            logits.append(distr.log_prob(symbols))
+            sequence.append(symbols)
+
+            new_embedding = self.embed_tokens(symbols) * self.embed_scale
+            output.append(new_embedding.unsqueeze(dim=1))
+
+        return sequence, logits, entropy
+
+    def forward(self, x):
+        encoder_state = self.agent(x)
+
+        if self.generate_style == 'standard':
+            sequence, logits, entropy = self.generate_standard(encoder_state)
+        elif self.generate_style == 'in-place':
+            sequence, logits, entropy = self.generate_inplace(encoder_state)
+        else:
+            assert False, 'Unknown generate style'
+
+        sequence = torch.stack(sequence).permute(1, 0)
+        logits = torch.stack(logits).permute(1, 0)
+        entropy = torch.stack(entropy).permute(1, 0)
+
+        if self.force_eos:
+            zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
+
+            sequence = torch.cat([sequence, zeros.long()], dim=1)
+            logits = torch.cat([logits, zeros], dim=1)
+            entropy = torch.cat([entropy, zeros], dim=1)
+
+        return sequence, logits, entropy
+
+
