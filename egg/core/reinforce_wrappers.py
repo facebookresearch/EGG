@@ -9,7 +9,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
-import numpy as np
 
 from .transformer import TransformerEncoder, TransformerDecoder
 
