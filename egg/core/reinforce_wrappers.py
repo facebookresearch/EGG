@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import defaultdict
+import numpy as np
 
 from .transformer import TransformerEncoder, TransformerDecoder
 
@@ -559,11 +560,30 @@ class TransformerReceiverDeterministic(nn.Module):
 
 
 class TransformerSenderReinforce(nn.Module):
-    def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim, force_eos=False):
+    def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
+                 generate_style='standard',
+                 force_eos=False):
+        """
+        :param agent:
+        :param vocab_size:
+        :param emb_dim:
+        :param max_len:
+        :param num_layers:
+        :param n_heads:
+        :param ffn_embed_dim:
+        :param generate_style: Two alternatives: 'standard' and 'in-place'. Suppose we are generating 4th symbol,
+            after three symbols [s1 s2 s3] were generated.
+            Then,
+            'standard': [s1 s2 s3] -> [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
+            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
+        :param force_eos:
+        """
         super(TransformerSenderReinforce, self).__init__()
         self.agent = agent
 
         self.force_eos = force_eos
+        assert generate_style in ['standard', 'in-place']
+        self.generate_style = generate_style
 
         self.max_len = max_len
 
@@ -576,7 +596,7 @@ class TransformerSenderReinforce(nn.Module):
 
         self.embedding_to_vocab = nn.Linear(emb_dim, vocab_size)
 
-        self.sos_embedding = nn.Parameter(torch.zeros(emb_dim))
+        self.special_symbol_embedding = nn.Parameter(torch.zeros(emb_dim))
         self.emb_dim = emb_dim
         self.vocab_size = vocab_size
 
@@ -584,15 +604,15 @@ class TransformerSenderReinforce(nn.Module):
         nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.emb_dim ** -0.5)
         self.embed_scale = math.sqrt(emb_dim)
 
-    def forward(self, symbols):
-        batch_size = symbols.size(0)
-        encoder_state = self.agent(symbols)
-
-        input = self.sos_embedding.expand(batch_size, -1).unsqueeze(1)
+    def generate_standard(self, encoder_state):
+        batch_size = encoder_state.size(0)
 
         sequence = []
         logits = []
         entropy = []
+
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        input = special_symbol
 
         for step in range(self.max_len):
             output = self.transformer(embedded_input=input, encoder_out=encoder_state, self_attn_mask=None)
@@ -600,17 +620,55 @@ class TransformerSenderReinforce(nn.Module):
 
             distr = Categorical(logits=step_logits)
             entropy.append(distr.entropy())
-
             if self.training:
                 symbols = distr.sample()
             else:
                 symbols = step_logits.argmax(dim=1)
-
             logits.append(distr.log_prob(symbols))
             sequence.append(symbols)
 
             new_embedding = self.embed_tokens(symbols) * self.embed_scale
-            input = torch.cat([input, new_embedding.unsqueeze(1)], dim=1)
+            input = torch.cat([input, new_embedding.unsqueeze(dim=1)], dim=1)
+
+        return sequence, logits, entropy
+
+    def generate_inplace(self, encoder_state):
+        batch_size = encoder_state.size(0)
+
+        sequence = []
+        logits = []
+        entropy = []
+
+        special_symbol = self.special_symbol_embedding.expand(batch_size, -1).unsqueeze(1)
+        output = []
+        for step in range(self.max_len):
+            input = torch.cat(output + [special_symbol], dim=1)
+            embedded = self.transformer(embedded_input=input, encoder_out=encoder_state, self_attn_mask=None)
+            step_logits = F.log_softmax(self.embedding_to_vocab(embedded[:, -1, :]), dim=1)
+
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+            if self.training:
+                symbols = distr.sample()
+            else:
+                symbols = step_logits.argmax(dim=1)
+            logits.append(distr.log_prob(symbols))
+            sequence.append(symbols)
+
+            new_embedding = self.embed_tokens(symbols) * self.embed_scale
+            output.append(new_embedding.unsqueeze(dim=1))
+
+        return sequence, logits, entropy
+
+    def forward(self, x):
+        encoder_state = self.agent(x)
+
+        if self.generate_style == 'standard':
+            sequence, logits, entropy = self.generate_standard(encoder_state)
+        elif self.generate_style == 'in-place':
+            sequence, logits, entropy = self.generate_inplace(encoder_state)
+        else:
+            assert False, 'Unknown generate style'
 
         sequence = torch.stack(sequence).permute(1, 0)
         logits = torch.stack(logits).permute(1, 0)
