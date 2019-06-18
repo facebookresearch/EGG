@@ -42,8 +42,8 @@ def get_params(params):
     parser.add_argument('--receiver_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
 
-    parser.add_argument('--sender_generate_style', type=str, default='standard', choices=['standard', 'in-place'],
-                        help='How the next symbol is generated within the TransformerDecoder (default: standard)')
+    parser.add_argument('--sender_generate_style', type=str, default='in-place', choices=['standard', 'in-place'],
+                        help='How the next symbol is generated within the TransformerDecoder (default: in-place)')
 
     parser.add_argument('--sender_cell', type=str, default='rnn',
                         help='Type of the cell used for Sender {rnn, gru, lstm, transformer} (default: rnn)')
@@ -63,7 +63,7 @@ def get_params(params):
     parser.add_argument('--name', type=str, default='model',
                         help="Name for your checkpoint (default: model)")
     parser.add_argument('--early_stopping_thr', type=float, default=0.9999,
-                        help="Early stopping threshold on accuracy (defautl: 0.9999)")
+                        help="Early stopping threshold on accuracy (default: 0.9999)")
 
     args = core.init(parser, params)
 
