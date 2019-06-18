@@ -42,6 +42,9 @@ def get_params(params):
     parser.add_argument('--receiver_embedding', type=int, default=10,
                         help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
 
+    parser.add_argument('--causal_sender', default=False, action='store_true')
+    parser.add_argument('--causal_receiver', default=False, action='store_true')
+
     parser.add_argument('--sender_generate_style', type=str, default='in-place', choices=['standard', 'in-place'],
                         help='How the next symbol is generated within the TransformerDecoder (default: in-place)')
 
@@ -134,7 +137,8 @@ def main(params):
                                                  opts.sender_num_layers, opts.sender_num_heads,
                                                  ffn_embed_dim=opts.sender_hidden,
                                                  force_eos=opts.force_eos,
-                                                 generate_style=opts.sender_generate_style)
+                                                 generate_style=opts.sender_generate_style,
+                                                 causal=opts.causal_sender)
     else:
         sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
 
