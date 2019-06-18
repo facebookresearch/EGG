@@ -534,14 +534,13 @@ class TransformerReceiverDeterministic(nn.Module):
         self.sos_id = vocab_size
 
     def forward(self, message, input=None, lengths=None):
-        batch_size = message.size(0)
-
-        prefix = self.sos_id.unsqueeze(0).expand((batch_size, 1, 1))
-
-        message = torch.cat([prefix, message], dim=1)
-
         if lengths is None:
             lengths = _find_lengths(message)
+
+        batch_size = message.size(0)
+        prefix = self.sos_id.unsqueeze(0).expand((batch_size, 1, 1))
+        message = torch.cat([prefix, message], dim=1)
+        lengths = lengths + 1
 
         # max_len + 1 due to the prepended symbol
         len_indicators = torch.arange(self.max_len + 1).expand((batch_size, self.max_len + 1)).to(lengths.device)
