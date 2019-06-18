@@ -538,7 +538,7 @@ class TransformerReceiverDeterministic(nn.Module):
             lengths = _find_lengths(message)
 
         batch_size = message.size(0)
-        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1, 1))
+        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
         message = torch.cat([prefix, message], dim=1)
         lengths = lengths + 1
 
