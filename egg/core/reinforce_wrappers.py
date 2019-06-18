@@ -542,8 +542,8 @@ class TransformerReceiverDeterministic(nn.Module):
         message = torch.cat([prefix, message], dim=1)
         lengths = lengths + 1
 
-        # max_len + 1 due to the prepended symbol
-        len_indicators = torch.arange(self.max_len + 1).expand((batch_size, self.max_len + 1)).to(lengths.device)
+        max_len = message.size(1)
+        len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
         lengths_expanded = lengths.unsqueeze(1)
         padding_mask = len_indicators >= lengths_expanded
 
@@ -584,39 +584,32 @@ class TransformerSenderReinforce(nn.Module):
         nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.emb_dim ** -0.5)
         self.embed_scale = math.sqrt(emb_dim)
 
-    def forward(self, symbol):
-        batch_size = symbol.size(0)
-        encoder_state = self.agent(symbol)
+    def forward(self, symbols):
+        batch_size = symbols.size(0)
+        encoder_state = self.agent(symbols)
 
         input = self.sos_embedding.expand(batch_size, -1).unsqueeze(1)
-
-        padded_input = torch.zeros((batch_size, self.max_len, self.emb_dim)).to(symbol.device)
 
         sequence = []
         logits = []
         entropy = []
 
         for step in range(self.max_len):
-            full_input = torch.cat([input, padded_input[:, step + 1:]], dim=1)
-            mask = torch.ones((batch_size, self.max_len)).byte()
-            mask[:, :step+1] = 0
-            mask = mask.to(symbol.device)
-            output = self.transformer(embedded_input=full_input,
-                                      encoder_out=encoder_state, self_attn_mask=mask)
-
+            output = self.transformer(embedded_input=input, encoder_out=encoder_state, self_attn_mask=None)
             step_logits = F.log_softmax(self.embedding_to_vocab(output[:, -1, :]), dim=1)
+
             distr = Categorical(logits=step_logits)
             entropy.append(distr.entropy())
 
             if self.training:
-                symbol = distr.sample()
+                symbols = distr.sample()
             else:
-                symbol = step_logits.argmax(dim=1)
+                symbols = step_logits.argmax(dim=1)
 
-            logits.append(distr.log_prob(symbol))
-            sequence.append(symbol)
+            logits.append(distr.log_prob(symbols))
+            sequence.append(symbols)
 
-            new_embedding = self.embed_tokens(symbol) * self.embed_scale
+            new_embedding = self.embed_tokens(symbols) * self.embed_scale
             input = torch.cat([input, new_embedding.unsqueeze(1)], dim=1)
 
         sequence = torch.stack(sequence).permute(1, 0)
