@@ -141,7 +141,7 @@ class TransformerDecoder(torch.nn.Module):
 
     def forward(self, embedded_input, encoder_out, self_attn_mask):
         # embed positions
-        x = self.embed_positions(embedded_input)
+        embedded_input = self.embed_positions(embedded_input)
 
         x = F.dropout(embedded_input, p=self.dropout, training=self.training)
 
