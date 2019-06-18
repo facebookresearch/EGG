@@ -150,7 +150,7 @@ def main(params):
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
                                                          opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
-                                                         opts.receiver_num_layers)
+                                                         opts.receiver_num_layers, causal=opts.causal_receiver)
     else:
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
         receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,

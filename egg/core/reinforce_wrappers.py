@@ -520,11 +520,12 @@ class SenderReceiverRnnReinforce(nn.Module):
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True):
+    def __init__(self, agent, vocab_size, max_len, emb_dim, num_heads, n_hidden, num_layers=1, positional_emb=True,
+                 causal=False):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
-        # we will use a special symbol prepended to the input messages which would have term id of `vocab_size`.
-        # Hence we increase the vocab size and the max length
+        # in the non-causal case, we will use a special symbol prepended to the input messages which would have
+        # term id of `vocab_size`. Hence we increase the vocab size and the max length
         self.encoder = TransformerEncoder(vocab_size=vocab_size + 1,
                                           max_len=max_len + 1,
                                           embed_dim=emb_dim,
@@ -534,24 +535,43 @@ class TransformerReceiverDeterministic(nn.Module):
                                           positional_embedding=positional_emb)
         self.max_len = max_len
         self.sos_id = torch.tensor([vocab_size]).long()
+        self.causal = causal
 
     def forward(self, message, input=None, lengths=None):
         if lengths is None:
             lengths = _find_lengths(message)
 
         batch_size = message.size(0)
-        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
-        message = torch.cat([prefix, message], dim=1)
-        lengths = lengths + 1
 
-        max_len = message.size(1)
-        len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
-        lengths_expanded = lengths.unsqueeze(1)
-        padding_mask = len_indicators >= lengths_expanded
+        if not self.causal:
+            prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1))
+            message = torch.cat([prefix, message], dim=1)
+            lengths = lengths + 1
 
-        transformed = self.encoder(message, padding_mask)
-        # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
-        transformed = transformed[:, 0, :]
+            max_len = message.size(1)
+            len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+            lengths_expanded = lengths.unsqueeze(1)
+            padding_mask = len_indicators >= lengths_expanded
+
+            transformed = self.encoder(message, padding_mask)
+            # as the input to the agent, we take the embedding for the first symbol, which is always the special <sos> one
+            transformed = transformed[:, 0, :]
+        else:
+            max_len = message.size(1)
+            len_indicators = torch.arange(max_len).expand((batch_size, max_len)).to(lengths.device)
+            lengths_expanded = lengths.unsqueeze(1)
+            padding_mask = len_indicators >= lengths_expanded
+
+            attn_mask = torch.triu(torch.ones(max_len, max_len).byte(), diagonal=1).to(lengths.device)
+            attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
+            transformed = self.encoder(message, key_padding_mask=padding_mask, attn_mask=attn_mask)
+
+            last_embeddings = []
+            for i, l in enumerate(lengths.clamp(max=self.max_len-1).cpu()):
+                last_embeddings.append(transformed[i, l, :])
+            transformed = torch.stack(last_embeddings)
+
+
         agent_output = self.agent(transformed, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)

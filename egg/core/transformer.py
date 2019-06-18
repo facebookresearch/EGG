@@ -56,7 +56,7 @@ class TransformerEncoder(torch.nn.Module):
     def init_parameters(self):
         nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim ** -0.5)
 
-    def forward(self, src_tokens, encoder_padding_mask=None):
+    def forward(self, src_tokens, key_padding_mask=None, attn_mask=None):
         # embed tokens and positions
         x = self.embed_scale * self.embedding(src_tokens)
 
@@ -69,7 +69,7 @@ class TransformerEncoder(torch.nn.Module):
 
         # encoder layers
         for layer in self.layers:
-            x = layer(x, encoder_padding_mask)
+            x = layer(x, key_padding_mask, attn_mask)
 
         x = self.layer_norm(x)
 
@@ -99,10 +99,10 @@ class TransformerEncoderLayer(nn.Module):
 
         self.init_parameters()
 
-    def forward(self, x, encoder_padding_mask):
+    def forward(self, x, key_padding_mask=None, attn_mask=None):
         residual = x
         x = self.self_attn_layer_norm(x)
-        x, _att = self.self_attn(query=x, key=x, value=x, key_padding_mask=encoder_padding_mask)
+        x, _att = self.self_attn(query=x, key=x, value=x, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
 
