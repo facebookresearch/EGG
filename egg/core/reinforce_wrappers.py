@@ -531,14 +531,14 @@ class TransformerReceiverDeterministic(nn.Module):
                                           hidden_size=n_hidden,
                                           positional_embedding=positional_emb)
         self.max_len = max_len
-        self.sos_id = vocab_size
+        self.sos_id = torch.tensor([vocab_size]).long()
 
     def forward(self, message, input=None, lengths=None):
         if lengths is None:
             lengths = _find_lengths(message)
 
         batch_size = message.size(0)
-        prefix = self.sos_id.unsqueeze(0).expand((batch_size, 1, 1))
+        prefix = self.sos_id.to(message.device).unsqueeze(0).expand((batch_size, 1, 1))
         message = torch.cat([prefix, message], dim=1)
         lengths = lengths + 1
 
