@@ -100,6 +100,17 @@ and Reinforce-based implementations.
 * A brief how-to for tensorboard is [here](docs/tensorboard.md).
 * To learn more about the provided hyperparameter search tool, read this [doc](docs/nest.md).
 
+
+## Citation
+If you find EGG useful in your research, please consider citing:
+```
+@article{Kharitonov2019,
+ author = {Kharitonov, Eugene and Chaabouni, Rahma and Bouchacourt, Diane and Baroni, Marco},
+ title = "{EGG: a toolkit for research on Emergence of lanGuage in Games}",
+ journal={arXiv preprint arXiv:1907.00852}
+}
+```
+
 ## Contributing
 Please read the contribution [guide](CONTRIBUTING.md).
 
