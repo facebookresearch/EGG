@@ -90,8 +90,7 @@ The repo is organised as follows:
 ```
 
 ## How-to-Start and Learning more
-* The step-by-step [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) goes over all essential steps to create
-a full-featured communication game with variable length messages between the agents. NB: depending on your computational resources, this might take a while to run! [(open in colab)](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)
+* The step-by-step [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) goes over all essential steps to create a full-featured communication game with variable length messages between the agents. NB: depending on your computational resources, this might take a while to run! [(open in colab)](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)
 * The simplest starter code for implementing a Sender/Receiver game is the MNIST autoencoder
 game, [MNIST auto-encoder game](/egg/zoo/mnist_autoenc). The game features both Gumbel-Softmax 
 and Reinforce-based implementations.
@@ -99,10 +98,11 @@ and Reinforce-based implementations.
 [here](docs/CL.md).
 * A brief how-to for tensorboard is [here](docs/tensorboard.md).
 * To learn more about the provided hyperparameter search tool, read this [doc](docs/nest.md).
+* Our [paper](https://arxiv.org/abs/1907.00852) provides a high-level view of the toolkit and points to further resources.
 
 
 ## Citation
-If you find EGG useful in your research, please consider citing:
+If you find EGG useful in your research, please cite:
 ```
 @article{Kharitonov2019,
  author = {Kharitonov, Eugene and Chaabouni, Rahma and Bouchacourt, Diane and Baroni, Marco},
