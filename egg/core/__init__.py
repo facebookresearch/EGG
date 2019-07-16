@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from .trainers import Trainer
+from .callbacks import Callback, ConsoleLogger, TensorboardLogger
 from .util import init, get_opts, build_optimizer, dump_sender_receiver, move_to, get_summary_writer, close
 from egg.core.early_stopping import BaseEarlyStopper, EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
@@ -17,11 +18,15 @@ from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  RnnReceiverDeterministic, TransformerReceiverDeterministic,
                                  TransformerSenderReinforce)
 
+
 __all__ = [
     'Trainer',
     'get_opts',
     'init',
     'build_optimizer',
+    'Callback',
+    'ConsoleLogger',
+    'TensorboardLogger',
     'ReinforceWrapper',
     'GumbelSoftmaxWrapper',
     'SymbolGameGS',
