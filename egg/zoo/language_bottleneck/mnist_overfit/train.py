@@ -90,9 +90,10 @@ def main(params):
     early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
 
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, as_json=True,
+                           validation_data=test_loader,
                            early_stopping=early_stopper,
-                           print_train_loss=True)
+                           callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True)]
+                           )
 
     trainer.train(n_epochs=opts.n_epochs)
     core.close()

@@ -178,7 +178,8 @@ if __name__ == "__main__":
     ])
 
     trainer = core.Trainer(game=game, optimizer=optimizer,
-                           train_data=train_data, validation_data=validation_data, epoch_callback=callback, as_json=opts.output_json)
+                           train_data=train_data, validation_data=validation_data, epoch_callback=callback,
+                           callbacks=[core.ConsoleLogger(as_json=True)])
     trainer.train(n_epochs=opts.n_epochs)
 
     if opts.evaluate:
