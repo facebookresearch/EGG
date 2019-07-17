@@ -87,7 +87,6 @@ class Trainer:
             self.checkpoint_path = None if common_opts.checkpoint_dir is None \
                 else pathlib.Path(common_opts.checkpoint_dir)
 
-        self.should_stop = False  # Attribute to be manipulated by callbacks
         if self.callbacks is None:
             self.callbacks = [
                 ConsoleLogger(print_train_loss=False, as_json=False),
@@ -176,9 +175,6 @@ class Trainer:
                     self.early_stopping.update_values(validation_loss, rest, train_loss, rest, self.epoch)
                     if self.early_stopping.should_stop(): break
                 # TODO: the logic above is to be reimplemented using the new callback API
-
-            if self.should_stop:
-                break
 
         # TODO: the logic below is to be reimplemented using the new callback API
         if self.checkpoint_path:
