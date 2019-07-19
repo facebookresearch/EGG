@@ -120,7 +120,7 @@ class Trainer:
         mean_loss /= n_batches
         mean_rest = _div_dict(mean_rest, n_batches)
 
-        return mean_loss, mean_rest
+        return mean_loss.item(), mean_rest
 
     def train_epoch(self):
         mean_loss = 0
@@ -140,7 +140,7 @@ class Trainer:
 
         mean_loss /= n_batches
         mean_rest = _div_dict(mean_rest, n_batches)
-        return mean_loss, mean_rest
+        return mean_loss.item(), mean_rest
 
     def train(self, n_epochs):
         for callback in self.callbacks:

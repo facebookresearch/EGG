@@ -22,8 +22,8 @@ class BaseEarlyStopper:
                       train_loss: float,
                       train_rest: Dict[str, float],
                       epoch: int) -> bool:
-        self.train_stats.append((train_loss.detach(), train_rest))
-        self.validation_stats.append((validation_loss.detach(), validation_rest))
+        self.train_stats.append((train_loss, train_rest))
+        self.validation_stats.append((validation_loss, validation_rest))
         self.epoch = epoch
 
 
