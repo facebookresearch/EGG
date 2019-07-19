@@ -103,7 +103,8 @@ if __name__ == "__main__":
     ])
 
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=callback, print_train_loss=True)
+                           validation_data=test_loader, epoch_callback=callback,
+                           callbacks=[core.ConsoleLogger(as_json=True)])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()

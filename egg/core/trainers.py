@@ -3,12 +3,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import json
-import torch
-from .util import get_opts, move_to, get_summary_writer
-import pathlib
 import os
 import uuid
+import pathlib
+from typing import List, Optional, Callable
+
+import torch
+from torch.utils.data import DataLoader
+
+from .util import get_opts, move_to
+from .callbacks import Callback, ConsoleLogger
+from .early_stopping import BaseEarlyStopper
+
 
 
 def _add_dicts(a, b):
@@ -30,8 +36,17 @@ class Trainer:
     Implements the training logic. Some common configuration (checkpointing frequency, path, validation frequency)
     is done by checking util.common_opts that is set via the CL.
     """
-    def __init__(self, game, optimizer, train_data, validation_data=None, device=None, epoch_callback=None,
-                 as_json=False, early_stopping=None, print_train_loss=False):
+    def __init__(
+            self,
+            game: torch.nn.Module,
+            optimizer: torch.optim.Optimizer,
+            train_data: DataLoader,
+            validation_data: Optional[DataLoader] = None,
+            device: torch.device = None,
+            epoch_callback: Callable = None,  # TODO: deprecate in favor of the new callback API
+            early_stopping: BaseEarlyStopper = None,  # TODO: deprecate in favor of the new callback API
+            callbacks: Optional[List[Callback]] = None
+    ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
             where loss is differentiable loss to be minimized and d is a dictionary (potentially empty) with auxiliary
@@ -39,10 +54,12 @@ class Trainer:
         :param optimizer: An instance of torch.optim.Optimizer
         :param train_data: A DataLoader for the training set
         :param validation_data: A DataLoader for the validation set (can be None)
+        :param device: A torch.device on which to tensors should be stored
         :param epoch_callback: A callable that would be called at the end of each epoch (after validation, can be None).
         :param as_json: Output validation statistics as json
         :param early_stopping: An instance that defines the stopping logic. Called after every run on validation data;
             see early_stopping.py for an example.
+        :param callbacks: A list of egg.core.Callback objects that can encapsulate monitoring or checkpointing
         """
         self.game = game
         self.optimizer = optimizer
@@ -54,11 +71,8 @@ class Trainer:
         self.checkpoint_freq = common_opts.checkpoint_freq
         self.device = common_opts.device if device is None else device
         self.game.to(self.device)
-        self.as_json = as_json
         self.early_stopping = early_stopping
-        self.print_train_loss = print_train_loss
-
-        self.epoch = 0
+        self.callbacks = callbacks
 
         if common_opts.load_from_checkpoint is not None:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
@@ -72,6 +86,11 @@ class Trainer:
         else:
             self.checkpoint_path = None if common_opts.checkpoint_dir is None \
                 else pathlib.Path(common_opts.checkpoint_dir)
+
+        if self.callbacks is None:
+            self.callbacks = [
+                ConsoleLogger(print_train_loss=False, as_json=False),
+            ]
 
     def _get_preemptive_checkpoint_dir(self, checkpoint_root):
         if 'SLURM_JOB_ID' not in os.environ:
@@ -124,44 +143,46 @@ class Trainer:
         return mean_loss, mean_rest
 
     def train(self, n_epochs):
-        def _message(mode, epoch, loss, rest, as_json):
-            writer = get_summary_writer()
-            if writer:
-                writer.add_scalar(tag=f'{mode}/loss', scalar_value=loss.mean(), global_step=epoch)
-                for k, v in rest.items():
-                    writer.add_scalar(tag=f'{mode}/{k}', scalar_value=v, global_step=epoch)
-            if as_json:
-                dump = dict(mode=mode, epoch=epoch, loss=loss.mean().item())
-                for k, v in rest.items(): dump[k] = v.item() if hasattr(v, 'item') else v
-                output_message = json.dumps(dump)
-            else:
-                output_message = f'{mode}: epoch {self.epoch}, loss {loss},  {rest}'
-            print(output_message, flush=True)
+        for callback in self.callbacks:
+            callback.on_train_begin(self)
 
-        while self.epoch < n_epochs:
+        for epoch in range(n_epochs):
+            self.epoch = epoch  # TODO: deprecate this attribute in favor of the new callback API
+            for callback in self.callbacks:
+                callback.on_epoch_begin()
+
             train_loss, train_rest = self.train_epoch()
 
-            self.epoch += 1
+            for callback in self.callbacks:
+                callback.on_epoch_end(train_loss, train_rest)
 
+            # TODO: the logic below is to be reimplemented using the new callback API
             if self.epoch_callback:
                 self.epoch_callback(self)
-
             if self.checkpoint_freq > 0 and (self.epoch % self.checkpoint_freq == 0) and self.checkpoint_path:
                 self.save_checkpoint()
+            # TODO: the logic above is to be reimplemented using the new callback API
 
-            if self.print_train_loss:
-                _message('train', self.epoch, train_loss, train_rest, self.as_json)
-
-            if self.validation_data is not None and self.validation_freq > 0 and self.epoch % self.validation_freq == 0:
+            if self.validation_data is not None and self.validation_freq > 0 and epoch % self.validation_freq == 0:
+                for callback in self.callbacks:
+                    callback.on_test_begin()
                 validation_loss, rest = self.eval()
-                _message('validation', self.epoch, validation_loss, rest, self.as_json)
+                for callback in self.callbacks:
+                    callback.on_test_end(validation_loss, rest)
 
+                # TODO: the logic below is to be reimplemented using the new callback API
                 if self.early_stopping:
                     self.early_stopping.update_values(validation_loss, rest, train_loss, rest, self.epoch)
                     if self.early_stopping.should_stop(): break
+                # TODO: the logic above is to be reimplemented using the new callback API
 
+        # TODO: the logic below is to be reimplemented using the new callback API
         if self.checkpoint_path:
             self.save_checkpoint()
+        # TODO: the logic above is to be reimplemented using the new callback API
+
+        for callback in self.callbacks:
+            callback.on_train_end()
 
     def save_checkpoint(self, name=''):
         """

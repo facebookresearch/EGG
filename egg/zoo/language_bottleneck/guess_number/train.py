@@ -123,8 +123,8 @@ def main(params):
     early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
 
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=intervention, as_json=True,
-                           early_stopping=early_stopper)
+                           validation_data=test_loader, epoch_callback=intervention,
+                           early_stopping=early_stopper, callbacks=[core.ConsoleLogger(as_json=True)])
 
     trainer.train(n_epochs=opts.n_epochs)
 
