@@ -120,10 +120,10 @@ class RelaxedEmbedding(nn.Embedding):
     1
     """
     def forward(self, x):
-        if x.dtype == torch.float32:
-            return torch.matmul(x, self.weight)
-        else:
+        if isinstance(x, torch.LongTensor) or (torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)):
             return F.embedding(x, self.weight, self.padding_idx, self.max_norm, self.norm_type, self.scale_grad_by_freq, self.sparse)
+        else:
+            return torch.matmul(x, self.weight)
 
 
 class SymbolReceiverWrapper(nn.Module):
