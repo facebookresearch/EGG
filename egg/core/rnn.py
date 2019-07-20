@@ -16,21 +16,26 @@ class RnnEncoder(nn.Module):
     """
 
     def __init__(self, vocab_size: int, emb_dim: int, n_hidden: int, cell: str = 'rnn', num_layers: int = 1) -> None:
+        """
+        Arguments:
+            vocab_size {int} -- The size of the input vocabulary (including eos)
+            emb_dim {int} -- Dimensionality of the embeddings
+            n_hidden {int} -- Dimensionality of the cell's hidden state
+        
+        Keyword Arguments:
+            cell {str} -- Type of the cell ('rnn', 'gru', or 'lstm') (default: {'rnn'})
+            num_layers {int} -- Number of the stacked RNN layers (default: {1})
+        """
         super(RnnEncoder, self).__init__()
 
-        self.cell = None
         cell = cell.lower()
-        if cell == 'rnn':
-            self.cell = nn.RNN(input_size=emb_dim, batch_first=True,
-                               hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'gru':
-            self.cell = nn.GRU(input_size=emb_dim, batch_first=True,
-                               hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'lstm':
-            self.cell = nn.LSTM(input_size=emb_dim, batch_first=True,
-                                hidden_size=n_hidden, num_layers=num_layers)
-        else:
+        cell_types = {'rnn': nn.RNN, 'gru': nn.GRU, 'lstm': nn.LSTM}
+
+        if cell not in cell_types:
             raise ValueError(f"Unknown RNN Cell: {cell}")
+
+        self.cell = cell_types[cell](input_size=emb_dim, batch_first=True,
+                               hidden_size=n_hidden, num_layers=num_layers)
 
         self.embedding = nn.Embedding(vocab_size, emb_dim)
 
