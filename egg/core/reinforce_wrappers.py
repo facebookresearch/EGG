@@ -13,6 +13,8 @@ import numpy as np
 
 
 from .transformer import TransformerEncoder, TransformerDecoder
+from .rnn import RnnEncoder
+from .util import find_lengths
 
 
 class ReinforceWrapper(nn.Module):
@@ -127,54 +129,6 @@ class SymbolGameReinforce(nn.Module):
         rest_info['receiver_entropy'] = receiver_entropy.mean()
 
         return full_loss, rest_info
-
-
-def _find_lengths(messages):
-    """
-    :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
-    :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).
-    If no <eos> is found, the full length is returned (i.e. messages.size(1)).
-
-    >>> messages = torch.tensor([[1, 1, 0, 0, 0, 1], [1, 1, 1, 10, 100500, 5]])
-    >>> lengths = _find_lengths(messages)
-    >>> lengths
-    tensor([3, 6])
-    """
-    max_k = messages.size(1)
-    zero_mask = messages == 0
-    # a bit involved logic, but it seems to be faster for large batches than slicing batch dimension and
-    # querying torch.nonzero()
-    # zero_mask contains ones on positions where 0 occur in the outputs, and 1 otherwise
-    # zero_mask.cumsum(dim=1) would contain non-zeros on all positions after 0 occurred
-    # zero_mask.cumsum(dim=1) > 0 would contain ones on all positions after 0 occurred
-    # (zero_mask.cumsum(dim=1) > 0).sum(dim=1) equates to the number of steps that happened after 0 occured (including it)
-    # max_k - (zero_mask.cumsum(dim=1) > 0).sum(dim=1) is the number of steps before 0 took place
-
-    lengths = max_k - (zero_mask.cumsum(dim=1) > 0).sum(dim=1)
-    lengths.add_(1).clamp_(max=max_k)
-
-    return lengths
-
-
-def _get_batch_permutation(lengths):
-    """
-    Returns a permutation and its reverse that turns `lengths` in a sorted
-    list in descending order.
-    >>> lengths = torch.tensor([4, 1, 0, 100])
-    >>> permutation, inverse = _get_batch_permutation(lengths)
-    >>> permutation
-    tensor([3, 0, 1, 2])
-    >>> rearranged = torch.index_select(lengths, 0, permutation)
-    >>> rearranged
-    tensor([100,   4,   1,   0])
-    >>> torch.index_select(rearranged, 0, inverse)
-    tensor([  4,   1,   0, 100])
-    """
-    _, rearrange = torch.sort(lengths, descending=True)
-    inverse = torch.empty_like(rearrange)
-    inverse.scatter_(0, rearrange,
-                    torch.arange(0, rearrange.numel(), device=rearrange.device))
-    return rearrange, inverse
 
 
 class RnnSenderReinforce(nn.Module):
@@ -298,38 +252,11 @@ class RnnReceiverReinforce(nn.Module):
     def __init__(self, agent, vocab_size, emb_dim, n_hidden, cell='rnn', num_layers=1):
         super(RnnReceiverReinforce, self).__init__()
         self.agent = agent
-
-        self.cell = None
-        cell = cell.lower()
-        if cell == 'rnn':
-            self.cell = nn.RNN(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'gru':
-            self.cell = nn.GRU(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'lstm':
-            self.cell = nn.LSTM(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        else:
-            raise ValueError(f"Unknown RNN Cell: {cell}")
-
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.encoder = RnnEncoder(vocab_size, emb_dim, n_hidden, cell, num_layers)
 
     def forward(self, message, input=None, lengths=None):
-        emb = self.embedding(message)
-
-        if lengths is None:
-            lengths = _find_lengths(message)
-
-        permutation, inverse = _get_batch_permutation(lengths)
-
-        emb = torch.index_select(emb, 0, permutation)
-        lengths = torch.index_select(lengths, 0, permutation)
-
-        packed = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
-        _, rnn_hidden = self.cell(packed)
-
-        if isinstance(self.cell, nn.LSTM):
-            rnn_hidden, _ = rnn_hidden
-
-        sample, logits, entropy = self.agent(rnn_hidden[-1], input)
+        encoded = self.encoder(message)
+        sample, logits, entropy = self.agent(encoded, input)
 
         return sample, logits, entropy
 
@@ -364,38 +291,11 @@ class RnnReceiverDeterministic(nn.Module):
     def __init__(self, agent, vocab_size, emb_dim, n_hidden, cell='rnn', num_layers=1):
         super(RnnReceiverDeterministic, self).__init__()
         self.agent = agent
-
-        self.cell = None
-        cell = cell.lower()
-        if cell == 'rnn':
-            self.cell = nn.RNN(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'gru':
-            self.cell = nn.GRU(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        elif cell == 'lstm':
-            self.cell = nn.LSTM(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=num_layers)
-        else:
-            raise ValueError(f"Unknown RNN Cell: {cell}")
-
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.encoder = RnnEncoder(vocab_size, emb_dim, n_hidden, cell, num_layers)
 
     def forward(self, message, input=None, lengths=None):
-        emb = self.embedding(message)
-
-        if lengths is None:
-            lengths = _find_lengths(message)
-        permutation, inverse = _get_batch_permutation(lengths)
-
-        emb = torch.index_select(emb, 0, permutation)
-        lengths = torch.index_select(lengths, 0, permutation)
-
-        packed = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
-        _, rnn_hidden = self.cell(packed)
-
-        if isinstance(self.cell, nn.LSTM):
-            rnn_hidden, _ = rnn_hidden
-
-        agent_output = self.agent(rnn_hidden[-1], input)
-        agent_output = torch.index_select(agent_output, 0, inverse)
+        encoded = self.encoder(message)
+        agent_output = self.agent(encoded, input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
         entropy = logits
@@ -468,7 +368,7 @@ class SenderReceiverRnnReinforce(nn.Module):
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, log_prob_s, entropy_s = self.sender(sender_input)
-        message_lengths = _find_lengths(message)
+        message_lengths = find_lengths(message)
         receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_lengths)
 
         loss, rest = self.loss(sender_input, message, receiver_input, receiver_output, labels)
@@ -539,7 +439,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
     def forward(self, message, input=None, lengths=None):
         if lengths is None:
-            lengths = _find_lengths(message)
+            lengths = find_lengths(message)
 
         batch_size = message.size(0)
 

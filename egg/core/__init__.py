@@ -6,7 +6,7 @@
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger
 from .util import init, get_opts, build_optimizer, dump_sender_receiver, move_to, get_summary_writer, close
-from egg.core.early_stopping import BaseEarlyStopper, EarlyStopperAccuracy
+from .early_stopping import BaseEarlyStopper, EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
                           SymbolGameGS, RelaxedEmbedding,
                           RnnSenderGS, RnnReceiverGS,
@@ -18,6 +18,7 @@ from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  RnnReceiverDeterministic, TransformerReceiverDeterministic,
                                  TransformerSenderReinforce)
 
+from .rnn import RnnEncoder
 
 __all__ = [
     'Trainer',
@@ -46,5 +47,6 @@ __all__ = [
     'close',
     'SymbolReceiverWrapper',
     'TransformerReceiverDeterministic',
-    'TransformerSenderReinforce'
+    'TransformerSenderReinforce',
+    'RnnEncoder'
 ]
