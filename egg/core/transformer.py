@@ -16,11 +16,11 @@ from .util import find_lengths
 class SinusoidalPositionEmbedding(nn.Module):
     """Implements sinusoidal positional embeddings"""
 
-    def __init__(self, max_len: int, dim: int) -> None:
+    def __init__(self, max_len: int, model_dim: int) -> None:
         super(SinusoidalPositionEmbedding, self).__init__()
-        pos = torch.arange(0., max_len).unsqueeze(1).repeat(1, dim)
-        dim = torch.arange(0., dim).unsqueeze(0).repeat(max_len, 1)
-        div = torch.exp(- math.log(10000) * (2 * (dim // 2) / dim))
+        pos = torch.arange(0., max_len).unsqueeze(1).repeat(1, model_dim)
+        dim = torch.arange(0., model_dim).unsqueeze(0).repeat(max_len, 1)
+        div = torch.exp(- math.log(10000) * (2 * (dim // 2) / model_dim))
         pos *= div
         pos[:, 0::2] = torch.sin(pos[:, 0::2])
         pos[:, 1::2] = torch.cos(pos[:, 1::2])
