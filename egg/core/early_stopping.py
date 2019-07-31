@@ -3,52 +3,49 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict
+from typing import Dict, Any, List, Tuple
 
-class BaseEarlyStopper:
+from .callbacks import Callback
+
+
+class BaseEarlyStopper(Callback):
     """
     A base class, supports the running statistic which is could be used for early stopping
     """
     def __init__(self):
-        self.train_stats = []
-        self.validation_stats = []
-        self.epoch = 0
+        super(BaseEarlyStopper, self).__init__()
+        self.train_stats: List[Tuple[float, Dict[str, Any]]] = []
+        self.validation_stats: List[Tuple[float, Dict[str, Any]]] = []
+        self.epoch: int = 0
+
+    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+        self.epoch += 1
+        self.train_stats.append((loss, logs))
+
+    def on_test_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+        self.validation_stats.append((loss, logs))
+        self.trainer.should_stop = self.should_stop()
 
     def should_stop(self) -> bool:
-        raise NotImplementedError
-
-    def update_values(self, validation_loss: float,
-                      validation_rest: Dict[str, float],
-                      train_loss: float,
-                      train_rest: Dict[str, float],
-                      epoch: int) -> bool:
-        self.train_stats.append((train_loss, train_rest))
-        self.validation_stats.append((validation_loss, validation_rest))
-        self.epoch = epoch
+        raise NotImplementedError()
 
 
 class EarlyStopperAccuracy(BaseEarlyStopper):
     """
-    Implements early stopping logic that stops training when a threshold on the validation loss
+    Implements early stopping logic that stops training when a threshold on a metric
     is achieved.
-
-    >>> early_stopper = EarlyStopperAccuracy(0.5)
-    >>> epoch_stats = 100.0, {'acc': 1.0}, 100.0, {'acc': 0.2}  # generated within Trainer
-    >>> early_stopper.update_values(*epoch_stats, epoch=1)
-    >>> early_stopper.should_stop()
-    True
-    >>> epoch_stats = 100.0, {'acc': 0.0}, 100.0, {'acc': 0.2}  # generated within Trainer
-    >>> early_stopper.update_values(*epoch_stats, epoch=2)
-    >>> early_stopper.should_stop()
-    False
     """
-    def __init__(self, threshold: float) -> None:
+    def __init__(self, threshold: float, field_name: str = 'acc') -> None:
         """
         :param threshold: early stopping threshold for the validation set accuracy
-            (assumes that the loss function returns the accuracy under name 'acc'
+            (assumes that the loss function returns the accuracy under name `field_name`)
+        :param field_name: the name of the metric return by loss function which should be evaluated against stopping
+            criterion (default: "acc")
         """
         super(EarlyStopperAccuracy, self).__init__()
         self.threshold = threshold
+        self.field_name = field_name
 
     def should_stop(self) -> bool:
-        return self.validation_stats[-1][1]['acc'] > self.threshold
+        assert self.trainer.validation_data is not None, 'Validation data must be provided for early stooping to work'
+        return self.validation_stats[-1][1][self.field_name] > self.threshold
