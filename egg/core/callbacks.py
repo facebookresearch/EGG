@@ -43,25 +43,35 @@ class ConsoleLogger(Callback):
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.as_json:
-            dump = dict(mode='test', epoch=self.epoch_counter, loss=loss.mean().item())
+            dump = dict(mode='test', epoch=self.epoch_counter, loss=self._get_metric(loss))
             for k, v in logs.items():
-                dump[k] = v.item() if hasattr(v, 'item') else v
+                dump[k] = self._get_metric(v)
             output_message = json.dumps(dump)
         else:
             output_message = f'test: epoch {self.epoch_counter}, loss {loss},  {logs}'
         print(output_message, flush=True)
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
-        self.epoch_counter += 1
         if self.print_train_loss:
             if self.as_json:
-                dump = dict(mode='train', epoch=self.epoch_counter, loss=loss.mean().item())
+                dump = dict(mode='train', epoch=self.epoch_counter, loss=self._get_metric(loss))
                 for k, v in logs.items():
-                    dump[k] = v.item() if hasattr(v, 'item') else v
+                    dump[k] = self._get_metric(v)
                 output_message = json.dumps(dump)
             else:
                 output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
             print(output_message, flush=True)
+        self.epoch_counter += 1
+
+    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
+        if torch.is_tensor(metric) and metric.dim() > 1:
+            return metric.mean().item()
+        elif torch.is_tensor(metric):
+            return metric.item()
+        elif type(metric) == float:
+            return metric
+        else:
+            raise TypeError('Metric must be either float or torch.Tensor')
 
 
 class TensorboardLogger(Callback):
@@ -79,10 +89,10 @@ class TensorboardLogger(Callback):
             self.writer.add_scalar(tag=f'test/{k}', scalar_value=v, global_step=self.epoch)
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
-        self.epoch_counter += 1
         self.writer.add_scalar(tag=f'train/loss', scalar_value=loss.mean(), global_step=self.epoch)
         for k, v in logs.items():
             self.writer.add_scalar(tag=f'train/{k}', scalar_value=v, global_step=self.epoch)
+        self.epoch_counter += 1
 
     def on_train_end(self):
         self.writer.close()
