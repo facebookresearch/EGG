@@ -80,14 +80,14 @@ def main(params):
     game = core.SymbolGameGS(sender, receiver, loss)
     # This callback would be called at the end of each epoch by the Trainer; it reduces the sampling
     # temperature used by the GS
-    callback = lambda _: sender.update_temp(0.75, 0.01)
+    temperature_updater = core.TemperatureUpdater(agent=sender, decay=0.75, minimum=0.01)
     # get an optimizer that is set up by common command line parameters,
     # defaults to Adam
     optimizer = core.build_optimizer(game.parameters())
 
     # initialize and launch the trainer
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=callback)
+    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
+                           callbacks=[temperature_updater])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()

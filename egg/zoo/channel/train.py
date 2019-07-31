@@ -161,14 +161,10 @@ def main(params):
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff,
                                            length_cost=opts.length_cost)
 
-    callback = None
-
     optimizer = core.build_optimizer(game.parameters())
 
-    early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
-
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=callback, early_stopping=early_stopper)
+                           validation_data=test_loader, callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr)])
 
     trainer.train(n_epochs=opts.n_epochs)
     if opts.checkpoint_dir:

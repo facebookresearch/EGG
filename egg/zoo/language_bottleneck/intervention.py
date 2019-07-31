@@ -3,9 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Dict, Any
+import json
+
 import egg.core as core
 import torch
-import json
 import numpy as np
 
 
@@ -76,7 +78,7 @@ def _find_lengths(messages):
     return torch.Tensor(positions).long().to(messages.device)
 
 
-class CallbackEvaluator:
+class CallbackEvaluator(core.Callback):
     def __init__(self, dataset, device, is_gs, loss, var_length, input_intervention=False):
         self.dataset = dataset
         self.is_gs = is_gs
@@ -84,6 +86,7 @@ class CallbackEvaluator:
         self.loss = loss
         self.var_length = var_length
         self.input_intervention = input_intervention
+        self.epoch = 0
 
     def intervention_message(self, game):
         mean_acc = 0.0
@@ -205,14 +208,14 @@ class CallbackEvaluator:
 
         return s
 
-    def __call__(self, trainer):
-        game = trainer.game
+    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+        game = self.trainer.game
         game.eval()
 
         intervantion_eval = self.intervention_message(game)
         validation_eval = self.validation(game)
 
-        output = dict(epoch=trainer.epoch, intervention_message=intervantion_eval, validation=validation_eval)
+        output = dict(epoch=self.epoch, intervention_message=intervantion_eval, validation=validation_eval)
         if self.input_intervention:
             inp_intervention_eval = self.intervention_input(game)
             output.update(dict(input_intervention=inp_intervention_eval))
@@ -221,6 +224,7 @@ class CallbackEvaluator:
         print(output_json, flush=True)
 
         game.train()
+        self.epoch += 1
 
     def validation(self, game):
         sender_inputs, messages, _, receiver_outputs, labels = \
@@ -239,7 +243,6 @@ class CallbackEvaluator:
                 message_mapping[message] = {}
 
             message_mapping[message][label] = message_mapping[message].get(label, 0) + 1
-
 
         # majority vote per message
         correct = 0.0
@@ -261,4 +264,3 @@ class CallbackEvaluator:
             codewords_entropy=entropy_messages,
             majority_acc=majority_accuracy
         )
-

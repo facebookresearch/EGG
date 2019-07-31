@@ -24,8 +24,6 @@ def parse_arguments():
                         help='Use same concepts')
     parser.add_argument('--vocab_size', type=int, default=100,
                         help='Vocabulary size')
-    parser.add_argument('--batch_size', type=int, default=32,
-                        help='Batch size')
     parser.add_argument('--embedding_size', type=int, default=50,
                         help='embedding size')
     parser.add_argument('--hidden_size', type=int, default=20,
@@ -98,9 +96,11 @@ if __name__ == '__main__':
     optimizer = core.build_optimizer(game.parameters())
     callback = None
     if opts.mode == 'gs':
-        callback = lambda _: game.sender.update_temp(0.75, 0.1)
+        callbacks = [core.TemperatureUpdater(agent=game.sender, decay=0.9, minimum=0.1)]
+    else:
+        callbacks = None
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=validation_loader, epoch_callback=callback)
+                           validation_data=validation_loader, callbacks=callbacks)
 
     trainer.train(n_epochs=opts.n_epochs)
 

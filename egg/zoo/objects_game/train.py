@@ -168,7 +168,6 @@ if __name__ == "__main__":
                                     )
 
         game = core.SenderReceiverRnnGS(sender, receiver, loss)
-        callback = sender.update_temp(0.9, 0.1)
     else:
         raise NotImplementedError(f'Unknown training mode, {opts.mode}')
 
@@ -176,10 +175,11 @@ if __name__ == "__main__":
         {'params': game.sender.parameters(), 'lr': opts.sender_lr},
         {'params': game.receiver.parameters(), 'lr': opts.receiver_lr}
     ])
-
+    callbacks = [core.ConsoleLogger(as_json=True)]
+    if opts.mode.lower() == 'gs':
+        callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
     trainer = core.Trainer(game=game, optimizer=optimizer,
-                           train_data=train_data, validation_data=validation_data, epoch_callback=callback,
-                           callbacks=[core.ConsoleLogger(as_json=True)])
+                           train_data=train_data, validation_data=validation_data, callbacks=callbacks)
     trainer.train(n_epochs=opts.n_epochs)
 
     if opts.evaluate:

@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
         game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff)
-        callback = None
+        callbacks = []
     elif opts.mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
                                   cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature,
@@ -93,7 +93,7 @@ if __name__ == "__main__":
                     opts.receiver_hidden, cell=opts.receiver_cell)
 
         game = core.SenderReceiverRnnGS(sender, receiver, loss)
-        callback = sender.update_temp(0.9, 0.1)
+        callbacks = [core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1)]
     else:
         raise NotImplementedError(f'Unknown training mode, {opts.mode}')
 
@@ -103,8 +103,8 @@ if __name__ == "__main__":
     ])
 
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=callback,
-                           callbacks=[core.ConsoleLogger(as_json=True)])
+                           validation_data=test_loader,
+                           callbacks=callbacks + [core.ConsoleLogger(as_json=True)])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
