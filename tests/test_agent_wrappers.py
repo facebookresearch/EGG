@@ -3,12 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
-from torch.nn import functional as F
-import sys
 
+import sys
 from pathlib import Path
 sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
+
+import torch
+from torch.nn import functional as F
+
 import egg.core as core
 
 BATCH_X = torch.eye(8)
@@ -137,5 +139,3 @@ def test_symbol_wrapper():
     output_gs = receiver(message_gs)
 
     assert output_rf.eq(output_gs).all().item() == 1
-
-

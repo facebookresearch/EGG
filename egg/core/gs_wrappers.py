@@ -39,14 +39,6 @@ class GumbelSoftmaxWrapper(nn.Module):
         else:
             return torch.zeros_like(logits).scatter_(-1, logits.argmax(dim=-1, keepdim=True), 1.0)
 
-    def update_temp(self, decay, minimum):
-        """
-        Implements multiplicative temperature decay. Typically, could be used with a callback from `core.Trainer`
-        :param decay: Multiplicative factor
-        :param minimum: The lower bound on the temperature value
-        """
-        self.temperature = max(minimum, self.temperature * decay)
-
 
 class SymbolGameGS(nn.Module):
     """
@@ -154,12 +146,6 @@ class RnnSenderGS(nn.Module):
     >>> output = agent(torch.ones((1, 10)))
     >>> output.size()  # batch size x max_len x vocab_size
     torch.Size([1, 3, 2])
-    >>> agent.update_temp(decay=0.9, minimum=0.0)
-    >>> agent.temperature
-    0.9
-    >>> agent.update_temp(decay=0.1, minimum=0.5)
-    >>> agent.temperature
-    0.5
     """
     def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, temperature, cell='rnn', force_eos=False,
                  trainable_temperature=False):
@@ -234,9 +220,6 @@ class RnnSenderGS(nn.Module):
             sequence = torch.cat([sequence, eos], dim=1)
 
         return sequence
-
-    def update_temp(self, decay, minimum):
-        self.temperature = max(minimum, self.temperature * decay)
 
 
 class RnnReceiverGS(nn.Module):
@@ -376,4 +359,3 @@ class SenderReceiverRnnGS(nn.Module):
 
         rest['mean_length'] = expected_length.mean()
         return loss.mean(), rest
-

@@ -6,15 +6,13 @@
 import os
 import uuid
 import pathlib
-from typing import List, Optional, Callable
+from typing import List, Optional
 
 import torch
 from torch.utils.data import DataLoader
 
 from .util import get_opts, move_to
-from .callbacks import Callback, ConsoleLogger
-from .early_stopping import BaseEarlyStopper
-
+from .callbacks import Callback, ConsoleLogger, Checkpoint
 
 
 def _add_dicts(a, b):
@@ -43,8 +41,6 @@ class Trainer:
             train_data: DataLoader,
             validation_data: Optional[DataLoader] = None,
             device: torch.device = None,
-            epoch_callback: Callable = None,  # TODO: deprecate in favor of the new callback API
-            early_stopping: BaseEarlyStopper = None,  # TODO: deprecate in favor of the new callback API
             callbacks: Optional[List[Callback]] = None
     ):
         """
@@ -55,10 +51,6 @@ class Trainer:
         :param train_data: A DataLoader for the training set
         :param validation_data: A DataLoader for the validation set (can be None)
         :param device: A torch.device on which to tensors should be stored
-        :param epoch_callback: A callable that would be called at the end of each epoch (after validation, can be None).
-        :param as_json: Output validation statistics as json
-        :param early_stopping: An instance that defines the stopping logic. Called after every run on validation data;
-            see early_stopping.py for an example.
         :param callbacks: A list of egg.core.Callback objects that can encapsulate monitoring or checkpointing
         """
         self.game = game
@@ -67,11 +59,10 @@ class Trainer:
         self.validation_data = validation_data
         common_opts = get_opts()
         self.validation_freq = common_opts.validation_freq
-        self.epoch_callback = epoch_callback
-        self.checkpoint_freq = common_opts.checkpoint_freq
         self.device = common_opts.device if device is None else device
         self.game.to(self.device)
-        self.early_stopping = early_stopping
+        self.should_stop = False
+        self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks
 
         if common_opts.load_from_checkpoint is not None:
@@ -146,8 +137,7 @@ class Trainer:
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
-        for epoch in range(n_epochs):
-            self.epoch = epoch  # TODO: deprecate this attribute in favor of the new callback API
+        for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
                 callback.on_epoch_begin()
 
@@ -156,13 +146,6 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_rest)
 
-            # TODO: the logic below is to be reimplemented using the new callback API
-            if self.epoch_callback:
-                self.epoch_callback(self)
-            if self.checkpoint_freq > 0 and (self.epoch % self.checkpoint_freq == 0) and self.checkpoint_path:
-                self.save_checkpoint()
-            # TODO: the logic above is to be reimplemented using the new callback API
-
             if self.validation_data is not None and self.validation_freq > 0 and epoch % self.validation_freq == 0:
                 for callback in self.callbacks:
                     callback.on_test_begin()
@@ -170,40 +153,16 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_test_end(validation_loss, rest)
 
-                # TODO: the logic below is to be reimplemented using the new callback API
-                if self.early_stopping:
-                    self.early_stopping.update_values(validation_loss, rest, train_loss, rest, self.epoch)
-                    if self.early_stopping.should_stop(): break
-                # TODO: the logic above is to be reimplemented using the new callback API
-
-        # TODO: the logic below is to be reimplemented using the new callback API
-        if self.checkpoint_path:
-            self.save_checkpoint()
-        # TODO: the logic above is to be reimplemented using the new callback API
+            if self.should_stop:
+                break
 
         for callback in self.callbacks:
             callback.on_train_end()
 
-    def save_checkpoint(self, name=''):
-        """
-        Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
-        """
-        self.checkpoint_path.mkdir(exist_ok=True)
-        if name:
-            path = self.checkpoint_path / f'{name}_{self.epoch}.tar'
-        else:
-            path = self.checkpoint_path / f'{self.epoch}.tar'
-        torch.save(self.get_state(), path)
-
-    def get_state(self):
-        return dict(epoch=self.epoch,
-                model_state_dict=self.game.state_dict(),
-                optimizer_state_dict=self.optimizer.state_dict())
-
-    def load(self, checkpoint):
-        self.game.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        self.epoch = checkpoint['epoch']
+    def load(self, checkpoint: Checkpoint):
+        self.game.load_state_dict(checkpoint.model_state_dict)
+        self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+        self.starting_epoch = checkpoint.epoch
 
     def load_from_checkpoint(self, path):
         """
@@ -224,6 +183,3 @@ class Trainer:
 
         if latest_file is not None:
             self.load_from_checkpoint(latest_file)
-
-
-

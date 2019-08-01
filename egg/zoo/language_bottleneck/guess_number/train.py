@@ -120,11 +120,11 @@ def main(params):
     intervention = CallbackEvaluator(test_loader, device=device, is_gs=opts.mode == 'gs', loss=loss, var_length=False,
                                      input_intervention=True)
 
-    early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
-
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, epoch_callback=intervention,
-                           early_stopping=early_stopper, callbacks=[core.ConsoleLogger(as_json=True)])
+    trainer = core.Trainer(
+        game=game, optimizer=optimizer,
+        train_data=train_loader,
+        validation_data=test_loader,
+        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
 
     trainer.train(n_epochs=opts.n_epochs)
 
