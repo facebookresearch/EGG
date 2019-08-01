@@ -43,7 +43,11 @@ class ConsoleLogger(Callback):
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.as_json:
+<<<<<<< HEAD
             dump = dict(mode='test', epoch=self.epoch_counter, loss=self._get_metric(loss))
+=======
+            dump = dict(mode='test', epoch=self.epoch_counter, loss=loss)
+>>>>>>> wip
             for k, v in logs.items():
                 dump[k] = self._get_metric(v)
             output_message = json.dumps(dump)

@@ -12,16 +12,14 @@ import egg.core as core
 
 
 class Receiver(nn.Module):
-    def __init__(self, vocab_size, n_bits, n_hidden):
+    def __init__(self, n_bits, n_hidden):
         super(Receiver, self).__init__()
-        self.emb_message = core.RelaxedEmbedding(vocab_size, n_hidden)
         self.emb_column = nn.Linear(n_bits, n_hidden)
 
         self.fc1 = nn.Linear(2 * n_hidden, 2 * n_hidden)
         self.fc2 = nn.Linear(2 * n_hidden, n_bits)
 
-    def forward(self, message, bits):
-        embedded_message = self.emb_message(message)
+    def forward(self, embedded_message, bits):
         embedded_bits = self.emb_column(bits.float())
 
         x = torch.cat([embedded_bits, embedded_message], dim=1)
@@ -33,16 +31,14 @@ class Receiver(nn.Module):
 
 
 class ReinforcedReceiver(nn.Module):
-    def __init__(self, vocab_size, n_bits, n_hidden):
+    def __init__(self, n_bits, n_hidden):
         super(ReinforcedReceiver, self).__init__()
-        self.emb_message = core.RelaxedEmbedding(vocab_size, n_hidden)
         self.emb_column = nn.Linear(n_bits, n_hidden)
 
         self.fc1 = nn.Linear(2 * n_hidden, 2 * n_hidden)
         self.fc2 = nn.Linear(2 * n_hidden, n_bits)
 
-    def forward(self, message, bits):
-        embedded_message = self.emb_message(message)
+    def forward(self, embedded_message, bits):
         embedded_bits = self.emb_column(bits.float())
 
         x = torch.cat([embedded_bits, embedded_message], dim=1)
@@ -74,5 +70,5 @@ class Sender(nn.Module):
         x = F.leaky_relu(x)
         message = self.fc(x)
 
-        return message.log_softmax(dim=1)
+        return message
 

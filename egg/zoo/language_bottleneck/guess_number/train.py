@@ -48,6 +48,14 @@ def get_params(params):
                         help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {rf, gs,"
                              " non_diff} (default: gs)")
 
+    parser.add_argument('--variable_length', action='store_true', default=False)
+    parser.add_argument('--sender_cell', type=str, default='rnn')
+    parser.add_argument('--receiver_cell', type=str, default='rnn')
+    parser.add_argument('--sender_emb', type=int, default=10,
+                        help='Size of the embeddings of Sender (default: 10)')
+    parser.add_argument('--receiver_emb', type=int, default=10,
+                        help='Size of the embeddings of Receiver (default: 10)')
+
     parser.add_argument('--early_stopping_thr', type=float, default=0.99,
                         help="Early stopping threshold on accuracy (defautl: 0.99)")
 
@@ -87,27 +95,49 @@ def main(params):
     test_loader = UniformLoader(n_bits=opts.n_bits, bits_s=opts.bits_s, bits_r=opts.bits_r)
     test_loader.batch = [x.to(device) for x in test_loader.batch]
 
-    sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
-                    vocab_size=opts.vocab_size)
 
-    if opts.mode == 'gs':
-        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
-        sender = core.GumbelSoftmaxWrapper(agent=sender, temperature=opts.temperature)
-        game = core.SymbolGameGS(sender, receiver, diff_loss)
-    elif opts.mode == 'rf':
-        sender = core.ReinforceWrapper(agent=sender)
-        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
-        receiver = core.ReinforceDeterministicWrapper(agent=receiver)
-        game = core.SymbolGameReinforce(sender, receiver, diff_loss, sender_entropy_coeff=opts.sender_entropy_coeff)
-    elif opts.mode == 'non_diff':
-        sender = core.ReinforceWrapper(agent=sender)
-        receiver = ReinforcedReceiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
-        game = core.SymbolGameReinforce(sender, receiver, non_diff_loss,
-                                        sender_entropy_coeff=opts.sender_entropy_coeff,
-                                        receiver_entropy_coeff=opts.receiver_entropy_coeff)
 
+    if not opts.variable_length:
+        sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
+                        vocab_size=opts.vocab_size)
+        if opts.mode == 'gs':
+            sender = core.GumbelSoftmaxWrapper(agent=sender, temperature=opts.temperature)
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            receiver = core.SymbolReceiverWrapper(receiver, vocab_size=opts.vocab_size, agent_input_size=opts.receiver_hidden)
+            game = core.SymbolGameGS(sender, receiver, diff_loss)
+        elif opts.mode == 'rf':
+            sender = core.ReinforceWrapper(agent=sender)
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            receiver = core.SymbolReceiverWrapper(receiver, vocab_size=opts.vocab_size, agent_input_size=opts.receiver_hidden)
+            receiver = core.ReinforceDeterministicWrapper(agent=receiver)
+            game = core.SymbolGameReinforce(sender, receiver, diff_loss, sender_entropy_coeff=opts.sender_entropy_coeff)
+        elif opts.mode == 'non_diff':
+            sender = core.ReinforceWrapper(agent=sender)
+            receiver = ReinforcedReceiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+            game = core.SymbolGameReinforce(sender, receiver, non_diff_loss,
+                                            sender_entropy_coeff=opts.sender_entropy_coeff,
+                                            receiver_entropy_coeff=opts.receiver_entropy_coeff)
     else:
-        assert False, 'Unknown training mode'
+        sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
+                vocab_size=opts.sender_hidden) # TODO: not really vocab
+        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+        if opts.mode == 'gs':
+            sender = core.RnnSenderGS(agent=sender, vocab_size=opts.vocab_size, temperature=opts.temperature,
+                    emb_dim=opts.sender_emb, n_hidden=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
+
+            receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
+
+            game = core.SenderReceiverRnnGS(sender, receiver, diff_loss)
+        elif opts.mode == 'rf':
+            sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, 
+                    emb_dim=opts.sender_emb, n_hidden=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
+            receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
+            game = core.SenderReceiverRnnReinforce(sender, receiver, diff_loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=opts.receiver_entropy_coeff)
+        else:
+            assert False
+
+
+
 
     optimizer = torch.optim.Adam(
         [
@@ -120,11 +150,19 @@ def main(params):
     intervention = CallbackEvaluator(test_loader, device=device, is_gs=opts.mode == 'gs', loss=loss, var_length=False,
                                      input_intervention=True)
 
+<<<<<<< HEAD
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=test_loader,
         callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
+=======
+    early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr)
+
+    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
+                           validation_data=test_loader, #epoch_callback=intervention,
+                           early_stopping=early_stopper, callbacks=[core.ConsoleLogger(as_json=True)])
+>>>>>>> wip
 
     trainer.train(n_epochs=opts.n_epochs)
 
