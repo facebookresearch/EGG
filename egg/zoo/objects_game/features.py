@@ -123,11 +123,10 @@ class VectorsLoader:
             list_of_dim = [range(1, elem+1) for elem in self.perceptual_dimensions]
             all_vectors = list(itertools.product(*list_of_dim))
 
-            train, valid, test = self.generate_tuples(data=all_vectors)
+            assert self.train_samples > 0 and self.validation_samples > 0 and self.test_samples > 0, 'Train size, validation size and test size must all be greater than 0'
             assert possible_tuples > self.train_samples + self.validation_samples + self.test_samples , f'Not enough data for requested split sizes. Reduced split samples or increase perceptual_dimensions'
+            train, valid, test = self.generate_tuples(data=all_vectors)
 
-        # batch size must be smaller than every split size. every split size must be greater than 0
-        assert self.train_samples > 0 and self.validation_samples > 0 and self.test_samples > 0, 'Train size, validation size and test size must all be greater than 0'
         assert self.train_samples > self.batch_size and self.validation_samples > self.batch_size and self.test_samples > self.batch_size, 'Batch size cannot be smaller than any split size'
 
         train_dataset = TupleDataset(*train)
