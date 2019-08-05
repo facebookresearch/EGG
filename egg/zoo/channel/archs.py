@@ -7,18 +7,18 @@ import torch.nn as nn
 
 
 class Receiver(nn.Module):
-    def __init__(self, n_features, n_hidden):
+    def __init__(self, n_features, encoded_size):
         super(Receiver, self).__init__()
-        self.output = nn.Linear(n_hidden, n_features)
+        self.output = nn.Linear(encoded_size, n_features)
 
     def forward(self, x, _input):
         return self.output(x)
 
 
 class Sender(nn.Module):
-    def __init__(self, n_hidden, n_features):
+    def __init__(self, encoded_size, n_features):
         super(Sender, self).__init__()
-        self.fc1 = nn.Linear(n_features, n_hidden)
+        self.fc1 = nn.Linear(n_features, encoded_size)
 
     def forward(self, x):
         x = self.fc1(x)

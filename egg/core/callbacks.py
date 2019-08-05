@@ -33,6 +33,17 @@ class Callback:
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
         pass
 
+    @classmethod
+    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
+        if torch.is_tensor(metric) and metric.dim() > 1:
+            return metric.mean().item()
+        elif torch.is_tensor(metric):
+            return metric.item()
+        elif type(metric) == float:
+            return metric
+        else:
+            raise TypeError('Metric must be either float or torch.Tensor')
+
 
 class ConsoleLogger(Callback):
 
@@ -62,16 +73,6 @@ class ConsoleLogger(Callback):
                 output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
             print(output_message, flush=True)
         self.epoch_counter += 1
-
-    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
-        if torch.is_tensor(metric) and metric.dim() > 1:
-            return metric.mean().item()
-        elif torch.is_tensor(metric):
-            return metric.item()
-        elif type(metric) == float:
-            return metric
-        else:
-            raise TypeError('Metric must be either float or torch.Tensor')
 
 
 class TensorboardLogger(Callback):

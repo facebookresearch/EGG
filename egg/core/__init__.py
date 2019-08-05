@@ -5,17 +5,34 @@
 
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver
-from .util import init, get_opts, build_optimizer, dump_sender_receiver, move_to, get_summary_writer, close
+from .util import (init,
+                   get_opts,
+                   build_optimizer,
+                   dump_sender_receiver,
+                   move_to,
+                   get_summary_writer,
+                   close,
+                   build_sender,
+                   build_receiver,
+                   build_game)
+
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
-                          SymbolGameGS, RelaxedEmbedding,
-                          RnnSenderGS, RnnReceiverGS,
-                          SenderReceiverRnnGS, SymbolReceiverWrapper)
+                          SymbolGameGS,
+                          RelaxedEmbedding,
+                          RnnSenderGS,
+                          RnnReceiverGS,
+                          SenderReceiverRnnGS,
+                          SymbolReceiverWrapper)
 
-from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
-                                 ReinforceDeterministicWrapper, RnnReceiverReinforce,
-                                 RnnSenderReinforce, SenderReceiverRnnReinforce,
-                                 RnnReceiverDeterministic, TransformerReceiverDeterministic,
+from .reinforce_wrappers import (ReinforceWrapper,
+                                 SymbolGameReinforce,
+                                 ReinforceDeterministicWrapper,
+                                 RnnReceiverReinforce,
+                                 RnnSenderReinforce,
+                                 SenderReceiverRnnReinforce,
+                                 RnnReceiverDeterministic,
+                                 TransformerReceiverDeterministic,
                                  TransformerSenderReinforce)
 
 from .rnn import RnnEncoder
@@ -51,5 +68,8 @@ __all__ = [
     'SymbolReceiverWrapper',
     'TransformerReceiverDeterministic',
     'TransformerSenderReinforce',
-    'RnnEncoder'
+    'RnnEncoder',
+    'build_sender',
+    'build_receiver',
+    'build_game'
 ]

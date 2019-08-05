@@ -127,6 +127,8 @@ class SymbolGameReinforce(nn.Module):
         rest_info['loss'] = loss.mean().item()
         rest_info['sender_entropy'] = sender_entropy.mean()
         rest_info['receiver_entropy'] = receiver_entropy.mean()
+        for k, v in rest_info.items():
+            rest_info[k] = v.mean().item() if hasattr(v, 'mean') else v
 
         return full_loss, rest_info
 
@@ -420,7 +422,7 @@ class SenderReceiverRnnReinforce(nn.Module):
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, emb_dim, n_heads, n_hidden, n_layers, positional_emb=True,
+    def __init__(self, agent, vocab_size, max_len, emb_dim, n_heads, n_hidden, n_layers, positional_embedding=True,
                 causal=True):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
@@ -430,7 +432,7 @@ class TransformerReceiverDeterministic(nn.Module):
                                           n_heads=n_heads,
                                           n_layers=n_layers,
                                           n_hidden=n_hidden,
-                                          positional_embedding=positional_emb,
+                                          positional_embedding=positional_embedding,
                                           causal=causal)
 
     def forward(self, message, input=None, lengths=None):

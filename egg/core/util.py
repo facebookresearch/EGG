@@ -10,6 +10,7 @@ import random
 import argparse
 import torch
 import numpy as np
+import egg.core as core
 
 common_opts = None
 optimizer = None
@@ -57,7 +58,11 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
                         help='Whether variable-length messaging is used. If not set, single-symbol messages are used')
     arg_parser.add_argument('--no_force_eos', action='store_true',
                         help='Do not force <eos> at the end of the messages.')
-
+    arg_parser.add_argument('--mode', choices=['gs', 'rf', 'non-diff'], default='rf',
+                        help='Optimization mode (gs/rf/non-diff) to be used (edfault: rf)')
+    arg_parser.add_argument('--length_cost', type=float, default=0.0,
+                        help='Length penalty on messages (default: 0.0)')
+   
     # Sender cell configuration
     arg_parser.add_argument('--sender_cell', default='gru', choices=['rnn', 'gru', 'lstm', 'transformer'],
                         help='Type of the cell used by Sender (default: gru)')
@@ -82,12 +87,16 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
     arg_parser.add_argument('--receiver_num_heads', type=int, default=1, 
                         help="Number of Receiver's attention heads, used if Sender is Transformer-baseds (default: 1)")
 
-    # Reinforce parameters
+    # Reinforce-specific
     arg_parser.add_argument('--sender_entropy_coeff', type=float, default=1e-2,
                         help='The entropy regularization coefficient for Sender (default: 1e-2)')
     arg_parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-2,
                         help='The entropy regularization coefficient for Receiver (default: 1e-2)')
-
+    # Gumbel-Softmax-specific
+    arg_parser.add_argument('--temperature', type=float, default=1.0,
+                        help="Gumbel-Softmax relaxation temperature")
+    arg_parser.add_argument('--trainable_temperature', action='store_true',
+                        help='Whether Gumbel-Softmax temperature is a trainable parameter.')
     # Setting up tensorboard
     arg_parser.add_argument('--tensorboard', default=False, help='enable tensorboard',
                             action='store_true')
@@ -104,6 +113,16 @@ def _get_params(arg_parser: argparse.ArgumentParser, params: List[str]) -> argpa
     args.no_cuda = not args.cuda
     args.device = "cuda" if args.cuda else "cpu"
 
+    if args.variable_length and args.receiver_cell == 'transformer':
+        args.receiver_input_size = args.receiver_embedding_size
+    else:
+        args.receiver_input_size = args.receiver_hidden_size
+
+    if args.variable_length and args.sender_cell == 'transformer':
+        args.sender_output_size = args.sender_embedding_size
+    else:
+        args.sender_output_size = args.sender_hidden_size
+    
     return args
 
 
@@ -292,7 +311,7 @@ def move_to(x: Union[torch.tensor, Iterable[torch.tensor]], device: torch.device
     raise RuntimeError(f'Trying to move an argument to device {device}, but it is neither a tensor nor a list of tensors')
 
 
-def find_lengths(messages):
+def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     """
     :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
     :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).
@@ -318,3 +337,100 @@ def find_lengths(messages):
 
     return lengths
 
+
+def build_sender(to_wrap: torch.nn.Module, opts: argparse.Namespace) -> torch.nn.Module:
+    if opts.variable_length:
+        if opts.mode == 'gs' and opts.sender_cell == 'transformer':
+            raise NotImplementedError(
+                "Gumbel-Softmax-based channel relaxation is not supported with Transformers")
+        elif opts.mode in ['rf', 'non-diff'] and opts.sender_cell == 'transformer':
+            sender = core.TransformerSenderReinforce(agent=to_wrap,
+                                                     vocab_size=opts.vocab_size,
+                                                     emb_dim=opts.sender_embedding_size,
+                                                     max_len=opts.max_len,
+                                                     num_layers=opts.sender_num_layers,
+                                                     n_heads=opts.sender_num_heads,
+                                                     ffn_embed_dim=opts.sender_hidden_size,
+                                                     force_eos=not opts.no_force_eos,
+                                                     generate_style='standard',
+                                                     causal=True)
+        elif opts.mode == 'gs' and opts.sender_cell != 'transformer':
+            sender = core.RnnSenderGS(agent=to_wrap,
+                                      vocab_size=opts.vocab_size,
+                                      emb_dim=opts.sender_embedding_size,
+                                      n_hidden=opts.sender_hidden_size,
+                                      max_len=opts.max_len,
+                                      temperature=opts.temperature,
+                                      cell=opts.sender_cell,
+                                      force_eos=not opts.no_force_eos,
+                                      trainable_temperature=opts.trainable_temperature)
+
+        elif opts.mode in ['rf', 'non-diff'] and opts.sender_cell != 'transformer':
+            sender = core.RnnSenderReinforce(agent=to_wrap,
+                                             vocab_size=opts.vocab_size,
+                                             emb_dim=opts.sender_embedding_size,
+                                             n_hidden=opts.sender_hidden_size,
+                                             cell=opts.sender_cell,
+                                             max_len=opts.max_len,
+                                             num_layers=opts.sender_num_layers,
+                                             force_eos=not opts.no_force_eos)
+    elif opts.mode == 'gs':
+        sender = core.GumbelSoftmaxWrapper(
+            to_wrap, opts.temperature, opts.trainable_temperature)
+    elif opts.mode in ['rf', 'non-diff']:
+        sender = core.ReinforceWrapper(to_wrap)
+
+    return sender
+
+
+def build_receiver(to_wrap: torch.nn.Module, opts: argparse.Namespace, deterministic: bool) -> torch.nn.Module:
+    if opts.variable_length:
+        if opts.mode == 'gs' and opts.receiver_cell == 'transformer':
+            raise NotImplementedError(
+                "Gumbel-Softmax-based channel relaxation is not supported with Transformers")
+        elif opts.mode in ['rf', 'non-diff'] and opts.receiver_cell == 'transformer':
+            receiver_class = core.TransformerReceiverDeterministic if deterministic else core.TransformerReceiverReinforce
+            receiver = receiver_class(agent=to_wrap,
+                                      vocab_size=opts.vocab_size,
+                                      emb_dim=opts.receiver_embedding_size,
+                                      max_len=opts.max_len,
+                                      n_layers=opts.receiver_num_layers,
+                                      n_heads=opts.receiver_num_heads,
+                                      n_hidden=opts.receiver_hidden_size,
+                                      causal=True,
+                                      positional_embedding=True)
+
+        elif opts.mode == 'gs' and opts.receiver_cell != 'transformer':
+            receiver = core.RnnReceiverGS(agent=to_wrap,
+                                      vocab_size=opts.vocab_size,
+                                      emb_dim=opts.receiver_embedding_size,
+                                      n_hidden=opts.receiver_hidden_size,
+                                      cell=opts.receiver_cell)
+        elif opts.mode in ['rf', 'non-diff'] and opts.receiver_cell != 'transformer':
+            receiver_class = core.RnnReceiverDeterministic if deterministic else core.RnnReceiverReinforce
+            receiver = receiver_class(agent=to_wrap,
+                                             vocab_size=opts.vocab_size,
+                                             emb_dim=opts.receiver_embedding_size,
+                                             n_hidden=opts.receiver_hidden_size,
+                                             cell=opts.receiver_cell,
+                                             num_layers=opts.receiver_num_layers)
+    elif opts.mode == 'gs':
+        receiver = core.SymbolReceiverWrapper(to_wrap, opts.vocab_size, opts.receiver_input_size)
+    elif opts.mode in ['rf', 'non-diff']:
+        receiver = core.SymbolReceiverWrapper(to_wrap, opts.vocab_size, opts.receiver_input_size)
+        receiver_class = core.ReinforceDeterministicWrapper if deterministic else core.ReinforceWrapper
+        receiver = receiver_class(receiver)
+
+    return receiver
+
+
+def build_game(sender: torch.nn.Module, receiver: torch.nn.Module, loss: callable, opts: argparse.Namespace) -> torch.nn.Module:
+    if opts.variable_length and opts.mode == 'gs':
+        game = core.SenderReceiverRnnGS(sender, receiver, loss, opts.length_cost)
+    elif opts.variable_length and opts.mode in ['rf', 'non-diff']:
+        game = core.SenderReceiverRnnReinforce(sender, receiver, loss, opts.sender_entropy_coeff, opts.receiver_entropy_coeff, opts.length_cost)
+    elif not opts.variable_length and opts.mode == 'gs':
+        game = core.SymbolGameGS(sender, receiver, loss)
+    elif not opts.variable_length and opts.mode in ['rf', 'non-diff']:
+        game = core.SymbolGameReinforce(sender, receiver, loss, opts.sender_entropy_coeff, opts.receiver_entropy_coeff)
+    return game

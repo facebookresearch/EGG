@@ -23,6 +23,7 @@ class BaseEarlyStopper(Callback):
         self.train_stats.append((loss, logs))
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+        print(logs)
         self.validation_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
