@@ -147,7 +147,7 @@ class RnnSenderGS(nn.Module):
     >>> output.size()  # batch size x max_len x vocab_size
     torch.Size([1, 3, 2])
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, temperature, cell='rnn', force_eos=False,
+    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, temperature, cell='rnn', force_eos=True,
                  trainable_temperature=False):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
