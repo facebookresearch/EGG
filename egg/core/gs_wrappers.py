@@ -146,12 +146,12 @@ class RnnSenderGS(nn.Module):
     cells.
 
     >>> agent = nn.Linear(10, 5) #  input size 10, the RNN's hidden size is 5
-    >>> agent = RnnSenderGS(agent, vocab_size=2, emb_dim=10, n_hidden=5, max_len=3, temperature=1.0, cell='lstm')
+    >>> agent = RnnSenderGS(agent, vocab_size=2, embed_dim=10, hidden_size=5, max_len=3, temperature=1.0, cell='lstm')
     >>> output = agent(torch.ones((1, 10)))
     >>> output.size()  # batch size x max_len x vocab_size
     torch.Size([1, 3, 2])
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, temperature, cell='rnn', force_eos=True,
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn', force_eos=True,
                  trainable_temperature=False):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
@@ -162,10 +162,10 @@ class RnnSenderGS(nn.Module):
         if self.force_eos:
             self.max_len -= 1
 
-        self.hidden_to_output = nn.Linear(n_hidden, vocab_size)
-        self.embedding = nn.Linear(vocab_size, emb_dim)
-        self.sos_embedding = nn.Parameter(torch.zeros(emb_dim))
-        self.emb_dim = emb_dim
+        self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
+        self.embedding = nn.Linear(vocab_size, embed_dim)
+        self.sos_embedding = nn.Parameter(torch.zeros(embed_dim))
+        self.embed_dim = embed_dim
         self.vocab_size = vocab_size
 
         if not trainable_temperature:
@@ -178,11 +178,11 @@ class RnnSenderGS(nn.Module):
         cell = cell.lower()
 
         if cell == 'rnn':
-            self.cell = nn.RNNCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
         elif cell == 'gru':
-            self.cell = nn.GRUCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
         elif cell == 'lstm':
-            self.cell = nn.LSTMCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
@@ -234,22 +234,22 @@ class RnnReceiverGS(nn.Module):
     each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic is handled by
     `SenderReceiverRnnGS`.
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, cell='rnn'):
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn'):
         super(RnnReceiverGS, self).__init__()
         self.agent = agent
 
         self.cell = None
         cell = cell.lower()
         if cell == 'rnn':
-            self.cell = nn.RNNCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
         elif cell == 'gru':
-            self.cell = nn.GRUCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
         elif cell == 'lstm':
-            self.cell = nn.LSTMCell(input_size=emb_dim, hidden_size=n_hidden)
+            self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
-        self.embedding = nn.Linear(vocab_size, emb_dim)
+        self.embedding = nn.Linear(vocab_size, embed_dim)
 
     def forward(self, message, input=None):
         outputs = []
@@ -284,7 +284,7 @@ class SenderReceiverRnnGS(nn.Module):
     or when the end-of-sequence symbol is met.
 
     >>> sender = nn.Linear(10, 5)
-    >>> sender = RnnSenderGS(sender, vocab_size=2, emb_dim=3, n_hidden=5, max_len=3, temperature=5.0, cell='gru')
+    >>> sender = RnnSenderGS(sender, vocab_size=2, embed_dim=3, hidden_size=5, max_len=3, temperature=5.0, cell='gru')
 
     >>> class Receiver(nn.Module):
     ...     def __init__(self):
@@ -292,7 +292,7 @@ class SenderReceiverRnnGS(nn.Module):
     ...         self.fc = nn.Linear(7, 10)
     ...     def forward(self, x, _input):
     ...         return self.fc(x)
-    >>> receiver = RnnReceiverGS(Receiver(), vocab_size=2, emb_dim=4, n_hidden=7, cell='rnn')
+    >>> receiver = RnnReceiverGS(Receiver(), vocab_size=2, embed_dim=4, hidden_size=7, cell='rnn')
 
     >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels):
     ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {'aux' : 0}

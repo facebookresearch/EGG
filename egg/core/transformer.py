@@ -49,9 +49,9 @@ class TransformerEncoder(nn.Module):
                  vocab_size: int,
                  max_len: int,
                  embed_dim: int,
-                 n_heads: int,
-                 n_hidden: int,
-                 n_layers: int = 1,
+                 num_heads: int,
+                 hidden_size: int,
+                 num_layers: int = 1,
                  positional_embedding=True,
                  causal: bool = True) -> None:
         super().__init__()
@@ -65,9 +65,9 @@ class TransformerEncoder(nn.Module):
         self.base_encoder = TransformerBaseEncoder(vocab_size=vocab_size,
                                                    max_len=max_len,
                                                    embed_dim=embed_dim,
-                                                   num_heads=n_heads,
-                                                   n_layers=n_layers,
-                                                   hidden_size=n_hidden,
+                                                   num_heads=num_heads,
+                                                   num_layers=num_layers,
+                                                   hidden_size=hidden_size,
                                                    positional_embedding=positional_embedding)
         self.max_len = max_len
         self.sos_id = torch.tensor([vocab_size - 1]).long()
@@ -123,7 +123,7 @@ class TransformerBaseEncoder(torch.nn.Module):
     This is supposed to be done on a higher level.
     """
 
-    def __init__(self, vocab_size, max_len, embed_dim, num_heads, n_layers, hidden_size,
+    def __init__(self, vocab_size, max_len, embed_dim, num_heads, num_layers, hidden_size,
                  p_dropout=0.0,
                  positional_embedding=True):
         super().__init__()
@@ -142,9 +142,9 @@ class TransformerBaseEncoder(torch.nn.Module):
             TransformerEncoderLayer(
                 embed_dim=embed_dim,
                 num_heads=num_heads,
-                encoder_ffn_embed_dim=hidden_size
+                hidden_size=hidden_size
             )
-            for _ in range(n_layers)
+            for _ in range(num_layers)
         ])
         self.dropout = p_dropout
 
@@ -179,7 +179,7 @@ class TransformerBaseEncoder(torch.nn.Module):
 
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
+    def __init__(self, embed_dim, num_heads, hidden_size, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
         super().__init__()
         self.embed_dim = embed_dim
 
@@ -191,8 +191,8 @@ class TransformerEncoderLayer(nn.Module):
         self.activation_dropout = activation_dropout
 
         self.normalize_before = True
-        self.fc1 = torch.nn.Linear(self.embed_dim, encoder_ffn_embed_dim)
-        self.fc2 = torch.nn.Linear(encoder_ffn_embed_dim, self.embed_dim)
+        self.fc1 = torch.nn.Linear(self.embed_dim, hidden_size)
+        self.fc2 = torch.nn.Linear(hidden_size, self.embed_dim)
         # it seems there are two ways to apply layer norm - before (in tensor2tensor code)
         # or after (the original paper). We resort to the first as it is suggested to be more robust
         self.layer_norm = torch.nn.LayerNorm(self.embed_dim)
@@ -230,7 +230,7 @@ class TransformerDecoder(torch.nn.Module):
     """
 
     def __init__(self, embed_dim, max_len, n_decoder_layers,
-                 attention_heads, ffn_embed_dim, dropout=0.0):
+                 attention_heads, hidden_size, dropout=0.0):
         super().__init__()
 
         self.dropout = dropout
@@ -239,7 +239,7 @@ class TransformerDecoder(torch.nn.Module):
 
         self.layers = nn.ModuleList([])
         self.layers.extend([
-            TransformerDecoderLayer(attention_heads, embed_dim, ffn_embed_dim)
+            TransformerDecoderLayer(attention_heads, embed_dim, hidden_size)
             for _ in range(n_decoder_layers)
         ])
 

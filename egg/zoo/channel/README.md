@@ -20,7 +20,7 @@ The game accepts the following game-specific parameters:
  * `sender_cell/receiver_cell` -- the cells used by the agents; can be any of {rnn, gru, lstm}
  * `n_features` -- the dimensionality of the vectors that are auto-encoded
  * `n_hidden` -- the size of the hidden space for the RNN cells
- * `emb_dim` -- the size of the hidden space for the RNN cells
+ * `embed_dim` -- the size of the hidden space for the RNN cells
  * `sender_entropy_coeff/receiver_entropy_coeff` -- the regularisation coefficients for the
  entropy term in the loss, used to encourage exploration in Reinforce
  * `sender_hidden/receiver_hidden` -- the size of the hidden layers for the cells

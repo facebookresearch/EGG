@@ -143,7 +143,7 @@ class RnnSenderReinforce(nn.Module):
     is replaced by argmax.
 
     >>> agent = nn.Linear(10, 3)
-    >>> agent = RnnSenderReinforce(agent, vocab_size=5, emb_dim=5, n_hidden=3, max_len=10, cell='lstm')
+    >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm')
     >>> input = torch.FloatTensor(16, 10).uniform_(-0.1, 0.1)
     >>> message, logprob, entropy = agent(input)
     >>> message.size()
@@ -153,12 +153,12 @@ class RnnSenderReinforce(nn.Module):
     >>> message.size()  # batch size x max_len
     torch.Size([16, 10])
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, num_layers=1, cell='rnn', force_eos=True):
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, num_layers=1, cell='rnn', force_eos=True):
         """
         :param agent: the agent to be wrapped
         :param vocab_size: the communication vocabulary size
-        :param emb_dim: the size of the embedding used to embed the output symbols
-        :param n_hidden: the RNN cell's hidden state size
+        :param embed_dim: the size of the embedding used to embed the output symbols
+        :param hidden_size: the RNN cell's hidden state size
         :param max_len: maximal length of the output messages
         :param cell: type of the cell used (rnn, gru, lstm)
         :param force_eos: if set to True, each message is extended by an EOS symbol. To ensure that no message goes
@@ -173,10 +173,10 @@ class RnnSenderReinforce(nn.Module):
         if force_eos:
             self.max_len -= 1
 
-        self.hidden_to_output = nn.Linear(n_hidden, vocab_size)
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
-        self.sos_embedding = nn.Parameter(torch.zeros(emb_dim))
-        self.emb_dim = emb_dim
+        self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.sos_embedding = nn.Parameter(torch.zeros(embed_dim))
+        self.embed_dim = embed_dim
         self.vocab_size = vocab_size
         self.num_layers = num_layers
         self.cells = None
@@ -189,8 +189,8 @@ class RnnSenderReinforce(nn.Module):
 
         cell_type = cell_types[cell]
         self.cells = nn.ModuleList([
-            cell_type(input_size=emb_dim, hidden_size=n_hidden) if i == 0 else \
-            cell_type(input_size=n_hidden, hidden_size=n_hidden) for i in range(self.num_layers)])
+            cell_type(input_size=embed_dim, hidden_size=hidden_size) if i == 0 else \
+            cell_type(input_size=hidden_size, hidden_size=hidden_size) for i in range(self.num_layers)])
 
         self.reset_parameters()
 
@@ -253,10 +253,10 @@ class RnnReceiverReinforce(nn.Module):
     input that reaches the maximal length of the sequence.
     This output is assumed to be the tuple of (output, logprob, entropy).
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, cell='rnn', num_layers=1):
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn', num_layers=1):
         super(RnnReceiverReinforce, self).__init__()
         self.agent = agent
-        self.encoder = RnnEncoder(vocab_size, emb_dim, n_hidden, cell, num_layers)
+        self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
 
     def forward(self, message, input=None, lengths=None):
         encoded = self.encoder(message)
@@ -281,7 +281,7 @@ class RnnReceiverDeterministic(nn.Module):
     ...         self.fc = nn.Linear(5, 3)
     ...     def forward(self, rnn_output, _input = None):
     ...         return self.fc(rnn_output)
-    >>> agent = RnnReceiverDeterministic(Agent(), vocab_size=10, emb_dim=10, n_hidden=5)
+    >>> agent = RnnReceiverDeterministic(Agent(), vocab_size=10, embed_dim=10, hidden_size=5)
     >>> message = torch.zeros((16, 10)).long().random_(0, 10)  # batch of 16, 10 symbol length
     >>> output, logits, entropy = agent(message)
     >>> (logits == 0).all().item()
@@ -292,10 +292,10 @@ class RnnReceiverDeterministic(nn.Module):
     torch.Size([16, 3])
     """
 
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, cell='rnn', num_layers=1):
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn', num_layers=1):
         super(RnnReceiverDeterministic, self).__init__()
         self.agent = agent
-        self.encoder = RnnEncoder(vocab_size, emb_dim, n_hidden, cell, num_layers)
+        self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
 
     def forward(self, message, input=None, lengths=None):
         encoded = self.encoder(message)
@@ -319,7 +319,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     gradient estimate.
 
     >>> sender = nn.Linear(3, 10)
-    >>> sender = RnnSenderReinforce(sender, vocab_size=15, emb_dim=5, n_hidden=10, max_len=10, cell='lstm')
+    >>> sender = RnnSenderReinforce(sender, vocab_size=15, embed_dim=5, hidden_size=10, max_len=10, cell='lstm')
 
     >>> class Receiver(nn.Module):
     ...     def __init__(self):
@@ -327,7 +327,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     ...         self.fc = nn.Linear(5, 3)
     ...     def forward(self, rnn_output, _input = None):
     ...         return self.fc(rnn_output)
-    >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, emb_dim=10, n_hidden=5)
+    >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, embed_dim=10, hidden_size=5)
     >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     ...     return F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1), {'aux': 5.0}
 
@@ -424,16 +424,16 @@ class SenderReceiverRnnReinforce(nn.Module):
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, emb_dim, n_heads, n_hidden, n_layers, positional_emb=True,
+    def __init__(self, agent, vocab_size, max_len, embed_dim, num_heads, hidden_size, num_layers, positional_emb=True,
                 causal=True):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
         self.encoder = TransformerEncoder(vocab_size=vocab_size,
                                           max_len=max_len,
-                                          embed_dim=emb_dim,
-                                          n_heads=n_heads,
-                                          n_layers=n_layers,
-                                          n_hidden=n_hidden,
+                                          embed_dim=embed_dim,
+                                          num_heads=num_heads,
+                                          num_layers=num_layers,
+                                          hidden_size=hidden_size,
                                           positional_embedding=positional_emb,
                                           causal=causal)
 
@@ -451,16 +451,16 @@ class TransformerReceiverDeterministic(nn.Module):
 
 
 class TransformerSenderReinforce(nn.Module):
-    def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
+    def __init__(self, agent, vocab_size, embed_dim, max_len, num_layers, num_heads, hidden_size,
                  generate_style='standard', causal=True, force_eos=True):
         """
         :param agent: the agent to be wrapped, returns the "encoder" state vector, which is the unrolled into a message
         :param vocab_size: vocab size of the message
-        :param emb_dim: embedding dimensions
+        :param embed_dim: embedding dimensions
         :param max_len: maximal length of the message (including <eos>)
         :param num_layers: number of transformer layers
-        :param n_heads: number of attention heads
-        :param ffn_embed_dim: size of the FFN layers
+        :param num_heads: number of attention heads
+        :param hidden_size: size of the FFN layers
         :param causal: whether embedding of a particular symbol should only depend on the symbols to the left
         :param generate_style: Two alternatives: 'standard' and 'in-place'. Suppose we are generating 4th symbol,
             after three symbols [s1 s2 s3] were generated.
@@ -482,19 +482,19 @@ class TransformerSenderReinforce(nn.Module):
         if force_eos:
             self.max_len -= 1
 
-        self.transformer = TransformerDecoder(embed_dim=emb_dim,
+        self.transformer = TransformerDecoder(embed_dim=embed_dim,
                                               max_len=max_len, n_decoder_layers=num_layers,
-                                              attention_heads=n_heads, ffn_embed_dim=ffn_embed_dim)
+                                              attention_heads=num_heads, hidden_size=hidden_size)
 
-        self.embedding_to_vocab = nn.Linear(emb_dim, vocab_size)
+        self.embedding_to_vocab = nn.Linear(embed_dim, vocab_size)
 
-        self.special_symbol_embedding = nn.Parameter(torch.zeros(emb_dim))
-        self.emb_dim = emb_dim
+        self.special_symbol_embedding = nn.Parameter(torch.zeros(embed_dim))
+        self.embed_dim = embed_dim
         self.vocab_size = vocab_size
 
-        self.embed_tokens = torch.nn.Embedding(vocab_size, emb_dim)
-        nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.emb_dim ** -0.5)
-        self.embed_scale = math.sqrt(emb_dim)
+        self.embed_tokens = torch.nn.Embedding(vocab_size, embed_dim)
+        nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.embed_dim ** -0.5)
+        self.embed_scale = math.sqrt(embed_dim)
 
     def generate_standard(self, encoder_state):
         batch_size = encoder_state.size(0)
