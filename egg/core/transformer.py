@@ -179,7 +179,7 @@ class TransformerBaseEncoder(torch.nn.Module):
 
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0):
+    def __init__(self, embed_dim, num_heads, encoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
         super().__init__()
         self.embed_dim = embed_dim
 
@@ -188,6 +188,7 @@ class TransformerEncoderLayer(nn.Module):
         self.self_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
         self.dropout = dropout
+        self.activation_dropout = activation_dropout
 
         self.normalize_before = True
         self.fc1 = torch.nn.Linear(self.embed_dim, encoder_ffn_embed_dim)
@@ -209,7 +210,7 @@ class TransformerEncoderLayer(nn.Module):
         residual = x
         x = self.layer_norm(x)
         x = F.relu(self.fc1(x))
-        # fairseq has an activation dropout here
+        x = F.dropout(x, p=self.activation_dropout, training=self.training)
         x = self.fc2(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
@@ -267,7 +268,10 @@ class TransformerDecoder(torch.nn.Module):
 
 
 class TransformerDecoderLayer(nn.Module):
-    def __init__(self, decoder_attention_heads, decoder_embed_dim, decoder_ffn_embed_dim, attention_dropout=0.0):
+    """Decoder layer block. Follows an implementation in fairseq with args.decoder_normalize_before=True,
+    i.e. order of operations is different from those in the original paper.
+    """
+    def __init__(self, decoder_attention_heads, decoder_embed_dim, decoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
         super().__init__()
 
         self.embed_dim = decoder_embed_dim
@@ -277,16 +281,18 @@ class TransformerDecoderLayer(nn.Module):
             dropout=attention_dropout
         )  # self-attn?
 
-        self.dropout = 0.0
-        self.activation_dropout = 0.0
-        self.normalize_before = True
+        self.dropout = dropout
+        self.activation_dropout = activation_dropout
 
         self.self_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
+        # NB: we pass encoder state as a single vector at the moment (form the user-defined module)
+        # hence this attention layer is somewhat degenerate/redundant. Nonetherless, we'll have it 
+        # for (a) proper compatibility (b) in case we'll decide to pass multipel states
         self.encoder_attn = torch.nn.MultiheadAttention(
             embed_dim=self.embed_dim,
             num_heads=decoder_attention_heads,
-            dropout=0.0)
+            dropout=attention_dropout)
 
         self.encoder_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
@@ -303,7 +309,8 @@ class TransformerDecoderLayer(nn.Module):
         nn.init.xavier_uniform_(self.fc2.weight)
         nn.init.constant_(self.fc2.bias, 0.)
 
-    def forward(self, x,
+    def forward(self, 
+                x,
                 encoder_out,
                 key_mask=None,
                 attn_mask=None):
