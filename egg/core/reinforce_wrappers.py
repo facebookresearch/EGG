@@ -483,8 +483,8 @@ class TransformerSenderReinforce(nn.Module):
             self.max_len -= 1
 
         self.transformer = TransformerDecoder(embed_dim=embed_dim,
-                                              max_len=max_len, n_decoder_layers=num_layers,
-                                              attention_heads=num_heads, hidden_size=hidden_size)
+                                              max_len=max_len, num_layers=num_layers,
+                                              num_heads=num_heads, hidden_size=hidden_size)
 
         self.embedding_to_vocab = nn.Linear(embed_dim, vocab_size)
 

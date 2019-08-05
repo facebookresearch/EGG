@@ -229,8 +229,8 @@ class TransformerDecoder(torch.nn.Module):
     This is supposed to be done on a higher level.
     """
 
-    def __init__(self, embed_dim, max_len, n_decoder_layers,
-                 attention_heads, hidden_size, dropout=0.0):
+    def __init__(self, embed_dim, max_len, num_layers,
+                 num_heads, hidden_size, dropout=0.0):
         super().__init__()
 
         self.dropout = dropout
@@ -239,8 +239,8 @@ class TransformerDecoder(torch.nn.Module):
 
         self.layers = nn.ModuleList([])
         self.layers.extend([
-            TransformerDecoderLayer(attention_heads, embed_dim, hidden_size)
-            for _ in range(n_decoder_layers)
+            TransformerDecoderLayer(num_heads, embed_dim, hidden_size)
+            for _ in range(num_layers)
         ])
 
         self.layer_norm = torch.nn.LayerNorm(embed_dim)
@@ -271,13 +271,13 @@ class TransformerDecoderLayer(nn.Module):
     """Decoder layer block. Follows an implementation in fairseq with args.decoder_normalize_before=True,
     i.e. order of operations is different from those in the original paper.
     """
-    def __init__(self, decoder_attention_heads, decoder_embed_dim, decoder_ffn_embed_dim, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
+    def __init__(self, num_heads, embed_dim, hidden_size, dropout=0.0, attention_dropout=0.0, activation_dropout=0.0):
         super().__init__()
 
-        self.embed_dim = decoder_embed_dim
+        self.embed_dim = embed_dim
         self.self_attn = torch.nn.MultiheadAttention(
             embed_dim=self.embed_dim,
-            num_heads=decoder_attention_heads,
+            num_heads=num_heads,
             dropout=attention_dropout
         )  # self-attn?
 
@@ -291,13 +291,13 @@ class TransformerDecoderLayer(nn.Module):
         # for (a) proper compatibility (b) in case we'll decide to pass multipel states
         self.encoder_attn = torch.nn.MultiheadAttention(
             embed_dim=self.embed_dim,
-            num_heads=decoder_attention_heads,
+            num_heads=num_heads,
             dropout=attention_dropout)
 
         self.encoder_attn_layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
-        self.fc1 = torch.nn.Linear(self.embed_dim, decoder_ffn_embed_dim)
-        self.fc2 = torch.nn.Linear(decoder_ffn_embed_dim, self.embed_dim)
+        self.fc1 = torch.nn.Linear(self.embed_dim, hidden_size)
+        self.fc2 = torch.nn.Linear(hidden_size, self.embed_dim)
 
         self.layer_norm = torch.nn.LayerNorm(self.embed_dim)
 
