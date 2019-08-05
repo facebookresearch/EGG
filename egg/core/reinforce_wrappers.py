@@ -123,6 +123,10 @@ class SymbolGameReinforce(nn.Module):
 
         full_loss = policy_loss + entropy_loss + loss.mean()
 
+        for k, v in rest_info.items():
+            if hasattr(v, 'mean'):
+                rest_info[k] = v.mean().item()
+
         rest_info['baseline'] = self.mean_baseline
         rest_info['loss'] = loss.mean().item()
         rest_info['sender_entropy'] = sender_entropy.mean()
