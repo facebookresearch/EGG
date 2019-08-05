@@ -19,29 +19,6 @@ def get_params():
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
                         help='Number of batches per epoch (default: 1000)')
 
-    parser.add_argument('--force_eos', action='store_true', default=False,
-                        help='Force EOS at the end of the messages (default: False)')
-
-    parser.add_argument('--sender_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Sender (default: 10)')
-    parser.add_argument('--receiver_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Receiver (default: 10)')
-
-    parser.add_argument('--sender_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Sender (default: 10)')
-    parser.add_argument('--receiver_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
-
-    parser.add_argument('--sender_cell', type=str, default='rnn',
-                        help='Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)')
-    parser.add_argument('--receiver_cell', type=str, default='rnn',
-                        help='Type of the cell used for Receiver {rnn, gru, lstm} (default: rnn)')
-
-    parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
-                        help='The entropy regularisation coefficient for Sender (default: 1e-1)')
-    parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-1,
-                        help='The entropy regularisation coefficient for Receiver (default: 1e-1)')
-
     parser.add_argument('--sender_lr', type=float, default=1e-3,
                         help="Learning rate for Sender's parameters (default: 1e-3)")
     parser.add_argument('--receiver_lr', type=float, default=1e-3,
@@ -66,31 +43,32 @@ if __name__ == "__main__":
     opts = get_params()
 
     device = torch.device("cuda" if opts.cuda else "cpu")
+
     train_loader = OneHotLoader(n_features=opts.n_features, batch_size=opts.batch_size,
                                 batches_per_epoch=opts.batches_per_epoch)
     test_loader = OneHotLoader(n_features=opts.n_features, batch_size=opts.batch_size,
                                 batches_per_epoch=opts.batches_per_epoch, seed=7)
 
-    sender = Sender(n_hidden=opts.sender_hidden, n_features=opts.n_features)
-    receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
+    sender = Sender(n_hidden=opts.sender_hidden_size, n_features=opts.n_features)
+    receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden_size)
 
     if opts.mode.lower() == 'rf':
         sender = core.RnnSenderReinforce(sender,
-                                         opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                         cell=opts.sender_cell, max_len=opts.max_len, force_eos=opts.force_eos)
-        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
-                                                 opts.receiver_hidden, cell=opts.receiver_cell)
+                                         opts.vocab_size, opts.sender_embedding_size, opts.sender_hidden_size,
+                                         cell=opts.sender_cell, max_len=opts.max_len, force_eos=not opts.no_force_eos)
+        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding_size,
+                                                 opts.receiver_hidden_size, cell=opts.receiver_cell)
 
         game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff)
         callbacks = []
     elif opts.mode.lower() == 'gs':
-        sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
+        sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding_size, opts.sender_hidden_size,
                                   cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature,
-                                  force_eos=opts.force_eos)
+                                  force_eos=not opts.no_force_eos)
 
-        receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_embedding,
-                    opts.receiver_hidden, cell=opts.receiver_cell)
+        receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_embedding_size,
+                    opts.receiver_hidden_size, cell=opts.receiver_cell)
 
         game = core.SenderReceiverRnnGS(sender, receiver, loss)
         callbacks = [core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1)]

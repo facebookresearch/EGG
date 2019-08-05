@@ -22,41 +22,12 @@ def get_params(params):
                         help='Number of batches per epoch (default: 1000)')
     parser.add_argument('--dim_dataset', type=int, default=10240,
                         help='Dim of constructing the data (default: 10240)')
-    parser.add_argument('--force_eos', type=int, default=0,
-                        help='Force EOS at the end of the messages (default: 0)')
-
-    parser.add_argument('--sender_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Sender (default: 10)')
-    parser.add_argument('--receiver_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Receiver (default: 10)')
-    parser.add_argument('--receiver_num_layers', type=int, default=1,
-                        help='Number hidden layers of receiver. Only in reinforce (default: 1)')
-    parser.add_argument('--sender_num_layers', type=int, default=1,
-                        help='Number hidden layers of receiver. Only in reinforce (default: 1)')
-    parser.add_argument('--receiver_num_heads', type=int, default=8,
-                        help='Number of attention heads for Transformer Receiver (default: 8)')
-    parser.add_argument('--sender_num_heads', type=int, default=8,
-                        help='Number of self-attention heads for Transformer Sender (default: 8)')
-    parser.add_argument('--sender_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Sender (default: 10)')
-    parser.add_argument('--receiver_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
 
     parser.add_argument('--causal_sender', default=False, action='store_true')
     parser.add_argument('--causal_receiver', default=False, action='store_true')
 
     parser.add_argument('--sender_generate_style', type=str, default='in-place', choices=['standard', 'in-place'],
                         help='How the next symbol is generated within the TransformerDecoder (default: in-place)')
-
-    parser.add_argument('--sender_cell', type=str, default='rnn',
-                        help='Type of the cell used for Sender {rnn, gru, lstm, transformer} (default: rnn)')
-    parser.add_argument('--receiver_cell', type=str, default='rnn',
-                        help='Type of the model used for Receiver {rnn, gru, lstm, transformer} (default: rnn)')
-
-    parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
-                        help='The entropy regularisation coefficient for Sender (default: 1e-1)')
-    parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-1,
-                        help='The entropy regularisation coefficient for Receiver (default: 1e-1)')
 
     parser.add_argument('--probs', type=str, default='uniform',
                         help="Prior distribution over the concepts (default: uniform)")
@@ -112,7 +83,7 @@ def main(params):
     print(opts, flush=True)
     device = opts.device
 
-    force_eos = opts.force_eos == 1
+    force_eos = not opts.no_force_eos
 
     if opts.probs == 'uniform':
         probs = np.ones(opts.n_features)
@@ -131,30 +102,30 @@ def main(params):
     test_loader = UniformLoader(opts.n_features)
 
     if opts.sender_cell == 'transformer':
-        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_embedding)
+        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_embedding_size)
         sender = core.TransformerSenderReinforce(sender, opts.vocab_size,
-                                                 opts.sender_embedding, opts.max_len,
+                                                 opts.sender_embedding_size, opts.max_len,
                                                  opts.sender_num_layers, opts.sender_num_heads,
-                                                 ffn_embed_dim=opts.sender_hidden,
+                                                 ffn_embed_dim=opts.sender_hidden_size,
                                                  force_eos=opts.force_eos,
                                                  generate_style=opts.sender_generate_style,
                                                  causal=opts.causal_sender)
     else:
-        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
+        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden_size)
 
         sender = core.RnnSenderReinforce(sender,
-                                   opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
+                                   opts.vocab_size, opts.sender_embedding_size, opts.sender_hidden_size,
                                    cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
                                    force_eos=force_eos)
     if opts.receiver_cell == 'transformer':
-        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
+        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding_size)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
-                                                         opts.receiver_embedding, opts.receiver_num_heads, opts.receiver_hidden,
+                                                         opts.receiver_embedding_size, opts.receiver_num_heads, opts.receiver_hidden_size,
                                                          opts.receiver_num_layers, causal=opts.causal_receiver)
     else:
-        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
-        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
-                                             opts.receiver_hidden, cell=opts.receiver_cell,
+        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden_size)
+        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding_size,
+                                             opts.receiver_hidden_size, cell=opts.receiver_cell,
                                              num_layers=opts.receiver_num_layers)
 
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
@@ -167,8 +138,9 @@ def main(params):
                            validation_data=test_loader, callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr)])
 
     trainer.train(n_epochs=opts.n_epochs)
-    if opts.checkpoint_dir:
-        trainer.save_checkpoint(name=f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}')
+    # TODO: fix
+    #if opts.checkpoint_dir:
+    #    trainer.save_checkpoint(name=f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden_size}_rhid{opts.receiver_hidden_size}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}')
 
     dump(trainer.game, opts.n_features, device, False)
     core.close()

@@ -38,21 +38,6 @@ def get_params():
     parser.add_argument('--shuffle_train_data', action='store_true', default=False,
                         help="Shuffle train data before every epoch (default: False)")
 
-    parser.add_argument('--sender_hidden', type=int, default=50,
-                        help='Size of the hidden layer of Sender (default: 50)')
-    parser.add_argument('--receiver_hidden', type=int, default=50,
-                        help='Size of the hidden layer of Receiver (default: 50)')
-
-    parser.add_argument('--sender_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Sender (default: 10)')
-    parser.add_argument('--receiver_embedding', type=int, default=10,
-                        help='Dimensionality of the embedding hidden layer for Receiver (default: 10)')
-
-    parser.add_argument('--sender_cell', type=str, default='rnn',
-                        help='Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)')
-    parser.add_argument('--receiver_cell', type=str, default='rnn',
-                        help='Type of the cell used for Receiver {rnn, gru, lstm} (default: rnn)')
-
     parser.add_argument('--sender_lr', type=float, default=1e-1,
                         help="Learning rate for Sender's parameters (default: 1e-1)")
     parser.add_argument('--receiver_lr', type=float, default=1e-1,
@@ -146,15 +131,15 @@ if __name__ == "__main__":
 
     print(baseline_msg)
 
-    sender = Sender(n_features=data_loader.n_features, n_hidden=opts.sender_hidden)
+    sender = Sender(n_features=data_loader.n_features, n_hidden=opts.sender_hidden_size)
 
-    receiver = Receiver(n_features=data_loader.n_features, linear_units=opts.receiver_hidden)
+    receiver = Receiver(n_features=data_loader.n_features, linear_units=opts.receiver_hidden_size)
 
     if opts.mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender,
                                     opts.vocab_size,
-                                    opts.sender_embedding,
-                                    opts.sender_hidden,
+                                    opts.sender_embedding_size,
+                                    opts.sender_hidden_size,
                                     cell=opts.sender_cell,
                                     max_len=opts.max_len,
                                     temperature=opts.temperature
@@ -162,8 +147,8 @@ if __name__ == "__main__":
 
         receiver = core.RnnReceiverGS(receiver,
                                     opts.vocab_size,
-                                    opts.receiver_embedding,
-                                    opts.receiver_hidden,
+                                    opts.receiver_embedding_size,
+                                    opts.receiver_hidden_size,
                                     cell=opts.receiver_cell
                                     )
 
@@ -220,9 +205,9 @@ if __name__ == "__main__":
                         f'_maxlen_{opts.max_len}_bsize_{opts.batch_size}' \
                         f'_n_distractors_{opts.n_distractors}_train_size_{opts.train_samples}' \
                         f'_valid_size_{opts.validation_samples}_test_size_{opts.test_samples}' \
-                        f'_slr_{opts.sender_lr}_rlr_{opts.receiver_lr}_shidden_{opts.sender_hidden}' \
-                        f'_rhidden_{opts.receiver_hidden}_semb_{opts.sender_embedding}' \
-                        f'_remb_{opts.receiver_embedding}_mode_{opts.mode}' \
+                        f'_slr_{opts.sender_lr}_rlr_{opts.receiver_lr}_shidden_{opts.sender_hidden_size}' \
+                        f'_rhidden_{opts.receiver_hidden_size}_semb_{opts.sender_embedding_size}' \
+                        f'_remb_{opts.receiver_embedding_size}_mode_{opts.mode}' \
                         f'_scell_{opts.sender_cell}_rcell_{opts.receiver_cell}.msg'
 
             output_file = opts.dump_msg_folder / output_msg

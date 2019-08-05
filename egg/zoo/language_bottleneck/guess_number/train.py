@@ -27,17 +27,8 @@ def get_params(params):
     parser.add_argument('--n_examples_per_epoch', type=int, default=8000,
                         help='Number of examples seen in an epoch (default: 8000)')
 
-    parser.add_argument('--sender_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Sender (default: 10)')
-    parser.add_argument('--receiver_hidden', type=int, default=10,
-                        help='Size of the hidden layer of Receiver (default: 10)')
-
     parser.add_argument('--temperature', type=float, default=1.0,
                         help="GS temperature for the sender (default: 1.0)")
-    parser.add_argument('--sender_entropy_coeff', type=float, default=1e-2,
-                        help="Entropy regularisation coeff for Sender (default: 1e-2)")
-    parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-2,
-                        help="Entropy regularisation coeff for Receiver (default: 1e-2)")
 
     parser.add_argument('--sender_lr', type=float, default=None,
                         help="Learning rate for Sender's parameters (default: 1e-2)")
@@ -87,21 +78,21 @@ def main(params):
     test_loader = UniformLoader(n_bits=opts.n_bits, bits_s=opts.bits_s, bits_r=opts.bits_r)
     test_loader.batch = [x.to(device) for x in test_loader.batch]
 
-    sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
+    sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden_size,
                     vocab_size=opts.vocab_size)
 
     if opts.mode == 'gs':
-        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden_size, vocab_size=opts.vocab_size)
         sender = core.GumbelSoftmaxWrapper(agent=sender, temperature=opts.temperature)
         game = core.SymbolGameGS(sender, receiver, diff_loss)
     elif opts.mode == 'rf':
         sender = core.ReinforceWrapper(agent=sender)
-        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden_size, vocab_size=opts.vocab_size)
         receiver = core.ReinforceDeterministicWrapper(agent=receiver)
         game = core.SymbolGameReinforce(sender, receiver, diff_loss, sender_entropy_coeff=opts.sender_entropy_coeff)
     elif opts.mode == 'non_diff':
         sender = core.ReinforceWrapper(agent=sender)
-        receiver = ReinforcedReceiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+        receiver = ReinforcedReceiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden_size, vocab_size=opts.vocab_size)
         game = core.SymbolGameReinforce(sender, receiver, non_diff_loss,
                                         sender_entropy_coeff=opts.sender_entropy_coeff,
                                         receiver_entropy_coeff=opts.receiver_entropy_coeff)

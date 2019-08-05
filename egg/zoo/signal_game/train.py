@@ -22,8 +22,6 @@ def parse_arguments():
                         help='Number of images seen by an agent')
     parser.add_argument('--same', type=int, default=0,
                         help='Use same concepts')
-    parser.add_argument('--vocab_size', type=int, default=100,
-                        help='Vocabulary size')
     parser.add_argument('--embedding_size', type=int, default=50,
                         help='embedding size')
     parser.add_argument('--hidden_size', type=int, default=20,

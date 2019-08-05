@@ -51,8 +51,42 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
     # Channel parameters
     arg_parser.add_argument('--vocab_size', type=int, default=10,
                         help='Number of symbols (terms) in the vocabulary (default: 10)')
-    arg_parser.add_argument('--max_len', type=int, default=1,
-                        help='Max length of the sequence (default: 1)')
+    arg_parser.add_argument('--max_len', type=int, default=2,
+                        help='Max length of the sequence (default: 2)')
+    arg_parser.add_argument('--variable_length', action='store_true',
+                        help='Whether variable-length messaging is used. If not set, single-symbol messages are used')
+    arg_parser.add_argument('--no_force_eos', action='store_true',
+                        help='Do not force <eos> at the end of the messages.')
+
+    # Sender cell configuration
+    arg_parser.add_argument('--sender_cell', default='gru', choices=['rnn', 'gru', 'lstm', 'transformer'],
+                        help='Type of the cell used by Sender (default: gru)')
+    arg_parser.add_argument('--sender_hidden_size', type=int, default=10, 
+                        help="Hidden size of the Sender's cell (RNN or Transformer) (default: 10)")
+    arg_parser.add_argument('--sender_embedding_size', type=int, default=10, 
+                        help="Embedding size for Sender (default: 10)")
+    arg_parser.add_argument('--sender_num_layers', type=int, default=1, 
+                        help="Sets the number of stacked RNN layers or number of Transformer layers in Sender (default: 1)")
+    arg_parser.add_argument('--sender_num_heads', type=int, default=1, 
+                        help="Number of Sender's attention heads, used if Sender is Transformer-baseds (default: 1)")
+
+   # Receiver cell configuration
+    arg_parser.add_argument('--receiver_cell', default='gru', choices=['rnn', 'gru', 'lstm', 'transformer'],
+                        help='Type of the cell used by Receiver (default: gru)')
+    arg_parser.add_argument('--receiver_hidden_size', type=int, default=10, 
+                        help="Hidden size of the Receiver's cell (RNN or Transformer) (default: 10)")
+    arg_parser.add_argument('--receiver_embedding_size', type=int, default=10, 
+                        help="Embedding size for Receiver (default: 10)")
+    arg_parser.add_argument('--receiver_num_layers', type=int, default=1, 
+                        help="Sets the number of stacked RNN layers or number of Transformer layers in Receiver (default: 1)")
+    arg_parser.add_argument('--receiver_num_heads', type=int, default=1, 
+                        help="Number of Receiver's attention heads, used if Sender is Transformer-baseds (default: 1)")
+
+    # Reinforce parameters
+    arg_parser.add_argument('--sender_entropy_coeff', type=float, default=1e-2,
+                        help='The entropy regularization coefficient for Sender (default: 1e-2)')
+    arg_parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-2,
+                        help='The entropy regularization coefficient for Receiver (default: 1e-2)')
 
     # Setting up tensorboard
     arg_parser.add_argument('--tensorboard', default=False, help='enable tensorboard',
