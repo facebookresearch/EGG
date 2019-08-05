@@ -143,7 +143,7 @@ class RnnSenderReinforce(nn.Module):
     is replaced by argmax.
 
     >>> agent = nn.Linear(10, 3)
-    >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm')
+    >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm', force_eos=False)
     >>> input = torch.FloatTensor(16, 10).uniform_(-0.1, 0.1)
     >>> message, logprob, entropy = agent(input)
     >>> message.size()
