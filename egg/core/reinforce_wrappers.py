@@ -149,7 +149,7 @@ class RnnSenderReinforce(nn.Module):
     >>> message.size()  # batch size x max_len
     torch.Size([16, 10])
     """
-    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, num_layers=1, cell='rnn', force_eos=False):
+    def __init__(self, agent, vocab_size, emb_dim, n_hidden, max_len, num_layers=1, cell='rnn', force_eos=True):
         """
         :param agent: the agent to be wrapped
         :param vocab_size: the communication vocabulary size
@@ -448,7 +448,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
 class TransformerSenderReinforce(nn.Module):
     def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
-                 generate_style='standard', causal=False, force_eos=False):
+                 generate_style='standard', causal=True, force_eos=True):
         """
         :param agent: the agent to be wrapped, returns the "encoder" state vector, which is the unrolled into a message
         :param vocab_size: vocab size of the message

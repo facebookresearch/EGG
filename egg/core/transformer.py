@@ -53,7 +53,7 @@ class TransformerEncoder(nn.Module):
                  n_hidden: int,
                  n_layers: int = 1,
                  positional_embedding=True,
-                 causal: bool = False) -> None:
+                 causal: bool = True) -> None:
         super().__init__()
 
         # in the non-causal case, we will use a special symbol prepended to the input messages which would have
