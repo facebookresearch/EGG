@@ -83,6 +83,10 @@ class SymbolGameGS(nn.Module):
         receiver_output = self.receiver(message, receiver_input)
 
         loss, rest_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
+        for k, v in rest_info.items():
+            if hasattr(v, 'mean'):
+                rest_info[k] = v.mean().item()
+
         return loss.mean(), rest_info
 
 
