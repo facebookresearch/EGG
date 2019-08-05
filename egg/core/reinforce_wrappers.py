@@ -420,12 +420,10 @@ class SenderReceiverRnnReinforce(nn.Module):
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, emb_dim, n_heads, n_hidden, n_layers=1, positional_emb=True,
-                 causal=False):
+    def __init__(self, agent, vocab_size, max_len, emb_dim, n_heads, n_hidden, n_layers, positional_emb=True,
+                causal=True):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
-        # in the non-causal case, we will use a special symbol prepended to the input messages which would have
-        # term id of `vocab_size`. Hence we increase the vocab size and the max length
         self.encoder = TransformerEncoder(vocab_size=vocab_size,
                                           max_len=max_len,
                                           embed_dim=emb_dim,
@@ -452,20 +450,20 @@ class TransformerSenderReinforce(nn.Module):
     def __init__(self, agent, vocab_size, emb_dim, max_len, num_layers, n_heads, ffn_embed_dim,
                  generate_style='standard', causal=False, force_eos=False):
         """
-        :param agent:
-        :param vocab_size:
-        :param emb_dim:
-        :param max_len:
-        :param num_layers:
-        :param n_heads:
-        :param ffn_embed_dim:
-        :param causal: whether embedding of a particular symbol should one depend on the symbols to the left
+        :param agent: the agent to be wrapped, returns the "encoder" state vector, which is the unrolled into a message
+        :param vocab_size: vocab size of the message
+        :param emb_dim: embedding dimensions
+        :param max_len: maximal length of the message (including <eos>)
+        :param num_layers: number of transformer layers
+        :param n_heads: number of attention heads
+        :param ffn_embed_dim: size of the FFN layers
+        :param causal: whether embedding of a particular symbol should only depend on the symbols to the left
         :param generate_style: Two alternatives: 'standard' and 'in-place'. Suppose we are generating 4th symbol,
             after three symbols [s1 s2 s3] were generated.
             Then,
-            'standard': [s1 s2 s3] -> [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
-            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
-        :param force_eos:
+            'standard': [s1 s2 s3] -> embeddings [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
+            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> embeddings [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
+        :param force_eos: <eos> added to the end of each sequence
         """
         super(TransformerSenderReinforce, self).__init__()
         self.agent = agent
