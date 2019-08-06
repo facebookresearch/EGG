@@ -248,10 +248,10 @@ def dump_sender_receiver(game: torch.nn.Module,
 def move_to(x: Any, device: torch.device) \
         -> Any:
     """
-    Simple utility function that moves a tensor or a list/tuple of (list of) tensors to a specified device, recursively.
-    :param x: tensor, list or tuple of tensors
+    Simple utility function that moves a tensor or a dict/list/tuple of (dict/list/tuples of ...) tensors to a specified device, recursively.
+    :param x: tensor, list, tuple, or dict with values that are lists, tuples or dicts with values of ...
     :param device: device to be moved to
-    :return: A tensor or a list of tensors that are on the specified device
+    :return: Same as input, but with all tensors placed on device. Non-tensors are not affected. For dicts, the changes are done in-place!
     """
     if hasattr(x, 'to'):
         return x.to(device)
