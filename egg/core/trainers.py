@@ -61,6 +61,10 @@ class Trainer:
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
         self.game.to(self.device)
+        # NB: some optimizers pre-allocate buffers before actually doing any steps
+        # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
+        # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
+        self.optimizer.state = move_to(self.optimizer.state, self.device)
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks

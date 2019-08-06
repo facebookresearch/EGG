@@ -75,7 +75,7 @@ def test_game_gs():
     sender = core.GumbelSoftmaxWrapper(ToyAgent())
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (F.cross_entropy(receiver_output, BATCH_Y), {})
+        (F.cross_entropy(receiver_output, labels), {})
 
     game = core.SymbolGameGS(sender, receiver, loss)
     optimizer = torch.optim.Adam(game.parameters())
@@ -84,7 +84,7 @@ def test_game_gs():
     trainer = core.Trainer(game, optimizer, train_data=data, validation_data=None)
     trainer.train(1000)
 
-    assert (sender.agent.fc1.weight.t().argmax(dim=1) == BATCH_Y).all()
+    assert (sender.agent.fc1.weight.t().argmax(dim=1).cpu() == BATCH_Y).all()
 
 
 def test_toy_agent_reinforce():
@@ -101,7 +101,7 @@ def test_toy_agent_reinforce():
 
         optimizer.step()
 
-    assert (agent.agent.fc1.weight.t().argmax(dim=1) == BATCH_Y).all()
+    assert (agent.agent.fc1.weight.t().argmax(dim=1).cpu() == BATCH_Y).all()
 
 
 def test_game_reinforce():
@@ -110,7 +110,7 @@ def test_game_reinforce():
     receiver = core.ReinforceDeterministicWrapper(Receiver())
 
     loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (-(receiver_output == BATCH_Y).float().mean(), {})
+        (-(receiver_output == labels).float().mean(), {})
 
     game = core.SymbolGameReinforce(sender, receiver, loss, sender_entropy_coeff=1e-1, receiver_entropy_coeff=0.0)
     optimizer = torch.optim.Adagrad(game.parameters(), lr=1e-1)
@@ -119,7 +119,7 @@ def test_game_reinforce():
     trainer = core.Trainer(game, optimizer, train_data=data, validation_data=None)
     trainer.train(5000)
 
-    assert (sender.agent.fc1.weight.t().argmax(dim=1) == BATCH_Y).all(), str(sender.agent.fc1.weight)
+    assert (sender.agent.fc1.weight.t().argmax(dim=1).cpu() == BATCH_Y).all(), str(sender.agent.fc1.weight)
 
 
 def test_symbol_wrapper():

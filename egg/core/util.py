@@ -3,13 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Union, Iterable, List, Optional
+from typing import Union, Iterable, List, Optional, Any
 
 import sys
 import random
 import argparse
 import torch
 import numpy as np
+
+from collections import defaultdict
 
 common_opts = None
 optimizer = None
@@ -243,22 +245,26 @@ def dump_sender_receiver(game: torch.nn.Module,
     return sender_inputs, messages, receiver_inputs, receiver_outputs, labels
 
 
-def move_to(x: Union[torch.tensor, Iterable[torch.tensor]], device: torch.device) \
-        -> Union[torch.tensor, List[torch.tensor]]:
+def move_to(x: Any, device: torch.device) \
+        -> Any:
     """
-    Simple utility function that moves a tensor or a list/tuple of (list of) tensors to a specified device, recursively.
-    :param x: tensor, list or tuple of tensors
+    Simple utility function that moves a tensor or a dict/list/tuple of (dict/list/tuples of ...) tensors to a specified device, recursively.
+    :param x: tensor, list, tuple, or dict with values that are lists, tuples or dicts with values of ...
     :param device: device to be moved to
-    :return: A tensor or a list of tensors that are on the specified device
+    :return: Same as input, but with all tensors placed on device. Non-tensors are not affected. For dicts, the changes are done in-place!
     """
     if hasattr(x, 'to'):
         return x.to(device)
     if isinstance(x, list) or isinstance(x, tuple):
         return [move_to(i, device) for i in x]
-    raise RuntimeError(f'Trying to move an argument to device {device}, but it is neither a tensor nor a list of tensors')
+    if isinstance(x, dict) or isinstance(x, defaultdict):
+        for k, v in x.items():
+            x[k] = move_to(v, device)
+        return x
+    return x
 
 
-def find_lengths(messages):
+def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     """
     :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
     :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).

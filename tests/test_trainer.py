@@ -56,7 +56,7 @@ def test_temperature_updater_callback():
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (F.cross_entropy(receiver_output, BATCH_Y), {})
+        (F.cross_entropy(receiver_output, labels), {})
 
     game = core.SymbolGameGS(sender, receiver, loss)
     optimizer = torch.optim.Adam(game.parameters())
@@ -75,7 +75,7 @@ def test_snapshoting():
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (F.cross_entropy(receiver_output, BATCH_Y), {})
+        (F.cross_entropy(receiver_output, labels), {})
 
     game = core.SymbolGameGS(sender, receiver, loss)
     optimizer = torch.optim.Adam(game.parameters())
