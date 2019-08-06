@@ -61,6 +61,7 @@ class Trainer:
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
         self.game.to(self.device)
+        self.optimizer.state = move_to(self.optimizer.state, self.device)
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks
