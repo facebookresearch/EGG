@@ -264,7 +264,7 @@ def move_to(x: Any, device: torch.device) \
     return x
 
 
-def find_lengths(messages):
+def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     """
     :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
     :returns A tensor with lengths of the sequences, including the end-of-sequence symbol <eos> (in EGG, it is 0).
