@@ -12,7 +12,7 @@ communication between agents, (b) a diverse set of pre-implemented games, (c) an
 communication protocols.
 
 Key features:
- * Primitives for implementing a single-symbol or variable-length communication (with vanilla RNNs, GRUs, or LSTMs);
+ * Primitives for implementing a single-symbol or variable-length communication (with vanilla RNNs, GRUs, LSTMs or Transformers);
  * Training with optimization of the communication channel with REINFORCE or Gumbel-Softmax relaxation via a common interface;
  * Simplified configuration of the general components, such as checkpointing, optimization, tensorboard support, etc;
  * Provides a simple CUDA-aware command-line tool for grid-search over parameters of the games.
