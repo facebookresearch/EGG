@@ -143,23 +143,30 @@ def main(params):
                                             sender_entropy_coeff=opts.sender_entropy_coeff,
                                             receiver_entropy_coeff=opts.receiver_entropy_coeff)
     else:
-        assert opts.mode == 'rf'
+        if opts.mode != 'rf':
+            print('Only mode=rf is supported atm')
+            opts.mode = 'rf'
 
-        sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
-                        vocab_size=opts.sender_hidden)  # TODO: not really vocab
-        receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
         if opts.sender_cell == 'transformer':
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
+                            vocab_size=opts.sender_hidden)  # TODO: not really vocab
             sender = core.TransformerSenderReinforce(agent=sender, vocab_size=opts.vocab_size, embed_dim=opts.sender_emb, max_len=opts.max_len,
-                                                     num_layers=1, num_heads=1, hidden_size=opts.sender_hidden_size)
+                                                     num_layers=1, num_heads=1, hidden_size=opts.sender_hidden)
         else:
-            sender = core.RnnSenderGS(agent=sender, vocab_size=opts.vocab_size, temperature=opts.temperature,
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
+                            vocab_size=opts.sender_hidden)  # TODO: not really vocab
+            sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, temperature=opts.temperature,
                                       emb_dim=opts.sender_emb, n_hidden=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
 
         if opts.receiver_cell == 'transformer':
-            receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len, opts.receiver_embed, num_heads=1, hidden_size=opts.receiver_hidden_size,
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_emb)
+            receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len, opts.receiver_emb, num_heads=1, hidden_size=opts.receiver_hidden,
                                                              num_layers=1)
         else:
-            receiver = core.RnnReceiverGS(
+            receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            receiver = core.RnnReceiverReinforce(
                 receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
 
             game = core.SenderReceiverRnnGS(sender, receiver, diff_loss)
@@ -182,7 +189,7 @@ def main(params):
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=test_loader,
-        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
+        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr)])#, intervention])
 
     trainer.train(n_epochs=opts.n_epochs)
 
