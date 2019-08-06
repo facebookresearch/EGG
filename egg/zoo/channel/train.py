@@ -132,10 +132,10 @@ def main(params):
 
     if opts.sender_cell == 'transformer':
         sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_embedding)
-        sender = core.TransformerSenderReinforce(sender, opts.vocab_size,
-                                                 opts.sender_embedding, opts.max_len,
-                                                 opts.sender_num_layers, opts.sender_num_heads,
-                                                 ffn_embed_dim=opts.sender_hidden,
+        sender = core.TransformerSenderReinforce(agent=sender, vocab_size=opts.vocab_size,
+                                                 embed_dim=opts.sender_embedding, max_len=opts.max_len,
+                                                 num_layers=opts.sender_num_layers, num_heads=opts.sender_num_heads,
+                                                 hidden_size=opts.sender_hidden,
                                                  force_eos=opts.force_eos,
                                                  generate_style=opts.sender_generate_style,
                                                  causal=opts.causal_sender)

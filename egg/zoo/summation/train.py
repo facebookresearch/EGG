@@ -57,7 +57,7 @@ if __name__ == "__main__":
     test_loader = SequenceLoader(max_n=opts.max_n, batch_size=opts.batch_size,
                                  batches_per_epoch=opts.batches_per_epoch, seed=7)
 
-    encoder = Encoder(n_hidden=opts.sender_hidden, emb_dim=opts.sender_embedding,
+    encoder = Encoder(n_hidden=opts.sender_hidden, embed_dim=opts.sender_embedding,
                      cell=opts.sender_cell, vocab_size=3)  # only 3 symbols in the incoming data
     sender = core.RnnSenderGS(encoder, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
                               cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature)

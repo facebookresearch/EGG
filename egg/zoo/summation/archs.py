@@ -17,21 +17,21 @@ class Receiver(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, cell, emb_dim, n_hidden, vocab_size):
+    def __init__(self, cell, embed_dim, n_hidden, vocab_size):
         super(Encoder, self).__init__()
 
         self.encoder_cell = None
         cell = cell.lower()
         if cell == 'rnn':
-            self.cell = nn.RNN(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
+            self.cell = nn.RNN(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
         elif cell == 'gru':
-            self.cell = nn.GRU(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
+            self.cell = nn.GRU(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
         elif cell == 'lstm':
-            self.cell = nn.LSTM(input_size=emb_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
+            self.cell = nn.LSTM(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
 
     def forward(self, x):
         messages, lengths = x

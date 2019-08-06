@@ -15,11 +15,11 @@ class RnnEncoder(nn.Module):
     of it, which is found as the last hidden state of the last RNN layer. Assumes that the eos token has the id equal to 0.
     """
 
-    def __init__(self, vocab_size: int, emb_dim: int, n_hidden: int, cell: str = 'rnn', num_layers: int = 1) -> None:
+    def __init__(self, vocab_size: int, embed_dim: int, n_hidden: int, cell: str = 'rnn', num_layers: int = 1) -> None:
         """
         Arguments:
             vocab_size {int} -- The size of the input vocabulary (including eos)
-            emb_dim {int} -- Dimensionality of the embeddings
+            embed_dim {int} -- Dimensionality of the embeddings
             n_hidden {int} -- Dimensionality of the cell's hidden state
         
         Keyword Arguments:
@@ -34,10 +34,10 @@ class RnnEncoder(nn.Module):
         if cell not in cell_types:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
-        self.cell = cell_types[cell](input_size=emb_dim, batch_first=True,
+        self.cell = cell_types[cell](input_size=embed_dim, batch_first=True,
                                hidden_size=n_hidden, num_layers=num_layers)
 
-        self.embedding = nn.Embedding(vocab_size, emb_dim)
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
 
     def forward(self, message: torch.Tensor, lengths: Optional[torch.Tensor] = None) -> torch.Tensor:
         """Feeds a sequence into an RNN cell and returns the last hidden state of the last layer.

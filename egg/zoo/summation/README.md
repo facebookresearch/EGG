@@ -23,6 +23,6 @@ The game accepts the following game-specific parameters:
  * `vocab_size` -- the number of unique symbols in the communication vocabulary (inluding `<eos>`!)
  * `sender_cell/receiver_cell` -- the cells that are used by the agents; can be any of {rnn, gru, lstm}
  * `n_hidden` -- the size of the hidden space for the RNN cells
- * `emb_dim` -- the size of the hidden space for the RNN cells
+ * `embed_dim` -- the size of the hidden space for the RNN cells
  * `lr` -- learning rate
  
