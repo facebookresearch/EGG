@@ -12,7 +12,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from .util import get_opts, move_to
-from .callbacks import Callback, ConsoleLogger, Checkpoint
+from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver
 
 
 def _add_dicts(a, b):
@@ -78,6 +78,8 @@ class Trainer:
             d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
             self.checkpoint_path = d
             self.load_from_latest(d)
+            checkpointer = CheckpointSaver(self.checkpoint_path)
+            self.callbacks.append(checkpointer)
         else:
             self.checkpoint_path = None if common_opts.checkpoint_dir is None \
                 else pathlib.Path(common_opts.checkpoint_dir)
