@@ -157,8 +157,8 @@ def main(params):
             receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
             sender = Sender(n_bits=opts.n_bits, n_hidden=opts.sender_hidden,
                             vocab_size=opts.sender_hidden)  # TODO: not really vocab
-            sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, temperature=opts.temperature,
-                                      emb_dim=opts.sender_emb, n_hidden=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
+            sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, 
+                                      embed_dim=opts.sender_emb, hidden_size=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
 
         if opts.receiver_cell == 'transformer':
             receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_emb)
@@ -166,7 +166,7 @@ def main(params):
                                                              num_layers=1)
         else:
             receiver = Receiver(n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
-            receiver = core.RnnReceiverReinforce(
+            receiver = core.RnnReceiverDeterministic(
                 receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
 
             game = core.SenderReceiverRnnGS(sender, receiver, diff_loss)
