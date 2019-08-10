@@ -47,7 +47,7 @@ class ReinforceWrapper(nn.Module):
         if self.training:
             sample = distr.sample()
         else:
-            sample = logits.argmax(dim=1)
+            sample = logits.argmax(dim=-1)
         log_prob = distr.log_prob(sample)
 
         return sample, log_prob, entropy
