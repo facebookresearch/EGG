@@ -11,8 +11,8 @@ import torch.distributions
 import egg.core as core
 import argparse
 
-from .data import ColorData, build_distance_matrix
-from .archs import Sender, Receiver
+from egg.zoo.color_naming.data import ColorData, build_distance_matrix
+from egg.zoo.color_naming.archs import Sender, Receiver
 
 N_COLOR_IDS = 330
 
@@ -37,12 +37,12 @@ class CylinderL1Loss(nn.Module):
         self.distance_matrix = distance_matrix
 
     def forward(self, sender_input, _message, _receiver_input, receiver_output, _labels):
-        receiver_output = receiver_output.softmax(dim=-1).unsqueeze(-1)
+        receiver_output = receiver_output.softmax(dim=-1)
         color_ids = sender_input[:, 0]
-
         distances = self.distance_matrix[color_ids].unsqueeze(1)
-        expectation = torch.bmm(distances, receiver_output).squeeze()
-        return expectation, {}
+        expectation = torch.bmm(distances, receiver_output.unsqueeze(-1)).squeeze()
+        acc = (sum(receiver_output.argmax(dim=1)==sender_input[:, 0]).float()/len(sender_input[:, 0])).detach().item()
+        return expectation, {'acc': acc}
 
 def cross_entropy(sender_input, _message, _receiver_input, receiver_output, _labels):
     receiver_output = receiver_output.squeeze(1)
@@ -82,7 +82,7 @@ def main(params):
     optimizer = core.build_optimizer(game.parameters())
 
     callbacks = [
-        core.ConsoleLogger(print_train_loss=False, as_json=False),
+        core.ConsoleLogger(print_train_loss=False, as_json=True),
     ]
 
     # initialize and launch the trainer
@@ -95,4 +95,3 @@ def main(params):
 if __name__ == "__main__":
     import sys
     main(sys.argv[1:])
-
