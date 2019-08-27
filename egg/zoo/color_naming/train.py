@@ -11,8 +11,10 @@ import torch.distributions
 import egg.core as core
 import argparse
 
+import egg.core as core
 from egg.zoo.color_naming.data import ColorData, build_distance_matrix
 from egg.zoo.color_naming.archs import Sender, Receiver
+
 
 N_COLOR_IDS = 330
 
@@ -51,9 +53,24 @@ def cross_entropy(sender_input, _message, _receiver_input, receiver_output, _lab
     acc = (receiver_output.argmax(dim=-1) == sender_input).float()
     return loss, {'acc': acc}
 
+def dump(game, loader, device, gs_mode='gs'):
+    dataset = [x for x in loader][0][0].to(device)
+    messages = game.sender(dataset)
+    receiver_outputs = game.receiver(messages, None)
+
+    unif_acc = 0.
+    for (input_sender,message, output) in zip(dataset, messages, receiver_outputs):
+        inp = input_sender[0]
+        out = output.argmax(dim=0)
+        acc = inp==out
+        unif_acc+=acc
+        print(f'input: {inp.item()} -> message: {message[0]} -> output: {out.item()}', flush=True)
+
+    print(f'acc={unif_acc/dataset.size(0)}')
 
 def main(params):
     opts = get_params(params)
+    device = opts.device
 
     train_loader = torch.utils.data.DataLoader(
         ColorData(scaler=opts.scaler), batch_size=opts.batch_size, shuffle=True)
@@ -88,6 +105,8 @@ def main(params):
     # initialize and launch the trainer
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader, callbacks=callbacks)
     trainer.train(n_epochs=opts.n_epochs)
+
+    dump(game, test_loader, device)
 
     core.close()
 
