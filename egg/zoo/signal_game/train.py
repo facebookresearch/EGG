@@ -22,8 +22,6 @@ def parse_arguments():
                         help='Number of images seen by an agent')
     parser.add_argument('--same', type=int, default=0,
                         help='Use same concepts')
-    parser.add_argument('--vocab_size', type=int, default=100,
-                        help='Vocabulary size')
     parser.add_argument('--embedding_size', type=int, default=50,
                         help='embedding size')
     parser.add_argument('--hidden_size', type=int, default=20,
@@ -32,7 +30,6 @@ def parse_arguments():
                         help='Batches in a single training/validation epoch')
     parser.add_argument('--inf_rec', type=int, default=0,
                         help='Use informed receiver')
-
     parser.add_argument('--mode', type=str, default='rf',
             help='Training mode: Gumbel-Softmax (gs) or Reinforce (rf). Default: rf.')
     parser.add_argument('--gs_tau', type=float, default=1.0,
