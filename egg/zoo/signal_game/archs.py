@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 class InformedSender(nn.Module):
     def __init__(self, game_size, feat_size, embedding_size, hidden_size,
-            vocab_size=100, temp=1.):
+                 vocab_size=100, temp=1.):
         super(InformedSender, self).__init__()
         self.game_size = game_size
         self.embedding_size = embedding_size
@@ -70,8 +70,8 @@ class InformedSender(nn.Module):
 
 
 class Receiver(nn.Module):
-    def __init__(self, game_size, feat_size, embedding_size, 
-            vocab_size, reinforce):
+    def __init__(self, game_size, feat_size, embedding_size,
+                 vocab_size, reinforce):
         super(Receiver, self).__init__()
         self.game_size = game_size
         self.embedding_size = embedding_size
@@ -115,5 +115,3 @@ class Receiver(nn.Module):
             embs.append(h_i)
         h = torch.cat(embs, dim=1)
         return h
-
-

@@ -31,7 +31,7 @@ def parse_arguments():
     parser.add_argument('--inf_rec', type=int, default=0,
                         help='Use informed receiver')
     parser.add_argument('--mode', type=str, default='rf',
-            help='Training mode: Gumbel-Softmax (gs) or Reinforce (rf). Default: rf.')
+                        help='Training mode: Gumbel-Softmax (gs) or Reinforce (rf). Default: rf.')
     parser.add_argument('--gs_tau', type=float, default=1.0,
                         help='GS temperature')
 
@@ -64,11 +64,12 @@ def get_game(opt):
                             opt.embedding_size, opt.hidden_size, opt.vocab_size,
                             temp=opt.tau_s)
     receiver = Receiver(opt.game_size, feat_size,
-                            opt.embedding_size, opt.vocab_size, reinforce=(opts.mode == 'rf'))
+                        opt.embedding_size, opt.vocab_size, reinforce=(opts.mode == 'rf'))
     if opts.mode == 'rf':
         sender = core.ReinforceWrapper(sender)
         receiver = core.ReinforceWrapper(receiver)
-        game = core.SymbolGameReinforce(sender, receiver, loss, sender_entropy_coeff=0.01, receiver_entropy_coeff=0.01)
+        game = core.SymbolGameReinforce(
+            sender, receiver, loss, sender_entropy_coeff=0.01, receiver_entropy_coeff=0.01)
     elif opts.mode == 'gs':
         sender = core.GumbelSoftmaxWrapper(sender, temperature=opt.gs_tau)
         game = core.SymbolGameGS(sender, receiver, loss_nll)
@@ -93,7 +94,8 @@ if __name__ == '__main__':
     optimizer = core.build_optimizer(game.parameters())
     callback = None
     if opts.mode == 'gs':
-        callbacks = [core.TemperatureUpdater(agent=game.sender, decay=0.9, minimum=0.1)]
+        callbacks = [core.TemperatureUpdater(
+            agent=game.sender, decay=0.9, minimum=0.1)]
     else:
         callbacks = None
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
