@@ -42,12 +42,14 @@ class _BatchIterator:
                 concepts = self.random_state.choice(C, 1)
                 c = concepts[0]
                 ims = loader.dataset.obj2id[c]["ims"]
-                idxs_sender = self.random_state.choice(ims, opt.game_size, replace=False)
+                idxs_sender = self.random_state.choice(
+                    ims, opt.game_size, replace=False)
                 images_indexes_sender[b, :] = idxs_sender
             else:
                 idxs_sender = []
                 # randomly sample k concepts
-                concepts = self.random_state.choice(C, opt.game_size, replace=False)
+                concepts = self.random_state.choice(
+                    C, opt.game_size, replace=False)
                 for i, c in enumerate(concepts):
                     ims = loader.dataset.obj2id[c]["ims"]
                     idx = self.random_state.choice(ims, 2, replace=False)
@@ -68,7 +70,8 @@ class _BatchIterator:
         for i in range(opt.batch_size):
             permutation = torch.randperm(opt.game_size)
 
-            images_vectors_receiver[:, i, :] = images_vectors_sender[permutation, i, :]
+            images_vectors_receiver[:, i,
+                                    :] = images_vectors_sender[permutation, i, :]
             y[i] = permutation.argmin()
         return images_vectors_sender, y, images_vectors_receiver
 
