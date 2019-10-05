@@ -10,8 +10,8 @@ from torch.distributions import RelaxedOneHotCategorical
 
 
 class GumbelSoftmaxLayer(nn.Module):
-    def __init__(self, 
-                 temperature=1.0, 
+    def __init__(self,
+                 temperature=1.0,
                  trainable_temperature=False,
                  straight_through=False):
         super(GumbelSoftmaxLayer, self).__init__()
@@ -60,9 +60,9 @@ class GumbelSoftmaxWrapper(nn.Module):
     True
     """
 
-    def __init__(self, 
-                 agent, 
-                 temperature=1.0, 
+    def __init__(self,
+                 agent,
+                 temperature=1.0,
                  trainable_temperature=False,
                  straight_through=False):
         """
@@ -73,7 +73,8 @@ class GumbelSoftmaxWrapper(nn.Module):
         """
         super(GumbelSoftmaxWrapper, self).__init__()
         self.agent = agent
-        self.gs_layer = GumbelSoftmaxLayer(temperature=temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
+        self.gs_layer = GumbelSoftmaxLayer(
+            temperature=temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
         self.straight_through = straight_through
 
     def forward(self, *args, **kwargs):
