@@ -24,8 +24,14 @@ class GumbelSoftmaxLayer(nn.Module):
                 torch.tensor([temperature]), requires_grad=True)
 
     def forward(self, logits: torch.Tensor):
+        size = logits.size()
         if not self.training:
-            return torch.zeros_like(logits).scatter_(-1, logits.argmax(dim=-1, keepdim=True), 1.0)
+            indexes = logits.argmax(dim=-1)
+            one_hot = torch.zeros_like(logits).view(-1, size[-1])
+            one_hot.scatter_(1, indexes.view(-1, 1), 1)
+            one_hot = one_hot.view(*size)
+
+            return one_hot
 
         sample = RelaxedOneHotCategorical(
             logits=logits, temperature=self.temperature).rsample()
