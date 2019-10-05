@@ -9,6 +9,44 @@ import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
 
+class GumbelSoftmaxLayer(nn.Module):
+    def __init__(self,
+                 temperature: float = 1.0,
+                 trainable_temperature: bool = False,
+                 straight_through: bool = False):
+        super(GumbelSoftmaxLayer, self).__init__()
+        self.straight_through = straight_through
+
+        if not trainable_temperature:
+            self.temperature = temperature
+        else:
+            self.temperature = torch.nn.Parameter(
+                torch.tensor([temperature]), requires_grad=True)
+
+    def forward(self, logits: torch.Tensor):
+        size = logits.size()
+        if not self.training:
+            indexes = logits.argmax(dim=-1)
+            one_hot = torch.zeros_like(logits).view(-1, size[-1])
+            one_hot.scatter_(1, indexes.view(-1, 1), 1)
+            one_hot = one_hot.view(*size)
+
+            return one_hot
+
+        sample = RelaxedOneHotCategorical(
+            logits=logits, temperature=self.temperature).rsample()
+
+        if self.straight_through:
+            size = sample.size()
+            indexes = sample.argmax(dim=-1)
+            hard_sample = torch.zeros_like(sample).view(-1, size[-1])
+            hard_sample.scatter_(1, indexes.view(-1, 1), 1)
+            hard_sample = hard_sample.view(*size)
+
+            sample = sample + (hard_sample - sample).detach()
+        return sample
+
+
 class GumbelSoftmaxWrapper(nn.Module):
     """
     Gumbel-Softmax Wrapper for an agent that outputs a single symbol. Assumes that during the forward pass,
@@ -28,7 +66,10 @@ class GumbelSoftmaxWrapper(nn.Module):
     True
     """
 
-    def __init__(self, agent, temperature=1.0, trainable_temperature=False,
+    def __init__(self,
+                 agent,
+                 temperature=1.0,
+                 trainable_temperature=False,
                  straight_through=False):
         """
         :param agent: The agent to be wrapped. agent.forward() has to output log-probabilities over the vocabulary
@@ -38,33 +79,13 @@ class GumbelSoftmaxWrapper(nn.Module):
         """
         super(GumbelSoftmaxWrapper, self).__init__()
         self.agent = agent
+        self.gs_layer = GumbelSoftmaxLayer(
+            temperature=temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
         self.straight_through = straight_through
-
-        if not trainable_temperature:
-            self.temperature = temperature
-        else:
-            self.temperature = torch.nn.Parameter(
-                torch.tensor([temperature]), requires_grad=True)
 
     def forward(self, *args, **kwargs):
         logits = self.agent(*args, **kwargs)
-
-        if not self.training:
-            return torch.zeros_like(logits).scatter_(-1, logits.argmax(dim=-1, keepdim=True), 1.0)
-
-        sample = RelaxedOneHotCategorical(
-            logits=logits, temperature=self.temperature).rsample()
-
-        if self.straight_through:
-            size = sample.size()
-            indexes = sample.argmax(dim=-1)
-            hard_sample = torch.zeros_like(sample).view(-1, size[-1])
-            hard_sample.scatter_(1, indexes.view(-1, 1), 1)
-            hard_sample = hard_sample.view(*size)
-
-            sample = sample + (hard_sample - sample).detach()
-
-        return sample
+        return self.gs_layer(logits)
 
 
 class SymbolGameGS(nn.Module):
