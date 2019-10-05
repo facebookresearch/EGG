@@ -11,9 +11,9 @@ from torch.distributions import RelaxedOneHotCategorical
 
 class GumbelSoftmaxLayer(nn.Module):
     def __init__(self,
-                 temperature=1.0,
-                 trainable_temperature=False,
-                 straight_through=False):
+                 temperature: float = 1.0,
+                 trainable_temperature: bool = False,
+                 straight_through: bool = False):
         super(GumbelSoftmaxLayer, self).__init__()
         self.straight_through = straight_through
 
@@ -23,7 +23,7 @@ class GumbelSoftmaxLayer(nn.Module):
             self.temperature = torch.nn.Parameter(
                 torch.tensor([temperature]), requires_grad=True)
 
-    def forward(self, logits):
+    def forward(self, logits: torch.Tensor):
         if not self.training:
             return torch.zeros_like(logits).scatter_(-1, logits.argmax(dim=-1, keepdim=True), 1.0)
 
