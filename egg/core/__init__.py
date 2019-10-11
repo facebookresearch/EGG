@@ -17,7 +17,7 @@ from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  RnnSenderReinforce, SenderReceiverRnnReinforce,
                                  RnnReceiverDeterministic, TransformerReceiverDeterministic,
                                  TransformerSenderReinforce)
-
+from .util import find_lengths
 from .rnn import RnnEncoder
 
 __all__ = [
@@ -51,5 +51,6 @@ __all__ = [
     'SymbolReceiverWrapper',
     'TransformerReceiverDeterministic',
     'TransformerSenderReinforce',
-    'RnnEncoder'
+    'RnnEncoder',
+    'find_lengths'
 ]
