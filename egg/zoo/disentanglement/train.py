@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test
-from egg.zoo.disentanglement.archs import Sender, Receiver
+from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender
 
 from egg.core import EarlyStopperAccuracy
 
@@ -29,11 +29,6 @@ def get_params(params):
     parser.add_argument('--sender_entropy_coeff', type=float, default=1e-2,
                         help="Entropy regularisation coeff for Sender (default: 1e-2)")
 
-    parser.add_argument('--sender_lr', type=float, default=None,
-                        help="Learning rate for Sender's parameters")
-    parser.add_argument('--receiver_lr', type=float, default=None,
-                        help="Learning rate for Receiver's parameters")
-
     parser.add_argument('--sender_cell', type=str, default='rnn')
     parser.add_argument('--receiver_cell', type=str, default='rnn')
     parser.add_argument('--sender_emb', type=int, default=10,
@@ -44,11 +39,6 @@ def get_params(params):
                         help="Early stopping threshold on accuracy (defautl: 0.99)")
 
     args = core.init(arg_parser=parser, params=params)
-    if args.sender_lr is None:
-        args.sender_lr = args.lr
-    if args.receiver_lr is None:
-        args.receiver_lr = args.lr
-
     return args
 
 
@@ -92,20 +82,26 @@ def main(params):
     receiver = core.RnnReceiverDeterministic(
         receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
 
-    sender = Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden)
-    sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, 
-            embed_dim=opts.sender_emb, hidden_size=opts.sender_hidden, max_len=opts.max_len, force_eos=True, cell=opts.sender_cell)
+    if opts.sender_cell == 'positional':
+        sender = PositionalSender(n_attributes=opts.n_attributes, n_values=opts.n_values, vocab_size=opts.vocab_size, 
+                    max_len=opts.max_len)
+    else:
+        sender = Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden)
+        sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, 
+                embed_dim=opts.sender_emb, hidden_size=opts.sender_hidden, max_len=opts.max_len, force_eos=True, 
+                cell=opts.sender_cell)
 
 
     loss = DiffLoss(opts.n_attributes, opts.n_values)
     game = core.SenderReceiverRnnReinforce(
             sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=0.0)
 
-    optimizer = torch.optim.Adam(
-        [
-            dict(params=sender.parameters(), lr=opts.sender_lr),
-            dict(params=receiver.parameters(), lr=opts.receiver_lr)
-        ])
+    params = []
+    if opts.sender_cell != 'positional':
+        params.extend(sender.parameters())
+
+    params.extend(receiver.parameters())
+    optimizer = torch.optim.Adam(params, lr=opts.lr)
 
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
