@@ -38,7 +38,7 @@ class Sender(nn.Module):
         return x
 
 
-class PositionalSpeaker(nn.Module):
+class PositionalSender(nn.Module):
     def __init__(self, n_attributes, n_values, vocab_size, max_len):
         super().__init__()
         self.n_attributes = n_attributes
@@ -50,7 +50,7 @@ class PositionalSpeaker(nn.Module):
         k = 1
 
         while k < n_values:
-            k *= vocab_size
+            k *= (vocab_size - 1)
             log += 1
 
         assert log * n_attributes < max_len
@@ -61,19 +61,24 @@ class PositionalSpeaker(nn.Module):
         for i in range(n_values):
             value = i
             for k in range(log):
-                self.mapping.weight[i, k] = 1 + value % vocab_size # avoid putting zeros!
-                value = value // vocab_size
-        
+                self.mapping.weight[i, k] = 1 + value % (vocab_size - 1) # avoid putting zeros!
+                value = value // (vocab_size - 1)
+
+        assert (self.mapping.weight < vocab_size).all()
 
     def forward(self, x):
         batch_size = x.size(0)
         x = x.view(batch_size, self.n_attributes, self.n_values)
         x = x.argmax(dim=-1).view(batch_size * self.n_attributes)
-        x = self.mapping(x)
-        x = x.view(batch_size, -1)
-        return x
+        with torch.no_grad():
+            x = self.mapping(x)
+        x = x.view(batch_size, -1).long()
+        zeros = torch.zeros(x.size(0), x.size(1), device=x.device)
+
+        return x, zeros, zeros
 
 if __name__ == '__main__':
-    mapper = PositionalSpeaker(n_attributes=2, n_values=4, vocab_size=10, max_len=7)
-    input = torch.tensor([[1, 0, 0, 0, 0, 0, 0, 1]])
+    mapper = PositionalSender(n_attributes=2, n_values=10, vocab_size=10, max_len=7)
+    input = torch.tensor([[0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.]])
     print(mapper(input))

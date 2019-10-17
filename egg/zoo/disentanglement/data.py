@@ -48,4 +48,5 @@ class ScaledDataset:
 
 
 if __name__ == '__main__':
-    enumerate_attribute_value(3, 3)
+    for t in enumerate_attribute_value(2, 10):
+        print(t)
