@@ -10,7 +10,8 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test
-from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender
+from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender
+from egg.zoo.disentanglement.intervention import Evaluator
 
 from egg.core import EarlyStopperAccuracy
 
@@ -78,12 +79,18 @@ def main(params):
 
     n_dim = opts.n_attributes * opts.n_values
 
-    receiver = Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim)
-    receiver = core.RnnReceiverDeterministic(
-        receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
+    if opts.receiver_cell == 'linear':
+        receiver = LinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size, max_length=opts.max_len)
+    else:
+        receiver = Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim)
+        receiver = core.RnnReceiverDeterministic(
+            receiver, opts.vocab_size, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
 
     if opts.sender_cell == 'positional':
         sender = PositionalSender(n_attributes=opts.n_attributes, n_values=opts.n_values, vocab_size=opts.vocab_size, 
+                    max_len=opts.max_len)
+    elif opts.sender_cell == 'bos':
+        sender = BosSender(n_attributes=opts.n_attributes, n_values=opts.n_values, vocab_size=opts.vocab_size, 
                     max_len=opts.max_len)
     else:
         sender = Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden)
@@ -103,11 +110,15 @@ def main(params):
     params.extend(receiver.parameters())
     optimizer = torch.optim.Adam(params, lr=opts.lr)
 
+    evaluator = Evaluator(dataset, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size)
+
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=test_loader,
-        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), EarlyStopperAccuracy(opts.early_stopping_thr, validation=False)])
+        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), 
+                   EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
+                   evaluator])
 
     trainer.train(n_epochs=opts.n_epochs)
     core.close()
