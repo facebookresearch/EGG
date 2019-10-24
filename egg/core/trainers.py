@@ -12,7 +12,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from .util import get_opts, move_to
-from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver
+from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
 
 
 def _add_dicts(a, b):
@@ -85,6 +85,11 @@ class Trainer:
         if self.checkpoint_path:
             checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path, checkpoint_freq=common_opts.checkpoint_freq)
             self.callbacks.append(checkpointer)
+
+        if common_opts.tensorboard:
+            assert common_opts.tensorboard_dir, 'tensorboard directory has to be specified'
+            tensorboard_ptr = TensorboardLogger()
+            self.callbacks.append(tensorboard_ptr)
 
         if self.callbacks is None:
             self.callbacks = [
