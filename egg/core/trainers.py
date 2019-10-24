@@ -18,7 +18,7 @@ from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, Ten
 def _add_dicts(a, b):
     result = dict(a)
     for k, v in b.items():
-        result[k] = result.get(k, 0) + v
+        result[k] = result.get(k, 0) + v.item()
     return result
 
 
