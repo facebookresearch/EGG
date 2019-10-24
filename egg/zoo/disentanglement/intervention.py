@@ -98,15 +98,17 @@ def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, voca
 
 
 class Evaluator(core.Callback):
-    def __init__(self, dataset, device, n_attributes, n_values, vocab_size):
+    def __init__(self, dataset, device, n_attributes, n_values, vocab_size, freq=1):
         self.dataset = dataset
         self.device = device
         self.n_attributes = n_attributes
         self.n_values = n_values
         self.epoch = 0
         self.vocab_size = vocab_size
+        self.freq = freq
 
-    def on_epoch_end(self, *stuff):
+
+    def dump_stats(self):
         game = self.trainer.game
         game.eval()
 
@@ -123,4 +125,15 @@ class Evaluator(core.Callback):
         print(output_json, flush=True)
 
         game.train()
+
+    def on_train_end(self):
+        self.dump_stats()
+
+    def on_epoch_end(self, *stuff):
         self.epoch += 1
+
+        if self.freq <= 0 or self.epoch % self.freq != 0:
+            return
+
+        self.dump_stats()
+

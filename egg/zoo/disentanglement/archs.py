@@ -10,6 +10,7 @@ from torch.distributions import Bernoulli
 import random
 
 import egg.core as core
+from torch.distributions import Categorical
 
 
 class Receiver(nn.Module):
@@ -37,6 +38,22 @@ class Sender(nn.Module):
         x = F.leaky_relu(x)
         x = self.fc(x)
         return x
+
+
+class Shuffler(nn.Module):
+    def __init__(self, sender):
+        super().__init__()
+        self.sender = sender
+
+    def forward(self, x):
+        messages, probs, entropies = self.sender(x)
+        lengths = core.find_lengths(messages)
+
+        for i in range(lengths.size(0)):
+            l = lengths[i]
+            z = torch.randperm(l)
+            messages[i, :l] = messages[i, :l][z]
+        return messages, probs, entropies
 
 
 class PositionalSender(nn.Module):
@@ -156,6 +173,79 @@ class BosSender(nn.Module):
         zeros = torch.zeros(batch_size, result.size(1), device=x.device)
         return result, zeros, zeros
 
+
+class FactorizedSender(nn.Module):
+    def __init__(self, vocab_size, max_len, input_size, n_hidden):
+        super().__init__()
+
+        self.symbol_generators = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(input_size, n_hidden),
+                nn.LeakyReLU(),
+                nn.Linear(n_hidden, vocab_size)
+            ) for _ in range(max_len)
+        ])
+
+    def forward(self, bits):
+        sequence = []
+        log_probs = []
+        entropy = []
+
+        for generator in self.symbol_generators:
+            logits = generator(bits.float())
+
+            step_logits = F.log_softmax(logits, dim=-1)
+            distr = Categorical(logits=step_logits)
+            entropy.append(distr.entropy())
+
+            if self.training:
+                sample = distr.sample()
+            else:
+                sample = step_logits.argmax(dim=-1)
+
+            log_probs.append(distr.log_prob(sample))
+            sequence.append(sample)
+
+        zeros = torch.zeros(bits.size(0)).to(bits.device)
+
+        #sequence.append(zeros.long())
+        sequence = torch.stack(sequence).permute(1, 0)
+
+        log_probs.append(zeros)
+        log_probs = torch.stack(log_probs).permute(1, 0)
+
+        entropy.append(zeros)
+        entropy = torch.stack(entropy).permute(1, 0)
+
+        return sequence, log_probs, entropy
+
+
+
+class Freezer(nn.Module):
+    def __init__(self, wrapped):
+        super().__init__()
+        self.wrapped = wrapped
+        self.wrapped.eval()
+
+    def train(self, mode):
+        pass
+
+    def forward(self, *input):
+        with torch.no_grad():
+            r = self.wrapped(*input)
+        return r
+
+
+class Discriminator(nn.Module):
+    def __init__(self, vocab_size, n_hidden, embed_dim):
+        super().__init__()
+        self.encoder = core.RnnEncoder(vocab_size, embed_dim=embed_dim, n_hidden=n_hidden, cell='lstm')
+        self.fc = nn.Linear(n_hidden, 2, bias=False)
+
+    def forward(self, message):
+        x = self.encoder(message)
+        x = self.fc(x)
+        return x
 
 if __name__ == '__main__':
     mapper = BosSender(n_attributes=3, n_values=3, vocab_size=10, max_len=15)
