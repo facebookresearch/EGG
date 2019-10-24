@@ -79,8 +79,9 @@ class GumbelSoftmaxWrapper(nn.Module):
         """
         super(GumbelSoftmaxWrapper, self).__init__()
         self.agent = agent
+        self.temperature = temperature
         self.gs_layer = GumbelSoftmaxLayer(
-            temperature=temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
+            temperature=self.temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
         self.straight_through = straight_through
 
     def forward(self, *args, **kwargs):
@@ -207,7 +208,7 @@ class RnnSenderGS(nn.Module):
         self.force_eos = force_eos
 
         self.max_len = max_len
-        if self.force_eos:
+        if self.force_eos and self.max_len > 1:
             self.max_len -= 1
 
         self.hidden_to_output = nn.Linear(hidden_size, vocab_size)

@@ -45,7 +45,7 @@ class ConsoleLogger(Callback):
         if self.as_json:
             dump = dict(mode='test', epoch=self.epoch_counter, loss=loss)
             for k, v in logs.items():
-                dump[k] = self._get_metric(v)
+                dump[k] = v
             output_message = json.dumps(dump)
         else:
             output_message = f'test: epoch {self.epoch_counter}, loss {loss},  {logs}'
@@ -56,7 +56,7 @@ class ConsoleLogger(Callback):
             if self.as_json:
                 dump = dict(mode='train', epoch=self.epoch_counter, loss=loss)
                 for k, v in logs.items():
-                    dump[k] = self._get_metric(v)
+                    dump[k] = v
                 output_message = json.dumps(dump)
             else:
                 output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
@@ -87,23 +87,13 @@ class TensorboardLogger(Callback):
     def on_train_end(self):
         self.writer.close()
 
-    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
-        if torch.is_tensor(metric) and metric.dim() > 1:
-            return metric.mean().item()
-        elif torch.is_tensor(metric):
-            return metric.item()
-        elif type(metric) == float:
-            return metric
-        else:
-            raise TypeError('Metric must be either float or torch.Tensor')
-
 
 class TemperatureUpdater(Callback):
 
     def __init__(self, agent, decay=0.9, minimum=0.1, update_frequency=1):
         self.agent = agent
-        assert hasattr(agent, 'gs_layer') and hasattr(agent.gs_layer, 'temperature'), 'Agent must have a `temperature` attribute'
-        assert not isinstance(agent.gs_layer.temperature, torch.nn.Parameter), \
+        assert hasattr(agent, 'temperature'), 'Agent must have a `temperature` attribute'
+        assert not isinstance(agent.temperature, torch.nn.Parameter), \
             'When using TemperatureUpdater, `temperature` cannot be trainable'
         self.decay = decay
         self.minimum = minimum
@@ -112,7 +102,7 @@ class TemperatureUpdater(Callback):
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.epoch_counter % self.update_frequency == 0:
-            self.agent.gs_layer.temperature = max(self.minimum, self.agent.gs_layer.temperature * self.decay)
+            self.agent.temperature = max(self.minimum, self.agent.temperature * self.decay)
         self.epoch_counter += 1
 
 
