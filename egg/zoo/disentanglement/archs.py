@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Bernoulli
 import random
+from collections import defaultdict
+
 
 import egg.core as core
 from torch.distributions import Categorical
@@ -68,7 +70,7 @@ class PositionalSender(nn.Module):
         k = 1
 
         while k < n_values:
-            k *= (vocab_size - 1)
+            k *= vocab_size
             log += 1
 
         assert log * n_attributes < max_len
@@ -79,8 +81,8 @@ class PositionalSender(nn.Module):
         for i in range(n_values):
             value = i
             for k in range(log):
-                self.mapping.weight[i, k] = 1 + value % (vocab_size - 1) # avoid putting zeros!
-                value = value // (vocab_size - 1)
+                self.mapping.weight[i, k] = value % vocab_size
+                value = value // vocab_size
 
         assert (self.mapping.weight < vocab_size).all()
 
@@ -235,6 +237,15 @@ class Freezer(nn.Module):
             r = self.wrapped(*input)
         return r
 
+class PlusOneWrapper(nn.Module):
+    def __init__(self, wrapped):
+        super().__init__()
+        self.wrapped = wrapped
+
+    def forward(self, *input):
+        r1, r2, r3 = self.wrapped(*input)
+        return r1 + 1, r2, r3
+
 
 class Discriminator(nn.Module):
     def __init__(self, vocab_size, n_hidden, embed_dim):
@@ -246,6 +257,119 @@ class Discriminator(nn.Module):
         x = self.encoder(message)
         x = self.fc(x)
         return x
+
+
+def _permute_dims(latent_sample):
+    perm = torch.zeros_like(latent_sample)
+    batch_size, dim_z = perm.size()
+
+    for z in range(dim_z):
+        pi = torch.randperm(batch_size).to(latent_sample.device)
+        perm[:, z] = latent_sample[pi, z]
+
+    return perm
+
+class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
+    def __init__(self, sender, receiver, loss, sender_entropy_coeff, receiver_entropy_coeff,
+                 length_cost=0.0, discriminator=None, discriminator_weight=0.0):
+        super().__init__()
+        self.sender = sender
+        self.receiver = receiver
+        self.sender_entropy_coeff = sender_entropy_coeff
+        self.receiver_entropy_coeff = receiver_entropy_coeff
+        self.loss = loss
+        self.length_cost = length_cost
+
+        self.mean_baseline = defaultdict(float)
+        self.n_points = defaultdict(float)
+
+        self.discriminator = discriminator
+        self.discriminator_weight = discriminator_weight
+
+    def forward(self, sender_input, labels, receiver_input=None):
+        device = sender_input.device
+
+        message, log_prob_s, entropy_s = self.sender(sender_input)
+
+        message_lengths = core.find_lengths(message)
+        receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_lengths)
+
+        loss, rest = self.loss(sender_input, message, receiver_input, receiver_output, labels)
+
+        # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
+        effective_entropy_s = torch.zeros_like(entropy_r)
+
+        # the log prob of the choices made by S before and including the eos symbol - again, we don't
+        # care about the rest
+        effective_log_prob_s = torch.zeros_like(log_prob_r)
+
+        for i in range(message.size(1)):
+            not_eosed = (i < message_lengths).float()
+            effective_entropy_s += entropy_s[:, i] * not_eosed
+            effective_log_prob_s += log_prob_s[:, i] * not_eosed
+        effective_entropy_s = effective_entropy_s / message_lengths.float()
+
+        weighted_entropy = effective_entropy_s.mean() * self.sender_entropy_coeff + \
+                entropy_r.mean() * self.receiver_entropy_coeff
+
+        log_prob = effective_log_prob_s + log_prob_r
+
+        length_loss = message_lengths.float() * self.length_cost
+
+        policy_length_loss = ((length_loss.float() - self.mean_baseline['length']) * effective_log_prob_s).mean()
+        policy_loss = ((loss.detach() - self.mean_baseline['loss']) * log_prob).mean()
+
+        policy_discriminator_loss = 0.0
+        discriminator_loss = 0.0
+        if self.discriminator is not None:
+            with torch.no_grad():
+                p_grammatical = self.discriminator(message).log_softmax(dim=-1)
+                discriminator_loss = p_grammatical[:, 0] - p_grammatical[:, 1]
+            policy_discriminator_loss = ((-discriminator_loss.detach() + self.mean_baseline['discriminator_loss']) * log_prob_s.sum(dim=-1)).mean()
+
+        discriminator_train_loss = 0.0
+        if self.discriminator is not None:
+            positive_examples = message
+            negative_examples = _permute_dims(message)
+            examples = torch.cat([positive_examples, negative_examples])
+            batch_size = message.size(0)
+            labels = torch.zeros(2 * batch_size, device=device).long()
+
+            labels[batch_size:] = 1
+
+            discriminator_predictions = self.discriminator(examples)
+            discriminator_train_loss = F.cross_entropy(discriminator_predictions, labels)
+
+            discriminator_train_acc = (discriminator_predictions.argmax(dim=-1) == labels).float().mean().item()
+
+        optimized_loss = policy_length_loss + policy_loss - weighted_entropy - self.discriminator_weight * policy_discriminator_loss
+        # if the receiver is deterministic/differentiable, we apply the actual loss
+        optimized_loss += loss.mean() + discriminator_train_loss
+
+        if self.training:
+            self.update_baseline('loss', loss)
+            self.update_baseline('length', length_loss)
+            if self.discriminator:
+                self.update_baseline('discriminator_loss', discriminator_loss)
+
+        for k, v in rest.items():
+            rest[k] = v.mean().item() if hasattr(v, 'mean') else v
+        rest['loss'] = optimized_loss.detach().item()
+        rest['sender_entropy'] = entropy_s.mean().item()
+        rest['receiver_entropy'] = entropy_r.mean().item()
+        rest['original_loss'] = loss.mean().item()
+        rest['mean_length'] = message_lengths.float().mean().item()
+        if self.discriminator:
+            rest['discriminator_loss'] = discriminator_loss.detach().mean().item()
+            rest['discriminator_train_loss'] = discriminator_train_loss.detach().mean().item()
+            rest['discriminator_train_acc'] = discriminator_train_acc
+
+        return optimized_loss, rest
+
+    def update_baseline(self, name, value):
+        self.n_points[name] += 1
+        self.mean_baseline[name] += (value.detach().mean().item() - self.mean_baseline[name]) / self.n_points[name]
+
 
 if __name__ == '__main__':
     mapper = BosSender(n_attributes=3, n_values=3, vocab_size=10, max_len=15)
