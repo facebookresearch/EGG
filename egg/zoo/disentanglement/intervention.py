@@ -97,7 +97,7 @@ def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, voca
 
 
 
-class Evaluator(core.Callback):
+class Metrics(core.Callback):
     def __init__(self, dataset, device, n_attributes, n_values, vocab_size, freq=1):
         self.dataset = dataset
         self.device = device
@@ -137,3 +137,47 @@ class Evaluator(core.Callback):
 
         self.dump_stats()
 
+
+
+class Evaluator(core.Callback):
+    def __init__(self, loaders_metrics, device, freq=1):
+        self.loaders_metrics = loaders_metrics
+        self.device = device
+        self.epoch = 0
+        self.freq = freq
+
+    def evaluate(self):
+        game = self.trainer.game
+        game.eval()
+        old_loss = game.loss
+
+        results = {}
+        for loader_name, loader, metric in self.loaders_metrics:
+            acc = 0.0
+            n_batches = 0
+            game.loss = metric
+
+            for batch in loader:
+                n_batches += 1
+
+                batch = core.move_to(batch, self.device)
+                with torch.no_grad():
+                    _, rest = game(*batch)
+                acc += rest['acc']
+            results[loader_name] = acc / n_batches 
+
+        output_json = json.dumps(results)
+        print(output_json, flush=True)
+
+        game.loss = old_loss
+        game.train()
+
+    def on_train_end(self):
+        self.evaluate()
+
+    def on_epoch_end(self, *stuff):
+        self.epoch += 1
+
+        if self.freq <= 0 or self.epoch % self.freq != 0:
+            return
+        self.evaluate()
