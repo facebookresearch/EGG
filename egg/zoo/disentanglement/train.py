@@ -9,9 +9,10 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
-from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test
-from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, Freezer, Discriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper
-from egg.zoo.disentanglement.intervention import Evaluator
+from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_by_attribute_value
+from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
+    Freezer, Discriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper
+from egg.zoo.disentanglement.intervention import Metrics, Evaluator
 
 from egg.core import EarlyStopperAccuracy
 
@@ -20,13 +21,20 @@ def dump(game, dataset, device, n_attributes, n_values):
         core.dump_sender_receiver(
             game, dataset, gs=False, device=device, variable_length=True)
 
+    language = []
+
     for sender_input, message, receiver_output in zip(sender_inputs, messages, receiver_outputs):
         sender_input = sender_input.view(n_attributes, n_values).argmax(dim=-1).view(-1).tolist()
-        sender_input = ' '.join(str(x) for x in sender_input)
-        message = ' '.join(map(str, message.tolist()))
+        sender_input = " ".join(str(x) for x in sender_input)
+        message = " ".join(str(x) for x in message.tolist())
         receiver_output = receiver_output.view(n_attributes, n_values).argmax(dim=-1).view(-1).tolist()
-        receiver_output = ' '.join([str(x) for x in receiver_output])
-        print(f'{sender_input} -> {message} -> {receiver_output}')
+        receiver_output = " ".join(str(x) for x in receiver_output)
+
+        utterance = dict(sender_input=sender_input, message=message, receiver_output=receiver_output)
+        language.append(utterance)
+
+    language = json.dumps({'language': language}, indent=1)
+    print(language)
 
 
 def get_params(params):
@@ -63,21 +71,29 @@ def get_params(params):
 
 
 class DiffLoss(torch.nn.Module):
-    def __init__(self, n_attributes, n_values):
+    def __init__(self, n_attributes, n_values, cut_at_attribute=None):
         super().__init__()
         self.n_attributes = n_attributes
         self.n_values = n_values
+        self.cut_attribute = cut_at_attribute
 
     def forward(self, sender_input, _message, _receiver_input, receiver_output, _labels):
         batch_size = sender_input.size(0)
         sender_input = sender_input.view(batch_size, self.n_attributes, self.n_values)
         receiver_output = receiver_output.view(batch_size, self.n_attributes, self.n_values)
 
-        acc = (receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).detach().float().mean()
-        receiver_output = receiver_output.view(batch_size * self.n_attributes, self.n_values)
-        labels = sender_input.argmax(dim=-1).view(batch_size * self.n_attributes)
+        if self.cut_attribute is not None:
+            sender_input = torch.cat([sender_input[:, :self.cut_attribute, :], sender_input[:, self.cut_attribute+1:, :]], dim=1) 
+            receiver_output = torch.cat([receiver_output[:, :self.cut_attribute, :],receiver_output[:, self.cut_attribute+1:, :]], dim=1)
+            n_attributes = self.n_attributes - 1
+        else:
+            n_attributes = self.n_attributes
 
-        loss = F.cross_entropy(receiver_output, labels, reduction="none").view(batch_size, self.n_attributes).mean(dim=-1)
+        acc = (receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).detach().float().mean()
+        receiver_output = receiver_output.view(batch_size * n_attributes, self.n_values)
+        labels = sender_input.argmax(dim=-1).view(batch_size * n_attributes)
+
+        loss = F.cross_entropy(receiver_output, labels, reduction="none").view(batch_size, n_attributes).mean(dim=-1)
         return loss, {'acc': acc}
 
 
@@ -86,17 +102,22 @@ def main(params):
     print(json.dumps(vars(opts)))
 
     device = opts.device
-    dataset = enumerate_attribute_value(opts.n_attributes, opts.n_values)
-    dataset = list(dataset)
+    full_data = enumerate_attribute_value(opts.n_attributes, opts.n_values)
 
-    train, test = dataset, dataset #split_train_test(dataset, 0.5)
-    train = ScaledDataset(train, opts.data_scaler)
-    test = ScaledDataset(test, 1)
+    holdout_a1, rest = split_by_attribute_value(full_data, 0, 0)
+    holdout_a2, rest = split_by_attribute_value(rest, 1, 0)
+    train, uniform_holdout = split_train_test(rest, 0.1)
+
+    apply = lambda x: list(one_hotify(x, opts.n_attributes, opts.n_values))
+    holdout_a1, holdout_a2, train, uniform_holdout, full_data = list(map(apply, [holdout_a1, holdout_a2, train, uniform_holdout, full_data]))
+
+    train, validation = ScaledDataset(train, opts.data_scaler), ScaledDataset(train, 1)
+
+    holdout_a1, holdout_a2, uniform_holdout, full_data = ScaledDataset(holdout_a1), ScaledDataset(holdout_a2), ScaledDataset(uniform_holdout), ScaledDataset(full_data)
+    holdout_a1_loader, holdout_a2_loader, uniform_holdout_loader, full_data_loader = [DataLoader(x, batch_size=opts.batch_size) for x in [holdout_a1, holdout_a2, uniform_holdout, full_data]]
 
     train_loader = DataLoader(train, batch_size=opts.batch_size)
-    test_loader = DataLoader(test, batch_size=opts.batch_size)
-    full_data = ScaledDataset(dataset, 1)
-    full_data_loader = DataLoader(full_data, batch_size=opts.batch_size)
+    validation_loader = DataLoader(validation, batch_size=opts.batch_size)
 
     n_dim = opts.n_attributes * opts.n_values
 
@@ -155,15 +176,23 @@ def main(params):
     params.extend(receiver.parameters())
     optimizer = torch.optim.Adam(params, lr=opts.lr)
 
-    evaluator = Evaluator(dataset, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
+    metrics_evaluator = Metrics(full_data.examples, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
+
+    loaders = []
+    loaders.append(("hold out a1", holdout_a1_loader, DiffLoss(opts.n_attributes, opts.n_values, 0)))
+    loaders.append(("hold out a2", holdout_a2_loader, DiffLoss(opts.n_attributes, opts.n_values, 1)))
+    loaders.append(("uniform holdout", uniform_holdout_loader,  DiffLoss(opts.n_attributes, opts.n_values)))
+
+    holdout_evaluator = Evaluator(loaders, opts.device, freq=1)
 
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
         train_data=train_loader,
-        validation_data=test_loader,
+        validation_data=validation_loader,
         callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), 
                    EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
-                   evaluator])
+                   metrics_evaluator,
+                   holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
 
     dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
@@ -177,17 +206,19 @@ def main(params):
             sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
 
     optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
-
+    core.get_opts().preemptable = False
+    core.get_opts().checkpoint_path = None
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
         train_data=train_loader,
-        validation_data=test_loader,
+        validation_data=validation_loader,
         callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), 
                    EarlyStopperAccuracy(opts.early_stopping_thr, validation=True)])
-    # trainer.train(n_epochs=opts.n_epochs)
+    trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
 
+    # check if re-trained guys do the tricks each on its own
 
 
 if __name__ == "__main__":
