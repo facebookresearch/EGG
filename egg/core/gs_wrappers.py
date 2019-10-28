@@ -208,6 +208,7 @@ class RnnSenderGS(nn.Module):
 
         self.max_len = max_len
         if self.force_eos:
+            assert self.max_len > 1, "Cannot force eos when max_len is below 1"
             self.max_len -= 1
 
         self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
