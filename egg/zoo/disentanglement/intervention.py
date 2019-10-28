@@ -82,17 +82,20 @@ def information_gap_position(n_attributes, n_values, dataset, sender, device):
     return information_gap_representation(attributes, strings)
 
 
+def histogram(strings, vocab_size):
+    batch_size = strings.size(0)
+
+    histogram = torch.zeros(batch_size, vocab_size, device=strings.device)
+
+    for v in range(vocab_size):
+        histogram[:, v] = strings.eq(v).sum(dim=-1)
+
+    return histogram
+
 def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, vocab_size):
     attributes, strings, _meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
 
-    histograms = []
-    for i in range(strings.size(0)):
-        representation = torch.zeros(vocab_size)
-        for v in range(vocab_size):
-            representation[v] = strings[i, :].eq(v).sum()
-        histograms.append(representation)
-
-    histograms = torch.stack(histograms, dim=0)
+    histograms = histogram(strings, vocab_size)
     return information_gap_representation(attributes, histograms[:, 1:])
 
 
