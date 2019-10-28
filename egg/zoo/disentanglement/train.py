@@ -33,7 +33,7 @@ def dump(game, dataset, device, n_attributes, n_values):
         utterance = dict(sender_input=sender_input, message=message, receiver_output=receiver_output)
         language.append(utterance)
 
-    language = json.dumps({'language': language}, indent=1)
+    language = json.dumps({'language': language})
     print(language)
 
 
@@ -213,7 +213,8 @@ def main(params):
         train_data=train_loader,
         validation_data=validation_loader,
         callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), 
-                   EarlyStopperAccuracy(opts.early_stopping_thr, validation=True)])
+                   EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
+                   holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
