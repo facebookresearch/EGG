@@ -11,8 +11,8 @@ import torch.nn.functional as F
 import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_by_attribute_value
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
-    Freezer, Discriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper
-from egg.zoo.disentanglement.intervention import Metrics, Evaluator
+    Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator
+from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
 
 from egg.core import EarlyStopperAccuracy
 
@@ -63,8 +63,9 @@ def get_params(params):
                         help="Early stopping threshold on accuracy (defautl: 0.99)")
 
 
-    parser.add_argument('--d_weight', type=float, default=0.0,
-                        help="")
+    parser.add_argument('--d_type', default=None, choices=['pos', 'bos'])
+
+    parser.add_argument('--d_weight', type=float, default=0.0, help="")
 
     args = core.init(arg_parser=parser, params=params)
     return args
@@ -97,6 +98,16 @@ class DiffLoss(torch.nn.Module):
         return loss, {'acc': acc}
 
 
+def _set_seed(seed) -> None:
+    import random
+    import numpy as np
+
+    random.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
 def main(params):
     opts = get_params(params)
     print(json.dumps(vars(opts)))
@@ -128,7 +139,7 @@ def main(params):
         receiver = core.RnnReceiverDeterministic(
             receiver, opts.vocab_size + 1, opts.receiver_emb, opts.receiver_hidden, cell=opts.receiver_cell)
     elif opts.receiver_cell in ['transformer', 'transformer-bos']:
-        use_positional_embeddings = opts.receiver_cell == 'transformer-bos' 
+        use_positional_embeddings = opts.receiver_cell != 'transformer-bos' 
 
         receiver = Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size + 1, opts.max_len, 
@@ -163,17 +174,29 @@ def main(params):
     sender = PlusOneWrapper(sender)
     loss = DiffLoss(opts.n_attributes, opts.n_values)
 
-    discriminator = Discriminator(opts.vocab_size + 1, n_hidden=opts.receiver_hidden, embed_dim=opts.receiver_emb)
-    game = SenderReceiverRnnReinforceWithDiscriminator(
-            sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=0.0, discriminator=discriminator, discriminator_weight=opts.d_weight)
-
-
     params = []
-    params.extend(discriminator.parameters())
     if opts.sender_cell != 'positional':
         params.extend(sender.parameters())
-
     params.extend(receiver.parameters())
+
+    if opts.d_type == 'pos':
+        discriminator = PositionalDiscriminator(opts.vocab_size + 1, n_hidden=opts.receiver_hidden, embed_dim=opts.receiver_emb)
+        discriminator_transfo = None
+        params.extend(discriminator.parameters())
+    elif opts.d_type == 'bos':
+        discriminator = HistogramDiscriminator(opts.vocab_size, opts.receiver_hidden, opts.receiver_emb)
+        discriminator_transfo = lambda x: histogram(x, opts.vocab_size)
+        params.extend(discriminator.parameters())
+    else:
+        discriminator = None
+        discriminator_transfo = None
+
+
+    game = SenderReceiverRnnReinforceWithDiscriminator(
+            sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=0.0, discriminator=discriminator, discriminator_weight=opts.d_weight,
+            discriminator_transform=discriminator_transfo)
+
+
     optimizer = torch.optim.Adam(params, lr=opts.lr)
 
     metrics_evaluator = Metrics(full_data.examples, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
@@ -198,24 +221,30 @@ def main(params):
     dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
 
     # freeze Sender and probe how fast a simple Receiver will learn the thing
-    receiver = Receiver(n_hidden=10, n_outputs=n_dim)
-    receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size + 1, opts.receiver_emb, hidden_size=10, cell='lstm')
     sender = Freezer(sender)
 
-    game = SenderReceiverRnnReinforceWithDiscriminator(
-            sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
+    for i in range(3):
+        _set_seed(i)
+        print(json.dumps(
+            {"mode": "reset", "seed": i}
+        ))
+        receiver = Receiver(n_hidden=10, n_outputs=n_dim)
+        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size + 1, opts.receiver_emb, hidden_size=10, cell='lstm')
 
-    optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
-    core.get_opts().preemptable = False
-    core.get_opts().checkpoint_path = None
-    trainer = core.Trainer(
-        game=game, optimizer=optimizer,
-        train_data=train_loader,
-        validation_data=validation_loader,
-        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), 
-                   EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
-                   holdout_evaluator])
-    trainer.train(n_epochs=opts.n_epochs)
+        game = SenderReceiverRnnReinforceWithDiscriminator(
+                sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
+
+        optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
+        core.get_opts().preemptable = False
+        core.get_opts().checkpoint_path = None
+        trainer = core.Trainer(
+            game=game, optimizer=optimizer,
+            train_data=train_loader,
+            validation_data=validation_loader,
+            callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=False),
+                    EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
+                    holdout_evaluator])
+        trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
 
