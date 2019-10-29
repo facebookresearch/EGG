@@ -8,10 +8,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
+
 def gumbel_softmax_sample(
-        logits: torch.Tensor, 
+        logits: torch.Tensor,
         temperature: float = 1.0,
-        training: bool = True, 
+        training: bool = True,
         straight_through: bool = False):
 
     size = logits.size()
@@ -34,6 +35,7 @@ def gumbel_softmax_sample(
 
         sample = sample + (hard_sample - sample).detach()
     return sample
+
 
 class GumbelSoftmaxLayer(nn.Module):
     def __init__(self,
@@ -94,7 +96,8 @@ class GumbelSoftmaxWrapper(nn.Module):
 
     def forward(self, *args, **kwargs):
         logits = self.agent(*args, **kwargs)
-        sample = gumbel_softmax_sample(logits, self.temperature, self.training, self.straight_through)
+        sample = gumbel_softmax_sample(
+            logits, self.temperature, self.training, self.straight_through)
         return sample
 
 
