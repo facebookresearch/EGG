@@ -247,7 +247,7 @@ class PlusOneWrapper(nn.Module):
         return r1 + 1, r2, r3
 
 
-class Discriminator(nn.Module):
+class PositionalDiscriminator(nn.Module):
     def __init__(self, vocab_size, n_hidden, embed_dim):
         super().__init__()
         self.encoder = core.RnnEncoder(vocab_size, embed_dim=embed_dim, n_hidden=n_hidden, cell='lstm')
@@ -269,9 +269,26 @@ def _permute_dims(latent_sample):
 
     return perm
 
+
+class HistogramDiscriminator(nn.Module):
+    def __init__(self, vocab_size, n_hidden, embed_dim):
+        super().__init__()
+        self.discriminator = nn.Sequential(
+                nn.Linear(vocab_size, n_hidden),
+                nn.LeakyReLU(),
+                nn.Linear(n_hidden, 2, bias=False)
+                #nn.Linear(vocab_size, 2, bias=False)
+                )
+
+    def forward(self, histogram):
+        #print(histogram)
+        x = self.discriminator(histogram)
+        return x
+
+
 class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
     def __init__(self, sender, receiver, loss, sender_entropy_coeff, receiver_entropy_coeff,
-                 length_cost=0.0, discriminator=None, discriminator_weight=0.0):
+                 length_cost=0.0, discriminator=None, discriminator_weight=0.0, discriminator_transform=None):
         super().__init__()
         self.sender = sender
         self.receiver = receiver
@@ -285,6 +302,7 @@ class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
 
         self.discriminator = discriminator
         self.discriminator_weight = discriminator_weight
+        self.discriminator_transform = discriminator_transform
 
     def forward(self, sender_input, labels, receiver_input=None):
         device = sender_input.device
@@ -323,14 +341,19 @@ class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
         discriminator_loss = 0.0
         if self.discriminator is not None:
             with torch.no_grad():
-                p_grammatical = self.discriminator(message).log_softmax(dim=-1)
+                if self.discriminator_transform:
+                    transformed = self.discriminator_transform(message)
+                else:
+                    transformed = message
+
+                p_grammatical = self.discriminator(transformed).log_softmax(dim=-1)
                 discriminator_loss = p_grammatical[:, 0] - p_grammatical[:, 1]
             policy_discriminator_loss = ((-discriminator_loss.detach() + self.mean_baseline['discriminator_loss']) * log_prob_s.sum(dim=-1)).mean()
 
         discriminator_train_loss = 0.0
         if self.discriminator is not None:
-            positive_examples = message
-            negative_examples = _permute_dims(message)
+            positive_examples = message if self.discriminator_transform is None else self.discriminator_transform(message)
+            negative_examples = _permute_dims(message) if self.discriminator_transform is None else _permute_dims(self.discriminator_transform(message))
             examples = torch.cat([positive_examples, negative_examples])
             batch_size = message.size(0)
             labels = torch.zeros(2 * batch_size, device=device).long()
