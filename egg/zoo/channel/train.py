@@ -164,7 +164,9 @@ def main(params):
     optimizer = core.build_optimizer(game.parameters())
 
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader, callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr)])
+                           validation_data=test_loader,
+                           callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr),
+                                      core.ConsoleLogger(as_json=True, print_train_loss=True)])
 
     trainer.train(n_epochs=opts.n_epochs)
     if opts.checkpoint_dir:

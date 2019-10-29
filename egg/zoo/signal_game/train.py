@@ -97,7 +97,9 @@ if __name__ == '__main__':
         callbacks = [core.TemperatureUpdater(
             agent=game.sender, decay=0.9, minimum=0.1)]
     else:
-        callbacks = None
+        callbacks = []
+
+    callbacks.append(core.ConsoleLogger(as_json=True, print_train_loss=True))
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
                            validation_data=validation_loader, callbacks=callbacks)
 
