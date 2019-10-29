@@ -8,6 +8,32 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
+def gumbel_softmax_sample(
+        logits: torch.Tensor, 
+        temperature: float = 1.0,
+        training: bool = True, 
+        straight_through: bool = False):
+
+    size = logits.size()
+    if not training:
+        indexes = logits.argmax(dim=-1)
+        one_hot = torch.zeros_like(logits).view(-1, size[-1])
+        one_hot.scatter_(1, indexes.view(-1, 1), 1)
+        one_hot = one_hot.view(*size)
+        return one_hot
+
+    sample = RelaxedOneHotCategorical(
+        logits=logits, temperature=temperature).rsample()
+
+    if straight_through:
+        size = sample.size()
+        indexes = sample.argmax(dim=-1)
+        hard_sample = torch.zeros_like(sample).view(-1, size[-1])
+        hard_sample.scatter_(1, indexes.view(-1, 1), 1)
+        hard_sample = hard_sample.view(*size)
+
+        sample = sample + (hard_sample - sample).detach()
+    return sample
 
 class GumbelSoftmaxLayer(nn.Module):
     def __init__(self,
@@ -24,27 +50,7 @@ class GumbelSoftmaxLayer(nn.Module):
                 torch.tensor([temperature]), requires_grad=True)
 
     def forward(self, logits: torch.Tensor):
-        size = logits.size()
-        if not self.training:
-            indexes = logits.argmax(dim=-1)
-            one_hot = torch.zeros_like(logits).view(-1, size[-1])
-            one_hot.scatter_(1, indexes.view(-1, 1), 1)
-            one_hot = one_hot.view(*size)
-
-            return one_hot
-
-        sample = RelaxedOneHotCategorical(
-            logits=logits, temperature=self.temperature).rsample()
-
-        if self.straight_through:
-            size = sample.size()
-            indexes = sample.argmax(dim=-1)
-            hard_sample = torch.zeros_like(sample).view(-1, size[-1])
-            hard_sample.scatter_(1, indexes.view(-1, 1), 1)
-            hard_sample = hard_sample.view(*size)
-
-            sample = sample + (hard_sample - sample).detach()
-        return sample
+        return gumbel_softmax_sample(logits, self.temperature, self.training, self.straight_through)
 
 
 class GumbelSoftmaxWrapper(nn.Module):
@@ -79,13 +85,17 @@ class GumbelSoftmaxWrapper(nn.Module):
         """
         super(GumbelSoftmaxWrapper, self).__init__()
         self.agent = agent
-        self.gs_layer = GumbelSoftmaxLayer(
-            temperature=temperature, trainable_temperature=trainable_temperature, straight_through=straight_through)
         self.straight_through = straight_through
+        if not trainable_temperature:
+            self.temperature = temperature
+        else:
+            self.temperature = torch.nn.Parameter(
+                torch.tensor([temperature]), requires_grad=True)
 
     def forward(self, *args, **kwargs):
         logits = self.agent(*args, **kwargs)
-        return self.gs_layer(logits)
+        sample = gumbel_softmax_sample(logits, self.temperature, self.training, self.straight_through)
+        return sample
 
 
 class SymbolGameGS(nn.Module):
@@ -200,7 +210,7 @@ class RnnSenderGS(nn.Module):
     torch.Size([1, 3, 2])
     """
     def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn', force_eos=True,
-                 trainable_temperature=False):
+                 trainable_temperature=False, straight_through=False):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
 
@@ -222,6 +232,7 @@ class RnnSenderGS(nn.Module):
         else:
             self.temperature = torch.nn.Parameter(torch.tensor([temperature]), requires_grad=True)
 
+        self.straight_through = straight_through
         self.cell = None
 
         cell = cell.lower()
@@ -253,13 +264,8 @@ class RnnSenderGS(nn.Module):
             else:
                 h_t = self.cell(e_t, prev_hidden)
 
-            step_logits = F.log_softmax(self.hidden_to_output(h_t), dim=1)
-            distr = RelaxedOneHotCategorical(logits=step_logits, temperature=self.temperature)
-
-            if self.training:
-                x = distr.rsample()
-            else:
-                x = torch.zeros_like(step_logits).scatter_(-1, step_logits.argmax(dim=-1, keepdim=True), 1.0)
+            step_logits = self.hidden_to_output(h_t)
+            x = gumbel_softmax_sample(step_logits, self.temperature, self.training, self.straight_through)
 
             prev_hidden = h_t
             e_t = self.embedding(x)
