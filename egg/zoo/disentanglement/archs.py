@@ -73,7 +73,7 @@ class PositionalSender(nn.Module):
             k *= vocab_size
             log += 1
 
-        assert log * n_attributes < max_len
+        assert log * n_attributes <= max_len
 
         self.mapping = nn.Embedding(n_values, log)
         torch.nn.init.zeros_(self.mapping.weight)

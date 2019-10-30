@@ -169,6 +169,7 @@ class Evaluator(core.Callback):
                 acc += rest['acc']
             results[loader_name] = acc / n_batches 
 
+        results['epoch'] = self.epoch
         output_json = json.dumps(results)
         print(output_json, flush=True)
 
