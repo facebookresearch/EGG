@@ -108,7 +108,7 @@ class TransformerEncoder(nn.Module):
                 message, key_padding_mask=padding_mask, attn_mask=attn_mask)
 
             last_embeddings = []
-            for i, l in enumerate(lengths.clamp(max=self.max_len-1).cpu()):
+            for i, l in enumerate(lengths.clamp(max=max_len-1).cpu()):
                 last_embeddings.append(transformed[i, l, :])
             transformed = torch.stack(last_embeddings)
 

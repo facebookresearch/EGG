@@ -206,7 +206,7 @@ def main(params):
     loaders.append(("hold out a2", holdout_a2_loader, DiffLoss(opts.n_attributes, opts.n_values, 1)))
     loaders.append(("uniform holdout", uniform_holdout_loader,  DiffLoss(opts.n_attributes, opts.n_values)))
 
-    holdout_evaluator = Evaluator(loaders, opts.device, freq=1)
+    holdout_evaluator = Evaluator(loaders, opts.device, freq=0)
 
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
@@ -222,34 +222,43 @@ def main(params):
 
     # freeze Sender and probe how fast a simple Receiver will learn the thing
     sender = Freezer(sender)
+    core.get_opts().preemptable = False
+    core.get_opts().checkpoint_path = None
 
-    for i in range(3):
-        _set_seed(i)
-        print(json.dumps(
-            {"mode": "reset", "seed": i}
-        ))
-        receiver = Receiver(n_hidden=10, n_outputs=n_dim)
-        receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size + 1, opts.receiver_emb, hidden_size=10, cell='lstm')
-
+    def retrain_receiver(receiver_generator):
+        receiver = receiver_generator()
         game = SenderReceiverRnnReinforceWithDiscriminator(
                 sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
-
         optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
-        core.get_opts().preemptable = False
-        core.get_opts().checkpoint_path = None
+
         trainer = core.Trainer(
             game=game, optimizer=optimizer,
             train_data=train_loader,
             validation_data=validation_loader,
-            callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=False),
+            callbacks=[#core.ConsoleLogger(as_json=True, print_train_loss=False),
                     EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
-                    holdout_evaluator])
+                    Evaluator(loaders, opts.device, freq=0)
+                    ])
         trainer.train(n_epochs=opts.n_epochs)
 
+    lstm_receiver_generator = lambda: \
+        core.RnnReceiverDeterministic(Receiver(n_hidden=10, n_outputs=n_dim),
+                opts.vocab_size + 1, opts.receiver_emb, hidden_size=10, cell='lstm')
+
+    transformer_receiver_generator = lambda: \
+        core.TransformerReceiverDeterministic(
+                Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim),
+                opts.vocab_size + 1, opts.max_len, 
+                opts.receiver_hidden, num_heads=1, hidden_size=opts.receiver_hidden, num_layers=1,
+                positional_emb=True)
+
+    for name, receiver_generator in [('transformer', transformer_receiver_generator), ('lstm', lstm_receiver_generator)]:
+        for seed in range(17, 17 + 3):
+            _set_seed(seed)
+            print(json.dumps({"mode": "reset", "seed": seed, "receiver_name": name}))
+            retrain_receiver(receiver_generator)
+
     core.close()
-
-    # check if re-trained guys do the tricks each on its own
-
 
 if __name__ == "__main__":
     import sys
