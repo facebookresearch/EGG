@@ -19,10 +19,11 @@ def one_hotify(data, n_attributes, n_values):
             z[i, config[i]] = 1
         yield z.view(-1)
 
-
-def split_by_attribute_value(dataset, attribute, value):
-    with_av = [x for x in dataset if x[attribute] == value]
-    without_av = [x for x in dataset if x[attribute] != value]
+def split_by_attribute_value(dataset, attribute, values):
+    if type(values)==int:
+        values = [values]
+    with_av = [x for x in dataset if x[attribute] in values]
+    without_av = [x for x in dataset if not(x[attribute] in values)]
 
     return with_av, without_av
 
