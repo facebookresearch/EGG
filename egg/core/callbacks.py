@@ -148,7 +148,7 @@ class CheckpointSaver(Callback):
         """
         Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
         """
-        self.checkpoint_path.mkdir(exist_ok=True)
+        self.checkpoint_path.mkdir(exist_ok=True, parents=True)
         path = self.checkpoint_path / f'{filename}.tar'
         torch.save(self.get_checkpoint(), path)
 
