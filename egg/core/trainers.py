@@ -144,7 +144,7 @@ class Trainer:
     def train(self, n_epochs):
         for callback in self.callbacks:
             callback.on_train_begin(self)
-
+        val_accs = []
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
                 callback.on_epoch_begin()
@@ -158,6 +158,7 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_test_begin()
                 validation_loss, rest = self.eval()
+                val_accs.append(rest['acc'])
                 for callback in self.callbacks:
                     callback.on_test_end(validation_loss, rest)
 
@@ -166,6 +167,8 @@ class Trainer:
 
         for callback in self.callbacks:
             callback.on_train_end()
+
+        return val_accs
 
     def load(self, checkpoint: Checkpoint):
         self.game.load_state_dict(checkpoint.model_state_dict)

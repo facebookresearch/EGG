@@ -44,7 +44,7 @@ def get_linearity_score(n_attributes, n_values,  dataset, sender, device, vocab_
             return loss
         else:
             return loss, rest
-      
+
 
     for _ in range(5):
         optimizer.step(closure)
@@ -64,7 +64,7 @@ def information_gap_representation(meanings, representations):
             x, y = meanings[:, i], representations[:, j]
             info =  mutual_info(x, y)
             symbol_mi.append(info)
-            
+
             if h_j is None:
                 h_j = entropy(y)
 
@@ -119,8 +119,8 @@ class Metrics(core.Callback):
         bos_disent = information_gap_vocab(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size)
         linearity = get_linearity_score(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size, game.loss)
 
-        output = dict(epoch=self.epoch, 
-                            positional_disent=positional_disent, 
+        output = dict(epoch=self.epoch,
+                            positional_disent=positional_disent,
                             bag_of_symbol_disent=bos_disent,
                             linearity=linearity)
 
@@ -167,7 +167,7 @@ class Evaluator(core.Callback):
                 with torch.no_grad():
                     _, rest = game(*batch)
                 acc += rest['acc']
-            results[loader_name] = acc / n_batches 
+            results[loader_name] = acc / n_batches
 
         results['epoch'] = self.epoch
         output_json = json.dumps(results)
