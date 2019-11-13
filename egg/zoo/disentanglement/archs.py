@@ -18,15 +18,10 @@ from torch.distributions import Categorical
 class Receiver(nn.Module):
     def __init__(self, n_outputs, n_hidden):
         super(Receiver, self).__init__()
-        self.fc1 = nn.Linear(n_hidden, n_hidden)
-        self.fc2 = nn.Linear(n_hidden, n_outputs)
+        self.fc = nn.Linear(n_hidden, n_outputs)
 
     def forward(self, x, _):
-        x = self.fc1(x)
-        x = F.leaky_relu(x)
-        x = self.fc2(x)
-        return x
-
+        return self.fc(x)
 
 
 class Sender(nn.Module):
@@ -132,10 +127,10 @@ class BosSender(nn.Module):
         self.max_len = max_len
 
         assert (n_attributes * n_values) <= max_len
-        assert vocab_size - 1 >= n_attributes
+        assert vocab_size >= n_attributes
 
         # each attribute uses unique symbol, avoiding zero
-        self.attribute2symbol = [x + 1 for x in random.sample(range(vocab_size - 1), n_attributes)]
+        self.attribute2symbol = [x for x in random.sample(range(vocab_size), n_attributes)]
 
 
     def forward(self, x):
