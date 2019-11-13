@@ -3,6 +3,10 @@ from egg.zoo.language_bottleneck.intervention import mutual_info, entropy
 from egg.zoo.disentanglement.archs import LinearReceiver
 import egg.core as core
 import json
+from scipy import spatial
+from scipy.stats import spearmanr
+import editdistance #package to install https://pypi.org/project/editdistance/0.3.1/
+
 
 def ask_sender(n_attributes, n_values, dataset, sender, device):
     attributes = []
@@ -98,6 +102,33 @@ def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, voca
     histograms = histogram(strings, vocab_size)
     return information_gap_representation(attributes, histograms[:, 1:])
 
+def edit_dist(_list):
+    distances = []
+    count = 0
+    for i, el1 in enumerate(_list[:-1]):
+        for j, el2 in enumerate(_list[i+1:]):
+            count+=1
+            distances.append(editdistance.eval(el1, el2)/len(el1)) # Normalized edit distance (same in our case as length is fixed)
+    return distances
+
+def cosine_dist(_list):
+    distances = []
+    for i, el1 in enumerate(_list[:-1]):
+        for j, el2 in enumerate(_list[i+1:]):
+            distances.append(spatial.distance.cosine(el1, el2))
+    return distances
+
+
+def topographic_similarity(n_attributes, n_values, dataset, sender, device):
+    _attributes, strings, meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
+    list_string = []
+    for s in strings:
+        list_string.append(''.join([chr(x.item()) for x in s]))
+    distance_messages = edit_dist(list_string)
+    distance_inputs = cosine_dist(meanings.cpu().numpy())
+
+    corr = spearmanr(distance_messages, distance_inputs)
+    return corr
 
 
 class Metrics(core.Callback):
@@ -117,11 +148,13 @@ class Metrics(core.Callback):
 
         positional_disent = information_gap_position(self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
         bos_disent = information_gap_vocab(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size)
+        topo_sim = topographic_similarity(self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
         linearity = get_linearity_score(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size, game.loss)
 
         output = dict(epoch=self.epoch,
                             positional_disent=positional_disent,
                             bag_of_symbol_disent=bos_disent,
+                            topographic_sim=topo_sim,
                             linearity=linearity)
 
         output_json = json.dumps(output)
