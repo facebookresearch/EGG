@@ -142,7 +142,7 @@ def main(params):
 
         receiver = Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size + 1, opts.max_len,
-                    opts.receiver_hidden, num_heads=1, hidden_size=opts.receiver_hidden, num_layers=1,
+                    opts.receiver_hidden, num_heads=5, hidden_size=opts.receiver_emb, num_layers=3,
                     positional_emb=use_positional_embeddings)
     else:
         raise ValueError(f'Unknown receiver cell, {opts.receiver_cell}')
@@ -198,7 +198,7 @@ def main(params):
 
     optimizer = torch.optim.Adam(params, lr=opts.lr)
 
-    metrics_evaluator = Metrics(full_data.examples, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
+    metrics_evaluator = Metrics(validation.examples, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
 
     loaders = []
     loaders.append(("hold out a1", holdout_a1_loader, DiffLoss(opts.n_attributes, opts.n_values, 0)))
