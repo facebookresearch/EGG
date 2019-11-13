@@ -195,7 +195,6 @@ def dump_sender_receiver(game: torch.nn.Module,
             # by agreement, each batch is (sender_input, labels) plus optional (receiver_input)
             sender_input = move_to(batch[0], device)
             receiver_input = None if len(batch) == 2 else move_to(batch[2], device)
-
             message = game.sender(sender_input)
 
             # Under GS, the only output is a message; under Reinforce, two additional tensors are returned.
@@ -289,4 +288,3 @@ def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     lengths.add_(1).clamp_(max=max_k)
 
     return lengths
-

@@ -587,5 +587,3 @@ class TransformerSenderReinforce(nn.Module):
             entropy = torch.cat([entropy, zeros], dim=1)
 
         return sequence, logits, entropy
-
-
