@@ -224,21 +224,23 @@ def main(params):
     loaders.append(("uniform holdout", uniform_holdout_loader,  DiffLoss(opts.n_attributes, opts.n_values)))
 
     holdout_evaluator = Evaluator(loaders, opts.device, freq=0)
+    early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr, validation=True)
 
     trainer = core.Trainer(
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=validation_loader,
         callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=False),
-                   EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
+                   early_stopper,
                    metrics_evaluator,
                    holdout_evaluator])
-    validation_accs = trainer.train(n_epochs=opts.n_epochs)
+    trainer.train(n_epochs=opts.n_epochs)
+    validation_acc = early_stopper.validation_stats[-1][1]['acc']
 
     #dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
 
     # Train new agents
-    if validation_accs[-1] > 0.99:
+    if validation_acc > 0.99:
         core.get_opts().preemptable = False
         core.get_opts().checkpoint_path = None
 
