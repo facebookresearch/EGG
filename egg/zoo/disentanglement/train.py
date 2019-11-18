@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
-from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_by_attribute_value
+from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
     Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
@@ -73,41 +73,47 @@ def get_params(params):
 
 class DiffLoss(torch.nn.Module):
     def __init__(self, n_attributes, n_values, \
-                  cut_at_attribute=None, unseen_0=0, unseen_1=0):
+                  generalization=False):
         super().__init__()
         self.n_attributes = n_attributes
         self.n_values = n_values
-        self.cut_attribute = cut_at_attribute
-        self.unseen_0 = unseen_0
-        self.unseen_1 = unseen_1
+        self.test_generalization = generalization
 
     def forward(self, sender_input, _message, _receiver_input, receiver_output, _labels):
         batch_size = sender_input.size(0)
         sender_input = sender_input.view(batch_size, self.n_attributes, self.n_values)
         receiver_output = receiver_output.view(batch_size, self.n_attributes, self.n_values)
 
-        if self.cut_attribute is not None:
-            # remove the values that are not seen in both attributes 1 and 2
-            # we assume here that only attributes 1 and 2 have heldout values
-            index = int(not(self.cut_attribute))
-            if self.cut_attribute == 0:
-                attr = 1
-                unseen = self.unseen_1
-            else:
-                attr = 0
-                unseen = self.unseen_0
-            to_maintain = (sender_input[:, attr, :].argmax(1)!=unseen).nonzero().squeeze(1)
-            sender_input = torch.cat([sender_input[:, :self.cut_attribute, :], sender_input[:, self.cut_attribute+1:, :]], dim=1)
-            receiver_output = torch.cat([receiver_output[:, :self.cut_attribute, :],receiver_output[:, self.cut_attribute+1:, :]], dim=1)
-            n_attributes = self.n_attributes - 1
-            acc = (torch.sum((receiver_output[to_maintain, :,:].argmax(dim=-1) == sender_input[to_maintain, :,:].argmax(dim=-1)).detach(),1)==n_attributes).float().mean()
-        else:
-            n_attributes = self.n_attributes
-            acc = (torch.sum((receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).detach(),1)==n_attributes).float().mean()
+        if self.test_generalization:
+            acc, loss = 0.0, 0.0
+            for attr in range(self.n_attributes):
+                zero_index = sender_input[:, attr, 0].nonzero().squeeze()
+                masked_size = zero_index.size(0)
+                masked_input = torch.index_select(sender_input, 0, zero_index)
+                masked_output = torch.index_select(receiver_output, 0, zero_index)
 
-        receiver_output = receiver_output.view(batch_size * n_attributes, self.n_values)
-        labels = sender_input.argmax(dim=-1).view(batch_size * n_attributes)
-        loss = F.cross_entropy(receiver_output, labels, reduction="none").view(batch_size, n_attributes).mean(dim=-1)
+                no_attribute_input = torch.cat([masked_input[:, :attr, :], masked_input[:, attr+1:, :]], dim=1)
+                no_attribute_output = torch.cat([masked_output[:, :attr, :], masked_output[:, attr+1:, :]], dim=1)
+
+                n_attributes = self.n_attributes - 1
+                attr_acc = ((no_attribute_output.argmax(dim=-1) == no_attribute_input.argmax(dim=-1)).sum(dim=1) == n_attributes).float().mean()
+                acc += attr_acc
+
+
+                #receiver_output = receiver_output.view(batch_size * self.n_attributes, self.n_values)
+                labels = no_attribute_input.argmax(dim=-1).view(masked_size * n_attributes)
+                predictions = no_attribute_output.view(masked_size * n_attributes, self.n_values)
+                # NB: THIS LOSS IS NOT SUITABLY SHAPED TO BE USED IN REINFORCE TRAINING!
+                loss += F.cross_entropy(predictions, labels, reduction="mean")
+
+            acc /= self.n_attributes
+        else:
+            acc = (torch.sum((receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).detach(), dim=1) == self.n_attributes).float().mean()
+
+            receiver_output = receiver_output.view(batch_size * self.n_attributes, self.n_values)
+            labels = sender_input.argmax(dim=-1).view(batch_size * self.n_attributes)
+            loss = F.cross_entropy(receiver_output, labels, reduction="none").view(batch_size, self.n_attributes).mean(dim=-1)
+
         return loss, {'acc': acc}
 
 
@@ -128,20 +134,15 @@ def main(params):
     device = opts.device
     full_data = enumerate_attribute_value(opts.n_attributes, opts.n_values)
 
-    unseen_0 = 0
-    unseen_1 = 0
+    train, generalization_holdout = split_holdout(full_data)
+    train, uniform_holdout = split_train_test(train, 0.1)
 
-    holdout_a1, rest = split_by_attribute_value(full_data, 0, unseen_0)
-    holdout_a2, rest = split_by_attribute_value(rest, 1, unseen_1)
-    train, uniform_holdout = split_train_test(rest, 0.1)
-
-    apply = lambda x: list(one_hotify(x, opts.n_attributes, opts.n_values))
-    holdout_a1, holdout_a2, train, uniform_holdout, full_data = list(map(apply, [holdout_a1, holdout_a2, train, uniform_holdout, full_data]))
+    generalization_holdout, train, uniform_holdout, full_data = [one_hotify(x, opts.n_attributes, opts.n_values) for x in [generalization_holdout, train, uniform_holdout, full_data]]
 
     train, validation = ScaledDataset(train, opts.data_scaler), ScaledDataset(train, 1)
 
-    holdout_a1, holdout_a2, uniform_holdout, full_data = ScaledDataset(holdout_a1), ScaledDataset(holdout_a2), ScaledDataset(uniform_holdout), ScaledDataset(full_data)
-    holdout_a1_loader, holdout_a2_loader, uniform_holdout_loader, full_data_loader = [DataLoader(x, batch_size=opts.batch_size) for x in [holdout_a1, holdout_a2, uniform_holdout, full_data]]
+    generalization_holdout, uniform_holdout, full_data = ScaledDataset(generalization_holdout), ScaledDataset(uniform_holdout), ScaledDataset(full_data)
+    generalization_holdout_loader, uniform_holdout_loader, full_data_loader = [DataLoader(x, batch_size=opts.batch_size) for x in [generalization_holdout, uniform_holdout, full_data]]
 
     train_loader = DataLoader(train, batch_size=opts.batch_size)
     validation_loader = DataLoader(validation, batch_size=validation.__len__())
@@ -219,8 +220,7 @@ def main(params):
     metrics_evaluator = Metrics(validation.examples, opts.device, opts.n_attributes, opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
 
     loaders = []
-    loaders.append(("hold out a1", holdout_a1_loader, DiffLoss(opts.n_attributes, opts.n_values, 0, unseen_0)))
-    loaders.append(("hold out a2", holdout_a2_loader, DiffLoss(opts.n_attributes, opts.n_values, 1, unseen_1)))
+    loaders.append(("generalization hold out", generalization_holdout_loader, DiffLoss(opts.n_attributes, opts.n_values, generalization=True)))
     loaders.append(("uniform holdout", uniform_holdout_loader,  DiffLoss(opts.n_attributes, opts.n_values)))
 
     holdout_evaluator = Evaluator(loaders, opts.device, freq=0)
@@ -299,7 +299,11 @@ def main(params):
                     opts.receiver_hidden, num_heads=5, hidden_size=opts.receiver_emb, num_layers=1,
                     positional_emb=True)
 
-        for name, receiver_generator in [('transformer', transformer_receiver_generator), ('gru', gru_receiver_generator)]:
+        linear_receiver_generator = lambda: \
+            core.RnnReceiverDeterministic(Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim),
+                    opts.vocab_size + 1, opts.receiver_emb, hidden_size=opts.receiver_hidden, cell='gru')
+
+        for name, receiver_generator in [('transformer', transformer_receiver_generator), ('gru', gru_receiver_generator), ('linear', linear_receiver_generator)]:
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
                 accs = retrain_receiver(receiver_generator, frozen_sender)
