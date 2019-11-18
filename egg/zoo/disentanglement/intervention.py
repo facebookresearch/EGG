@@ -107,8 +107,8 @@ def edit_dist(_list):
     count = 0
     for i, el1 in enumerate(_list[:-1]):
         for j, el2 in enumerate(_list[i+1:]):
-            count+=1
-            distances.append(editdistance.eval(el1, el2)/len(el1)) # Normalized edit distance (same in our case as length is fixed)
+            count += 1
+            distances.append(editdistance.eval(el1, el2) / len(el1)) # Normalized edit distance (same in our case as length is fixed)
     return distances
 
 def cosine_dist(_list):
@@ -123,11 +123,11 @@ def topographic_similarity(n_attributes, n_values, dataset, sender, device):
     _attributes, strings, meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
     list_string = []
     for s in strings:
-        list_string.append(''.join([chr(x.item()) for x in s]))
+        list_string.append([x.item() for x in s])
     distance_messages = edit_dist(list_string)
     distance_inputs = cosine_dist(meanings.cpu().numpy())
 
-    corr = spearmanr(distance_messages, distance_inputs)
+    corr = spearmanr(distance_messages, distance_inputs).correlation
     return corr
 
 
