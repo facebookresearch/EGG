@@ -13,19 +13,27 @@ def enumerate_attribute_value(n_attributes, n_values):
     return list(itertools.product(*iters))
 
 def one_hotify(data, n_attributes, n_values):
+    r = []
     for config in data:
         z = torch.zeros((n_attributes, n_values))
         for i in range(n_attributes):
             z[i, config[i]] = 1
-        yield z.view(-1)
+        r.append(z.view(-1))
+    return r
 
-def split_by_attribute_value(dataset, attribute, values):
-    if type(values)==int:
-        values = [values]
-    with_av = [x for x in dataset if x[attribute] in values]
-    without_av = [x for x in dataset if not(x[attribute] in values)]
+def split_holdout(dataset):
+    train, hold_out = [], []
 
-    return with_av, without_av
+    for values in dataset:
+        indicators = [x == 0 for x in values]
+        if not any(indicators):
+            train.append(values)
+        elif sum(indicators) == 1:
+            hold_out.append(values)
+        else:
+            pass
+
+    return train, hold_out
 
 
 def split_train_test(dataset, p_hold_out=0.1, random_seed=7):
@@ -62,6 +70,6 @@ class ScaledDataset:
 
 if __name__ == '__main__':
     dataset = enumerate_attribute_value(n_attributes=2, n_values=10)
-    train, test = split_train_test(dataset, 0.5)
-    print(len(train), len(test), len(dataset))
-    print([x[0] for x in [train, test, dataset]])
+    train, holdout = split_holdout(dataset)
+    print(len(train), len(holdout), len(dataset))
+    print([x[0] for x in [train, holdout, dataset]])
