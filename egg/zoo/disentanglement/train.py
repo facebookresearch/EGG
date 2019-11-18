@@ -248,16 +248,19 @@ def main(params):
             game = SenderReceiverRnnReinforceWithDiscriminator(
                     sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
             optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
+            early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr, validation=True)
 
             trainer = core.Trainer(
                 game=game, optimizer=optimizer,
                 train_data=train_loader,
                 validation_data=validation_loader,
-                callbacks=[#core.ConsoleLogger(as_json=True, print_train_loss=False),
-                        EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
+                callbacks=[
+                        early_stopper,
                         Evaluator(loaders, opts.device, freq=0)
                         ])
-            accs = trainer.train(n_epochs=opts.n_epochs)
+            trainer.train(n_epochs=opts.n_epochs)
+
+            accs = [x[1]['acc'] for x in early_stopper.validation_stats]
             return accs
 
         # freeze Sender and probe how fast a simple Receiver will learn the thing
@@ -266,16 +269,18 @@ def main(params):
             game = SenderReceiverRnnReinforceWithDiscriminator(
                     sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=0.0)
             optimizer = torch.optim.Adam(sender.parameters(), lr=opts.lr)
-
+            early_stopper = EarlyStopperAccuracy(opts.early_stopping_thr, validation=True)
             trainer = core.Trainer(
                 game=game, optimizer=optimizer,
                 train_data=train_loader,
                 validation_data=validation_loader,
-                callbacks=[#core.ConsoleLogger(as_json=True, print_train_loss=False),
-                        EarlyStopperAccuracy(opts.early_stopping_thr, validation=True),
+                callbacks=[
+                        early_stopper,
                         Evaluator(loaders, opts.device, freq=0) # Only evaluate on the uniform heldout
                         ])
-            accs = trainer.train(n_epochs=opts.n_epochs)
+            trainer.train(n_epochs=opts.n_epochs)
+
+            accs = [x[1]['acc'] for x in early_stopper.validation_stats]
             return accs
 
         frozen_sender = Freezer(copy.deepcopy(sender))
@@ -295,9 +300,10 @@ def main(params):
         for name, receiver_generator in [('transformer', transformer_receiver_generator), ('gru', gru_receiver_generator)]:
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
-                print(json.dumps({"mode": "reset", "seed": seed, "receiver_name": name}))
                 accs = retrain_receiver(receiver_generator, frozen_sender)
-                print(json.dumps({"mode": "reset", "seed": seed, "receiver_name": name, "accs": accs}))
+                accs += [1.0] * (opts.n_epochs - len(accs))
+                auc = sum(accs)
+                print(json.dumps({"mode": "reset", "seed": seed, "receiver_name": name, "auc": auc}))
 
         gru_sender_generator = lambda: \
             PlusOneWrapper(core.RnnSenderReinforce(agent=Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden),
@@ -313,9 +319,10 @@ def main(params):
         for name, sender_generator in [('transformer', transformer_sender_generator), ('gru', gru_sender_generator)]:
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
-                print(json.dumps({"mode": "reset", "seed": seed, "sender_name": name}))
                 accs = retrain_sender(sender_generator, frozen_receiver)
-                print(json.dumps({"mode": "reset", "seed": seed, "sender_name": name, "accs": accs}))
+                accs += [1.0] * (opts.n_epochs - len(accs))
+                aucs = sum(accs)
+                print(json.dumps({"mode": "reset", "seed": seed, "sender_name": name, "auc": auc}))
 
     core.close()
 
