@@ -60,7 +60,6 @@ if __name__ == '__main__':
         sweep_module = importlib.import_module(py_sweep_file)
         combinations.extend(sweep_module.grid())
 
-    print(combinations)
     pathlib.Path(args.checkpoint_dir).mkdir(parents=True)
 
     jobs = []
