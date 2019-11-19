@@ -128,8 +128,11 @@ def _set_seed(seed) -> None:
         torch.cuda.manual_seed_all(seed)
 
 def main(params):
+    import copy
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    to_print = copy.deepcopy(vars(opts))
+    del to_print['device']
+    print(json.dumps(to_print))
 
     device = opts.device
     full_data = enumerate_attribute_value(opts.n_attributes, opts.n_values)
