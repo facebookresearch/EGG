@@ -18,6 +18,7 @@ through. The syntax is simple:
 ```
 You can find an example in [example.json](example.json).
 
+
 Next, the module that implements the game should have a function `main(params)` which accepts command-line parameters and 
 runs the game logic. Hence, the typical implementation should follow this pattern:
 
@@ -47,9 +48,21 @@ This command will spawn `n_workers` processes, playing the `egg.zoo.mnist_autoen
 defined in `egg/nest/example.json `. If `n_workers` is more than the number of available GPU devices, the devices will 
 be shared (e.g., if the number of workers is 2x the number of GPUs, each GPU will be shared by two workers).
 
+
+# Complex grids
+For less trivial grid searches, one can use a python-based grid iterators, such as in the example [example.py](example.py). Such a python
+file has to contain a `grid()` function which would return an iterable over the grid parameters (see example for the format). The path for the python
+grid should be specified as a classpath, e.g.
+```
+python -m egg.nest.nest_local --game egg.zoo.mnist_autoenc.train --py_sweep=egg.nest.example --n_workers=1
+```
+
+# Parameters
+
 `nest_local` has the following parameters:
  * `game` is a path to the game module to be run (e.g. egg.zoo.mnist_autoenc.train);
- * `sweep` is a path to the json file defining the grid of hyperparameters to be searched through;
+ * `sweep` is a path to the json file defining the grid of hyperparameters to be searched through (you can specify multiple of them);
+ * `py_sweep` is a class-path to the python file defining the grid of hyperparameters to be searched through (you can specify multiple of them);
  * `preview/dry_run` suppresses running any job, simply producing the NEST-generated output and creating the output directory layout;
  * `n_workers` specifies the number of worker jobs;
  * `name` optional name of the search, which is used for naming the directory with the outputs of the runs. If not specified,
