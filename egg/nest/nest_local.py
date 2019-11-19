@@ -15,8 +15,10 @@ from egg.nest.wrappers import ConcurrentWrapper
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="nest_local: a simple grid-search tool for EGG")
     parser.add_argument("--game", type=str, help="Game's full classpath to run, e.g. egg.zoo.mnist_autoenc.train")
-    parser.add_argument("--sweep", action='append', help="Json file with sweep params in the stool format."
+    parser.add_argument("--sweep", action='append', default=[], help="Json file with sweep params in the stool format."
                         "It is possible to specify several files: --sweep file1.json --sweep file2.json")
+    parser.add_argument("--py_sweep", action='append', default=[], help="A python module, with a grid() method outputting an iterable with the grid parameters."
+                        "It is possible to specify several files.")
     parser.add_argument("--root_dir", type=str, default=None, help="Root folder to save the output")
     parser.add_argument("--name", type=str, default=None, help="Name for the run")
 
@@ -44,24 +46,32 @@ if __name__ == '__main__':
     jobs = []
 
     comb_id = -1
+    combinations = []
+
+    for sweep_file in args.sweep:
+        combinations.extend(enumerate(sweep(sweep_file), start=comb_id + 1))
+
+    for py_sweep_file in args.py_sweep:
+        sweep_module = importlib.import_module(py_sweep_file)
+        combinations.extend(enumerate(sweep_module.grid(), start=comb_id + 1))
+
     with ProcessPoolExecutor(max_workers=args.n_workers) as executor:
-        for sweep_file in args.sweep:
-            for comb_id, comb in enumerate(sweep(sweep_file), start=comb_id + 1):
-                runner = ConcurrentWrapper(runnable=module.main,
-                                           log_dir=args.root_dir,
-                                           job_id=comb_id)
+        for comb_id, comb in combinations:
+            runner = ConcurrentWrapper(runnable=module.main,
+                                        log_dir=args.root_dir,
+                                        job_id=comb_id)
 
-                if args.checkpoint_freq > 0:
-                    checkpoint_dir = pathlib.Path(args.root_dir) / f"{comb_id}"
-                    checkpoint_dir.mkdir()
+            if args.checkpoint_freq > 0:
+                checkpoint_dir = pathlib.Path(args.root_dir) / f"{comb_id}"
+                checkpoint_dir.mkdir()
 
-                    comb.extend([f"--checkpoint_freq={args.checkpoint_freq}",
-                                 f"--checkpoint_dir={checkpoint_dir}"])
+                comb.extend([f"--checkpoint_freq={args.checkpoint_freq}",
+                                f"--checkpoint_dir={checkpoint_dir}"])
 
-                if not args.preview and not args.dry_run:
-                    job = executor.submit(runner, comb)
-                    jobs.append(job)
-                print(f'{" ".join(comb)} -> {args.root_dir}/{comb_id}.{{out,err}}')
+            if not args.preview and not args.dry_run:
+                job = executor.submit(runner, comb)
+                jobs.append(job)
+            print(f'{" ".join(comb)} -> {args.root_dir}/{comb_id}.{{out,err}}')
 
-    print(f'Jobs launched: {len(jobs)}')
+    print(f'Jobs launched: {len(jobs)}, total hyperparameter combinations {len(combinations)}')
     wait(jobs)
