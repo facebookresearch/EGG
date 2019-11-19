@@ -18,7 +18,6 @@ through. The syntax is simple:
 ```
 You can find an example in [example.json](example.json).
 
-
 Next, the module that implements the game should have a function `main(params)` which accepts command-line parameters and 
 runs the game logic. Hence, the typical implementation should follow this pattern:
 
@@ -58,7 +57,6 @@ python -m egg.nest.nest_local --game egg.zoo.mnist_autoenc.train --py_sweep=egg.
 ```
 
 # Parameters
-
 `nest_local` has the following parameters:
  * `game` is a path to the game module to be run (e.g. egg.zoo.mnist_autoenc.train);
  * `sweep` is a path to the json file defining the grid of hyperparameters to be searched through (you can specify multiple of them);

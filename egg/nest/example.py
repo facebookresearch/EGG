@@ -1,4 +1,4 @@
-# not ecessary, but could be useful
+# not necessary, but could be useful
 def dict2string(d):
   s = []
 
@@ -12,9 +12,9 @@ def dict2string(d):
             s.append(f'--{k}={v}')
         else:
             raise Exception(f"Key {k} has value {v} of unsupported type {type(v)}.")
-
   return s
 
+# only grid() is called from nest
 def grid():
   """
   Should return an iterable of the parameter strings, e.g.
