@@ -120,21 +120,41 @@ class LinearReceiver(nn.Module):
 
         self.fc = nn.Linear(vocab_size * max_length, n_outputs)
 
+        self.diagonal_embedding = nn.Embedding(vocab_size, vocab_size)
+        nn.init.eye_(self.diagonal_embedding.weight)
+
     def forward(self, x, *rest):
-        assert x.size(1) <= self.max_length, f'{x.size()}, {self.max_length}'
-        board = torch.zeros(x.size(0), self.max_length, self.vocab_size, requires_grad=False, device=x.device)
+        with torch.no_grad():
+            x = self.diagonal_embedding(x).view(x.size(0), -1)
 
-        for i in range(x.size(0)):
-            for j in range(x.size(1)):
-                board[i, j, x[i, j]] = 1
-        board = board.view(board.size(0), -1)
-
-        result = self.fc(board)
-        #result = result.unsqueeze(1)
-        #result = result.expand(result.size(0), x.size(1), result.size(-1))
+        result = self.fc(x)
 
         zeros = torch.zeros(x.size(0), device=x.device)
         return result, zeros, zeros
+
+
+class NonLinearReceiver(nn.Module):
+    def __init__(self, n_outputs, vocab_size, n_hidden, max_length):
+        super().__init__()
+        self.max_length = max_length
+        self.vocab_size = vocab_size
+
+        self.fc_1 = nn.Linear(vocab_size * max_length, n_hidden)
+        self.fc_2 = nn.Linear(n_hidden, n_outputs)
+
+        self.diagonal_embedding = nn.Embedding(vocab_size, vocab_size)
+        nn.init.eye_(self.diagonal_embedding.weight)
+
+    def forward(self, x, *rest):
+        with torch.no_grad():
+            x = self.diagonal_embedding(x).view(x.size(0), -1)
+
+        x = self.fc_1(x)
+        x = F.leaky_relu(x)
+        x = self.fc_2(x)
+
+        zeros = torch.zeros(x.size(0), device=x.device)
+        return x, zeros, zeros
 
 
 class BosSender(nn.Module):

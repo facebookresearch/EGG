@@ -13,7 +13,7 @@ import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
     select_subset_V1, select_subset_V2
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
-    Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator
+    Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator, NonLinearReceiver
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
 
 from egg.core import EarlyStopperAccuracy
@@ -165,6 +165,8 @@ def main(params):
 
     if opts.receiver_cell == 'linear':
         receiver = LinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size + 1, max_length=opts.max_len)
+    elif opts.receiver_cell == 'nonlinear':
+        receiver = NonLinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size + 1, max_length=opts.max_len, n_hidden=opts.receiver_hidden)
     elif opts.receiver_cell in ['lstm', 'rnn', 'gru']:
         receiver = Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim)
         receiver = core.RnnReceiverDeterministic(
@@ -314,10 +316,18 @@ def main(params):
                     positional_emb=True)
 
         linear_receiver_generator = lambda: \
-            core.RnnReceiverDeterministic(Receiver(n_hidden=opts.receiver_hidden, n_outputs=n_dim),
-                    opts.vocab_size + 1, opts.receiver_emb, hidden_size=opts.receiver_hidden, cell='gru')
+            LinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size + 1, max_length=opts.max_len)
 
-        for name, receiver_generator in [('transformer', transformer_receiver_generator), ('gru', gru_receiver_generator), ('linear', linear_receiver_generator)]:
+        nonlinear_receiver_generator = lambda: \
+            NonLinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size + 1, max_length=opts.max_len, n_hidden=opts.receiver_hidden)
+
+        for name, receiver_generator in [
+                        #('transformer', transformer_receiver_generator), 
+                        ('gru', gru_receiver_generator), 
+                        ('linear', linear_receiver_generator),
+                        ('nonlinear', nonlinear_receiver_generator),
+                        ]:
+
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
                 accs = retrain_receiver(receiver_generator, frozen_sender)
