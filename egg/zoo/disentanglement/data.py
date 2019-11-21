@@ -12,6 +12,26 @@ def enumerate_attribute_value(n_attributes, n_values):
 
     return list(itertools.product(*iters))
 
+def select_subset(data, n_subset, n_attributes, n_values, random_seed=7):
+    import numpy as np
+
+    assert n_subset<n_values
+    random_state = np.random.RandomState(seed=random_seed)
+
+    chosen_val = []
+    for attribute in range(n_attributes):
+        chosen_val.append([0]+list(random_state.choice(range(1, n_values), n_subset-1, replace=False)))
+
+    sampled_data = []
+    for sample in data:
+        boolean = True
+        for attribute in range(n_attributes):
+            boolean = boolean and (sample[attribute] in chosen_val[attribute])
+        if boolean:
+            sampled_data.append(sample)
+    return sampled_data
+
+
 def one_hotify(data, n_attributes, n_values):
     r = []
     for config in data:
@@ -51,7 +71,7 @@ def split_train_test(dataset, p_hold_out=0.1, random_seed=7):
     train = [dataset[i] for i in permutation[n_test:]]
     assert train and test
 
-    assert len(train) + len(test) == len(dataset) 
+    assert len(train) + len(test) == len(dataset)
     return train, test
 
 

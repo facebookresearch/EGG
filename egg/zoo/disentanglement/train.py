@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
-from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout
+from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, select_subset
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
     Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
@@ -45,6 +45,7 @@ def get_params(params):
     parser.add_argument('--data_scaler', type=int, default=100)
     parser.add_argument('--shuffle_messages', action='store_true')
     parser.add_argument('--stats_freq', type=int, default=0)
+    parser.add_argument('--density_data', type=int, default=0, help='no sampling if equal 0')
 
     parser.add_argument('--sender_hidden', type=int, default=50,
                         help='Size of the hidden layer of Sender (default: 10)')
@@ -129,10 +130,15 @@ def _set_seed(seed) -> None:
 
 def main(params):
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    to_print = copy.deepcopy(vars(opts))
+    del to_print['device']
+    print(json.dumps(to_print))
 
     device = opts.device
     full_data = enumerate_attribute_value(opts.n_attributes, opts.n_values)
+    if opts.density_data>0:
+        sampled_data = select_subset(full_data, opts.density_data, opts.n_attributes, opts.n_values)
+        full_data = copy.deepcopy(sampled_data)
 
     train, generalization_holdout = split_holdout(full_data)
     train, uniform_holdout = split_train_test(train, 0.1)
@@ -237,7 +243,8 @@ def main(params):
     trainer.train(n_epochs=opts.n_epochs)
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
 
-    #dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
+    dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
+
 
     # Train new agents
     if validation_acc > 0.99:
