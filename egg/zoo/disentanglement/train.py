@@ -86,7 +86,8 @@ class DiffLoss(torch.nn.Module):
         receiver_output = receiver_output.view(batch_size, self.n_attributes, self.n_values)
 
         if self.test_generalization:
-            acc, loss = 0.0, 0.0
+            acc, acc_or, loss = 0.0, 0.0, 0.0
+
             for attr in range(self.n_attributes):
                 zero_index = sender_input[:, attr, 0].nonzero().squeeze()
                 masked_size = zero_index.size(0)
@@ -100,6 +101,9 @@ class DiffLoss(torch.nn.Module):
                 attr_acc = ((no_attribute_output.argmax(dim=-1) == no_attribute_input.argmax(dim=-1)).sum(dim=1) == n_attributes).float().mean()
                 acc += attr_acc
 
+                attr_acc_or = (no_attribute_output.argmax(dim=-1) == no_attribute_input.argmax(dim=-1)).float().mean()
+                acc_or += attr_acc_or
+
 
                 #receiver_output = receiver_output.view(batch_size * self.n_attributes, self.n_values)
                 labels = no_attribute_input.argmax(dim=-1).view(masked_size * n_attributes)
@@ -108,14 +112,16 @@ class DiffLoss(torch.nn.Module):
                 loss += F.cross_entropy(predictions, labels, reduction="mean")
 
             acc /= self.n_attributes
+            acc_or /= self.n_attributes
         else:
             acc = (torch.sum((receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).detach(), dim=1) == self.n_attributes).float().mean()
+            acc_or = (receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)).float().mean()
 
             receiver_output = receiver_output.view(batch_size * self.n_attributes, self.n_values)
             labels = sender_input.argmax(dim=-1).view(batch_size * self.n_attributes)
             loss = F.cross_entropy(receiver_output, labels, reduction="none").view(batch_size, self.n_attributes).mean(dim=-1)
 
-        return loss, {'acc': acc}
+        return loss, {'acc': acc, 'acc_or': acc_or}
 
 
 def _set_seed(seed) -> None:
@@ -129,6 +135,7 @@ def _set_seed(seed) -> None:
         torch.cuda.manual_seed_all(seed)
 
 def main(params):
+    import copy
     opts = get_params(params)
     to_print = copy.deepcopy(vars(opts))
     del to_print['device']
@@ -243,8 +250,7 @@ def main(params):
     trainer.train(n_epochs=opts.n_epochs)
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
 
-    dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
-
+    #dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
 
     # Train new agents
     if validation_acc > 0.99:

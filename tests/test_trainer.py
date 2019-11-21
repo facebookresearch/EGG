@@ -65,7 +65,7 @@ def test_temperature_updater_callback():
     trainer = core.Trainer(game, optimizer, train_data=data, validation_data=None,
                            callbacks=[core.TemperatureUpdater(agent=sender, decay=0.9)])
     trainer.train(1)
-    assert sender.gs_layer.temperature == 0.9
+    assert sender.temperature == 0.9
 
 
 def test_snapshoting():

@@ -102,8 +102,8 @@ class TemperatureUpdater(Callback):
 
     def __init__(self, agent, decay=0.9, minimum=0.1, update_frequency=1):
         self.agent = agent
-        assert hasattr(agent, 'gs_layer') and hasattr(agent.gs_layer, 'temperature'), 'Agent must have a `temperature` attribute'
-        assert not isinstance(agent.gs_layer.temperature, torch.nn.Parameter), \
+        assert hasattr(agent, 'temperature'), 'Agent must have a `temperature` attribute'
+        assert not isinstance(agent.temperature, torch.nn.Parameter), \
             'When using TemperatureUpdater, `temperature` cannot be trainable'
         self.decay = decay
         self.minimum = minimum
@@ -112,7 +112,7 @@ class TemperatureUpdater(Callback):
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.epoch_counter % self.update_frequency == 0:
-            self.agent.gs_layer.temperature = max(self.minimum, self.agent.gs_layer.temperature * self.decay)
+            self.agent.temperature = max(self.minimum, self.agent.temperature * self.decay)
         self.epoch_counter += 1
 
 
@@ -148,7 +148,7 @@ class CheckpointSaver(Callback):
         """
         Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
         """
-        self.checkpoint_path.mkdir(exist_ok=True)
+        self.checkpoint_path.mkdir(exist_ok=True, parents=True)
         path = self.checkpoint_path / f'{filename}.tar'
         torch.save(self.get_checkpoint(), path)
 

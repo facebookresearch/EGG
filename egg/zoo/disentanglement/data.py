@@ -32,6 +32,7 @@ def select_subset(data, n_subset, n_attributes, n_values, random_seed=7):
     return sampled_data
 
 
+
 def one_hotify(data, n_attributes, n_values):
     r = []
     for config in data:
@@ -71,7 +72,8 @@ def split_train_test(dataset, p_hold_out=0.1, random_seed=7):
     train = [dataset[i] for i in permutation[n_test:]]
     assert train and test
 
-    assert len(train) + len(test) == len(dataset)
+    assert len(train) + len(test) == len(dataset) 
+
     return train, test
 
 
@@ -92,4 +94,5 @@ if __name__ == '__main__':
     dataset = enumerate_attribute_value(n_attributes=2, n_values=10)
     train, holdout = split_holdout(dataset)
     print(len(train), len(holdout), len(dataset))
+
     print([x[0] for x in [train, holdout, dataset]])
