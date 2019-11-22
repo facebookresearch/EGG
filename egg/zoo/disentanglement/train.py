@@ -10,7 +10,8 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
-from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, select_subset
+from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
+    select_subset_V1, select_subset_V2
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
     Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
@@ -137,7 +138,7 @@ def main(params):
     device = opts.device
     full_data = enumerate_attribute_value(opts.n_attributes, opts.n_values)
     if opts.density_data>0:
-        sampled_data = select_subset(full_data, opts.density_data, opts.n_attributes, opts.n_values)
+        sampled_data = select_subset_V2(full_data, opts.density_data, opts.n_attributes, opts.n_values)
         full_data = copy.deepcopy(sampled_data)
 
     train, generalization_holdout = split_holdout(full_data)
@@ -243,8 +244,7 @@ def main(params):
     trainer.train(n_epochs=opts.n_epochs)
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
 
-    dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
-
+    #dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
 
     # Train new agents
     if validation_acc > 0.99:
