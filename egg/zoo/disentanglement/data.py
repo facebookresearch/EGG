@@ -95,7 +95,7 @@ def split_train_test(dataset, p_hold_out=0.1, random_seed=7):
     train = [dataset[i] for i in permutation[n_test:]]
     assert train and test
 
-    assert len(train) + len(test) == len(dataset) 
+    assert len(train) + len(test) == len(dataset)
 
     return train, test
 
