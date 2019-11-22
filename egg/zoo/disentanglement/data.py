@@ -32,10 +32,11 @@ def select_subset_V1(data, n_subset, n_attributes, n_values, random_seed=7):
             sampled_data.append(sample)
     return sampled_data
 
-# Hard coded for a specific setting for now!
+
 def select_subset_V2(data, n_subset, n_attributes, n_values, random_seed=7):
     import numpy as np
 
+    assert n_subset<=n_values
     random_state = np.random.RandomState(seed=random_seed)
     sampled_data = []
     # Sample the diagonal (minus (0,0)) to impose having each attribute is present at least once in the dataset

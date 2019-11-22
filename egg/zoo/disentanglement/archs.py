@@ -31,9 +31,9 @@ class Sender(nn.Module):
         x = self.fc1(x)
         return x
 
-class SenderFFN(nn.Module):
+class NonLinearSender(nn.Module):
     def __init__(self, n_inputs, n_hidden, n_output):
-        super(SenderFFN, self).__init__()
+        super(NonLinearSender, self).__init__()
         self.emb = nn.Linear(n_inputs, n_hidden, bias=False)
         self.fc = nn.Linear(n_hidden, n_output)
 
@@ -43,6 +43,14 @@ class SenderFFN(nn.Module):
         x = self.fc(x)
         return x
 
+class LinearSender(nn.Module):
+    def __init__(self, n_inputs, n_output):
+        super(LinearSender, self).__init__()
+        self.fc = nn.Linear(n_inputs, n_output)
+
+    def forward(self, x):
+        x = self.fc(x)
+        return x
 
 class Receiver2(nn.Module):
     def __init__(self, n_outputs, n_hidden):

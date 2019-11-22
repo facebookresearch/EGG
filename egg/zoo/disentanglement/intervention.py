@@ -181,13 +181,13 @@ class Evaluator(core.Callback):
         self.device = device
         self.epoch = 0
         self.freq = freq
+        self.results = {}
 
     def evaluate(self):
         game = self.trainer.game
         game.eval()
         old_loss = game.loss
 
-        results = {}
         for loader_name, loader, metric in self.loaders_metrics:
 
             acc_or, acc = 0.0, 0.0
@@ -203,10 +203,10 @@ class Evaluator(core.Callback):
                 acc += rest['acc']
 
                 acc_or += rest['acc_or']
-            results[loader_name] = {'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
+            self.results[loader_name] = {'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
 
-        results['epoch'] = self.epoch
-        output_json = json.dumps(results)
+        self.results['epoch'] = self.epoch
+        output_json = json.dumps(self.results)
         print(output_json, flush=True)
 
         game.loss = old_loss

@@ -13,7 +13,8 @@ import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
     select_subset_V1, select_subset_V2
 from egg.zoo.disentanglement.archs import Sender, Receiver, PositionalSender, LinearReceiver, BosSender, Shuffler, FactorizedSender, \
-    Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator, NonLinearReceiver
+    Freezer, PositionalDiscriminator, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, HistogramDiscriminator, NonLinearReceiver, \
+    ReinforceWrapperFFN, LinearSender, NonLinearSender
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator, histogram
 
 from egg.core import EarlyStopperAccuracy
@@ -251,12 +252,15 @@ def main(params):
                    metrics_evaluator,
                    holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
-    validation_acc = early_stopper.validation_stats[-1][1]['acc']
 
-    #dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
+    validation_acc = early_stopper.validation_stats[-1][1]['acc']
+    uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
+
+    dump(game, full_data_loader, opts.device, opts.n_attributes, opts.n_values)
 
     # Train new agents
-    if validation_acc > 0.99:
+    if (validation_acc > 0.99) and (uniformtest_acc>0.8):
+        print('---RETRAINING---')
         core.get_opts().preemptable = False
         core.get_opts().checkpoint_path = None
 
@@ -276,12 +280,12 @@ def main(params):
                         early_stopper,
                         Evaluator(loaders, opts.device, freq=0)
                         ])
-            trainer.train(n_epochs=opts.n_epochs)
+            trainer.train(n_epochs=0.5*opts.n_epochs)
 
             accs = [x[1]['acc'] for x in early_stopper.validation_stats]
             return accs
 
-        # freeze Sender and probe how fast a simple Receiver will learn the thing
+        # freeze Receiver and probe how fast a simple Sender will learn the thing
         def retrain_sender(speaker_generator, receiver):
             sender = sender_generator()
             game = SenderReceiverRnnReinforceWithDiscriminator(
@@ -296,7 +300,7 @@ def main(params):
                         early_stopper,
                         Evaluator(loaders, opts.device, freq=0) # Only evaluate on the uniform heldout
                         ])
-            trainer.train(n_epochs=opts.n_epochs)
+            trainer.train(n_epochs=0.5*opts.n_epochs)
 
             accs = [x[1]['acc'] for x in early_stopper.validation_stats]
             return accs
@@ -322,8 +326,8 @@ def main(params):
             NonLinearReceiver(n_outputs=n_dim, vocab_size=opts.vocab_size + 1, max_length=opts.max_len, n_hidden=opts.receiver_hidden)
 
         for name, receiver_generator in [
-                        #('transformer', transformer_receiver_generator), 
-                        ('gru', gru_receiver_generator), 
+                        #('transformer', transformer_receiver_generator),
+                        ('gru', gru_receiver_generator),
                         ('linear', linear_receiver_generator),
                         ('nonlinear', nonlinear_receiver_generator),
                         ]:
@@ -331,10 +335,10 @@ def main(params):
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
                 accs = retrain_receiver(receiver_generator, frozen_sender)
-                accs += [1.0] * (opts.n_epochs - len(accs))
+                accs += [1.0] * ((0.5*opts.n_epochs) - len(accs))
                 auc = sum(accs)
                 print(json.dumps({"mode": "reset", "seed": seed, "receiver_name": name, "auc": auc}))
-
+        """
         gru_sender_generator = lambda: \
             PlusOneWrapper(core.RnnSenderReinforce(agent=Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden),
                     vocab_size=opts.vocab_size, embed_dim=opts.sender_emb,
@@ -346,13 +350,26 @@ def main(params):
                     vocab_size=opts.vocab_size, embed_dim=opts.sender_hidden, max_len=opts.max_len,
                     num_layers=1, num_heads=5, hidden_size=opts.sender_emb, force_eos=False))
 
-        for name, sender_generator in [('transformer', transformer_sender_generator), ('gru', gru_sender_generator)]:
+        linear_sender_generator = lambda: \
+            PlusOneWrapper(ReinforceWrapperFFN(LinearSender(n_inputs=n_dim, n_output=opts.max_len*opts.vocab_size), length=opts.max_len, vocab_size=opts.vocab_size))
+
+        nonlinear_sender_generator = lambda: \
+            PlusOneWrapper(ReinforceWrapperFFN(NonLinearSender(n_inputs=n_dim, n_hidden=opts.sender_hidden, n_output=opts.max_len*opts.vocab_size), length=opts.max_len, vocab_size=opts.vocab_size))
+
+
+        for name, sender_generator in [#('transformer', transformer_sender_generator),
+                                ('gru', gru_sender_generator),
+                                ('linear', linear_sender_generator),
+                                ('nonlinear', nonlinear_sender_generator),]:
             for seed in range(17, 17 + 3):
                 _set_seed(seed)
                 accs = retrain_sender(sender_generator, frozen_receiver)
-                accs += [1.0] * (opts.n_epochs - len(accs))
+                accs += [1.0] * ((0.5*opts.n_epochs) - len(accs))
                 aucs = sum(accs)
                 print(json.dumps({"mode": "reset", "seed": seed, "sender_name": name, "auc": auc}))
+        """
+    else:
+        print('---End--')
 
     core.close()
 
