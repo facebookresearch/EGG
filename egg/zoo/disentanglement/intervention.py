@@ -189,7 +189,8 @@ class Evaluator(core.Callback):
 
         results = {}
         for loader_name, loader, metric in self.loaders_metrics:
-            acc = 0.0
+
+            acc_or, acc = 0.0, 0.0
             n_batches = 0
             game.loss = metric
 
@@ -200,7 +201,9 @@ class Evaluator(core.Callback):
                 with torch.no_grad():
                     _, rest = game(*batch)
                 acc += rest['acc']
-            results[loader_name] = acc / n_batches
+
+                acc_or += rest['acc_or']
+            results[loader_name] = {'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
 
         results['epoch'] = self.epoch
         output_json = json.dumps(results)

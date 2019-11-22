@@ -23,7 +23,7 @@ python -m egg.zoo.objects_game.train \
     --batch_size 32 \
     --random_seed 111 \
     --data_seed 222 \
-    --train_samples 1e6 \
+    --train_samples 1e5 \
     --validation_samples 1e4\
     --test_samples 1e3 \
     --evaluate \
