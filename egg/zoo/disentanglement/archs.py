@@ -289,15 +289,24 @@ class PlusOneWrapper(nn.Module):
         return r1 + 1, r2, r3
 
 
-class PositionalDiscriminator(nn.Module):
-    def __init__(self, vocab_size, n_hidden, embed_dim):
+class PositionalDiscriminatorRnn(nn.Module):
+    def __init__(self, vocab_size, n_hidden, embed_dim, cell='gru'):
         super().__init__()
-        self.encoder = core.RnnEncoder(vocab_size, embed_dim=embed_dim, n_hidden=n_hidden, cell='lstm')
-        self.fc = nn.Linear(n_hidden, 2, bias=False)
+        self.model = nn.Sequential(
+            core.RnnEncoder(vocab_size, embed_dim=embed_dim, n_hidden=n_hidden, cell=cell),
+            nn.Linear(n_hidden, 2, bias=False)
+        )
 
     def forward(self, message):
-        x = self.encoder(message)
-        x = self.fc(x)
+        return self.model(message)
+
+class PositionalDiscriminatorFFN(nn.Module):
+    def __init__(self, vocab_size, n_hidden, max_length):
+        super().__init__()
+        self.model = NonLinearReceiver(n_outputs=2, n_hidden=n_hidden, max_length=max_length, vocab_size=vocab_size)
+
+    def forward(self, message):
+        x, *_ = self.model(message)
         return x
 
 
@@ -390,7 +399,7 @@ class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
 
                 p_grammatical = self.discriminator(transformed).log_softmax(dim=-1)
                 discriminator_loss = p_grammatical[:, 0] - p_grammatical[:, 1]
-            policy_discriminator_loss = ((-discriminator_loss.detach() + self.mean_baseline['discriminator_loss']) * log_prob_s.sum(dim=-1)).mean()
+            policy_discriminator_loss = ((discriminator_loss.detach() - self.mean_baseline['discriminator_loss']) * log_prob_s.sum(dim=-1)).mean()
 
         discriminator_train_loss = 0.0
         if self.discriminator is not None:
@@ -407,7 +416,7 @@ class SenderReceiverRnnReinforceWithDiscriminator(nn.Module):
 
             discriminator_train_acc = (discriminator_predictions.argmax(dim=-1) == labels).float().mean().item()
 
-        optimized_loss = policy_length_loss + policy_loss - weighted_entropy - self.discriminator_weight * policy_discriminator_loss
+        optimized_loss = policy_length_loss + policy_loss - weighted_entropy + self.discriminator_weight * policy_discriminator_loss
         # if the receiver is deterministic/differentiable, we apply the actual loss
         optimized_loss += loss.mean() + discriminator_train_loss
 
