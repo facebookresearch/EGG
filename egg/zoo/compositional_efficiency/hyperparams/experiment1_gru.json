@@ -1,0 +1,15 @@
+{
+    "vocab_size" : [50],
+    "batch_size" : [32],
+    "n_epochs": [500],
+    "random_seed": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    "receiver_hidden": [100],
+    "receiver_emb": [50],
+    "receiver_cell": ["gru"],
+    "receiver_layers": [0],
+    "cell_layers": [1],
+    "n_a": [2],
+    "n_v": [31],
+    "language": ["identity", "rotated"],
+    "loss_type": ["autoenc", "mixed", "linear"]
+}
