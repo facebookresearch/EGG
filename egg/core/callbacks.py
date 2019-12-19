@@ -52,6 +52,8 @@ class ConsoleLogger(Callback):
         print(output_message, flush=True)
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+        self.epoch_counter += 1
+
         if self.print_train_loss:
             if self.as_json:
                 dump = dict(mode='train', epoch=self.epoch_counter, loss=self._get_metric(loss))
@@ -61,7 +63,6 @@ class ConsoleLogger(Callback):
             else:
                 output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
             print(output_message, flush=True)
-        self.epoch_counter += 1
 
     def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
         if torch.is_tensor(metric) and metric.dim() > 1:
