@@ -35,6 +35,10 @@ if __name__ == '__main__':
 
     parser.add_argument("--force_requeue", action="store_true", help="Force job requeue after 1 minute [for debug]")
 
+    parser.add_argument("--array", action="store_true", help="Use SLURM arrays")
+    parser.add_argument("--array_parallelism", type=int, default=128)
+
+
     args = parser.parse_args()
 
     if not args.game:
@@ -49,8 +53,11 @@ if __name__ == '__main__':
     module = importlib.import_module(args.game)
     executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
     executor.update_parameters(timeout_min=args.time, partition=args.partition,
-            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name,
-                               comment=args.comment)
+            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name, comment=args.comment)
+
+    if args.array:
+        executor.update_parameters(array_parallelism=args.array_parallelism)
+
 
     combinations = []
     for sweep_file in args.sweep:
@@ -64,21 +71,27 @@ if __name__ == '__main__':
 
     jobs = []
 
-    for comb in combinations:
-        runner = SlurmWrapper(module.main)
-        if not args.no_preemption:
-            comb.extend(['--preemptable',
-                            f'--checkpoint_freq={args.checkpoint_freq}'])
+    if not args.no_preemption:
+        combinations = [
+            comb + ['--preemptable', f'--checkpoint_freq={args.checkpoint_freq}'] for comb in combinations]
+    combinations = [comb + [f'--checkpoint_dir={args.checkpoint_dir}'] for comb in combinations]
 
-        comb.append(f'--checkpoint_dir={args.checkpoint_dir}')
-
-        if not args.preview and not args.dry_run:
+    if args.preview or args.dry_run:
+        for comb in combinations:
+            runner = SlurmWrapper(module.main)
+            print(f'{comb}')
+    elif not args.array:
+        for comb in combinations:
+            runner = SlurmWrapper(module.main)
             job = executor.submit(runner, comb)
-
             print(f'job id {job.job_id}, args {comb}')
             jobs.append(job)
-        else:
-            print(f'{comb}')
+    else:
+        runner = lambda x: SlurmWrapper(module.main)(x)
+        jobs = executor.map_array(runner, combinations)
+
+        for job, comb in zip(jobs, combinations):
+            print(job.job_id, comb)
 
     print(f'Total jobs launched: {len(jobs)}, total combinations: {len(combinations)}')
 
