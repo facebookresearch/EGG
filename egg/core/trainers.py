@@ -100,8 +100,14 @@ class Trainer:
         if 'SLURM_JOB_ID' not in os.environ:
             print('Preemption flag set, but I am not running under SLURM?')
 
-        job_id = os.environ.get('SLURM_JOB_ID', uuid.uuid4())
-        task_id = os.environ.get('SLURM_PROCID', 0)
+        # start assuming the job runs as an array
+        # fallback, if not
+        job_id = os.environ.get('SLURM_ARRAY_JOB_ID', None)
+        task_id = os.environ.get('SLURM_ARRAY_TASK_ID', None)
+
+        if job_id is None or task_id is None:
+            job_id = os.environ.get('SLURM_JOB_ID', uuid.uuid4())
+            task_id = os.environ.get('SLURM_PROCID', 0)
 
         d = pathlib.Path(checkpoint_root) / f'{job_id}_{task_id}'
         d.mkdir(exist_ok=True)

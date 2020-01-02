@@ -90,6 +90,9 @@ if __name__ == '__main__':
         runner = lambda x: SlurmWrapper(module.main)(x)
         jobs = executor.map_array(runner, combinations)
 
+        for job, comb in zip(jobs, combinations):
+            print(job.job_id, comb)
+
     print(f'Total jobs launched: {len(jobs)}, total combinations: {len(combinations)}')
 
     if args.force_requeue:
