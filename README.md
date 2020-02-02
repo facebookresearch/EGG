@@ -39,7 +39,7 @@ This is a list of representative games implemented at the moment:
  * [`egg/zoo/objects_game`](/egg/zoo/objects_game): A Sender/Receiver game where the Sender sees a target as a vector of discrete properties
  (*e.g.* [2, 4, 3, 1] for a game with 4 dimensions) and the Receiver has to recognize the target among a lineup of target+distractor(s).
  * [`egg/zoo/language_bottleneck`](/egg/zoo/language_bottleneck) contains a set of games that study the information bottleneck property of the discrete communication channel. This poperty is illustrated in an EGG-based example of MNIST-based style transfer without an adversary ([notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb)).
- * [`egg/zoo/channel`](/egg/zoo/channel): Similar to [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc) but here the inputs are drawn from a specific distribution. This game exemplifies the environment impact on the the nature of the emergent language. 
+ * [`egg/zoo/channel`](/egg/zoo/channel): Similar to [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc) but here the inputs are drawn from a specific distribution. This game exemplifies the environment impact on the nature of the emergent language. 
 
 We are adding games all the time: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
 
