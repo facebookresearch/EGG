@@ -104,10 +104,17 @@ and Reinforce-based implementations.
 ## Citation
 If you find EGG useful in your research, please cite:
 ```
-@article{Kharitonov2019,
- author = {Kharitonov, Eugene and Chaabouni, Rahma and Bouchacourt, Diane and Baroni, Marco},
- title = "{EGG: a toolkit for research on Emergence of lanGuage in Games}",
- journal={arXiv preprint arXiv:1907.00852}
+@inproceedings{Kharitonov2019Egg,
+    title = "{EGG}: a toolkit for research on Emergence of lan{G}uage in Games",
+    author = "Kharitonov, Eugene  and
+      Chaabouni, Rahma  and
+      Bouchacourt, Diane  and
+      Baroni, Marco",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP): System Demonstrations",
+    year = "2019",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D19-3010",
+    doi = "10.18653/v1/D19-3010"
 }
 ```
 
