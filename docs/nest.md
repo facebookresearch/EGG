@@ -16,7 +16,7 @@ through. The syntax is simple:
 "hyperparameter_name_2": [1, 2, 3],
 }
 ```
-You can find an example in [example.json](example.json).
+You can find an example in [example.json](../egg/nest/example.json).
 
 Next, the module that implements the game should have a function `main(params)` which accepts command-line parameters and 
 runs the game logic. Hence, the typical implementation should follow this pattern:
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     import sys
     main(sys.argv[1:])
 ```
-An example game that meets this requirement is [mnist_autoenc](./../zoo/mnist_autoenc/train.py).
+An example game that meets this requirement is [mnist_autoenc](./../egg/zoo/mnist_autoenc/train.py).
 
 
 # Local mode
@@ -49,7 +49,7 @@ be shared (e.g., if the number of workers is 2x the number of GPUs, each GPU wil
 
 
 # Complex grids
-For less trivial grid searches, one can use a python-based grid iterators, such as in the example [example.py](example.py). Such a python
+For less trivial grid searches, one can use a python-based grid iterators, such as in the example [example.py](./../egg/nest/example.py). Such a python
 file has to contain a `grid()` function which would return an iterable over the grid parameters (see example for the format). The path for the python
 grid should be specified as a classpath, e.g.
 ```
