@@ -52,11 +52,11 @@ if __name__ == '__main__':
         args.checkpoint_dir = (pathlib.PosixPath('~/nest') / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
     module = importlib.import_module(args.game)
     executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
-    executor.update_parameters(timeout_min=args.time, partition=args.partition,
-            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name, comment=args.comment)
+    executor.update_parameters(timeout_min=args.time, slurm_partition=args.partition,
+            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name, slurm_comment=args.comment)
 
     if args.array:
-        executor.update_parameters(array_parallelism=args.array_parallelism)
+        executor.update_parameters(slurm_array_parallelism=args.array_parallelism)
 
 
     combinations = []
