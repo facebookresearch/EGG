@@ -181,7 +181,7 @@ class Trainer:
     def load(self, checkpoint: Checkpoint):
         self.game.load_state_dict(checkpoint.model_state_dict)
         self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
-        self.starting_epoch = checkpoint.epoch
+        self.start_epoch = checkpoint.epoch
 
     def load_from_checkpoint(self, path):
         """
