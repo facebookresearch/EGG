@@ -41,7 +41,8 @@ class Trainer:
             train_data: DataLoader,
             validation_data: Optional[DataLoader] = None,
             device: torch.device = None,
-            callbacks: Optional[List[Callback]] = None
+            callbacks: Optional[List[Callback]] = None,
+            grad_norm: float = None
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -68,6 +69,7 @@ class Trainer:
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks
+        self.grad_norm = grad_norm
 
         if common_opts.load_from_checkpoint is not None:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
@@ -143,6 +145,10 @@ class Trainer:
             optimized_loss, rest = self.game(*batch)
             mean_rest = _add_dicts(mean_rest, rest)
             optimized_loss.backward()
+            
+            if self.grad_norm:
+                torch.nn.utils.clip_grad_norm_(self.game.parameters(), self.grad_norm)
+
             self.optimizer.step()
 
             n_batches += 1
