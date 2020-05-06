@@ -144,6 +144,7 @@ class Trainer:
     def train(self, n_epochs):
         for callback in self.callbacks:
             callback.on_train_begin(self)
+
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
                 callback.on_epoch_begin()
