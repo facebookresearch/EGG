@@ -14,6 +14,7 @@ from collections import defaultdict
 import egg.core as core
 from torch.distributions import Categorical
 
+
 class Receiver(nn.Module):
     def __init__(self, n_outputs, n_hidden):
         super(Receiver, self).__init__()
@@ -21,6 +22,7 @@ class Receiver(nn.Module):
 
     def forward(self, x, _):
         return self.fc(x)
+
 
 class Sender(nn.Module):
     def __init__(self, n_inputs, n_hidden):

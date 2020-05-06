@@ -8,20 +8,23 @@ import itertools
 import random
 import copy
 
+
 def enumerate_attribute_value(n_attributes, n_values):
     iters = [range(n_values) for _ in range(n_attributes)]
 
     return list(itertools.product(*iters))
 
+
 def select_subset_V1(data, n_subset, n_attributes, n_values, random_seed=7):
     import numpy as np
 
-    assert n_subset<=n_values
+    assert n_subset <= n_values
     random_state = np.random.RandomState(seed=random_seed)
 
     chosen_val = []
     for attribute in range(n_attributes):
-        chosen_val.append([0]+list(random_state.choice(range(1, n_values), n_subset-1, replace=False)))
+        chosen_val.append(
+            [0]+list(random_state.choice(range(1, n_values), n_subset-1, replace=False)))
 
     sampled_data = []
     for sample in data:
@@ -36,13 +39,13 @@ def select_subset_V1(data, n_subset, n_attributes, n_values, random_seed=7):
 def select_subset_V2(data, n_subset, n_attributes, n_values, random_seed=7):
     import numpy as np
 
-    assert n_subset<=n_values
+    assert n_subset <= n_values
     random_state = np.random.RandomState(seed=random_seed)
     sampled_data = []
     # Sample the diagonal (minus (0,0)) to impose having each attribute is present at least once in the dataset
     start = 0
     while start < (n_values**n_attributes):
-        if start>0:
+        if start > 0:
             sampled_data.append(data[start])
         start += n_values+1
     # Sample remaining
@@ -50,7 +53,8 @@ def select_subset_V2(data, n_subset, n_attributes, n_values, random_seed=7):
     tobesampled = copy.deepcopy(data)
     for sample in sampled_data:
         tobesampled.remove(sample)
-    tmp = list(random_state.choice(range(len(tobesampled)), to_sample, replace=False))
+    tmp = list(random_state.choice(
+        range(len(tobesampled)), to_sample, replace=False))
 
     for i in tmp:
         sampled_data += [tobesampled[i]]
@@ -65,6 +69,7 @@ def one_hotify(data, n_attributes, n_values):
             z[i, config[i]] = 1
         r.append(z.view(-1))
     return r
+
 
 def split_holdout(dataset):
     train, hold_out = [], []

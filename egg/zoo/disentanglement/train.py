@@ -130,7 +130,8 @@ def main(params):
     generalization_holdout, train, uniform_holdout, full_data = [one_hotify(
         x, opts.n_attributes, opts.n_values) for x in [generalization_holdout, train, uniform_holdout, full_data]]
 
-    train, validation = ScaledDataset(train, opts.data_scaler), ScaledDataset(train, 1)
+    train, validation = ScaledDataset(
+        train, opts.data_scaler), ScaledDataset(train, 1)
 
     generalization_holdout, uniform_holdout, full_data = ScaledDataset(
         generalization_holdout), ScaledDataset(uniform_holdout), ScaledDataset(full_data)
@@ -161,7 +162,7 @@ def main(params):
     loss = DiffLoss(opts.n_attributes, opts.n_values)
 
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
-                                               receiver_entropy_coeff=0.0, length_cost=0.0)
+                                           receiver_entropy_coeff=0.0, length_cost=0.0)
     optimizer = torch.optim.Adam(game.parameters(), lr=opts.lr)
 
     metrics_evaluator = Metrics(validation.examples, opts.device, opts.n_attributes,
