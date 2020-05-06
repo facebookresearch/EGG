@@ -12,9 +12,8 @@ import torch.nn.functional as F
 import egg.core as core
 from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
     select_subset_V1, select_subset_V2
-from egg.zoo.disentanglement.archs import Sender, Receiver, LinearReceiver, \
-    Freezer, SenderReceiverRnnReinforceWithDiscriminator, PlusOneWrapper, NonLinearReceiver, \
-    ReinforceWrapperFFN, LinearSender, NonLinearSender
+from egg.zoo.disentanglement.archs import Sender, Receiver, \
+    Freezer, PlusOneWrapper, NonLinearReceiver
 from egg.zoo.disentanglement.intervention import Metrics, Evaluator
 
 from egg.core import EarlyStopperAccuracy
@@ -196,7 +195,7 @@ def main(params):
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 
     # Train new agents
-    if (validation_acc > 0.99):
+    if True:#(validation_acc > 0.99):
         def _set_seed(seed):
             import random
             import numpy as np
@@ -213,7 +212,7 @@ def main(params):
         # freeze Sender and probe how fast a simple Receiver will learn the thing
         def retrain_receiver(receiver_generator, sender):
             receiver = receiver_generator()
-            game = SenderReceiverRnnReinforceWithDiscriminator(
+            game = core.SenderReceiverRnnReinforce(
                 sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0)
             optimizer = torch.optim.Adam(receiver.parameters(), lr=opts.lr)
             early_stopper = EarlyStopperAccuracy(
