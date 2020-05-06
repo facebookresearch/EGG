@@ -1,11 +1,16 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+
 import torch
 from egg.zoo.language_bottleneck.intervention import mutual_info, entropy
-from egg.zoo.disentanglement.archs import LinearReceiver
 import egg.core as core
 import json
 from scipy import spatial
 from scipy.stats import spearmanr
-import editdistance #package to install https://pypi.org/project/editdistance/0.3.1/
+import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
 
 
 def ask_sender(n_attributes, n_values, dataset, sender, device):
@@ -31,32 +36,6 @@ def ask_sender(n_attributes, n_values, dataset, sender, device):
     return attributes, strings, meanings
 
 
-def get_linearity_score(n_attributes, n_values,  dataset, sender, device, vocab_size, f_loss):
-    _attributes, strings, meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
-
-    linear_receiver = LinearReceiver(n_attributes * n_values, vocab_size, strings.size(1)).to(device)
-    optimizer = torch.optim.LBFGS(linear_receiver.parameters())
-
-    def closure(verbose=False):
-        optimizer.zero_grad()
-
-        predicted, *rest = linear_receiver(strings)
-        loss, rest = f_loss(meanings, None, None, predicted, None)
-        loss = loss.mean()
-        loss.backward()
-        if not verbose:
-            return loss
-        else:
-            return loss, rest
-
-
-    for _ in range(5):
-        optimizer.step(closure)
-
-    _, rest = closure(verbose=True)
-    return rest['acc'].item()
-
-
 def information_gap_representation(meanings, representations):
     gaps = torch.zeros(representations.size(1))
     non_constant_positions = 0.0
@@ -66,7 +45,7 @@ def information_gap_representation(meanings, representations):
         h_j = None
         for i in range(meanings.size(1)):
             x, y = meanings[:, i], representations[:, j]
-            info =  mutual_info(x, y)
+            info = mutual_info(x, y)
             symbol_mi.append(info)
 
             if h_j is None:
@@ -81,8 +60,10 @@ def information_gap_representation(meanings, representations):
     score = gaps.sum() / non_constant_positions
     return score.item()
 
+
 def information_gap_position(n_attributes, n_values, dataset, sender, device):
-    attributes, strings, _meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
+    attributes, strings, _meanings = ask_sender(
+        n_attributes, n_values, dataset, sender, device)
     return information_gap_representation(attributes, strings)
 
 
@@ -96,11 +77,14 @@ def histogram(strings, vocab_size):
 
     return histogram
 
+
 def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, vocab_size):
-    attributes, strings, _meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
+    attributes, strings, _meanings = ask_sender(
+        n_attributes, n_values, dataset, sender, device)
 
     histograms = histogram(strings, vocab_size)
     return information_gap_representation(attributes, histograms[:, 1:])
+
 
 def edit_dist(_list):
     distances = []
@@ -108,8 +92,10 @@ def edit_dist(_list):
     for i, el1 in enumerate(_list[:-1]):
         for j, el2 in enumerate(_list[i+1:]):
             count += 1
-            distances.append(editdistance.eval(el1, el2) / len(el1)) # Normalized edit distance (same in our case as length is fixed)
+            # Normalized edit distance (same in our case as length is fixed)
+            distances.append(editdistance.eval(el1, el2) / len(el1))
     return distances
+
 
 def cosine_dist(_list):
     distances = []
@@ -120,7 +106,8 @@ def cosine_dist(_list):
 
 
 def topographic_similarity(n_attributes, n_values, dataset, sender, device):
-    _attributes, strings, meanings = ask_sender(n_attributes, n_values, dataset, sender, device)
+    _attributes, strings, meanings = ask_sender(
+        n_attributes, n_values, dataset, sender, device)
     list_string = []
     for s in strings:
         list_string.append([x.item() for x in s])
@@ -141,21 +128,21 @@ class Metrics(core.Callback):
         self.vocab_size = vocab_size
         self.freq = freq
 
-
     def dump_stats(self):
         game = self.trainer.game
         game.eval()
 
-        positional_disent = information_gap_position(self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
-        bos_disent = information_gap_vocab(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size)
-        topo_sim = topographic_similarity(self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
-        linearity = get_linearity_score(self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size, game.loss)
+        positional_disent = information_gap_position(
+            self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
+        bos_disent = information_gap_vocab(
+            self.n_attributes, self.n_values, self.dataset, game.sender, self.device, self.vocab_size)
+        topo_sim = topographic_similarity(
+            self.n_attributes, self.n_values, self.dataset, game.sender, self.device)
 
         output = dict(epoch=self.epoch,
-                            positional_disent=positional_disent,
-                            bag_of_symbol_disent=bos_disent,
-                            topographic_sim=topo_sim,
-                            linearity=linearity)
+                      positional_disent=positional_disent,
+                      bag_of_symbol_disent=bos_disent,
+                      topographic_sim=topo_sim)
 
         output_json = json.dumps(output)
         print(output_json, flush=True)
@@ -172,7 +159,6 @@ class Metrics(core.Callback):
             return
 
         self.dump_stats()
-
 
 
 class Evaluator(core.Callback):
@@ -203,7 +189,8 @@ class Evaluator(core.Callback):
                 acc += rest['acc']
 
                 acc_or += rest['acc_or']
-            self.results[loader_name] = {'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
+            self.results[loader_name] = {
+                'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
 
         self.results['epoch'] = self.epoch
         output_json = json.dumps(self.results)
