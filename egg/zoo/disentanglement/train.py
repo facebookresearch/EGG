@@ -160,13 +160,9 @@ def main(params):
     sender = PlusOneWrapper(sender)
     loss = DiffLoss(opts.n_attributes, opts.n_values)
 
-    params = []
-    params.extend(sender.parameters())
-    params.extend(receiver.parameters())
-
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
                                                receiver_entropy_coeff=0.0, length_cost=0.0)
-    optimizer = torch.optim.Adam(params, lr=opts.lr)
+    optimizer = torch.optim.Adam(game.parameters(), lr=opts.lr)
 
     metrics_evaluator = Metrics(validation.examples, opts.device, opts.n_attributes,
                                 opts.n_values, opts.vocab_size + 1, freq=opts.stats_freq)
