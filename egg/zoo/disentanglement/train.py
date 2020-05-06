@@ -195,7 +195,7 @@ def main(params):
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 
     # Train new agents
-    if True:#(validation_acc > 0.99):
+    if validation_acc > 0.99:
         def _set_seed(seed):
             import random
             import numpy as np
