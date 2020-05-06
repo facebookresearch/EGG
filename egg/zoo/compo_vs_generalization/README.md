@@ -1,5 +1,5 @@
 This code implements the experiments reported in the following paper:
-* _Compositionality and Generalization in Emergent Languages._ Rahma Chaabouni, Eugene Kharitonov, Diane Bouchacourt, Emmanuel Dupoux, Marco Baroni. ACL 2020. [arxiv](https://arxiv.org/abs/2004.09124)
+* _Compositionality and Generalization in Emergent Languages._ Rahma Chaabouni, Eugene Kharitonov, Diane Bouchacourt, Emmanuel Dupoux, Marco Baroni. ACL 2020. [[arxiv]](https://arxiv.org/abs/2004.09124)
 
 The game can be run as follows:
 
