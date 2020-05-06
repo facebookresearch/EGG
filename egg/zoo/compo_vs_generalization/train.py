@@ -24,7 +24,6 @@ def get_params(params):
     parser.add_argument('--n_attributes', type=int, default=4, help='')
     parser.add_argument('--n_values', type=int, default=4, help='')
     parser.add_argument('--data_scaler', type=int, default=100)
-    parser.add_argument('--shuffle_messages', action='store_true')
     parser.add_argument('--stats_freq', type=int, default=0)
     parser.add_argument('--density_data', type=int,
                         default=0, help='no sampling if equal 0')
