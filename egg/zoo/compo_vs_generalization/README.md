@@ -4,7 +4,7 @@ This code implements the experiments reported in the following paper:
 The game can be run as follows:
 
 ```bash
-python -m egg.zoo.compo_vs_generalization  --n_values=3 --n_attributes=5 --vocab_size=200 --max_len=2 --batch_size=5120 --sender_cell=lstm --receiver_cell=lstm --random_seed=1
+python -m egg.zoo.compo_vs_generalization.train  --n_values=3 --n_attributes=5 --vocab_size=200 --max_len=2 --batch_size=5120 --sender_cell=lstm --receiver_cell=lstm --random_seed=1
 ```
 
 The game accepts the following game-specific parameters:
