@@ -10,11 +10,11 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import egg.core as core
-from egg.zoo.disentanglement.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
+from egg.zoo.compo_vs_generalization.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
     select_subset_V1, select_subset_V2
-from egg.zoo.disentanglement.archs import Sender, Receiver, \
+from egg.zoo.compo_vs_generalization.archs import Sender, Receiver, \
     Freezer, PlusOneWrapper, NonLinearReceiver
-from egg.zoo.disentanglement.intervention import Metrics, Evaluator
+from egg.zoo.compo_vs_generalization.intervention import Metrics, Evaluator
 
 from egg.core import EarlyStopperAccuracy
 
