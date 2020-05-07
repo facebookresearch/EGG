@@ -6,6 +6,8 @@ The game can be run as follows:
 ```bash
 python -m egg.zoo.compo_vs_generalization.train  --n_values=3 --n_attributes=5 --vocab_size=200 --max_len=2 --batch_size=5120 --sender_cell=lstm --receiver_cell=lstm --random_seed=1
 ```
+Please refer to the paper to the details of the game. The hyperparameters used in the paper are provided in `./hyperparams`.
+
 
 The game accepts the following game-specific parameters:
  * `max_len` -- the length of the messages.
