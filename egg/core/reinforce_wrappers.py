@@ -3,17 +3,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from collections import defaultdict
 import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from collections import defaultdict
-import numpy as np
 
-
-from .transformer import TransformerEncoder, TransformerDecoder
 from .rnn import RnnEncoder
+from .transformer import TransformerEncoder, TransformerDecoder
 from .util import find_lengths
 
 

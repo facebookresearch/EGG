@@ -3,15 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import argparse
+from collections import defaultdict
+import random
+import sys
 from typing import Union, Iterable, List, Optional, Any
 
-import sys
-import random
-import argparse
-import torch
 import numpy as np
+import torch
 
-from collections import defaultdict
 
 common_opts = None
 optimizer = None

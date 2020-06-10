@@ -3,11 +3,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import pathlib
 import argparse
-import time
 import importlib
+import pathlib
+import time
+
 from egg.nest.common import sweep
+
 
 if __name__ == '__main__':
     from egg.nest.wrappers import SlurmWrapper
@@ -101,4 +103,3 @@ if __name__ == '__main__':
         for job in jobs:
             print(jobs)
             job._send_requeue_signal(timeout=False)
-
