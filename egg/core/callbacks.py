@@ -14,8 +14,9 @@ from egg.core.util import get_summary_writer
 
 class Callback:
 
-    def on_train_begin(self, trainer_instance: 'Trainer'):
+    def on_train_begin(self, trainer_instance):
         self.trainer = trainer_instance
+        self.epoch_counter = self.trainer.start_epoch
 
     def on_train_end(self):
         pass
@@ -38,7 +39,6 @@ class ConsoleLogger(Callback):
     def __init__(self, print_train_loss=False, as_json=False):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
-        self.epoch_counter = 0
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.as_json:
@@ -133,13 +133,12 @@ class CheckpointSaver(Callback):
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
         self.prefix = prefix
-        self.epoch_counter = 0
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+        self.epoch_counter += 1
         if self.checkpoint_freq > 0 and (self.epoch_counter % self.checkpoint_freq == 0):
             filename = f'{self.prefix}_{self.epoch_counter}' if self.prefix else str(self.epoch_counter)
             self.save_checkpoint(filename=filename)
-        self.epoch_counter += 1
 
     def on_train_end(self):
         self.save_checkpoint(filename=f'{self.prefix}_final' if self.prefix else 'final')
