@@ -14,7 +14,7 @@ from egg.core.util import get_summary_writer
 
 class Callback:
 
-    def on_train_begin(self, trainer_instance):
+    def on_train_begin(self, trainer_instance: 'Trainer'):
         self.trainer = trainer_instance
         self.epoch_counter = self.trainer.start_epoch
 
