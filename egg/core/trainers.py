@@ -75,18 +75,19 @@ class Trainer:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
 
-        if common_opts.preemptable:
-            assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
-            d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
-            self.checkpoint_path = d
-            self.load_from_latest(d)
-        else:
-            self.checkpoint_path = None if common_opts.checkpoint_dir is None \
-                else pathlib.Path(common_opts.checkpoint_dir)
+        if not any(map(lambda x: isinstance(x, CheckpointSaver), callbacks)):
+            if common_opts.preemptable:
+                assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
+                d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
+                self.checkpoint_path = d
+                self.load_from_latest(d)
+            else:
+                self.checkpoint_path = None if common_opts.checkpoint_dir is None \
+                    else pathlib.Path(common_opts.checkpoint_dir)
 
-        if self.checkpoint_path:
-            checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path, checkpoint_freq=common_opts.checkpoint_freq)
-            self.callbacks.append(checkpointer)
+            if self.checkpoint_path:
+                checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path, checkpoint_freq=common_opts.checkpoint_freq)
+                self.callbacks.append(checkpointer)
 
         if common_opts.tensorboard:
             assert common_opts.tensorboard_dir, 'tensorboard directory has to be specified'
