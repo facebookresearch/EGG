@@ -12,17 +12,23 @@ class BaseEarlyStopper(Callback):
     """
     A base class, supports the running statistic which is could be used for early stopping
     """
-    def __init__(self):
+    def __init__(self, validation: bool = True):
         super(BaseEarlyStopper, self).__init__()
         self.train_stats: List[Tuple[float, Dict[str, Any]]] = []
         self.validation_stats: List[Tuple[float, Dict[str, Any]]] = []
         self.epoch: int = 0
+        self.validation = validation
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+        if self.validation:
+            return
         self.epoch += 1
         self.train_stats.append((loss, logs))
+        self.trainer.should_stop = self.should_stop()
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+        if not self.validation:
+            return
         self.validation_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
@@ -43,10 +49,9 @@ class EarlyStopperAccuracy(BaseEarlyStopper):
             criterion (default: "acc")
         :param validation: whether the statistics on the validation (or training, if False) data should be checked
         """
-        super(EarlyStopperAccuracy, self).__init__()
+        super(EarlyStopperAccuracy, self).__init__(validation)
         self.threshold = threshold
         self.field_name = field_name
-        self.validation = validation
 
     def should_stop(self) -> bool:
         if self.validation:
@@ -57,4 +62,3 @@ class EarlyStopperAccuracy(BaseEarlyStopper):
             stats = self.train_stats
 
         return stats[-1][1][self.field_name] >= self.threshold
-                
