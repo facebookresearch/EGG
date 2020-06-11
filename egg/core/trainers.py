@@ -145,7 +145,7 @@ class Trainer:
             optimized_loss, rest = self.game(*batch)
             mean_rest = _add_dicts(mean_rest, rest)
             optimized_loss.backward()
-            
+
             if self.grad_norm:
                 torch.nn.utils.clip_grad_norm_(self.game.parameters(), self.grad_norm)
 

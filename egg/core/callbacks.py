@@ -13,7 +13,6 @@ from egg.core.util import get_summary_writer
 
 
 class Callback:
-    trainer: 'Trainer'
 
     def on_train_begin(self, trainer_instance: 'Trainer'):
         self.trainer = trainer_instance
