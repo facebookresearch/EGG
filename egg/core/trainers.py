@@ -75,7 +75,7 @@ class Trainer:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
 
-        if not any(map(lambda x: isinstance(x, CheckpointSaver), callbacks)):
+        if not any(isinstance(x, CheckpointSaver) for x in callbacks):
             if common_opts.preemptable:
                 assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
                 d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
