@@ -10,7 +10,13 @@ import egg.core as core
 import json
 from scipy import spatial
 from scipy.stats import spearmanr
-import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
+try:
+    import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
+except ImportError:
+    print('Please install editdistance package: `pip install editdistance`. '
+          'It is used for calculating topographic similarity.')
+
+
 
 
 def ask_sender(n_attributes, n_values, dataset, sender, device):
