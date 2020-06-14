@@ -161,12 +161,14 @@ def main(params):
 
     optimizer = core.build_optimizer(game.parameters())
 
-    checkpoint_name = f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}'
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader,
-                           callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr),
-                                      core.ConsoleLogger(as_json=True, print_train_loss=True),
-                                      core.CheckpointSaver(checkpoint_path=opts.checkpoint_dir, prefix=checkpoint_name])
+    callbacks = [EarlyStopperAccuracy(opts.early_stopping_thr),
+               core.ConsoleLogger(as_json=True, print_train_loss=True)]
+
+    if opts.checkpoint_dir:
+        checkpoint_name = f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}'
+        callbacks.append(core.CheckpointSaver(checkpoint_path=opts.checkpoint_dir, prefix=checkpoint_name))
+
+    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader, callbacks=callbacks)
 
     trainer.train(n_epochs=opts.n_epochs)
 
