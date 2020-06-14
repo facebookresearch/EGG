@@ -20,8 +20,6 @@ def get_params(params):
                         help='Dimensionality of the "concept" space (default: 10)')
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
                         help='Number of batches per epoch (default: 1000)')
-    parser.add_argument('--dim_dataset', type=int, default=10240,
-                        help='Dim of constructing the data (default: 10240)')
     parser.add_argument('--force_eos', type=int, default=0,
                         help='Force EOS at the end of the messages (default: 0)')
 
@@ -163,14 +161,16 @@ def main(params):
 
     optimizer = core.build_optimizer(game.parameters())
 
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
-                           validation_data=test_loader,
-                           callbacks=[EarlyStopperAccuracy(opts.early_stopping_thr),
-                                      core.ConsoleLogger(as_json=True, print_train_loss=True)])
+    callbacks = [EarlyStopperAccuracy(opts.early_stopping_thr),
+               core.ConsoleLogger(as_json=True, print_train_loss=True)]
+
+    if opts.checkpoint_dir:
+        checkpoint_name = f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}'
+        callbacks.append(core.CheckpointSaver(checkpoint_path=opts.checkpoint_dir, prefix=checkpoint_name))
+
+    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader, callbacks=callbacks)
 
     trainer.train(n_epochs=opts.n_epochs)
-    if opts.checkpoint_dir:
-        trainer.save_checkpoint(name=f'{opts.name}_vocab{opts.vocab_size}_rs{opts.random_seed}_lr{opts.lr}_shid{opts.sender_hidden}_rhid{opts.receiver_hidden}_sentr{opts.sender_entropy_coeff}_reg{opts.length_cost}_max_len{opts.max_len}')
 
     dump(trainer.game, opts.n_features, device, False)
     core.close()
