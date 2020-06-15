@@ -4,12 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
-from typing import Dict, Any, Union,  NamedTuple
+from typing import List, Dict, Any, Union, NamedTuple, Tuple, Callable, Iterable
 import pathlib
 
 import torch
 
 from egg.core.util import get_summary_writer
+
+
+Games = List[torch.nn.Module]
 
 
 class Callback:
@@ -34,11 +37,93 @@ class Callback:
         pass
 
 
+class Evaluator(Callback):
+
+    def __init__(self,
+                 modules: List[Union[Games, torch.nn.Module],
+                 dataset_gn: Union[Iterable[Any], Generator[Any, None, None]],
+                 metric_fns: List[Tuple[str, Callable[torch.nn.Module, Any]]]),
+                 device: torch.device,
+                 output_file_name: str = 'metrics.json',
+                 output_file_path: Union[str, pathlib.Path] = None):
+
+        self.modules = modules
+        self.dataset_gn = dataset_gn
+        self.metric_fns = metric_fns
+        self.device = device
+
+        self.stats: List[Dict[str, Any]] = defaultdict(float)
+        assert len(modules) == len(metric_fns)
+
+        self.output_file_path = output_file_path
+        if output_file_path:
+            self.output_file_path = pathlib.Path(outputfile_path) / output_file_name
+
+    def _div_dict(self, d, n):
+        result = dict(d)
+        for k in result:
+            if isinstance(result[k], dict):
+                _div_dict(result[k], n)
+            else:
+                result[k] /= n
+        return result
+
+    def _add_dict(self, a, b):
+        result = dict(a)
+        for k, v in b.items():
+            result[k] = result.get(k, 0) + v
+        return result
+
+    def _add_metric(self, a, b, metric_name):
+        result = dict(a)
+        if isinstance(b, dict):
+            self._add_dict(result, b)
+        else:
+            result[metric_name] = result.get(metric_name, 0) + b
+        return result
+
+    def evaluate(self):
+        for module in self.modules:
+            module.eval()
+
+        with torch.no_grad():
+            for i, batch in enumerate(dataset):
+                batch = move_to(batch, self.device)
+                for module, (metric_name, metric_fn) in zip(modules, metric_fns):
+                    if isinstance(module, list):
+                        res_module_list = defaultdict(float)
+                        for j, single_module in enumerate(module):
+                            # passing j as module idx as it might be used by the metric function
+                            self._add_metric(res_module_list[j], metric_fn(module_output, batch, module_idx=j), metric_name=j)
+                        res = self._div_dict(res_module_list, j+1) if isinstance(res_module_list, dict) else res / (j+1)
+
+                        self._add_metric(self.stats, res, metric_name)
+                    else:
+                        self._add_metric(self.stats, metric_fn(module_output), metric_name)
+
+        for module in self.modules:
+            module.train()
+
+        self._div_dict(self.stats, i+1)
+
+    def dump(self):
+        with open(self.output_file_path, 'w') as fd:
+            for stat in self.stats:
+                json.dump(stat, fd)
+                w.write('\n')
+
+    def on_test_end(self):
+        self.evaluate()
+        if self.output_file_path:
+            self.dump()
+
+
 class ConsoleLogger(Callback):
 
-    def __init__(self, print_train_loss=False, as_json=False):
+    def __init__(self, print_train_loss=False, as_json=False, output_file=None):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
+        self.output_file = output_file
 
     def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
         if self.as_json:
@@ -48,6 +133,10 @@ class ConsoleLogger(Callback):
             output_message = json.dumps(dump)
         else:
             output_message = f'test: epoch {self.epoch_counter}, loss {loss},  {logs}'
+
+        if self.output_file:
+            with open(self.output_file, 'a') as fd:
+                fd.write('{output_message}\n')
         print(output_message, flush=True)
 
     def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
@@ -61,6 +150,9 @@ class ConsoleLogger(Callback):
                 output_message = json.dumps(dump)
             else:
                 output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
+            if self.output_file:
+                with open(self.output_file, 'a') as fd:
+                    fd.write(f'{output_message}\n')
             print(output_message, flush=True)
 
     def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
@@ -118,8 +210,8 @@ class TemperatureUpdater(Callback):
 
 class Checkpoint(NamedTuple):
     epoch: int
-    model_state_dict: Dict[str, Any]
-    optimizer_state_dict: Dict[str, Any]
+    model_state_dicts: List[Dict[str, Any]]
+    optimizer_state_dicts: List[Dict[str, Any]]
 
 
 class CheckpointSaver(Callback):
@@ -151,7 +243,10 @@ class CheckpointSaver(Callback):
         path = self.checkpoint_path / f'{filename}.tar'
         torch.save(self.get_checkpoint(), path)
 
+
     def get_checkpoint(self):
+        model_state_dicts = dict( [i, game.state_dict()] for i, game in enumerate(self.trainer.games))
+        optimizers_state_dicts = dict( [i, optimizer.state_dict()] for i, optimizer in enumerate(self.trainer.optimizers))
         return Checkpoint(epoch=self.epoch_counter,
-                          model_state_dict=self.trainer.game.state_dict(),
-                          optimizer_state_dict=self.trainer.optimizer.state_dict())
+                          model_state_dicts=model_state_dicts,
+                          optimizer_state_dicts=optimizers_state_dicts)
