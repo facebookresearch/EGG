@@ -31,7 +31,6 @@ def dump(game, dataset, device, is_gs, is_var_length):
 
 
 def get_params(params):
-    print(params)
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_bits', type=int, default=8,
                         help='')
@@ -101,7 +100,7 @@ def non_diff_loss(_sender_input, _message, _receiver_input, receiver_output, lab
 
 def main(params):
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    print(opts)
 
     device = opts.device
 
