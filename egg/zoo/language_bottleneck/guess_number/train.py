@@ -188,7 +188,7 @@ def main(params):
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=test_loader,
-        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr)])#, intervention])
+        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
 
     trainer.train(n_epochs=opts.n_epochs)
 
