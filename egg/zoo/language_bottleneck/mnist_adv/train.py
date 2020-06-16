@@ -14,6 +14,7 @@ import egg.core as core
 from egg.zoo.language_bottleneck.mnist_adv.archs import Sender, Receiver
 from egg.zoo.language_bottleneck.relaxed_channel import AlwaysRelaxedWrapper
 from egg.core import EarlyStopperAccuracy
+from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 
 
 def diff_loss_symbol(_sender_input, _message, _receiver_input, receiver_output, labels):
@@ -44,7 +45,7 @@ def get_params(params):
 
 def main(params):
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    print(opts)
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if opts.cuda else {}
     transform = transforms.ToTensor()
@@ -54,12 +55,14 @@ def main(params):
     test_dataset = datasets.MNIST('./data', train=False, download=False,
                    transform=transform)
     n_classes = 10
+    label_mapping = torch.LongTensor([x % n_classes for x in range(100)])
 
-    train_loader = torch.utils.data.DataLoader(train_dataset,
-        batch_size=opts.batch_size, shuffle=True, **kwargs)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opts.batch_size, shuffle=True, **kwargs)
+    train_loader = DoubleMnist(train_loader, label_mapping)
 
-    test_loader = torch.utils.data.DataLoader(test_dataset,
-        batch_size=opts.batch_size, shuffle=False, **kwargs)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16 * 1024, shuffle=False, **kwargs)
+    test_loader = DoubleMnist(test_loader, label_mapping)
+
 
     sender = Sender(vocab_size=opts.vocab_size, linear_channel=opts.linear_channel == 1,
                     softmax_channel=opts.softmax_non_linearity)
