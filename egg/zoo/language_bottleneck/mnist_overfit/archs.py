@@ -14,16 +14,17 @@ class LeNet(nn.Module):
         super(LeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
-        self.fc1 = nn.Linear(4*4*50, 400)
+        self.fc1 = nn.Linear(4*11*50, 400)
 
     def forward(self, x):
         x = F.leaky_relu(self.conv1(x))
         x = F.max_pool2d(x, 2, 2)
         x = F.leaky_relu(self.conv2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = x.view(-1, 4*4*50)
+        x = x.view(x.size(0), -1)
         x = F.leaky_relu(self.fc1(x))
         return x
+
 
 
 class Sender(nn.Module):
@@ -80,16 +81,3 @@ class Receiver(nn.Module):
             x = self.fc2(x)
 
         return torch.log_softmax(x, dim=1)
-
-
-class Proxy(nn.Module):
-    def __init__(self, other_agent, vocab_size1, vocab_size2):
-        super(Proxy, self).__init__()
-        self.inp = core.RelaxedEmbedding(vocab_size1, vocab_size2)
-        self.other_agent = other_agent
-
-    def forward(self, inp):
-        message = self.other_agent(inp)
-        x = self.inp(message)
-        return torch.log_softmax(x, dim=1)
-
