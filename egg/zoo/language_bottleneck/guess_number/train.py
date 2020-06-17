@@ -137,7 +137,10 @@ def main(params):
         elif opts.mode == 'non_diff':
             sender = core.ReinforceWrapper(agent=sender)
             receiver = ReinforcedReceiver(
-                n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+                n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            receiver = core.SymbolReceiverWrapper(
+                receiver, vocab_size=opts.vocab_size, agent_input_size=opts.receiver_hidden)
+
             game = core.SymbolGameReinforce(sender, receiver, non_diff_loss,
                                             sender_entropy_coeff=opts.sender_entropy_coeff,
                                             receiver_entropy_coeff=opts.receiver_entropy_coeff)
