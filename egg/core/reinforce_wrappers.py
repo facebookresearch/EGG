@@ -97,7 +97,7 @@ class SymbolGameReinforce(nn.Module):
           and outputs the end-to-end loss. Can be non-differentiable; if it is differentiable, this will be leveraged
         :param sender_entropy_coeff: The entropy regularization coefficient for Sender
         :param receiver_entropy_coeff: The entropy regularizatino coefficient for Receiver
-        :param baseline_type:
+        :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
         """
         super(SymbolGameReinforce, self).__init__()
         self.sender = sender
@@ -358,6 +358,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         :param sender_entropy_coeff: entropy regularization coeff for sender
         :param receiver_entropy_coeff: entropy regularization coeff for receiver
         :param length_cost: the penalty applied to Sender for each symbol produced
+        :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
         """
         super(SenderReceiverRnnReinforce, self).__init__()
         self.sender = sender
