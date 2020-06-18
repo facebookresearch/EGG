@@ -25,6 +25,7 @@ def get_params(params):
     parser.add_argument('--n_values', type=int, default=4, help='')
     parser.add_argument('--data_scaler', type=int, default=100)
     parser.add_argument('--stats_freq', type=int, default=0)
+    parser.add_argument('--baseline', type=str, choices=['no', 'mean', 'builtin'], default='mean')
     parser.add_argument('--density_data', type=int,
                         default=0, help='no sampling if equal 0')
 
@@ -160,8 +161,12 @@ def main(params):
     sender = PlusOneWrapper(sender)
     loss = DiffLoss(opts.n_attributes, opts.n_values)
 
+    baseline = {'no': core.baselines.NoBaseline, 
+                'mean': core.baselines.MeanBaseline, 
+                'builtin': core.baselines.BuiltInBaseline}[opts.baseline]
+
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
-                                           receiver_entropy_coeff=0.0, length_cost=0.0)
+                                           receiver_entropy_coeff=0.0, length_cost=0.0, baseline_type=baseline)
     optimizer = torch.optim.Adam(game.parameters(), lr=opts.lr)
 
     metrics_evaluator = Metrics(validation.examples, opts.device, opts.n_attributes,
@@ -181,12 +186,14 @@ def main(params):
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=validation_loader,
-        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=False),
-                   early_stopper,
-                   metrics_evaluator,
-                   holdout_evaluator])
+        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True),
+                   #early_stopper,
+                   #metrics_evaluator,
+                   #holdout_evaluator
+                   ])
     trainer.train(n_epochs=opts.n_epochs)
 
+    exit(0)
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 
