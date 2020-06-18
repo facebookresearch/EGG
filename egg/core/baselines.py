@@ -65,8 +65,9 @@ class MeanBaseline(Baseline):
 
 
 class BuiltInBaseline(Baseline):
-    """Built-in baseline; for any row in the batch, all other rows serve as control variates.
-    Assumes that rows in the batch are independent; most likely works poor for small batch sizes.
+    """Built-in baseline; for any row in the batch, the mean of all other rows serves as a control variate.
+    To use BuiltInBaseline, rows in the batch must be independent. Most likely BuiltInBaseline 
+    would work poorly for small batch sizes.
     """
 
     def __init__(self):
