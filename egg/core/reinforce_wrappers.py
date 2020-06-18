@@ -15,6 +15,7 @@ from torch.distributions import Categorical
 from .rnn import RnnEncoder
 from .transformer import TransformerEncoder, TransformerDecoder
 from .util import find_lengths
+from .baselines import MeanBaseline
 
 
 class ReinforceWrapper(nn.Module):
@@ -82,7 +83,7 @@ class SymbolGameReinforce(nn.Module):
     """
     A single-symbol Sender/Receiver game implemented with Reinforce.
     """
-    def __init__(self, sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0):
+    def __init__(self, sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0, baseline_type=MeanBaseline):
         """
         :param sender: Sender agent. On forward, returns a tuple of (message, log-prob of the message, entropy).
         :param receiver: Receiver agent. On forward, accepts a message and the dedicated receiver input. Returns
@@ -96,6 +97,7 @@ class SymbolGameReinforce(nn.Module):
           and outputs the end-to-end loss. Can be non-differentiable; if it is differentiable, this will be leveraged
         :param sender_entropy_coeff: The entropy regularization coefficient for Sender
         :param receiver_entropy_coeff: The entropy regularizatino coefficient for Receiver
+        :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
         """
         super(SymbolGameReinforce, self).__init__()
         self.sender = sender
@@ -105,21 +107,18 @@ class SymbolGameReinforce(nn.Module):
         self.receiver_entropy_coeff = receiver_entropy_coeff
         self.sender_entropy_coeff = sender_entropy_coeff
 
-        self.mean_baseline = 0.0
-        self.n_points = 0.0
+        self.baseline = baseline_type()
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, sender_log_prob, sender_entropy = self.sender(sender_input)
         receiver_output, receiver_log_prob, receiver_entropy = self.receiver(message, receiver_input)
 
         loss, rest_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        policy_loss = ((loss.detach() - self.mean_baseline) * (sender_log_prob + receiver_log_prob)).mean()
+        policy_loss = ((loss.detach() - self.baseline.predict(loss.detach())) * (sender_log_prob + receiver_log_prob)).mean()
         entropy_loss = -(sender_entropy.mean() * self.sender_entropy_coeff + receiver_entropy.mean() * self.receiver_entropy_coeff)
 
         if self.training:
-            self.n_points += 1.0
-            self.mean_baseline += (loss.detach().mean().item() -
-                                   self.mean_baseline) / self.n_points
+            self.baseline.update(loss.detach())
 
         full_loss = policy_loss + entropy_loss + loss.mean()
 
@@ -127,7 +126,7 @@ class SymbolGameReinforce(nn.Module):
             if hasattr(v, 'mean'):
                 rest_info[k] = v.mean().item()
 
-        rest_info['baseline'] = self.mean_baseline
+        rest_info['baseline'] = self.baseline.predict(loss.detach()).mean()
         rest_info['loss'] = loss.mean().item()
         rest_info['sender_entropy'] = sender_entropy.mean()
         rest_info['receiver_entropy'] = receiver_entropy.mean()
@@ -342,7 +341,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     5.0
     """
     def __init__(self, sender, receiver, loss, sender_entropy_coeff, receiver_entropy_coeff,
-                 length_cost=0.0):
+                 length_cost=0.0, baseline_type=MeanBaseline):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -359,6 +358,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         :param sender_entropy_coeff: entropy regularization coeff for sender
         :param receiver_entropy_coeff: entropy regularization coeff for receiver
         :param length_cost: the penalty applied to Sender for each symbol produced
+        :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
         """
         super(SenderReceiverRnnReinforce, self).__init__()
         self.sender = sender
@@ -368,8 +368,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         self.loss = loss
         self.length_cost = length_cost
 
-        self.mean_baseline = defaultdict(float)
-        self.n_points = defaultdict(float)
+        self.baselines = defaultdict(baseline_type)
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, log_prob_s, entropy_s = self.sender(sender_input)
@@ -398,16 +397,16 @@ class SenderReceiverRnnReinforce(nn.Module):
 
         length_loss = message_lengths.float() * self.length_cost
 
-        policy_length_loss = ((length_loss.float() - self.mean_baseline['length']) * effective_log_prob_s).mean()
-        policy_loss = ((loss.detach() - self.mean_baseline['loss']) * log_prob).mean()
+        policy_length_loss = ((length_loss - self.baselines['length'].predict(length_loss)) * effective_log_prob_s).mean()
+        policy_loss = ((loss.detach() - self.baselines['loss'].predict(loss.detach())) * log_prob).mean()
 
         optimized_loss = policy_length_loss + policy_loss - weighted_entropy
         # if the receiver is deterministic/differentiable, we apply the actual loss
         optimized_loss += loss.mean()
 
         if self.training:
-            self.update_baseline('loss', loss)
-            self.update_baseline('length', length_loss)
+            self.baselines['loss'].update(loss)
+            self.baselines['length'].update(length_loss)
 
         for k, v in rest.items():
             rest[k] = v.mean().item() if hasattr(v, 'mean') else v
@@ -418,10 +417,6 @@ class SenderReceiverRnnReinforce(nn.Module):
         rest['mean_length'] = message_lengths.float().mean().item()
 
         return optimized_loss, rest
-
-    def update_baseline(self, name, value):
-        self.n_points[name] += 1
-        self.mean_baseline[name] += (value.detach().mean().item() - self.mean_baseline[name]) / self.n_points[name]
 
 
 class TransformerReceiverDeterministic(nn.Module):
