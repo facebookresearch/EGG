@@ -42,7 +42,7 @@ class NoBaseline(Baseline):
 class MeanBaseline(Baseline):
     """Running mean baseline; all loss batches have equal importance/weight,
     hence it is better if they are equally-sized.
-    """"
+    """
 
     def __init__(self):
         super().__init__()
