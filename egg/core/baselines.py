@@ -9,7 +9,7 @@ from collections import defaultdict
 import torch
 
 
-class Baseline(ABC, torch.nn.Module):
+class Baseline(ABC):
     @abstractmethod
     def update(self, loss: torch.Tensor) -> None:
         """Update internal state according to the observed loss
