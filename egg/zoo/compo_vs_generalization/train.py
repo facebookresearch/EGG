@@ -186,11 +186,10 @@ def main(params):
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=validation_loader,
-        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True),
+        callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=False),
                    early_stopper,
                    metrics_evaluator,
-                   holdout_evaluator
-                   ])
+                   holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
 
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
