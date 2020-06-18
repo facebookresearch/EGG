@@ -187,13 +187,12 @@ def main(params):
         train_data=train_loader,
         validation_data=validation_loader,
         callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True),
-                   #early_stopper,
-                   #metrics_evaluator,
-                   #holdout_evaluator
+                   early_stopper,
+                   metrics_evaluator,
+                   holdout_evaluator
                    ])
     trainer.train(n_epochs=opts.n_epochs)
 
-    exit(0)
     validation_acc = early_stopper.validation_stats[-1][1]['acc']
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 
