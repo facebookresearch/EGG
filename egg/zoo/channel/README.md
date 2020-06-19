@@ -4,8 +4,7 @@ properties. The vectors to be auto-encoded might come from uniform, powerlaw or 
 distribution. The communication is performed by mean of variable-length messages; the training is done by Reinforce/GS. 
 
 This code was used in the experiments of the following paper: 
-* _Anti-efficient encoding in emergent communication._ Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, Marco Baroni.
-[arxiv](https://arxiv.org/abs/1905.12561)
+* _Anti-efficient encoding in emergent communication._ Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, Marco Baroni. NeurIPS 2019. [arxiv](https://arxiv.org/abs/1905.12561)
 
 The game can be run as follows:
 
