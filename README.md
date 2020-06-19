@@ -131,7 +131,7 @@ Please read the contribution [guide](CONTRIBUTING.md).
 Run pytest:
 
 ```
-pytest
+python -m pytest
 ```
 
 All tests should pass.
