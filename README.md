@@ -20,26 +20,31 @@ Key features:
 To fully leverage EGG one would need at least [a high-level familiarity](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)
 with PyTorch. However, to get a taste of communication games without writing any code, you could try [a dataset-based game](/egg/zoo/external_game), which allow you to experiment with different signaling games by simply editing input files. 
 
-## Partial list of implemented games
+## List of implemented games
 
-This is a list of representative games implemented at the moment:
- * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering
- the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization
- done by Reinforce and Gumbel-Softmax relaxation ([notebook](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)).
- * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more
- distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender.
- This implementation is based on Diane Bouchacourt's code.
+<details><summary>List of example and tutorial games</summary><p>
+ 
+ * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization done by Reinforce and Gumbel-Softmax relaxation ([notebook](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)).
+ 
+ * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender. This implementation is based on Diane Bouchacourt's code.
+ 
  * [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc): Discrete auto-encoder Sender/Receiver game that auto-encodes one-hot vectors using variable-length messages.
- * [`egg/zoo/mnist_autoenc`](/egg/zoo/mnist_autoenc): Discrete MNIST auto-encoder game. In this Sender/Receiver game, Sender looks onto a MNIST image and sends a single symbol
- to Receiver, who tries to recover the image.
- * [`egg/zoo/summation`](/egg/zoo/summation): Sender and Receiver are jointly trained to recognize the `a^nb^n` grammar: Sender reads
- an input sequence and Receiver answers if the sequence belongs to the grammar. Which agent actually counts, Sender or Receiver?
- Does Sender make the decision and send it to Receiver? Or does Sender encode the incoming sequence in the message and it is Receiver that make the decision? Or something in-between?
+ * [`egg/zoo/mnist_autoenc`](/egg/zoo/mnist_autoenc): Discrete MNIST auto-encoder game. In this Sender/Receiver game, Sender looks onto a MNIST image and sends a single symbol to Receiver, who tries to recover the image.
+ * [`egg/zoo/summation`](/egg/zoo/summation): Sender and Receiver are jointly trained to recognize the `a^nb^n` grammar: Sender reads an input sequence and Receiver answers if the sequence belongs to the grammar. Which agent actually counts, Sender or Receiver? Does Sender make the decision and send it to Receiver? Or does Sender encode the incoming sequence in the message and it is Receiver that make the decision? Or something in-between?
  * [`egg/zoo/external_game`](/egg/zoo/external_game): A signaling game that takes inputs and ground-truth outputs from CSV files. 
- * [`egg/zoo/objects_game`](/egg/zoo/objects_game): A Sender/Receiver game where the Sender sees a target as a vector of discrete properties
- (*e.g.* [2, 4, 3, 1] for a game with 4 dimensions) and the Receiver has to recognize the target among a lineup of target+distractor(s).
- * [`egg/zoo/language_bottleneck`](/egg/zoo/language_bottleneck) contains a set of games that study the information bottleneck property of the discrete communication channel. This poperty is illustrated in an EGG-based example of MNIST-based style transfer without an adversary ([notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb)).
- * [`egg/zoo/channel`](/egg/zoo/channel): Similar to [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc) but here the inputs are drawn from a specific distribution. This game exemplifies the environment impact on the nature of the emergent language. 
+</p></details>
+
+ <details><summary>Games used in published work</summary><p>
+ 
+  * [`egg/zoo/channel`](/egg/zoo/channel): _Anti-efficient encoding in emergent communication._ Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, Marco Baroni. NeurIPS 2019.
+  
+  * [`egg/zoo/objects_game`](/egg/zoo/objects_game): _Focus on What’s Informative and Ignore What’s not: Communication Strategies in a Referential Game._ Roberto Dessì, Diane Bouchacourt, Davide Crepaldi, Marco Baroni. NeurIPS Workshop on Emergent Communication 2019. A Sender/Receiver game where the Sender sees a target as a vector of discrete properties (*e.g.* [2, 4, 3, 1] for a game with 4 dimensions) and the Receiver has to recognize the target among a lineup of target+distractor(s).
+  
+  * [`egg/zoo/compo_vs_generalization`](egg/zoo/compo_vs_generalization) _Compositionality and Generalization in Emergent Languages._ Rahma Chaabouni, Eugene Kharitonov, Diane Bouchacourt, Emmanuel Dupoux, Marco Baroni. ACL 2020.
+  
+  * [`egg/zoo/language_bottleneck`](/egg/zoo/language_bottleneck) _Entropy Minimization In Emergent Languages._ Eugene Kharitonov, Rahma Chaabouni, Diane Bouchacourt, Marco Baroni. ICML 2020. `egg/zoo/language_bottleneck` contains a set of games that study the information bottleneck property of the discrete communication channel. This poperty is illustrated in an EGG-based example of MNIST-based style transfer without an adversary ([notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb)).
+
+</p></details>
 
 We are adding games all the time: please look at the [`egg/zoo`](/egg/zoo) directory to see what is available right now. Submit an issue if there is something you want to have implemented and included.
 
@@ -105,7 +110,7 @@ and Reinforce-based implementations.
 If you find EGG useful in your research, please cite:
 ```
 @inproceedings{Kharitonov2019Egg,
-    title = "{EGG}: a toolkit for research on Emergence of lan{G}uage in Games",
+    title = "{EGG}: a toolkit for research on {E}mergence of lan{G}uage in {G}ames",
     author = "Kharitonov, Eugene  and
       Chaabouni, Rahma  and
       Bouchacourt, Diane  and
