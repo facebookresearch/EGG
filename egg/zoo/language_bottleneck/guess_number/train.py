@@ -31,7 +31,6 @@ def dump(game, dataset, device, is_gs, is_var_length):
 
 
 def get_params(params):
-    print(params)
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_bits', type=int, default=8,
                         help='')
@@ -101,7 +100,7 @@ def non_diff_loss(_sender_input, _message, _receiver_input, receiver_output, lab
 
 def main(params):
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    print(opts)
 
     device = opts.device
 
@@ -138,7 +137,10 @@ def main(params):
         elif opts.mode == 'non_diff':
             sender = core.ReinforceWrapper(agent=sender)
             receiver = ReinforcedReceiver(
-                n_bits=opts.n_bits, n_hidden=opts.receiver_hidden, vocab_size=opts.vocab_size)
+                n_bits=opts.n_bits, n_hidden=opts.receiver_hidden)
+            receiver = core.SymbolReceiverWrapper(
+                receiver, vocab_size=opts.vocab_size, agent_input_size=opts.receiver_hidden)
+
             game = core.SymbolGameReinforce(sender, receiver, non_diff_loss,
                                             sender_entropy_coeff=opts.sender_entropy_coeff,
                                             receiver_entropy_coeff=opts.receiver_entropy_coeff)
@@ -189,7 +191,7 @@ def main(params):
         game=game, optimizer=optimizer,
         train_data=train_loader,
         validation_data=test_loader,
-        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr)])#, intervention])
+        callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
 
     trainer.train(n_epochs=opts.n_epochs)
 

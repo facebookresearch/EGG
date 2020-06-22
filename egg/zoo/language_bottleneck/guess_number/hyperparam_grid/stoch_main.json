@@ -1,5 +1,5 @@
 {
-  "vocab_size": [256, 1024, 4096],
+  "vocab_size": [1024],
   "mode": ["rf"],
   "n_bits": [8],
   "bits_s": [8],

@@ -4,7 +4,7 @@
   "random_seed": [0, 1, 2, 3, 4],
   "batch_size": [32],
   "lr": [0.0001],
-  "temperature": [1.0],
+  "temperature": [0.1, 1.0, 10.0],
   "early_stopping_thr": [0.98],
   "softmax_non_linearity": [1],
   "linear_channel": [0]

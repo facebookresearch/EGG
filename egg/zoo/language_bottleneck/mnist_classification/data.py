@@ -5,6 +5,68 @@
 
 import torch
 
+class DoubleMnist:
+    def __init__(self, loader, label_mapping):
+        self.loader = loader
+        self.label_mapping = label_mapping
+
+    def __iter__(self):
+        return _DoubleIterator(self.loader, self.label_mapping)
+
+
+
+class _DoubleIterator:
+    def __init__(self, loader, label_mapping):
+        self.iter = loader.__iter__()
+        self.label_mapping = label_mapping
+
+    def __next__(self):
+        batch, labels = list(self.iter.__next__())
+        bsz = batch.size(0)
+
+        half1, half2 = batch[:bsz // 2, ...], batch[bsz // 2:, ...]
+        half_label1, half_label2 = labels[:bsz // 2], labels[bsz // 2:]
+
+        new_half1 = torch.cat([half1, half2], dim=-1)
+        new_half1_labels = half_label1 * 10 + half_label2
+
+        new_half2 = torch.cat([half2, half1], dim=-1)
+        new_half2_labels = half_label2 * 10 + half_label1
+
+        new_batch = torch.cat([new_half1, new_half2], dim=0)
+        new_labels = torch.cat([new_half1_labels, new_half2_labels], dim=0)
+        new_labels = self.label_mapping[new_labels]
+
+        assert bsz == new_batch.size(0) and bsz == new_labels.size(0)
+        return new_batch, new_labels
+
+
+class _DoubleMNIST:
+    def __init__(self, dataset):
+        self.dataset = dataset 
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, k):
+        batch, labels = self.dataset[k]
+        bsz = batch.size(0)
+
+        half1, half2 = batch[:bsz // 2], batch[bsz // 2:]
+        half_label1, half_label2 = labels[:bsz // 2], labels[bsz // 2:]
+
+        new_half1 = torch.cat([half1, half2], dim=-1)
+        new_half1_labels = half_label1 * 10 + half_label2
+
+        new_half2 = torch.cat([half2, half1], dim=-1)
+        new_half2_labels = half_label2 * 10 + half_label1
+
+
+        new_batch = torch.cat([new_half1, new_half2], dim=0)
+        new_labels = torch.cat([new_half1_labels, new_half2_labels], dim=0)
+
+        return new_batch, new_labels
+
 
 class TakeFirstLoader:
     def __init__(self, loader, n):

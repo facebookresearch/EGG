@@ -1,0 +1,12 @@
+{
+  "vocab_size": [512, 2048],
+  "sender_rows": [28],
+  "random_seed": [0, 1, 2],
+  "temperature": [0.5, 0.75, 1.0, 1.5, 2.0],
+  "n_epochs": [100],
+  "batch_size": [32],
+  "lr": [0.001],
+  "early_stopping_thr": [0.98],
+  "n_labels": [2, 4, 10, 20, 25, 50, 100],
+  "n_hidden": [0]
+}

@@ -12,6 +12,7 @@ import torch.distributions
 import egg.core as core
 
 from egg.zoo.language_bottleneck.mnist_overfit.archs import Sender, Receiver
+from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 from egg.zoo.language_bottleneck.mnist_overfit.data import corrupt_labels_
 from egg.zoo.language_bottleneck.relaxed_channel import AlwaysRelaxedWrapper
 from egg.core import EarlyStopperAccuracy
@@ -34,7 +35,7 @@ def get_params(params):
     parser.add_argument('--deeper', type=int, default=0,
                         help="Addition FC layer")
 
-    parser.add_argument('--deeper_alice', type=int, default=1,
+    parser.add_argument('--deeper_alice', type=int, default=0,
                         help="Addition FC layer goes to Alice")
 
     parser.add_argument('--p_corrupt', type=float, default=0,
@@ -45,6 +46,7 @@ def get_params(params):
 
     parser.add_argument('--linear_channel', type=int, default=0,
                         help="Disable GS training, treat channel as a linear connection (default: 0)")
+    parser.add_argument('--force_discrete', type=int, default=0, help="")
 
     args = core.init(parser, params)
 
@@ -54,7 +56,7 @@ def get_params(params):
 
 def main(params):
     opts = get_params(params)
-    print(json.dumps(vars(opts)))
+    print(opts)
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if opts.cuda else {}
     transform = transforms.ToTensor()
@@ -63,15 +65,17 @@ def main(params):
                    transform=transform)
     test_dataset = datasets.MNIST('./data', train=False, download=False,
                    transform=transform)
+
     n_classes = 10
 
     corrupt_labels_(dataset=train_dataset, p_corrupt=opts.p_corrupt, seed=opts.random_seed+1)
+    label_mapping = torch.LongTensor([x % n_classes for x in range(100)])
 
-    train_loader = torch.utils.data.DataLoader(train_dataset,
-        batch_size=opts.batch_size, shuffle=True, **kwargs)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=opts.batch_size, shuffle=True, **kwargs)
+    train_loader = DoubleMnist(train_loader, label_mapping)
 
-    test_loader = torch.utils.data.DataLoader(test_dataset,
-        batch_size=opts.batch_size, shuffle=False, **kwargs)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16 * 1024, shuffle=False, **kwargs)
+    test_loader = DoubleMnist(test_loader, label_mapping)
 
     deeper_alice = opts.deeper_alice == 1 and opts.deeper == 1
     deeper_bob = opts.deeper_alice != 1 and opts.deeper == 1
@@ -80,8 +84,10 @@ def main(params):
                     softmax_channel=opts.softmax_non_linearity == 1)
     receiver = Receiver(vocab_size=opts.vocab_size, n_classes=n_classes, deeper=deeper_bob)
 
-    if opts.softmax_non_linearity != 1 and opts.linear_channel != 1:
+    if opts.softmax_non_linearity != 1 and opts.linear_channel != 1 and opts.force_discrete != 1:
         sender = AlwaysRelaxedWrapper(sender, temperature=opts.temperature)
+    elif opts.force_discrete == 1:
+        sender = core.GumbelSoftmaxWrapper(sender, temperature=opts.temperature)
 
     game = core.SymbolGameGS(sender, receiver, diff_loss_symbol)
 
