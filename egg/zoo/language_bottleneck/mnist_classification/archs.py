@@ -31,13 +31,10 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
 
         self.vision = LeNet()
-        #self.fc_0 = nn.Linear(400, 400)
         self.fc = nn.Linear(400, vocab_size)
 
     def forward(self, x):
         x = self.vision(x)
-        #x = self.fc_0(x)
-        #x = F.leaky_relu(x)
         x = self.fc(x)
         logits = F.log_softmax(x, dim=1)
         return logits
