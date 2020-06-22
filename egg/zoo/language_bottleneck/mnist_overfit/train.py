@@ -75,8 +75,6 @@ def main(params):
     train_loader = DoubleMnist(train_loader, label_mapping)
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16 * 1024, shuffle=False, **kwargs)
-    #print("# !!!! EVAL IS TRAIN !!!!")
-    #test_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16 * 1024, shuffle=False, **kwargs)
     test_loader = DoubleMnist(test_loader, label_mapping)
 
     deeper_alice = opts.deeper_alice == 1 and opts.deeper == 1
