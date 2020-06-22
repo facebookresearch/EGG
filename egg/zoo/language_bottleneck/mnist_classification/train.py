@@ -13,8 +13,7 @@ import egg.core as core
 
 from egg.zoo.language_bottleneck.mnist_classification.archs import Sender, Receiver
 from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
-from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist, form_classes
-# TakeFirstLoader, SplitImages
+from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 from egg.core import EarlyStopperAccuracy
 
 

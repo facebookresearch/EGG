@@ -5,32 +5,6 @@
 
 import torch
 
-def form_classes(n_classes, seed):
-    import random, torch
-    random.seed(seed)
-    
-    assert 100 % n_classes == 0
-    classes = []
-    for i in range(100):
-        classes.append(i % n_classes)
-    random.shuffle(classes)
-    
-    return torch.LongTensor(classes)
-
-class ClusteredMNIST:
-    def __init__(self, dataset, n_clusters):
-        self.n_clusters = n_clusters
-        self.dataset = dataset 
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, k):
-        batch, label = self.dataset[k]
-        return batch, label % self.n_clusters
-
-
-
 class DoubleMnist:
     def __init__(self, loader, label_mapping):
         self.loader = loader
