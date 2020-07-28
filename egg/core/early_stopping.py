@@ -63,6 +63,6 @@ class EarlyStopperAccuracy(BaseEarlyStopper):
             loss, last_epoch_interactions = self.train_stats[-1]
 
         metric_sum = sum(x.aux[self.field_name].sum() for x in last_epoch_interactions)
-        normalizer = sum(x.aux[self.field_name].size(0) for x in last_epoch_interactions)
+        normalizer = sum(x.bsz for x in last_epoch_interactions)
 
         return metric_sum / normalizer >= self.threshold

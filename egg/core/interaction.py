@@ -5,6 +5,7 @@
 
 from typing import Optional, Dict, Union
 from dataclasses import dataclass
+from functools import cached_property
 import torch
 
 @dataclass
@@ -22,16 +23,6 @@ class Interaction:
     message_length: Optional[torch.Tensor]
     aux: Dict[str, Union[float, int, torch.Tensor]]
 
-
-    @staticmethod
-    def from_batch(sender_input, receiver_input, labels):
-        interacton = Interaction(
-            sender_input,
-            receiver_input,
-            labels,
-            message=None,
-            receiver_output=None,
-            message_length=None,
-            aux={}
-        )
-
+    @cached_property
+    def bsz(self):
+        return self.sender_input.size(0)

@@ -50,11 +50,10 @@ class ConsoleLogger(Callback):
     @staticmethod
     def aggregate_interactions(interactions: List[Interaction]) -> Dict[str, float]:
         aggregated = defaultdict(float)
-        normalizer = 0
+        normalizer = 0.0
 
         for interaction in interactions:
-            bsz = interaction.sender_input.size(0)
-            normalizer += bsz
+            normalizer += interaction.bsz
 
             aggregated['message_length'] += interaction.message_length.sum()
 
