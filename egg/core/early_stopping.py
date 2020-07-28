@@ -15,8 +15,8 @@ class BaseEarlyStopper(Callback):
     """
     def __init__(self, validation: bool = True):
         super(BaseEarlyStopper, self).__init__()
-        self.train_stats: List[Tuple[float, Dict[str, Any]]] = []
-        self.validation_stats: List[Tuple[float, Dict[str, Any]]] = []
+        self.train_stats: List[Tuple[float, Interaction]] = []
+        self.validation_stats: List[Tuple[float, Interaction]] = []
         self.epoch: int = 0
         self.validation = validation
 
