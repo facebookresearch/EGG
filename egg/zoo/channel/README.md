@@ -25,6 +25,5 @@ The game accepts the following game-specific parameters:
  * `sender_hidden/receiver_hidden` -- the size of the hidden layers for the cells
  * `sender_lr/receiver_lr` -- the learning rates for the agents' parameters (it might be useful to have Sender's learning rate
  lower, as Receiver has to adjust to the changes in Sender)
- * `mode={gs/rf}` -- training either via GS or Reinforce
  * `probs={p1,p2,...}` or `'probs=powerlaw'` select the prior distribution over concepts
  
