@@ -19,13 +19,6 @@ def _div_dict(d, n):
     return result
 
 
-#def _add_dicts(a, b):
-#    result = dict(a)
-#    for k, v in b.items():
-#        result[k] = result.get(k, 0) + v
-#    return result
-
-
 class Callback:
 
     def on_train_begin(self, trainer_instance: 'Trainer'):
