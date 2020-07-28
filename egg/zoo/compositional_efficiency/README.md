@@ -3,3 +3,20 @@ This code illustrates that (naive) compositionality of an emergent language migh
 For more details, refer to _Kharitonov, Eugene, and Marco Baroni._ Emergent Language Generalization and Acquisition Speed are not tied to Compositionality." [arXiv](https://arxiv.org/abs/2004.03420).
 
 `discrete.py` and `continuous.py` implement the first and the second experiments from the text. `hypergrids/` contains the hyperparameters and command-line arguments to obtain the reported results.
+
+Example commands for running:
+
+* the discrete experiment:
+```bash
+
+python -m egg.zoo.compositional_efficiency.discrete --language=identity --loss_type=autoenc --random_seed=1 \
+  --receiver_cell=lstm --receiver_layers=0 --cell_layers=1  --receiver_hidden=100 --receiver_emb=50 \
+  --vocab_size=50 --batch_size=32 --n_a=2 --n_v=31 --n_epochs=500 
+```
+
+* the continuous experiment
+```bash
+python -m egg.zoo.compositional_efficiency.continuous --vocab_size=100 --batch_size=32 \
+  --n_epochs=100 --random_seed=2 --receiver_hidden=100 --receiver_emb=50 --receiver_cell=lstm \
+  --receiver_layers=0 --lenses=1 --lr=1e-3
+```
