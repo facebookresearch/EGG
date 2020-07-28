@@ -191,10 +191,10 @@ class Evaluator(core.Callback):
 
                 batch = core.move_to(batch, self.device)
                 with torch.no_grad():
-                    _, rest = game(*batch)
-                acc += rest['acc']
+                    _, interaction = game(*batch)
+                acc += interaction.aux['acc'].mean().item()
 
-                acc_or += rest['acc_or']
+                acc_or += interaction.aux['acc_or'].mean().item()
             self.results[loader_name] = {
                 'acc': acc / n_batches, 'acc_or': acc_or / n_batches}
 

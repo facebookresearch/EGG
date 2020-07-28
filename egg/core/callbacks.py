@@ -3,13 +3,27 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Dict, Any, Union,  NamedTuple, List
 import json
-from typing import Dict, Any, Union,  NamedTuple
 import pathlib
+from collections import defaultdict
 
 import torch
-
 from egg.core.util import get_summary_writer
+from .interaction import Interaction
+
+def _div_dict(d, n):
+    result = dict(d)
+    for k in result:
+        result[k] /= n
+    return result
+
+
+#def _add_dicts(a, b):
+#    result = dict(a)
+#    for k, v in b.items():
+#        result[k] = result.get(k, 0) + v
+#    return result
 
 
 class Callback:
@@ -24,13 +38,13 @@ class Callback:
     def on_test_begin(self):
         pass
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: List[Interaction]):
         pass
 
     def on_epoch_begin(self):
         pass
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_epoch_end(self, loss: float, logs: List[Interaction]):
         pass
 
 
@@ -40,38 +54,56 @@ class ConsoleLogger(Callback):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    @staticmethod
+    def aggregate_interactions(interactions: List[Interaction]) -> Dict[str, float]:
+        aggregated = defaultdict(float)
+        normalizer = 0
+
+        for interaction in interactions:
+            bsz = interaction.sender_input.size(0)
+            normalizer += bsz
+
+            aggregated['message_length'] += interaction.message_length.sum()
+
+            for k, v in interaction.aux.items():
+                aggregated[k] += _to_number(v, 'sum')
+
+        return _div_dict(aggregated, normalizer)
+
+    def aggregate_print(self, loss: float, logs: List[Interaction], mode: str):
+        dump = dict(loss=_to_number(loss, 'mean'))
+        aggregated_metrics = self.aggregate_interactions(logs)
+        dump.update(aggregated_metrics)
+
+        for k, v in dump.items():
+            dump[k] = _to_number(v, 'sum')
+
         if self.as_json:
-            dump = dict(mode='test', epoch=self.epoch_counter, loss=self._get_metric(loss))
-            for k, v in logs.items():
-                dump[k] = self._get_metric(v)
+            dump.update(dict(mode=mode, epoch=self.epoch_counter))
             output_message = json.dumps(dump)
         else:
-            output_message = f'test: epoch {self.epoch_counter}, loss {loss},  {logs}'
+            output_message = ', '.join(sorted([f'{k}={v}' for k, v in dump.items()]))
+            output_message = f'{mode}: epoch {self.epoch_counter}, loss {loss}, ' + output_message
         print(output_message, flush=True)
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: List[Interaction]):
+        self.aggregate_print(loss, logs, 'test')
+
+    def on_epoch_end(self, loss: float, logs: List[Interaction]):
         self.epoch_counter += 1
 
-        if self.print_train_loss:
-            if self.as_json:
-                dump = dict(mode='train', epoch=self.epoch_counter, loss=self._get_metric(loss))
-                for k, v in logs.items():
-                    dump[k] = self._get_metric(v)
-                output_message = json.dumps(dump)
-            else:
-                output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
-            print(output_message, flush=True)
+        if not self.print_train_loss: return
+        self.aggregate_print(loss, logs, 'train')
 
-    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
-        if torch.is_tensor(metric) and metric.dim() > 1:
-            return metric.mean().item()
-        elif torch.is_tensor(metric):
-            return metric.item()
-        elif type(metric) == float:
-            return metric
-        else:
-            raise TypeError('Metric must be either float or torch.Tensor')
+def _to_number(metric: Union[torch.Tensor, float], aggregation: str) -> float:
+    if torch.is_tensor(metric) and aggregation == 'mean':
+        return metric.float().mean().item()
+    elif torch.is_tensor(metric) and aggregation == 'sum':
+        return metric.float().sum().item()
+    elif type(metric) == float:
+        return metric
+    else:
+        raise TypeError('Metric must be either float or torch.Tensor')
 
 
 class TensorboardLogger(Callback):

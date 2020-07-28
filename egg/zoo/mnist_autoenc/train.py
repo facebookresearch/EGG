@@ -87,7 +87,7 @@ def main(params):
 
     # initialize and launch the trainer
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
-                           callbacks=[temperature_updater, core.ConsoleLogger(as_json=True, print_train_loss=True)])
+                           callbacks=[temperature_updater, core.ConsoleLogger(as_json=False, print_train_loss=True)])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()

@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
+from .interaction import Interaction
+
 
 def gumbel_softmax_sample(
         logits: torch.Tensor,
@@ -143,12 +145,18 @@ class SymbolGameGS(nn.Module):
         message = self.sender(sender_input)
         receiver_output = self.receiver(message, receiver_input)
 
-        loss, rest_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        for k, v in rest_info.items():
-            if hasattr(v, 'mean'):
-                rest_info[k] = v.mean().item()
+        loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
 
-        return loss.mean(), rest_info
+        interaction = Interaction(
+            sender_input=sender_input,
+            receiver_input=receiver_input,
+            labels=labels,
+            receiver_output=receiver_output.detach(),
+            message=message.detach(),
+            message_length=torch.ones(message.size(0)),
+            aux=aux_info)
+
+        return loss.mean(), interaction
 
 
 class RelaxedEmbedding(nn.Embedding):
@@ -391,10 +399,10 @@ class SenderReceiverRnnGS(nn.Module):
         not_eosed_before = torch.ones(receiver_output.size(0)).to(receiver_output.device)
         expected_length = 0.0
 
-        rest = {}
+        aux_info = {}
         z = 0.0
         for step in range(receiver_output.size(1)):
-            step_loss, step_rest = self.loss(sender_input, message[:, step, ...], receiver_input, receiver_output[:, step, ...], labels)
+            step_loss, step_aux = self.loss(sender_input, message[:, step, ...], receiver_input, receiver_output[:, step, ...], labels)
             eos_mask = message[:, step, 0]  # always eos == 0
 
             add_mask = eos_mask * not_eosed_before
@@ -402,8 +410,8 @@ class SenderReceiverRnnGS(nn.Module):
             loss += step_loss * add_mask + self.length_cost * (1.0 + step) * add_mask
             expected_length += add_mask.detach() * (1.0 + step)
 
-            for name, value in step_rest.items():
-                rest[name] = value * add_mask + rest.get(name, 0.0)
+            for name, value in step_aux.items():
+                aux_info[name] = value * add_mask + aux_info.get(name, 0.0)
 
             not_eosed_before = not_eosed_before * (1.0 - eos_mask)
 
@@ -414,10 +422,18 @@ class SenderReceiverRnnGS(nn.Module):
         z += not_eosed_before
         assert z.allclose(torch.ones_like(z)), f"lost probability mass, {z.min()}, {z.max()}"
 
-        for name, value in step_rest.items():
-            rest[name] = value * not_eosed_before + rest.get(name, 0.0)
-        for name, value in rest.items():
-            rest[name] = value.mean()
+        for name, value in step_aux.items():
+            aux_info[name] = value * not_eosed_before + aux_info.get(name, 0.0)
 
-        rest['mean_length'] = expected_length.mean()
-        return loss.mean(), rest
+        aux_info['mean_length'] = expected_length.mean()
+
+        interaction = Interaction(
+            sender_input=sender_input,
+            receiver_input=receiver_input,
+            labels=labels,
+            receiver_output=receiver_output.detach(),
+            message=message.detach(),
+            message_length=expected_length.detach(),
+            aux=aux_info)
+
+        return loss.mean(), interaction

@@ -99,9 +99,9 @@ class DiffLoss(torch.nn.Module):
             acc_or /= self.n_attributes
         else:
             acc = (torch.sum((receiver_output.argmax(dim=-1) == sender_input.argmax(dim=-1)
-                              ).detach(), dim=1) == self.n_attributes).float().mean()
+                              ).detach(), dim=1) == self.n_attributes).float()#.mean()
             acc_or = (receiver_output.argmax(dim=-1) ==
-                      sender_input.argmax(dim=-1)).float().mean()
+                      sender_input.argmax(dim=-1)).float()#.mean()
 
             receiver_output = receiver_output.view(
                 batch_size * self.n_attributes, self.n_values)
@@ -192,7 +192,10 @@ def main(params):
                    holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
 
-    validation_acc = early_stopper.validation_stats[-1][1]['acc']
+    last_epoch_interactions = early_stopper.validation_stats[-1][1]
+    normalizer = sum(x.sender_input.size(0) for x in last_epoch_interactions)
+    validation_acc = sum(x.aux['acc'].sum() for x in last_epoch_interactions) / normalizer
+
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 
     # Train new agents

@@ -15,20 +15,6 @@ from .util import get_opts, move_to
 from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
 
 
-def _add_dicts(a, b):
-    result = dict(a)
-    for k, v in b.items():
-        result[k] = result.get(k, 0) + v
-    return result
-
-
-def _div_dict(d, n):
-    result = dict(d)
-    for k in result:
-        result[k] /= n
-    return result
-
-
 class Trainer:
     """
     Implements the training logic. Some common configuration (checkpointing frequency, path, validation frequency)
@@ -119,32 +105,34 @@ class Trainer:
 
     def eval(self):
         mean_loss = 0.0
-        mean_rest = {}
+        interactions = []
 
         n_batches = 0
         self.game.eval()
         with torch.no_grad():
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
-                optimized_loss, rest = self.game(*batch)
+                optimized_loss, interaction = self.game(*batch)
                 mean_loss += optimized_loss
-                mean_rest = _add_dicts(mean_rest, rest)
                 n_batches += 1
-        mean_loss /= n_batches
-        mean_rest = _div_dict(mean_rest, n_batches)
 
-        return mean_loss.item(), mean_rest
+                interactions.append(interaction)
+
+        mean_loss /= n_batches
+
+        return mean_loss.item(), interactions
 
     def train_epoch(self):
         mean_loss = 0
-        mean_rest = {}
         n_batches = 0
+        interactions = []
+
         self.game.train()
+
         for batch in self.train_data:
             self.optimizer.zero_grad()
             batch = move_to(batch, self.device)
-            optimized_loss, rest = self.game(*batch)
-            mean_rest = _add_dicts(mean_rest, rest)
+            optimized_loss, interaction = self.game(*batch)
             optimized_loss.backward()
 
             if self.grad_norm:
@@ -153,11 +141,11 @@ class Trainer:
             self.optimizer.step()
 
             n_batches += 1
-            mean_loss += optimized_loss
+            mean_loss += optimized_loss.detach()
+            interactions.append(interaction)
 
         mean_loss /= n_batches
-        mean_rest = _div_dict(mean_rest, n_batches)
-        return mean_loss.item(), mean_rest
+        return mean_loss.item(), interactions
 
     def train(self, n_epochs):
         for callback in self.callbacks:
@@ -167,17 +155,17 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_begin()
 
-            train_loss, train_rest = self.train_epoch()
+            train_loss, train_interactions = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(train_loss, train_rest)
+                callback.on_epoch_end(train_loss, train_interactions)
 
             if self.validation_data is not None and self.validation_freq > 0 and epoch % self.validation_freq == 0:
                 for callback in self.callbacks:
                     callback.on_test_begin()
-                validation_loss, rest = self.eval()
+                validation_loss, validation_interactions = self.eval()
                 for callback in self.callbacks:
-                    callback.on_test_end(validation_loss, rest)
+                    callback.on_test_end(validation_loss, validation_interactions)
 
             if self.should_stop:
                 break

@@ -16,7 +16,7 @@ from .rnn import RnnEncoder
 from .transformer import TransformerEncoder, TransformerDecoder
 from .util import find_lengths
 from .baselines import MeanBaseline
-
+from .interaction import Interaction
 
 class ReinforceWrapper(nn.Module):
     """
@@ -113,7 +113,7 @@ class SymbolGameReinforce(nn.Module):
         message, sender_log_prob, sender_entropy = self.sender(sender_input)
         receiver_output, receiver_log_prob, receiver_entropy = self.receiver(message, receiver_input)
 
-        loss, rest_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
+        loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
         policy_loss = ((loss.detach() - self.baseline.predict(loss.detach())) * (sender_log_prob + receiver_log_prob)).mean()
         entropy_loss = -(sender_entropy.mean() * self.sender_entropy_coeff + receiver_entropy.mean() * self.receiver_entropy_coeff)
 
@@ -122,16 +122,16 @@ class SymbolGameReinforce(nn.Module):
 
         full_loss = policy_loss + entropy_loss + loss.mean()
 
-        for k, v in rest_info.items():
-            if hasattr(v, 'mean'):
-                rest_info[k] = v.mean().item()
+        aux_info['baseline'] = self.baseline.predict(loss.detach())
+        aux_info['loss'] = loss.detach()
+        aux_info['sender_entropy'] = sender_entropy.detach()
+        aux_info['receiver_entropy'] = receiver_entropy.detach()
 
-        rest_info['baseline'] = self.baseline.predict(loss.detach()).mean()
-        rest_info['loss'] = loss.mean().item()
-        rest_info['sender_entropy'] = sender_entropy.mean()
-        rest_info['receiver_entropy'] = receiver_entropy.mean()
+        interaction = Interaction(sender_input=sender_input, labels=labels, receiver_input=receiver_input,
+                                  message=message.detach(), receiver_output=receiver_output.detach(),
+                                  message_lengths=torch.ones(message.size(0)), aux=aux_info)
 
-        return full_loss, rest_info
+        return full_loss, interaction
 
 
 class RnnSenderReinforce(nn.Module):
@@ -372,10 +372,10 @@ class SenderReceiverRnnReinforce(nn.Module):
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, log_prob_s, entropy_s = self.sender(sender_input)
-        message_lengths = find_lengths(message)
-        receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_lengths)
+        message_length = find_lengths(message)
+        receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_length)
 
-        loss, rest = self.loss(sender_input, message, receiver_input, receiver_output, labels)
+        loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
         effective_entropy_s = torch.zeros_like(entropy_r)
@@ -385,17 +385,17 @@ class SenderReceiverRnnReinforce(nn.Module):
         effective_log_prob_s = torch.zeros_like(log_prob_r)
 
         for i in range(message.size(1)):
-            not_eosed = (i < message_lengths).float()
+            not_eosed = (i < message_length).float()
             effective_entropy_s += entropy_s[:, i] * not_eosed
             effective_log_prob_s += log_prob_s[:, i] * not_eosed
-        effective_entropy_s = effective_entropy_s / message_lengths.float()
+        effective_entropy_s = effective_entropy_s / message_length.float()
 
         weighted_entropy = effective_entropy_s.mean() * self.sender_entropy_coeff + \
                 entropy_r.mean() * self.receiver_entropy_coeff
 
         log_prob = effective_log_prob_s + log_prob_r
 
-        length_loss = message_lengths.float() * self.length_cost
+        length_loss = message_length.float() * self.length_cost
 
         policy_length_loss = ((length_loss - self.baselines['length'].predict(length_loss)) * effective_log_prob_s).mean()
         policy_loss = ((loss.detach() - self.baselines['loss'].predict(loss.detach())) * log_prob).mean()
@@ -408,15 +408,16 @@ class SenderReceiverRnnReinforce(nn.Module):
             self.baselines['loss'].update(loss)
             self.baselines['length'].update(length_loss)
 
-        for k, v in rest.items():
-            rest[k] = v.mean().item() if hasattr(v, 'mean') else v
-        rest['loss'] = optimized_loss.detach().item()
-        rest['sender_entropy'] = entropy_s.mean().item()
-        rest['receiver_entropy'] = entropy_r.mean().item()
-        rest['original_loss'] = loss.mean().item()
-        rest['mean_length'] = message_lengths.float().mean().item()
+        aux_info['loss'] = optimized_loss.detach().item()
+        aux_info['sender_entropy'] = entropy_s.detach()
+        aux_info['receiver_entropy'] = entropy_r.detach()
+        aux_info['original_loss'] = loss.detach()
 
-        return optimized_loss, rest
+        interaction = Interaction(sender_input=sender_input, labels=labels, receiver_input=receiver_input,
+                                  message=message.detach(), receiver_output=receiver_output.detach(),
+                                  message_length=message_length, aux=aux_info)
+
+        return optimized_loss, interaction
 
 
 class TransformerReceiverDeterministic(nn.Module):

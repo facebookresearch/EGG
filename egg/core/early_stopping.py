@@ -6,6 +6,7 @@
 from typing import Dict, Any, List, Tuple
 
 from .callbacks import Callback
+from .interaction import Interaction
 
 
 class BaseEarlyStopper(Callback):
@@ -19,14 +20,14 @@ class BaseEarlyStopper(Callback):
         self.epoch: int = 0
         self.validation = validation
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+    def on_epoch_end(self, loss: float, logs: List[Interaction]) -> None:
         if self.validation:
             return
         self.epoch += 1
         self.train_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None) -> None:
+    def on_test_end(self, loss: float, logs: List[Interaction]) -> None:
         if not self.validation:
             return
         self.validation_stats.append((loss, logs))
@@ -56,9 +57,12 @@ class EarlyStopperAccuracy(BaseEarlyStopper):
     def should_stop(self) -> bool:
         if self.validation:
             assert self.validation_stats, 'Validation data must be provided for early stooping to work'
-            stats = self.validation_stats
+            loss, last_epoch_interactions = self.validation_stats[-1]
         else:
             assert self.train_stats, 'Training data must be provided for early stooping to work'
-            stats = self.train_stats
+            loss, last_epoch_interactions = self.train_stats[-1]
 
-        return stats[-1][1][self.field_name] >= self.threshold
+        metric_sum = sum(x.aux[self.field_name].sum() for x in last_epoch_interactions)
+        normalizer = sum(x.aux[self.field_name].size(0) for x in last_epoch_interactions)
+
+        return metric_sum / normalizer >= self.threshold
