@@ -60,6 +60,8 @@ def main(params):
     receiver = Receiver(vocab_size=opts.vocab_size, n_classes=opts.n_labels, n_hidden=opts.n_hidden)
     sender = core.GumbelSoftmaxWrapper(sender, temperature=opts.temperature)
 
+    logging_strategy = core.LoggingStrategy(store_sender_input=False)
+
     game = core.SymbolGameGS(sender, receiver, diff_loss_symbol)
 
     optimizer = core.build_optimizer(game.parameters())

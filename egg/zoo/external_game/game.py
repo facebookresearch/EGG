@@ -85,7 +85,7 @@ def dump(game, dataset, device, is_gs):
         message = interaction.message[i]
         receiver_output = interaction.receiver_output[i]
         label = interaction.labels[i]
-        length = interaction.message_length[i]
+        length = interaction.message_length[i].long().item()
 
         sender_input = ' '.join(map(str, sender_input.tolist()))
         message = ' '.join(map(str, message[:length].tolist()))

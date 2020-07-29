@@ -31,13 +31,13 @@ class Callback:
     def on_test_begin(self):
         pass
 
-    def on_test_end(self, loss: float, logs: List[Interaction]):
+    def on_test_end(self, loss: float, logs: Interaction):
         pass
 
     def on_epoch_begin(self):
         pass
 
-    def on_epoch_end(self, loss: float, logs: List[Interaction]):
+    def on_epoch_end(self, loss: float, logs: Interaction):
         pass
 
 
@@ -47,28 +47,10 @@ class ConsoleLogger(Callback):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
-    @staticmethod
-    def aggregate_interactions(interactions: List[Interaction]) -> Dict[str, float]:
-        aggregated = defaultdict(float)
-        normalizer = 0.0
-
-        for interaction in interactions:
-            normalizer += interaction.bsz
-
-            aggregated['message_length'] += interaction.message_length.sum()
-
-            for k, v in interaction.aux.items():
-                aggregated[k] += _to_number(v, 'sum')
-
-        return _div_dict(aggregated, normalizer)
-
-    def aggregate_print(self, loss: float, logs: List[Interaction], mode: str):
+    def aggregate_print(self, loss: float, logs: Interaction, mode: str):
         dump = dict(loss=_to_number(loss, 'mean'))
-        aggregated_metrics = self.aggregate_interactions(logs)
+        aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
         dump.update(aggregated_metrics)
-
-        for k, v in dump.items():
-            dump[k] = _to_number(v, 'sum')
 
         if self.as_json:
             dump.update(dict(mode=mode, epoch=self.epoch_counter))
@@ -78,10 +60,10 @@ class ConsoleLogger(Callback):
             output_message = f'{mode}: epoch {self.epoch_counter}, loss {loss}, ' + output_message
         print(output_message, flush=True)
 
-    def on_test_end(self, loss: float, logs: List[Interaction]):
+    def on_test_end(self, loss: float, logs: Interaction):
         self.aggregate_print(loss, logs, 'test')
 
-    def on_epoch_end(self, loss: float, logs: List[Interaction]):
+    def on_epoch_end(self, loss: float, logs: Interaction):
         self.epoch_counter += 1
 
         if not self.print_train_loss: return

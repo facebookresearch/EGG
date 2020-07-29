@@ -2,13 +2,13 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
+from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
-from .interaction import Interaction
+from .interaction import Interaction, LoggingStrategy
 
 
 def gumbel_softmax_sample(
@@ -124,7 +124,7 @@ class SymbolGameGS(nn.Module):
     >>> (loss > 0).item()
     1
     """
-    def __init__(self, sender, receiver, loss):
+    def __init__(self, sender, receiver, loss, logging_strategy: Optional[LoggingStrategy] = None):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
         :param receiver: Receiver agent. receiver.forward() has to accept two parameters: message and receiver_input.
@@ -140,6 +140,7 @@ class SymbolGameGS(nn.Module):
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
+        self.logging_strategy = LoggingStrategy() if logging_strategy is None else logging_strategy
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
@@ -147,7 +148,7 @@ class SymbolGameGS(nn.Module):
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
 
-        interaction = Interaction(
+        interaction = self.logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
@@ -369,7 +370,12 @@ class SenderReceiverRnnGS(nn.Module):
     >>> loss.item() > 0
     True
     """
-    def __init__(self, sender, receiver, loss, length_cost=0.0):
+    def __init__(self, 
+        sender, 
+        receiver, 
+        loss, 
+        length_cost=0.0,
+        logging_strategy: Optional[LoggingStrategy] = None):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -390,6 +396,7 @@ class SenderReceiverRnnGS(nn.Module):
         self.receiver = receiver
         self.loss = loss
         self.length_cost = length_cost
+        self.logging_strategy = logging_strategy if logging_strategy else LoggingStrategy()
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
@@ -425,9 +432,9 @@ class SenderReceiverRnnGS(nn.Module):
         for name, value in step_aux.items():
             aux_info[name] = value * not_eosed_before + aux_info.get(name, 0.0)
 
-        aux_info['mean_length'] = expected_length.mean()
+        aux_info['mean_length'] = expected_length
 
-        interaction = Interaction(
+        interaction = self.logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,

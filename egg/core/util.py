@@ -197,11 +197,11 @@ def dump_interactions(game: torch.nn.Module,
             interaction = interaction.to('cpu')
 
             if gs:
-                interaction.message = interactions.message.argmax(dim=-1)  # actual symbols instead of one-hot encoded
+                interaction.message = interaction.message.argmax(dim=-1)  # actual symbols instead of one-hot encoded
             if apply_padding and variable_length:
                 assert interaction.message_length is not None
-                for i in range(interactions.bsz):
-                    l = interaction.message_length[i]
+                for i in range(interaction.bsz):
+                    l = interaction.message_length[i].long().item()
                     interaction.message[i, l:] = 0 # 0 is always EOS
 
             full_interaction = full_interaction + interaction if full_interaction is not None else interaction

@@ -20,14 +20,14 @@ class BaseEarlyStopper(Callback):
         self.epoch: int = 0
         self.validation = validation
 
-    def on_epoch_end(self, loss: float, logs: List[Interaction]) -> None:
+    def on_epoch_end(self, loss: float, logs: Interaction) -> None:
         if self.validation:
             return
         self.epoch += 1
         self.train_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
-    def on_test_end(self, loss: float, logs: List[Interaction]) -> None:
+    def on_test_end(self, loss: float, logs: Interaction) -> None:
         if not self.validation:
             return
         self.validation_stats.append((loss, logs))
@@ -62,7 +62,6 @@ class EarlyStopperAccuracy(BaseEarlyStopper):
             assert self.train_stats, 'Training data must be provided for early stooping to work'
             loss, last_epoch_interactions = self.train_stats[-1]
 
-        metric_sum = sum(x.aux[self.field_name].sum() for x in last_epoch_interactions)
-        normalizer = sum(x.bsz for x in last_epoch_interactions)
+        metric_mean = last_epoch_interactions.aux[self.field_name].mean()
 
-        return metric_sum / normalizer >= self.threshold
+        return metric_mean >= self.threshold

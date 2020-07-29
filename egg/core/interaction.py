@@ -9,9 +9,38 @@ from functools import cached_property
 import torch
 
 @dataclass
+class LoggingStrategy:
+    store_sender_input: bool = True
+    store_receiver_input: bool = True
+    store_labels: bool = True
+    store_message: bool = True
+    store_receiver_output: bool = True
+    store_message_length: bool = True
+
+    def filtered_interaction(self,
+                             sender_input: Optional[torch.Tensor],
+                             receiver_input: Optional[torch.Tensor],
+                             labels: Optional[torch.Tensor],
+                             message: Optional[torch.Tensor],
+                             receiver_output: Optional[torch.Tensor],
+                             message_length: Optional[torch.Tensor],
+                             aux: Dict[str, torch.Tensor]
+                             ):
+
+        return Interaction(
+            sender_input=sender_input if self.store_sender_input else None,
+            receiver_input=receiver_input if self.store_receiver_input else None,
+            labels=labels if self.store_labels else None,
+            message=message if self.store_message else None,
+            receiver_output=receiver_output if self.store_receiver_output else None,
+            message_length=message_length if self.store_message_length else None,
+            aux=aux
+        )
+
+@dataclass
 class Interaction:
     # incoming data
-    sender_input: torch.Tensor
+    sender_input: Optional[torch.Tensor]
     receiver_input: Optional[torch.Tensor]
     labels: Optional[torch.Tensor]
 
@@ -25,9 +54,13 @@ class Interaction:
 
     @cached_property
     def bsz(self):
-        return self.sender_input.size(0)
+        something_stored = self.sender_input or self.receiver_input or self.labels or self.message or \
+             self.receiver_output or self.message_length or None
+        if something_stored is None:
+            raise RuntimeError('Cannot determine interaction log size; it is empty.')
+        return something_stored.size(0)
 
-    def to(self, *args, **kwargs):
+    def to(self, *args, **kwargs) -> 'Interaction':
         """Moves all stored tensor to a device. For instance, it might be not
         useful to store the interaction logs in CUDA memory."""
         def _to(x):
@@ -43,6 +76,8 @@ class Interaction:
 
         if self.aux:
             self.aux = dict((k, _to(v)) for k, v in self.aux.items())
+
+        return self
 
     def __add__(self, other: 'Interaction') -> 'Interaction':
         """

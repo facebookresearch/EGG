@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Optional
 from collections import defaultdict
 import math
 
@@ -16,7 +17,7 @@ from .rnn import RnnEncoder
 from .transformer import TransformerEncoder, TransformerDecoder
 from .util import find_lengths
 from .baselines import MeanBaseline
-from .interaction import Interaction
+from .interaction import Interaction, LoggingStrategy
 
 class ReinforceWrapper(nn.Module):
     """
@@ -83,7 +84,8 @@ class SymbolGameReinforce(nn.Module):
     """
     A single-symbol Sender/Receiver game implemented with Reinforce.
     """
-    def __init__(self, sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0, baseline_type=MeanBaseline):
+    def __init__(self, sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0, baseline_type=MeanBaseline,
+    logging_strategy: LoggingStrategy = None):
         """
         :param sender: Sender agent. On forward, returns a tuple of (message, log-prob of the message, entropy).
         :param receiver: Receiver agent. On forward, accepts a message and the dedicated receiver input. Returns
@@ -108,6 +110,7 @@ class SymbolGameReinforce(nn.Module):
         self.sender_entropy_coeff = sender_entropy_coeff
 
         self.baseline = baseline_type()
+        self.logging_strategy = LoggingStrategy() if logging_strategy is None else logging_strategy
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, sender_log_prob, sender_entropy = self.sender(sender_input)
@@ -123,13 +126,13 @@ class SymbolGameReinforce(nn.Module):
         full_loss = policy_loss + entropy_loss + loss.mean()
 
         aux_info['baseline'] = self.baseline.predict(loss.detach())
-        aux_info['loss'] = loss.detach()
         aux_info['sender_entropy'] = sender_entropy.detach()
         aux_info['receiver_entropy'] = receiver_entropy.detach()
 
-        interaction = Interaction(sender_input=sender_input, labels=labels, receiver_input=receiver_input,
-                                  message=message.detach(), receiver_output=receiver_output.detach(),
-                                  message_lengths=torch.ones(message.size(0)), aux=aux_info)
+        interaction = self.logging_strategy.filtered_interaction(sender_input=sender_input,
+                                                                 labels=labels, receiver_input=receiver_input,
+                                                                 message=message.detach(), receiver_output=receiver_output.detach(),
+                                                                 message_lengths=torch.ones(message.size(0)), aux=aux_info)
 
         return full_loss, interaction
 
@@ -340,7 +343,8 @@ class SenderReceiverRnnReinforce(nn.Module):
     (tensor([1., 1., 1., 1., 1.]), tensor(5.))
     """
     def __init__(self, sender, receiver, loss, sender_entropy_coeff, receiver_entropy_coeff,
-                 length_cost=0.0, baseline_type=MeanBaseline):
+                 length_cost=0.0, baseline_type=MeanBaseline,
+                 logging_strategy: LoggingStrategy = None):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -368,6 +372,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         self.length_cost = length_cost
 
         self.baselines = defaultdict(baseline_type)
+        self.logging_strategy = LoggingStrategy() if logging_strategy is None else logging_strategy
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, log_prob_s, entropy_s = self.sender(sender_input)
@@ -407,14 +412,13 @@ class SenderReceiverRnnReinforce(nn.Module):
             self.baselines['loss'].update(loss)
             self.baselines['length'].update(length_loss)
 
-        aux_info['loss'] = optimized_loss.detach().item()
         aux_info['sender_entropy'] = entropy_s.detach()
         aux_info['receiver_entropy'] = entropy_r.detach()
-        aux_info['original_loss'] = loss.detach()
 
-        interaction = Interaction(sender_input=sender_input, labels=labels, receiver_input=receiver_input,
-                                  message=message.detach(), receiver_output=receiver_output.detach(),
-                                  message_length=message_length, aux=aux_info)
+        interaction = self.logging_strategy.filtered_interaction(sender_input=sender_input,
+                                                                 labels=labels, receiver_input=receiver_input,
+                                                                 message=message.detach(), receiver_output=receiver_output.detach(),
+                                                                 message_length=message_length, aux=aux_info)
 
         return optimized_loss, interaction
 
