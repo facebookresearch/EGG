@@ -77,13 +77,18 @@ def get_params():
 
 
 def dump(game, dataset, device, is_gs):
-    sender_inputs, messages, _, receiver_outputs, labels = \
-        core.dump_sender_receiver(game, dataset, gs=is_gs, device=device, variable_length=True)
+    interaction = \
+        core.dump_interactions(game, dataset, gs=is_gs, device=device, variable_length=True)
 
-    for sender_input, message, receiver_output, label \
-            in zip(sender_inputs, messages, receiver_outputs, labels):
+    for i in range(interaction.bsz): # TODO: make it size
+        sender_input = interaction.sender_input[i] 
+        message = interaction.message[i]
+        receiver_output = interaction.receiver_output[i]
+        label = interaction.labels[i]
+        length = interaction.message_length[i]
+
         sender_input = ' '.join(map(str, sender_input.tolist()))
-        message = ' '.join(map(str, message.tolist()))
+        message = ' '.join(map(str, message[:length].tolist()))
         if is_gs: receiver_output = receiver_output.argmax()
         print(f'{sender_input};{message};{receiver_output};{label.item()}')
 
