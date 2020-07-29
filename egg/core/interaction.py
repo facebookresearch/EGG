@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree
 
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Iterable
 from dataclasses import dataclass
 from functools import cached_property
 import torch
@@ -24,8 +24,7 @@ class LoggingStrategy:
                              message: Optional[torch.Tensor],
                              receiver_output: Optional[torch.Tensor],
                              message_length: Optional[torch.Tensor],
-                             aux: Dict[str, torch.Tensor]
-                             ):
+                             aux: Dict[str, torch.Tensor]):
 
         return Interaction(
             sender_input=sender_input if self.store_sender_input else None,
@@ -34,8 +33,8 @@ class LoggingStrategy:
             message=message if self.store_message else None,
             receiver_output=receiver_output if self.store_receiver_output else None,
             message_length=message_length if self.store_message_length else None,
-            aux=aux
-        )
+            aux=aux)
+
 
 @dataclass
 class Interaction:
@@ -77,6 +76,35 @@ class Interaction:
 
         return self
 
+    @staticmethod
+    def from_iterable(interactions: Iterable['Interaction']) -> 'Interaction':
+        def _check_cat(lst):
+            if all(x is None for x in lst):
+                return None
+            # if some but not all are None: not good
+            if any(x is None for x in lst):
+                raise RuntimeError("Appending empty and non-empty interactions logs. "
+                                   "Normally this shouldn't happen!")
+            return torch.cat(lst, dim=0)
+
+
+        assert interactions, 'list must not be empty'
+        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
+
+        aux = {}
+        for k in interactions[0].aux:
+            aux[k] = _check_cat([x.aux[k] for x in interactions])
+
+        return Interaction(
+            sender_input=_check_cat([x.sender_input for x in interactions]),
+            receiver_input=_check_cat([x.receiver_input for x in interactions]),
+            labels=_check_cat([x.labels for x in interactions]),
+            message=_check_cat([x.message for x in interactions]),
+            message_length=_check_cat([x.message_length for x in interactions]),
+            receiver_output=_check_cat([x.receiver_output for x in interactions]),
+            aux=aux)
+
+
     def __add__(self, other: 'Interaction') -> 'Interaction':
         """
         >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
@@ -94,24 +122,9 @@ class Interaction:
         ...
         RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
         """
-        def _check_append(a, b):
-            if a is None and b is None: return None
-            if a is not None and b is not None:
-                return torch.cat((a, b), dim=0)
-            raise RuntimeError("Appending empty and non-empty interactions logs. "
-                               "Normally this shouldn't happen!")
+        return Interaction.from_iterable((self, other))
 
-        aux = {}
-        for k in self.aux:
-            assert k in other.aux
-            aux[k] = _check_append(self.aux[k], other.aux[k])
 
-        return Interaction(
-            sender_input=_check_append(self.sender_input, other.sender_input),
-            receiver_input=_check_append(self.receiver_input, other.receiver_input),
-            labels=_check_append(self.labels, other.labels),
-            message=_check_append(self.message, other.message),
-            message_length=_check_append(self.message_length, other.message_length),
-            receiver_output=_check_append(self.receiver_output, other.receiver_output),
-            aux=aux
-        )
+    @staticmethod
+    def empty() -> 'Interaction':
+        return Interaction(None, None, None, None, None, None, {})

@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from .util import get_opts, move_to
 from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
-
+from .interaction import Interaction
 
 class Trainer:
     """
@@ -105,7 +105,7 @@ class Trainer:
 
     def eval(self):
         mean_loss = 0.0
-        full_interaction = None
+        interactions = []
 
         n_batches = 0
         self.game.eval()
@@ -116,17 +116,16 @@ class Trainer:
                 interaction = interaction.to('cpu')
                 mean_loss += optimized_loss
                 n_batches += 1
-
-                full_interaction = interaction if full_interaction is None else full_interaction + interaction
-
+                interactions.append(interaction)
         mean_loss /= n_batches
+        full_interaction = Interaction.from_iterable(interactions)
 
         return mean_loss.item(), full_interaction
 
     def train_epoch(self):
         mean_loss = 0
         n_batches = 0
-        full_interaction = None
+        interactions = []
 
         self.game.train()
 
@@ -144,10 +143,11 @@ class Trainer:
             n_batches += 1
             mean_loss += optimized_loss.detach()
             interaction = interaction.to('cpu')
-            full_interaction = interaction if full_interaction is None else full_interaction + interaction
+            interactions.append(interaction)
 
         mean_loss /= n_batches
-        return mean_loss.item(), interaction
+        full_interaction = Interaction.from_iterable(interactions)
+        return mean_loss.item(), full_interaction
 
     def train(self, n_epochs):
         for callback in self.callbacks:

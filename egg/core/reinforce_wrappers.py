@@ -132,7 +132,7 @@ class SymbolGameReinforce(nn.Module):
         interaction = self.logging_strategy.filtered_interaction(sender_input=sender_input,
                                                                  labels=labels, receiver_input=receiver_input,
                                                                  message=message.detach(), receiver_output=receiver_output.detach(),
-                                                                 message_lengths=torch.ones(message.size(0)), aux=aux_info)
+                                                                 message_length=torch.ones(message.size(0)), aux=aux_info)
 
         return full_loss, interaction
 
@@ -338,7 +338,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     >>> input = torch.zeros((5, 3)).normal_()
     >>> optimized_loss, interaction = game(input, labels=None)
     >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, message length etc
-    ['aux', 'loss', 'original_loss', 'receiver_entropy', 'sender_entropy']
+    ['aux', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
     (tensor([1., 1., 1., 1., 1.]), tensor(5.))
     """
