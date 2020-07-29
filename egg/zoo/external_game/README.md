@@ -9,30 +9,30 @@ The `game.py` script of this game supports two exclusive regimes: `train` and `d
 
 The game can be run as follows (training regime):
 ```bash
-python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/classification.data \
+python -m egg.zoo.external_game.game --train_data=./egg/zoo/external_game/classification.data \
     --validation_data=./egg/zoo/external_game/classification.data --n_epoch=150 --train_mode=gs --random_seed=21 \
     --lr=1e-2 --max_len=2 --checkpoint_dir=./
 ```
-After training, a model file named `150.tar` (which refers to the ```{n_epochs}.tar```) will be saved in the current directory.
+After training, a model file named `final.tar` will be saved in the current directory.
 Next, switching to the `dump` regime, the trained model can be run on new data, with output behaviour printed to standard output (as in this example), or to a text file (as shown below).
 ```bash
-python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/classification.data   \
+python -m egg.zoo.external_game.game --train_data=./egg/zoo/external_game/classification.data   \
     --dump_data=./egg/zoo/external_game/classification.data --train_mode=gs --max_len=2 \
-    --load_from_checkpoint=150.tar
+    --load_from_checkpoint=final.tar
 
 ```
 Note that here we re-used the training data as test data for convenience, but a more typical case will be one in which the latter are from a separate test file. Note also that we still have to specify the model parameters (`--train_mode=gs --max_len=2` in this case).
 
 Training with REINFORCE is similar, and several other options are illustrated by the following example:
 ```bash
-python egg/zoo/external_game/game.py --train_data=./egg/zoo/external_game/binary_classification.data \
+python -m egg.zoo.external_game.game --train_data=./egg/zoo/external_game/binary_classification.data \
     --validation_data=./egg/zoo/external_game/binary_classification.data --n_epoch=250 --train_mode=rf --random_seed=21 \
      --lr=0.005 --max_len=2 --vocab_size=4 --receiver_hidden=30 --sender_hidden=30 --sender_entropy_coeff=1e-1 --checkpoint_dir=./
 
 ```
 To output the results to the file `out.txt` (again, recycling the same data we did for training for dumping), we run:
 ```bash
-python egg/zoo/external_game/game.py --dump_data=./egg/zoo/external_game/binary_classification.data
+python -m egg.zoo.external_game.game --dump_data=./egg/zoo/external_game/binary_classification.data
      --train_data=./egg/zoo/external_game/binary_classification.data \
      --train_mode=rf --vocab_size=4 --receiver_hidden=30 --sender_hidden=30 \
     --max_len=2 --load_from_checkpoint=250.tar --dump_output=out.txt
