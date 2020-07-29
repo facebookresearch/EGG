@@ -78,6 +78,22 @@ class Interaction:
 
     @staticmethod
     def from_iterable(interactions: Iterable['Interaction']) -> 'Interaction':
+        """
+        >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> a.bsz
+        1
+        >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> c = Interaction.from_iterable((a, b))
+        >>> c.bsz
+        2
+        >>> c
+        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
+        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
+        >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
+        """
         def _check_cat(lst):
             if all(x is None for x in lst):
                 return None
@@ -103,27 +119,6 @@ class Interaction:
             message_length=_check_cat([x.message_length for x in interactions]),
             receiver_output=_check_cat([x.receiver_output for x in interactions]),
             aux=aux)
-
-
-    def __add__(self, other: 'Interaction') -> 'Interaction':
-        """
-        >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
-        >>> a.bsz
-        1
-        >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
-        >>> c = a + b
-        >>> c.bsz
-        2
-        >>> c
-        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
-        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
-        >>> a + d # mishaped, should throw an exception
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
-        """
-        return Interaction.from_iterable((self, other))
-
 
     @staticmethod
     def empty() -> 'Interaction':
