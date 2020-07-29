@@ -105,7 +105,7 @@ class Trainer:
 
     def eval(self):
         mean_loss = 0.0
-        interactions = []
+        full_interaction = None
 
         n_batches = 0
         self.game.eval()
@@ -113,19 +113,20 @@ class Trainer:
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
+                interaction = interaction.to('cpu')
                 mean_loss += optimized_loss
                 n_batches += 1
 
-                interactions.append(interaction)
+                full_interaction = interaction if full_interaction is None else full_interaction + interaction
 
         mean_loss /= n_batches
 
-        return mean_loss.item(), interactions
+        return mean_loss.item(), full_interaction
 
     def train_epoch(self):
         mean_loss = 0
         n_batches = 0
-        interactions = []
+        full_interaction = None
 
         self.game.train()
 
@@ -142,10 +143,11 @@ class Trainer:
 
             n_batches += 1
             mean_loss += optimized_loss.detach()
-            interactions.append(interaction)
+            interaction = interaction.to('cpu')
+            full_interaction = interaction if full_interaction is None else full_interaction + interaction
 
         mean_loss /= n_batches
-        return mean_loss.item(), interactions
+        return mean_loss.item(), interaction
 
     def train(self, n_epochs):
         for callback in self.callbacks:
@@ -155,17 +157,17 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_begin()
 
-            train_loss, train_interactions = self.train_epoch()
+            train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(train_loss, train_interactions)
+                callback.on_epoch_end(train_loss, train_interaction)
 
             if self.validation_data is not None and self.validation_freq > 0 and epoch % self.validation_freq == 0:
                 for callback in self.callbacks:
                     callback.on_test_begin()
-                validation_loss, validation_interactions = self.eval()
+                validation_loss, validation_interaction = self.eval()
                 for callback in self.callbacks:
-                    callback.on_test_end(validation_loss, validation_interactions)
+                    callback.on_test_end(validation_loss, validation_interaction)
 
             if self.should_stop:
                 break

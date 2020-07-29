@@ -5,7 +5,7 @@
 
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver
-from .util import init, get_opts, build_optimizer, dump_sender_receiver, move_to, get_summary_writer, close
+from .util import init, get_opts, build_optimizer, dump_interactions, move_to, get_summary_writer, close
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
                           SymbolGameGS, RelaxedEmbedding,
@@ -44,7 +44,7 @@ __all__ = [
     'RnnSenderGS',
     'RnnReceiverGS',
     'SenderReceiverRnnGS',
-    'dump_sender_receiver',
+    'dump_interactions',
     'move_to',
     'get_summary_writer',
     'close',
