@@ -45,8 +45,8 @@ class Interaction:
     labels: Optional[torch.Tensor]
 
     # what agents produce
-    message: torch.Tensor
-    receiver_output: torch.Tensor
+    message: Optional[torch.Tensor]
+    receiver_output: Optional[torch.Tensor]
 
     # auxilary info
     message_length: Optional[torch.Tensor]
@@ -54,11 +54,9 @@ class Interaction:
 
     @cached_property
     def bsz(self):
-        something_stored = self.sender_input or self.receiver_input or self.labels or self.message or \
-             self.receiver_output or self.message_length or None
-        if something_stored is None:
-            raise RuntimeError('Cannot determine interaction log size; it is empty.')
-        return something_stored.size(0)
+        for t in [self.sender_input, self.receiver_input, self.labels, self.message, self.receiver_output, self.message_length]:
+            if t is not None: return t.size(0)
+        raise RuntimeError('Cannot determine interaction log size; it is empty.')
 
     def to(self, *args, **kwargs) -> 'Interaction':
         """Moves all stored tensor to a device. For instance, it might be not

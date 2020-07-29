@@ -61,8 +61,7 @@ def main(params):
     sender = core.GumbelSoftmaxWrapper(sender, temperature=opts.temperature)
 
     logging_strategy = core.LoggingStrategy(store_sender_input=False)
-
-    game = core.SymbolGameGS(sender, receiver, diff_loss_symbol)
+    game = core.SymbolGameGS(sender, receiver, diff_loss_symbol, logging_strategy=logging_strategy)
 
     optimizer = core.build_optimizer(game.parameters())
 
