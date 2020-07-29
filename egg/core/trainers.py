@@ -68,14 +68,14 @@ class Trainer:
         self.optimizer.state = move_to(self.optimizer.state, self.device)
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
-        self.callbacks = callbacks
+        self.callbacks = callbacks if callbacks else []
         self.grad_norm = grad_norm
 
         if common_opts.load_from_checkpoint is not None:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
 
-        if not any(isinstance(x, CheckpointSaver) for x in callbacks):
+        if not any(isinstance(x, CheckpointSaver) for x in self.callbacks):
             if common_opts.preemptable:
                 assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
                 d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)

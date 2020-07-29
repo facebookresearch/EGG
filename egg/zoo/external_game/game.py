@@ -186,8 +186,6 @@ if __name__ == "__main__":
             dump(game, dump_loader, device, opts.train_mode.lower() == 'gs')
     else:
         trainer.train(n_epochs=opts.n_epochs)
-        if opts.checkpoint_dir:
-            trainer.save_checkpoint()
 
     core.close()
 
