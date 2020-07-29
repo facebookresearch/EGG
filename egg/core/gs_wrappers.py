@@ -118,10 +118,10 @@ class SymbolGameGS(nn.Module):
     ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {}
 
     >>> game = SymbolGameGS(sender=sender, receiver=Receiver(), loss=mse_loss)
-    >>> forward_result = game(torch.ones((2, 10)), None) #  the second argument is labels, we don't need any
-    >>> forward_result[1]
+    >>> loss, interaction = game(torch.ones((2, 10)), None) #  the second argument is labels, we don't need any
+    >>> interaction.aux
     {}
-    >>> (forward_result[0] > 0).item()
+    >>> (loss > 0).item()
     1
     """
     def __init__(self, sender, receiver, loss):
@@ -361,12 +361,12 @@ class SenderReceiverRnnGS(nn.Module):
     >>> receiver = RnnReceiverGS(Receiver(), vocab_size=2, embed_dim=4, hidden_size=7, cell='rnn')
 
     >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels):
-    ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {'aux' : 0}
+    ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {'aux': torch.zeros(sender_input.size(0))}
     >>> game = SenderReceiverRnnGS(sender, receiver, loss)
-    >>> output = game.forward(torch.ones((3, 10)), None, None)  # batch of 3 10d vectors
-    >>> output[1]['aux'].item()
-    0.0
-    >>> output[0].item() > 0
+    >>> loss, interaction = game(torch.ones((3, 10)), None, None)  # batch of 3 10d vectors
+    >>> interaction.aux['aux'].detach()
+    tensor([0., 0., 0.])
+    >>> loss.item() > 0
     True
     """
     def __init__(self, sender, receiver, loss, length_cost=0.0):

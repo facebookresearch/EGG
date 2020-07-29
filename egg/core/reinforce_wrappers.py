@@ -329,16 +329,15 @@ class SenderReceiverRnnReinforce(nn.Module):
     ...         return self.fc(rnn_output)
     >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, embed_dim=10, hidden_size=5)
     >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
-    ...     return F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1), {'aux': 5.0}
-
+    ...     return F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1), {'aux': torch.ones(sender_input.size(0))}
     >>> game = SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0,
     ...                                   length_cost=1e-2)
-    >>> input = torch.zeros((16, 3)).normal_()
-    >>> optimized_loss, aux_info = game(input, labels=None)
-    >>> sorted(list(aux_info.keys()))  # returns some debug info, such as entropies of the agents, message length etc
-    ['aux', 'loss', 'mean_length', 'original_loss', 'receiver_entropy', 'sender_entropy']
-    >>> aux_info['aux']
-    5.0
+    >>> input = torch.zeros((5, 3)).normal_()
+    >>> optimized_loss, interaction = game(input, labels=None)
+    >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, message length etc
+    ['aux', 'loss', 'original_loss', 'receiver_entropy', 'sender_entropy']
+    >>> interaction.aux['aux'], interaction.aux['aux'].sum()
+    (tensor([1., 1., 1., 1., 1.]), tensor(5.))
     """
     def __init__(self, sender, receiver, loss, sender_entropy_coeff, receiver_entropy_coeff,
                  length_cost=0.0, baseline_type=MeanBaseline):
