@@ -42,7 +42,7 @@ class ConsoleLogger(Callback):
         self.as_json = as_json
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str):
-        dump = dict(loss=loss.mean())
+        dump = dict(loss=loss) 
         aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
         dump.update(aggregated_metrics)
 
