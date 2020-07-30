@@ -73,15 +73,15 @@ class TensorboardLogger(Callback):
             self.writer = get_summary_writer()
         self.epoch_counter = 0
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: Interaction):
         self.writer.add_scalar(tag=f'test/loss', scalar_value=loss, global_step=self.epoch_counter)
-        for k, v in logs.items():
-            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v, global_step=self.epoch_counter)
+        for k, v in logs.aux.items():
+            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_epoch_end(self, loss: float, logs: Interaction):
         self.writer.add_scalar(tag=f'train/loss', scalar_value=loss, global_step=self.epoch_counter)
-        for k, v in logs.items():
-            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v, global_step=self.epoch_counter)
+        for k, v in logs.aux.items():
+            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
         self.epoch_counter += 1
 
     def on_train_end(self):
