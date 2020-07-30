@@ -32,7 +32,7 @@ python -m egg.zoo.external_game.game --train_data=./egg/zoo/external_game/binary
 ```
 To output the results to the file `out.txt` (again, recycling the same data we did for training for dumping), we run:
 ```bash
-python -m egg.zoo.external_game.game --dump_data=./egg/zoo/external_game/binary_classification.data
+python -m egg.zoo.external_game.game --dump_data=./egg/zoo/external_game/binary_classification.data \
      --train_data=./egg/zoo/external_game/binary_classification.data \
      --train_mode=rf --vocab_size=4 --receiver_hidden=30 --sender_hidden=30 \
     --max_len=2 --load_from_checkpoint=250.tar --dump_output=out.txt
