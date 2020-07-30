@@ -157,7 +157,8 @@ if __name__ == "__main__":
                                     opts.sender_hidden,
                                     cell=opts.sender_cell,
                                     max_len=opts.max_len,
-                                    temperature=opts.temperature
+                                    temperature=opts.temperature,
+                                    force_eos=False
                                     )
 
         receiver = core.RnnReceiverGS(receiver,
