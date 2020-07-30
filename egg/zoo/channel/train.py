@@ -88,7 +88,7 @@ def dump(game, n_features, device, gs_mode):
     powerlaw_probs = 1 / np.arange(1, n_features+1, dtype=np.float32)
     powerlaw_probs /= powerlaw_probs.sum()
 
-    for i in range(interaction.size()):
+    for i in range(interaction.size):
         sender_input = interaction.sender_input[i]
         message = interaction.message[i]
         receiver_output = interaction.receiver_output[i]
