@@ -52,7 +52,7 @@ class Interaction:
     aux: Dict[str, torch.Tensor]
 
     @cached_property
-    def bsz(self):
+    def size(self):
         for t in [self.sender_input, self.receiver_input, self.labels, self.message, self.receiver_output, self.message_length]:
             if t is not None: return t.size(0)
         raise RuntimeError('Cannot determine interaction log size; it is empty.')
@@ -80,11 +80,11 @@ class Interaction:
     def from_iterable(interactions: Iterable['Interaction']) -> 'Interaction':
         """
         >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
-        >>> a.bsz
+        >>> a.size
         1
         >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
         >>> c = Interaction.from_iterable((a, b))
-        >>> c.bsz
+        >>> c.size
         2
         >>> c
         Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})

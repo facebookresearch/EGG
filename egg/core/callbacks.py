@@ -42,7 +42,7 @@ class ConsoleLogger(Callback):
         self.as_json = as_json
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str):
-        dump = dict(loss=_to_number(loss, 'mean'))
+        dump = dict(loss=loss.mean())
         aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
         dump.update(aggregated_metrics)
 
@@ -62,16 +62,6 @@ class ConsoleLogger(Callback):
 
         if not self.print_train_loss: return
         self.aggregate_print(loss, logs, 'train')
-
-def _to_number(metric: Union[torch.Tensor, float], aggregation: str) -> float:
-    if torch.is_tensor(metric) and aggregation == 'mean':
-        return metric.float().mean().item()
-    elif torch.is_tensor(metric) and aggregation == 'sum':
-        return metric.float().sum().item()
-    elif type(metric) == float:
-        return metric
-    else:
-        raise TypeError('Metric must be either float or torch.Tensor')
 
 
 class TensorboardLogger(Callback):

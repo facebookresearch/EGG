@@ -192,9 +192,8 @@ def main(params):
                    holdout_evaluator])
     trainer.train(n_epochs=opts.n_epochs)
 
-    last_epoch_interactions = early_stopper.validation_stats[-1][1]
-    normalizer = sum(x.bsz for x in last_epoch_interactions)
-    validation_acc = sum(x.aux['acc'].sum() for x in last_epoch_interactions) / normalizer
+    last_epoch_interaction = early_stopper.validation_stats[-1][1]
+    validation_acc = last_epoch_interaction.aux['acc'].mean()
 
     uniformtest_acc = holdout_evaluator.results['uniform holdout']['acc']
 

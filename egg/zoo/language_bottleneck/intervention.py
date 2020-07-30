@@ -233,9 +233,9 @@ class CallbackEvaluator(core.Callback):
             core.dump_interactions(game, self.dataset, gs=self.is_gs, device=self.device,
                                       variable_length=self.var_length)
 
-        messages = [interactions.message[i] for i in range(interactions.bsz)]
+        messages = [interactions.message[i] for i in range(interactions.size)]
         entropy_messages = entropy(messages)
-        labels = [interactions.labels[i] for i in range(interactions.bsz)]
+        labels = [interactions.labels[i] for i in range(interactions.size)]
 
         message_mapping = {}
 

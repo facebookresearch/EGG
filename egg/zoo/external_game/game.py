@@ -80,7 +80,7 @@ def dump(game, dataset, device, is_gs):
     interaction = \
         core.dump_interactions(game, dataset, gs=is_gs, device=device, variable_length=True)
 
-    for i in range(interaction.bsz): # TODO: make it size
+    for i in range(interaction.size):
         sender_input = interaction.sender_input[i] 
         message = interaction.message[i]
         receiver_output = interaction.receiver_output[i]
