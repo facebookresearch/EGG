@@ -12,12 +12,6 @@ import torch
 from egg.core.util import get_summary_writer
 from .interaction import Interaction
 
-def _div_dict(d, n):
-    result = dict(d)
-    for k in result:
-        result[k] /= n
-    return result
-
 
 class Callback:
 
