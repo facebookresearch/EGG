@@ -5,7 +5,7 @@
 
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver
-from .util import init, get_opts, build_optimizer, dump_sender_receiver, move_to, get_summary_writer, close
+from .util import init, get_opts, build_optimizer, dump_interactions, move_to, get_summary_writer, close
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
                           SymbolGameGS, RelaxedEmbedding,
@@ -19,6 +19,7 @@ from .reinforce_wrappers import (ReinforceWrapper, SymbolGameReinforce,
                                  TransformerSenderReinforce)
 from .util import find_lengths
 from .rnn import RnnEncoder
+from .interaction import LoggingStrategy, Interaction
 
 __all__ = [
     'Trainer',
@@ -44,7 +45,7 @@ __all__ = [
     'RnnSenderGS',
     'RnnReceiverGS',
     'SenderReceiverRnnGS',
-    'dump_sender_receiver',
+    'dump_interactions',
     'move_to',
     'get_summary_writer',
     'close',
@@ -52,5 +53,7 @@ __all__ = [
     'TransformerReceiverDeterministic',
     'TransformerSenderReinforce',
     'RnnEncoder',
-    'find_lengths'
+    'find_lengths',
+    'LoggingStrategy',
+    'Interaction'
 ]

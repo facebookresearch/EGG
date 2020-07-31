@@ -81,15 +81,18 @@ def dump(game, n_features, device, gs_mode):
     # tiny "dataset"
     dataset = [[torch.eye(n_features).to(device), None]]
 
-    sender_inputs, messages, receiver_inputs, receiver_outputs, _ = \
-        core.dump_sender_receiver(game, dataset, gs=gs_mode, device=device, variable_length=True)
+    interaction = core.dump_interactions(game, dataset, gs=gs_mode, device=device, variable_length=True)
 
     unif_acc = 0.
     powerlaw_acc = 0.
     powerlaw_probs = 1 / np.arange(1, n_features+1, dtype=np.float32)
     powerlaw_probs /= powerlaw_probs.sum()
 
-    for sender_input, message, receiver_output in zip(sender_inputs, messages, receiver_outputs):
+    for i in range(interaction.size):
+        sender_input = interaction.sender_input[i]
+        message = interaction.message[i]
+        receiver_output = interaction.receiver_output[i]
+
         input_symbol = sender_input.argmax()
         output_symbol = receiver_output.argmax()
         acc = (input_symbol == output_symbol).float().item()

@@ -3,13 +3,22 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from collections import defaultdict
 import json
-from typing import Dict, Any, Union,  NamedTuple
 import pathlib
+from typing import Dict, Any, Union,  NamedTuple, List, Callable
 
+try:
+    import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
+except ImportError:
+    print('Please install editdistance package: `pip install editdistance`. '
+          'It is used for calculating topographic similarity.')
+from scipy.spatial import distance
+from scipy.stats import spearmanr
 import torch
 
 from egg.core.util import get_summary_writer
+from .interaction import Interaction
 
 
 class Callback:
@@ -24,13 +33,13 @@ class Callback:
     def on_test_begin(self):
         pass
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: Interaction):
         pass
 
     def on_epoch_begin(self):
         pass
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_epoch_end(self, loss: float, logs: Interaction):
         pass
 
 
@@ -40,38 +49,27 @@ class ConsoleLogger(Callback):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    def aggregate_print(self, loss: float, logs: Interaction, mode: str):
+        dump = dict(loss=loss) 
+        aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
+        dump.update(aggregated_metrics)
+
         if self.as_json:
-            dump = dict(mode='test', epoch=self.epoch_counter, loss=self._get_metric(loss))
-            for k, v in logs.items():
-                dump[k] = self._get_metric(v)
+            dump.update(dict(mode=mode, epoch=self.epoch_counter))
             output_message = json.dumps(dump)
         else:
-            output_message = f'test: epoch {self.epoch_counter}, loss {loss},  {logs}'
+            output_message = ', '.join(sorted([f'{k}={v}' for k, v in dump.items()]))
+            output_message = f'{mode}: epoch {self.epoch_counter}, loss {loss}, ' + output_message
         print(output_message, flush=True)
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: Interaction):
+        self.aggregate_print(loss, logs, 'test')
+
+    def on_epoch_end(self, loss: float, logs: Interaction):
         self.epoch_counter += 1
 
-        if self.print_train_loss:
-            if self.as_json:
-                dump = dict(mode='train', epoch=self.epoch_counter, loss=self._get_metric(loss))
-                for k, v in logs.items():
-                    dump[k] = self._get_metric(v)
-                output_message = json.dumps(dump)
-            else:
-                output_message = f'train: epoch {self.epoch_counter}, loss {loss},  {logs}'
-            print(output_message, flush=True)
-
-    def _get_metric(self, metric: Union[torch.Tensor, float]) -> float:
-        if torch.is_tensor(metric) and metric.dim() > 1:
-            return metric.mean().item()
-        elif torch.is_tensor(metric):
-            return metric.item()
-        elif type(metric) == float:
-            return metric
-        else:
-            raise TypeError('Metric must be either float or torch.Tensor')
+        if not self.print_train_loss: return
+        self.aggregate_print(loss, logs, 'train')
 
 
 class TensorboardLogger(Callback):
@@ -83,15 +81,15 @@ class TensorboardLogger(Callback):
             self.writer = get_summary_writer()
         self.epoch_counter = 0
 
-    def on_test_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_test_end(self, loss: float, logs: Interaction):
         self.writer.add_scalar(tag=f'test/loss', scalar_value=loss, global_step=self.epoch_counter)
-        for k, v in logs.items():
-            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v, global_step=self.epoch_counter)
+        for k, v in logs.aux.items():
+            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_epoch_end(self, loss: float, logs: Interaction):
         self.writer.add_scalar(tag=f'train/loss', scalar_value=loss, global_step=self.epoch_counter)
-        for k, v in logs.items():
-            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v, global_step=self.epoch_counter)
+        for k, v in logs.aux.items():
+            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
         self.epoch_counter += 1
 
     def on_train_end(self):
@@ -155,3 +153,52 @@ class CheckpointSaver(Callback):
         return Checkpoint(epoch=self.epoch_counter,
                           model_state_dict=self.trainer.game.state_dict(),
                           optimizer_state_dict=self.trainer.optimizer.state_dict())
+
+
+class TopographicSimilarity(Callback):
+    distances = {'edit': lambda x, y: editdistance.eval(x, y) / (len(x) + len(y)) / 2,
+                 'cosine': distance.cosine,
+                 'hamming':distance.hamming,
+                 'jaccard': distance.jaccard,
+                 'euclidean': distance.euclidean,
+                 }
+
+    def __init__(self,
+                 sender_input_distance_fn: Union[str, Callable] = 'cosine',
+                 message_distance_fn: Union[str, Callable] = 'edit',
+                 compute_topsim_train_set: bool = False,
+                 compute_topsim_test_set: bool = True):
+
+        self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None) \
+            if isinstance(sender_input_distance_fn, str) else sender_input_distance_fn
+        self.message_distance_fn = self.distances.get(message_distance_fn, None) \
+            if isinstance(message_distance_fn, str) else message_distance_fn
+        self.compute_topsim_train_set = compute_topsim_train_set
+        self.compute_topsim_test_set = compute_topsim_test_set
+
+        assert self.sender_input_distance_fn and self.message_distance_fn, f"Cannot recognize {sender_input_distance_fn} or {message_distance_fn} distances"
+        assert compute_topsim_train_set or compute_topsim_test_set
+
+    def on_test_end(self, loss: float, logs: Interaction):
+        if self.compute_topsim_test_set:
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+
+    def on_epoch_end(self, loss: float, logs: Interaction):
+        if self.compute_topsim_train_set:
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+
+    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor):
+        def compute_distance(_list, distance):
+            return [distance(el1, el2)
+                        for i, el1 in enumerate(_list[:-1])
+                        for j, el2 in enumerate(_list[i+1:])
+                    ]
+
+        messages = [msg.tolist() for msg in messages]
+
+        input_dist = compute_distance(sender_input.numpy(), self.sender_input_distance_fn)
+        message_dist = compute_distance(messages, self.message_distance_fn)
+        topsim = spearmanr(input_dist, message_dist, nan_policy='raise').correlation
+
+        output_message = json.dumps(dict(topsim=topsim))
+        print(output_message, flush=True)

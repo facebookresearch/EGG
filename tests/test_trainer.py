@@ -48,8 +48,9 @@ class MockGame(torch.nn.Module):
         self.param = torch.nn.Parameter(torch.Tensor([0]))
 
     def forward(self, *args, **kwargs):
-        return self.param, {'acc': 1}
-
+        interaction = core.Interaction.empty()
+        interaction.aux = {'acc': torch.ones(1)}
+        return self.param, interaction
 
 def test_temperature_updater_callback():
     core.init()

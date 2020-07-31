@@ -80,9 +80,10 @@ class DiffLoss(torch.nn.Module):
             assert False
 
         acc = (torch.sum((receiver_output.argmax(dim=-1) ==
-                          sender_input).detach(), dim=1) == self.n_attributes).float().mean()
+                          sender_input).detach(), dim=1) == self.n_attributes).float()
         acc_or = (receiver_output.argmax(dim=-1)
-                  == sender_input).float().mean()
+                  == sender_input).float()
+
 
         receiver_output = receiver_output.view(
             batch_size * self.n_attributes, self.n_values)
