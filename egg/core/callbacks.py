@@ -6,7 +6,7 @@
 from collections import defaultdict
 import json
 import pathlib
-from typing import Dict, Any, Union,  NamedTuple, List
+from typing import Dict, Any, Union,  NamedTuple, List, Callable
 
 try:
     import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
@@ -164,13 +164,15 @@ class TopographicSimilarity(Callback):
                  }
 
     def __init__(self,
-                 sender_input_distance_fn='cosine',
-                 message_distance_fn='edit',
-                 compute_topsim_train_set=False,
-                 compute_topsim_test_set=True):
+                 sender_input_distance_fn: Union[str, Callable] = 'cosine',
+                 message_distance_fn: Union[str, Callable] = 'edit',
+                 compute_topsim_train_set: bool = False,
+                 compute_topsim_test_set: bool = True):
 
-        self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None)
-        self.message_distance_fn = self.distances.get(message_distance_fn, None)
+        self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None) \
+            if isinstance(sender_input_distance_fn, str) else sender_input_distance_fn
+        self.message_distance_fn = self.distances.get(message_distance_fn, None) \
+            if isinstance(message_distance_fn, str) else message_distance_fn
         self.compute_topsim_train_set = compute_topsim_train_set
         self.compute_topsim_test_set = compute_topsim_test_set
 
@@ -185,7 +187,7 @@ class TopographicSimilarity(Callback):
         if self.compute_topsim_train_set:
             self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
 
-    def compute_similarity(self, sender_input, messages):
+    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor):
         def compute_distance(_list, distance):
             return [distance(el1, el2)
                         for i, el1 in enumerate(_list[:-1])
