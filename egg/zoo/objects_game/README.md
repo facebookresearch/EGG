@@ -137,3 +137,11 @@ Please run `python -m egg.zoo.objects_game.train -h` for a more comprehensive li
 
 [1] *"EMERGENCE OF LINGUISTIC COMMUNICATION FROM REFERENTIAL GAMES WITH SYMBOLIC AND PIXEL INPUT"*, Angeliki Lazaridou, Karl Moritz Hermann, Karl Tuyls, Stephen Clark 
 [[arxiv]](https://arxiv.org/pdf/1804.03984.pdf)
+
+
+# Reprodicibility
+If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
+```bash
+git checkout v1.0
+```
+In later versions of EGG, some metrics are aggregated differently, which might lead to small discrepancies.

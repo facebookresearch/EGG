@@ -27,3 +27,9 @@ The game accepts the following game-specific parameters:
  lower, as Receiver has to adjust to the changes in Sender)
  * `probs={p1,p2,...}` or `'probs=powerlaw'` select the prior distribution over concepts
  
+# Reprodicibility
+If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
+```bash
+git checkout v1.0
+```
+In later versions of EGG, some metrics are aggregated differently, which might lead to small discrepancies.
