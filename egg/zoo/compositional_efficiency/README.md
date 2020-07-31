@@ -20,3 +20,11 @@ python -m egg.zoo.compositional_efficiency.continuous --vocab_size=100 --batch_s
   --n_epochs=100 --random_seed=2 --receiver_hidden=100 --receiver_emb=50 --receiver_cell=lstm \
   --receiver_layers=0 --lenses=1 --lr=1e-3
 ```
+
+
+# Reprodicibility
+If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
+```bash
+git checkout v1.0
+```
+In later versions of EGG, some metrics are aggregated differently, which might lead to small discrepancies.
