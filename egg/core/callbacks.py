@@ -3,12 +3,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict, Any, Union,  NamedTuple, List
+from collections import defaultdict
 import json
 import pathlib
-from collections import defaultdict
+from typing import Dict, Any, Union,  NamedTuple, List
 
+try:
+    import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
+except ImportError:
+    print('Please install editdistance package: `pip install editdistance`. '
+          'It is used for calculating topographic similarity.')
+from scipy.spatial import distance
+from scipy.stats import spearmanr
 import torch
+
 from egg.core.util import get_summary_writer
 from .interaction import Interaction
 
@@ -145,3 +153,50 @@ class CheckpointSaver(Callback):
         return Checkpoint(epoch=self.epoch_counter,
                           model_state_dict=self.trainer.game.state_dict(),
                           optimizer_state_dict=self.trainer.optimizer.state_dict())
+
+
+class TopographicSimilarity(Callback):
+    distances = {'edit': lambda x, y: editdistance.eval(x, y) / (len(x) + len(y)) / 2,
+                 'cosine': distance.cosine,
+                 'hamming':distance.hamming,
+                 'jaccard': distance.jaccard,
+                 'euclidean': distance.euclidean,
+                 }
+
+    def __init__(self,
+                 sender_input_distance_fn='cosine',
+                 message_distance_fn='edit',
+                 compute_topsim_train_set=False,
+                 compute_topsim_test_set=True):
+
+        self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None)
+        self.message_distance_fn = self.distances.get(message_distance_fn, None)
+        self.compute_topsim_train_set = compute_topsim_train_set
+        self.compute_topsim_test_set = compute_topsim_test_set
+
+        assert self.sender_input_distance_fn and self.message_distance_fn, f"Cannot recognize {sender_input_distance_fn} or {message_distance_fn} distances"
+        assert compute_topsim_train_set or compute_topsim_test_set
+
+    def on_test_end(self, loss: float, logs: Interaction):
+        if self.compute_topsim_test_set:
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+
+    def on_epoch_end(self, loss: float, logs: Interaction):
+        if self.compute_topsim_train_set:
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+
+    def compute_similarity(self, sender_input, messages):
+        def compute_distance(_list, distance):
+            return [distance(el1, el2)
+                        for i, el1 in enumerate(_list[:-1])
+                        for j, el2 in enumerate(_list[i+1:])
+                    ]
+
+        messages = [msg.tolist() for msg in messages]
+
+        input_dist = compute_distance(sender_input.numpy(), self.sender_input_distance_fn)
+        message_dist = compute_distance(messages, self.message_distance_fn)
+        topsim = spearmanr(input_dist, message_dist, nan_policy='raise').correlation
+
+        output_message = json.dumps(dict(topsim=topsim))
+        print(output_message, flush=True)
