@@ -20,14 +20,14 @@ class BaseEarlyStopper(Callback):
         self.epoch: int = 0
         self.validation = validation
 
-    def on_epoch_end(self, loss: float, logs: Interaction) -> None:
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int) -> None:
         if self.validation:
             return
-        self.epoch += 1
+        self.epoch = epoch
         self.train_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
-    def on_test_end(self, loss: float, logs: Interaction) -> None:
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int) -> None:
         if not self.validation:
             return
         self.validation_stats.append((loss, logs))

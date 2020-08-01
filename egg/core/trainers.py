@@ -155,19 +155,19 @@ class Trainer:
 
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
-                callback.on_epoch_begin()
+                callback.on_epoch_begin(epoch)
 
             train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(train_loss, train_interaction)
+                callback.on_epoch_end(train_loss, train_interaction, epoch)
 
             if self.validation_data is not None and self.validation_freq > 0 and epoch % self.validation_freq == 0:
                 for callback in self.callbacks:
-                    callback.on_test_begin()
+                    callback.on_test_begin(epoch)
                 validation_loss, validation_interaction = self.eval()
                 for callback in self.callbacks:
-                    callback.on_test_end(validation_loss, validation_interaction)
+                    callback.on_test_end(validation_loss, validation_interaction, epoch)
 
             if self.should_stop:
                 break

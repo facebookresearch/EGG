@@ -22,82 +22,72 @@ from .interaction import Interaction
 
 
 class Callback:
-
     def on_train_begin(self, trainer_instance: 'Trainer'):
         self.trainer = trainer_instance
-        self.epoch_counter = self.trainer.start_epoch
 
     def on_train_end(self):
         pass
 
-    def on_test_begin(self):
+    def on_test_begin(self, epoch: int):
         pass
 
-    def on_test_end(self, loss: float, logs: Interaction):
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
-    def on_epoch_begin(self):
+    def on_epoch_begin(self, epoch: int):
         pass
 
-    def on_epoch_end(self, loss: float, logs: Interaction):
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
 
 class ConsoleLogger(Callback):
-
     def __init__(self, print_train_loss=False, as_json=False):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
-    def aggregate_print(self, loss: float, logs: Interaction, mode: str):
+    def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
         dump = dict(loss=loss) 
         aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
         dump.update(aggregated_metrics)
 
         if self.as_json:
-            dump.update(dict(mode=mode, epoch=self.epoch_counter))
+            dump.update(dict(mode=mode, epoch=epoch))
             output_message = json.dumps(dump)
         else:
             output_message = ', '.join(sorted([f'{k}={v}' for k, v in dump.items()]))
-            output_message = f'{mode}: epoch {self.epoch_counter}, loss {loss}, ' + output_message
+            output_message = f'{mode}: epoch {epoch}, loss {loss}, ' + output_message
         print(output_message, flush=True)
 
-    def on_test_end(self, loss: float, logs: Interaction):
-        self.aggregate_print(loss, logs, 'test')
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        self.aggregate_print(loss, logs, 'test', epoch)
 
-    def on_epoch_end(self, loss: float, logs: Interaction):
-        self.epoch_counter += 1
-
-        if not self.print_train_loss: return
-        self.aggregate_print(loss, logs, 'train')
+        if self.print_train_loss:
+            self.aggregate_print(loss, logs, 'train', epoch)
 
 
 class TensorboardLogger(Callback):
-
     def __init__(self, writer=None):
         if writer:
             self.writer = writer
         else:
             self.writer = get_summary_writer()
-        self.epoch_counter = 0
 
-    def on_test_end(self, loss: float, logs: Interaction):
-        self.writer.add_scalar(tag=f'test/loss', scalar_value=loss, global_step=self.epoch_counter)
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        self.writer.add_scalar(tag=f'test/loss', scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
-            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
+            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=epoch)
 
-    def on_epoch_end(self, loss: float, logs: Interaction):
-        self.writer.add_scalar(tag=f'train/loss', scalar_value=loss, global_step=self.epoch_counter)
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.writer.add_scalar(tag=f'train/loss', scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
-            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=self.epoch_counter)
-        self.epoch_counter += 1
+            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=epoch)
 
     def on_train_end(self):
         self.writer.close()
 
 
 class TemperatureUpdater(Callback):
-
     def __init__(self, agent, decay=0.9, minimum=0.1, update_frequency=1):
         self.agent = agent
         assert hasattr(agent, 'temperature'), 'Agent must have a `temperature` attribute'
@@ -106,12 +96,10 @@ class TemperatureUpdater(Callback):
         self.decay = decay
         self.minimum = minimum
         self.update_frequency = update_frequency
-        self.epoch_counter = 0
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
-        if self.epoch_counter % self.update_frequency == 0:
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch % self.update_frequency == 0:
             self.agent.temperature = max(self.minimum, self.agent.temperature * self.decay)
-        self.epoch_counter += 1
 
 
 class Checkpoint(NamedTuple):
@@ -121,7 +109,6 @@ class Checkpoint(NamedTuple):
 
 
 class CheckpointSaver(Callback):
-
     def __init__(
             self,
             checkpoint_path: Union[str, pathlib.Path],
@@ -131,9 +118,10 @@ class CheckpointSaver(Callback):
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
         self.prefix = prefix
+        self.epoch_counter = 0
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
-        self.epoch_counter += 1
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.epoch_counter = epoch
         if self.checkpoint_freq > 0 and (self.epoch_counter % self.checkpoint_freq == 0):
             filename = f'{self.prefix}_{self.epoch_counter}' if self.prefix else str(self.epoch_counter)
             self.save_checkpoint(filename=filename)
@@ -179,15 +167,15 @@ class TopographicSimilarity(Callback):
         assert self.sender_input_distance_fn and self.message_distance_fn, f"Cannot recognize {sender_input_distance_fn} or {message_distance_fn} distances"
         assert compute_topsim_train_set or compute_topsim_test_set
 
-    def on_test_end(self, loss: float, logs: Interaction):
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_test_set:
-            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message, epoch=epoch)
 
-    def on_epoch_end(self, loss: float, logs: Interaction):
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_train_set:
-            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message)
+            self.compute_similarity(sender_input=logs.sender_input, messages=logs.message, epoch=epoch)
 
-    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor):
+    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor, epoch: int):
         def compute_distance(_list, distance):
             return [distance(el1, el2)
                         for i, el1 in enumerate(_list[:-1])
@@ -200,5 +188,5 @@ class TopographicSimilarity(Callback):
         message_dist = compute_distance(messages, self.message_distance_fn)
         topsim = spearmanr(input_dist, message_dist, nan_policy='raise').correlation
 
-        output_message = json.dumps(dict(topsim=topsim))
+        output_message = json.dumps(dict(topsim=topsim, epoch=epoch))
         print(output_message, flush=True)
