@@ -8,11 +8,7 @@ import json
 import pathlib
 from typing import Dict, Any, Union,  NamedTuple, List, Callable
 
-try:
-    import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
-except ImportError:
-    print('Please install editdistance package: `pip install editdistance`. '
-          'It is used for calculating topographic similarity.')
+import editdistance
 from scipy.spatial import distance
 from scipy.stats import spearmanr
 import torch

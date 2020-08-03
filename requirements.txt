@@ -3,3 +3,4 @@ torchvision
 scipy
 numpy
 pytest
+editdistance
