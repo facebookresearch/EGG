@@ -3,15 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from __future__ import print_function
 import torch
 import torch.utils.data
 from torchvision import datasets, transforms, utils
 from torch import nn
 from torch.nn import functional as F
-import torch.distributions
 import egg.core as core
 import pathlib
+
 
 class Sender(nn.Module):
     def __init__(self, message_dim):
@@ -49,7 +48,7 @@ class VAE_Game(nn.Module):
     def reparameterize(mu, logvar):
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
-        
+
         return mu + eps * std
 
     def forward(self, *batch):
@@ -64,25 +63,26 @@ class VAE_Game(nn.Module):
 
         receiver_output = self.receiver(message)
 
-        BCE = F.binary_cross_entropy(receiver_output, sender_input, reduction='sum')
+        BCE = F.binary_cross_entropy(
+            receiver_output, sender_input, reduction='sum')
 
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss = BCE + KLD
 
         log = core.Interaction(
-                sender_input=sender_input,
-                receiver_input=None,
-                labels=None,
-                receiver_output=receiver_output.detach(),
-                message=message.detach(),
-                message_length=torch.ones(message.size(0)),
-                aux={}
-                )
-        
+            sender_input=sender_input,
+            receiver_input=None,
+            labels=None,
+            receiver_output=receiver_output.detach(),
+            message=message.detach(),
+            message_length=torch.ones(message.size(0)),
+            aux={}
+        )
+
         return loss.mean(), log
 
 
-class  ImageDumpCallback(core.Callback):
+class ImageDumpCallback(core.Callback):
     def __init__(self, eval_dataset):
         super().__init__()
         self.eval_dataset = eval_dataset
@@ -93,7 +93,7 @@ class  ImageDumpCallback(core.Callback):
 
         state = self.trainer.game.train
         self.trainer.game.eval()
-        
+
         for i in range(5):
             example = self.eval_dataset[i]
             example = core.move_to(example, torch.device('cuda'))
@@ -103,9 +103,10 @@ class  ImageDumpCallback(core.Callback):
 
             output = interaction.receiver_output.view(28, 28)
             image = image.view(28, 28)
-            utils.save_image(torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png'))
+            utils.save_image(
+                torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png'))
         self.trainer.game.train(state)
-            
+
 
 def main(params):
     opts = core.init(params=params)
@@ -114,11 +115,11 @@ def main(params):
 
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./data', train=True, download=True,
-           transform=transform),
-           batch_size=opts.batch_size, shuffle=True, **kwargs)
+                       transform=transform),
+        batch_size=opts.batch_size, shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST('./data', train=False, transform=transform),
-           batch_size=opts.batch_size, shuffle=True, **kwargs)
+        batch_size=opts.batch_size, shuffle=True, **kwargs)
 
     sender = Sender(opts.vocab_size)
     receiver = Receiver(opts.vocab_size)
@@ -136,4 +137,3 @@ def main(params):
 if __name__ == "__main__":
     import sys
     main(sys.argv[1:])
-
