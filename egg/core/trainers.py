@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import uuid
 import pathlib
 from typing import List, Optional
 
