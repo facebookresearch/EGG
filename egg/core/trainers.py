@@ -14,6 +14,8 @@ from torch.utils.data import DataLoader
 from .util import get_opts, move_to
 from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
 from .interaction import Interaction
+from .distributed import maybe_init_distributed, get_preemptive_checkpoint_dir
+import torch.distributed as distrib
 
 class Trainer:
     """
@@ -45,13 +47,10 @@ class Trainer:
         self.train_data = train_data
         self.validation_data = validation_data
         common_opts = get_opts()
+        print(common_opts)
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
-        self.game.to(self.device)
-        # NB: some optimizers pre-allocate buffers before actually doing any steps
-        # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
-        # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
-        self.optimizer.state = move_to(self.optimizer.state, self.device)
+
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks if callbacks else []
@@ -61,10 +60,14 @@ class Trainer:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
 
-        if not any(isinstance(x, CheckpointSaver) for x in self.callbacks):
+        self.distributed_context = common_opts.distributed_context
+        if self.distributed_context.is_distributed:
+            print('# Distributed context: ', self.distributed_context)
+
+        if self.distributed_context.is_leader and not any(isinstance(x, CheckpointSaver) for x in self.callbacks):
             if common_opts.preemptable:
                 assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
-                d = self._get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
+                d = get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
                 self.checkpoint_path = d
                 self.load_from_latest(d)
             else:
@@ -75,7 +78,7 @@ class Trainer:
                 checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path, checkpoint_freq=common_opts.checkpoint_freq)
                 self.callbacks.append(checkpointer)
 
-        if common_opts.tensorboard:
+        if self.distributed_context.is_leader and common_opts.tensorboard:
             assert common_opts.tensorboard_dir, 'tensorboard directory has to be specified'
             tensorboard_logger = TensorboardLogger()
             self.callbacks.append(tensorboard_logger)
@@ -85,23 +88,20 @@ class Trainer:
                 ConsoleLogger(print_train_loss=False, as_json=False),
             ]
 
-    def _get_preemptive_checkpoint_dir(self, checkpoint_root):
-        if 'SLURM_JOB_ID' not in os.environ:
-            print('Preemption flag set, but I am not running under SLURM?')
+        if self.distributed_context.is_distributed:
+            device_id = self.distributed_context.local_rank
+            torch.cuda.set_device(device_id)
+            self.game.to(device_id)
+            game = torch.nn.parallel.DistributedDataParallel(game,
+                                                  device_ids=[device_id],
+                                                  output_device=device_id)
 
-        # start assuming the job runs as an array
-        # fallback, if not
-        job_id = os.environ.get('SLURM_ARRAY_JOB_ID', None)
-        task_id = os.environ.get('SLURM_ARRAY_TASK_ID', None)
-
-        if job_id is None or task_id is None:
-            job_id = os.environ.get('SLURM_JOB_ID', uuid.uuid4())
-            task_id = os.environ.get('SLURM_PROCID', 0)
-
-        d = pathlib.Path(checkpoint_root) / f'{job_id}_{task_id}'
-        d.mkdir(exist_ok=True)
-
-        return d
+        else:
+            self.game.to(self.device)
+            # NB: some optimizers pre-allocate buffers before actually doing any steps
+            # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
+            # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
+            self.optimizer.state = move_to(self.optimizer.state, self.device)
 
     def eval(self):
         mean_loss = 0.0

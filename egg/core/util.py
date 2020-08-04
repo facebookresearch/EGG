@@ -12,6 +12,7 @@ from typing import Union, Iterable, List, Optional, Any
 import numpy as np
 import torch
 from .interaction import Interaction
+from .distributed import maybe_init_distributed
 
 common_opts = None
 optimizer = None
@@ -62,6 +63,8 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
     arg_parser.add_argument('--tensorboard_dir', type=str, default='runs/',
                             help='Path for tensorboard log')
 
+    arg_parser.add_argument('--distributed_port', default=18363, type=int, help='Port to use in distributed learning')
+
     return arg_parser
 
 
@@ -71,6 +74,7 @@ def _get_params(arg_parser: argparse.ArgumentParser, params: List[str]) -> argpa
     # just to avoid confusion and be consistent
     args.no_cuda = not args.cuda
     args.device = torch.device("cuda" if args.cuda else "cpu")
+    args.distributed_context = maybe_init_distributed(args)
 
     return args
 
@@ -101,6 +105,9 @@ def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[Li
 
     if common_opts.random_seed is None:
         common_opts.random_seed = random.randint(0, 2**31)
+    elif common_opts.distributed_context:
+        common_opts.random_seed += common_opts.distributed_context.rank
+
     _set_seed(common_opts.random_seed)
 
     optimizers = {'adam': torch.optim.Adam,

@@ -26,8 +26,9 @@ if __name__ == '__main__':
     parser.add_argument("--dry_run", action="store_true", help="Synonym for preview")
 
     parser.add_argument("--name", type=str, default=None, help="sbatch name of job. Also used in the output directory")
-    parser.add_argument("--ncpu", type=int, default=8, help="sbatch number of cpus required per task")
-    parser.add_argument("--ngpu", type=int, default=1, help="Number of gpus required per task (--gres=gpu:N in sbatch)")
+    parser.add_argument("--ncpu", type=int, default=16, help="sbatch number of cpus required per node")
+    parser.add_argument("--ngpu", type=int, default=1, help="Number of gpus required per node (--gres=gpu:N in sbatch)")
+    parser.add_argument("--nodes", type=int, default=1, help="Number of nodes required per task")
     parser.add_argument("--partition", type=str, default="dev", help="Partition requested")
     parser.add_argument("--time", type=int, default=4320, help="Job timeout")
     parser.add_argument("--checkpoint_freq", type=int, default=1,
@@ -55,11 +56,11 @@ if __name__ == '__main__':
     module = importlib.import_module(args.game)
     executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
     executor.update_parameters(timeout_min=args.time, partition=args.partition,
-            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name, comment=args.comment)
+            cpus_per_task=args.ncpu, gpus_per_node=args.ngpu, name=args.name, comment=args.comment,
+            nodes=args.nodes)
 
     if args.array:
         executor.update_parameters(array_parallelism=args.array_parallelism)
-
 
     combinations = []
     for sweep_file in args.sweep:
