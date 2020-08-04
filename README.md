@@ -1,7 +1,7 @@
 # EGG 🐣: Emergence of lanGuage in Games
 
 ![GitHub](https://img.shields.io/github/license/facebookresearch/EGG)
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![Python 3.6](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/)
 
 ## Introduction
 
@@ -32,6 +32,7 @@ with PyTorch. However, to get a taste of communication games without writing any
  
  * [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc): Discrete auto-encoder Sender/Receiver game that auto-encodes one-hot vectors using variable-length messages.
  * [`egg/zoo/mnist_autoenc`](/egg/zoo/mnist_autoenc): Discrete MNIST auto-encoder game. In this Sender/Receiver game, Sender looks onto a MNIST image and sends a single symbol to Receiver, who tries to recover the image.
+  * [`egg/zoo/mnist_vae`](/egg/zoo/mnist_vae): Continuous-message VAE cast as an auto-encoder game. In this Sender/Receiver (Encoder/Decoder) game, Sender looks onto a MNIST image and sends a multi-dimensional vector to Receiver, who tries to recover the image.
  * [`egg/zoo/summation`](/egg/zoo/summation): Sender and Receiver are jointly trained to recognize the `a^nb^n` grammar: Sender reads an input sequence and Receiver answers if the sequence belongs to the grammar. Which agent actually counts, Sender or Receiver? Does Sender make the decision and send it to Receiver? Or does Sender encode the incoming sequence in the message and it is Receiver that make the decision? Or something in-between?
  * [`egg/zoo/external_game`](/egg/zoo/external_game): A signaling game that takes inputs and ground-truth outputs from CSV files. 
 </p></details>
@@ -58,7 +59,7 @@ EGG supports Reinforce and Gumbel-Softmax optimization of the *communication cha
 
 ## Installing EGG
 
-Generally, we assume that you use PyTorch 1.0.0 or newer (1.1.0 is advised) and Python 3.6 or newer. 
+Generally, we assume that you use PyTorch 1.0.0 or newer (1.1.0 is advised) and Python 3.7 or newer. 
 
  1. (optional) It is a good idea to develop in a new conda environment, e.g. like this:
     ```
