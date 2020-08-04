@@ -58,6 +58,7 @@ class ConsoleLogger(Callback):
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         self.aggregate_print(loss, logs, 'test', epoch)
 
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.print_train_loss:
             self.aggregate_print(loss, logs, 'train', epoch)
 
