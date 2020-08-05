@@ -156,6 +156,8 @@ class Trainer:
                 callback.on_epoch_begin(epoch)
 
             train_loss, train_interaction = self.train_epoch()
+            if self.distributed_context.is_distributed:
+                train_interaction = Interaction.gather_distributed_interactions(train_interaction)
 
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_interaction, epoch)
@@ -164,6 +166,9 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_test_begin(epoch)
                 validation_loss, validation_interaction = self.eval()
+                if self.distributed_context.is_distributed:
+                    validation_interaction = Interaction.gather_distributed_interactions(validation_interaction)
+
                 for callback in self.callbacks:
                     callback.on_test_end(validation_loss, validation_interaction, epoch)
 

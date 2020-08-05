@@ -7,6 +7,7 @@ from typing import Optional, Dict, Union, Iterable
 from dataclasses import dataclass
 from functools import cached_property
 import torch
+import torch.distributed as distrib
 
 @dataclass
 class LoggingStrategy:
@@ -123,3 +124,36 @@ class Interaction:
     @staticmethod
     def empty() -> 'Interaction':
         return Interaction(None, None, None, None, None, None, {})
+
+
+    @staticmethod
+    def gather_distributed_interactions(log: 'Interaction') -> Optional['Interaction']:
+        assert distrib.is_initialized(), 'torch.distributed must be initialized beforehand'
+        world_size = distrib.get_world_size()
+
+        def send_collect_tensor(tnsr):
+            assert tnsr is not None
+
+            tnsr = tnsr.cuda()
+            lst = [torch.zeros_like(tnsr) for _ in range(world_size)]
+            distrib.all_gather(lst, tnsr)
+            return torch.cat(lst, dim=0).to('cpu')
+
+        def send_collect_dict(d):
+            new_d = {}
+
+            for k, v in d.items():
+                if v is not None:
+                    v = send_collect_tensor(v)
+                new_d[k] = v
+
+            return new_d
+
+        interaction_as_dict = dict((name, getattr(log, name)) for name in \
+            ['sender_input', 'receiver_input', 'labels', 'message', 'message_length', 'receiver_output'])
+        interaction_as_dict = send_collect_dict(interaction_as_dict)
+        synced_aux = send_collect_dict(log.aux)
+        interaction_as_dict['aux'] = synced_aux
+        synced_interacton = Interaction(**interaction_as_dict)
+        assert log.size * world_size == synced_interacton.size
+        return synced_interacton
