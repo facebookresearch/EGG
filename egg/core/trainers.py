@@ -9,12 +9,12 @@ from typing import List, Optional
 
 import torch
 from torch.utils.data import DataLoader
+import torch.distributed as distrib
 
 from .util import get_opts, move_to
 from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
 from .interaction import Interaction
 from .distributed import maybe_init_distributed, get_preemptive_checkpoint_dir
-import torch.distributed as distrib
 
 class Trainer:
     """
@@ -46,7 +46,6 @@ class Trainer:
         self.train_data = train_data
         self.validation_data = validation_data
         common_opts = get_opts()
-        print(common_opts)
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
 
