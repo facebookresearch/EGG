@@ -5,7 +5,6 @@
 
 from typing import Optional, Dict, Union, Iterable
 from dataclasses import dataclass
-from functools import cached_property
 import torch
 
 @dataclass
@@ -51,7 +50,7 @@ class Interaction:
     message_length: Optional[torch.Tensor]
     aux: Dict[str, torch.Tensor]
 
-    @cached_property
+    @property
     def size(self):
         for t in [self.sender_input, self.receiver_input, self.labels, self.message, self.receiver_output, self.message_length]:
             if t is not None: return t.size(0)

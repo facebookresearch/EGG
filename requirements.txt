@@ -4,3 +4,4 @@ scipy
 numpy
 pytest
 editdistance
+dataclasses
