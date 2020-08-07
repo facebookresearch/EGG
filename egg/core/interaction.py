@@ -36,7 +36,14 @@ class LoggingStrategy:
             message_length=message_length if self.store_message_length else None,
             aux=aux)
 
+    @classmethod
+    def minimal(cls):
+        args = [False] * 6 + [True]
+        return cls(*args)
 
+    @classmethod
+    def maximal(cls):
+        return cls()
 
 @dataclass
 class Interaction:

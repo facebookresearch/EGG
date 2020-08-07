@@ -2,7 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from typing import Optional
+from typing import Optional, Callable
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -124,7 +124,13 @@ class SymbolGameGS(nn.Module):
     >>> (loss > 0).item()
     1
     """
-    def __init__(self, sender, receiver, loss, logging_strategy: Optional[LoggingStrategy] = None):
+
+    def __init__(self,
+                 sender: nn.Module,
+                 receiver: nn.Module,
+                 loss: Callable,
+                 train_logging_strategy: Optional[LoggingStrategy] = None,
+                 test_logging_strategy: Optional[LoggingStrategy] = None):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
         :param receiver: Receiver agent. receiver.forward() has to accept two parameters: message and receiver_input.
@@ -135,12 +141,15 @@ class SymbolGameGS(nn.Module):
           * receiver_input: input to Receiver from dataset
           * receiver_output: output of Receiver
           * labels: labels that come from dataset
+        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
+            later analysis in the callbacks.
         """
         super(SymbolGameGS, self).__init__()
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
-        self.logging_strategy = LoggingStrategy() if logging_strategy is None else logging_strategy
+        self.train_logging_strategy = LoggingStrategy() if train_logging_strategy is None else train_logging_strategy
+        self.test_logging_strategy = LoggingStrategy() if test_logging_strategy is None else test_logging_strategy
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
@@ -148,7 +157,8 @@ class SymbolGameGS(nn.Module):
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
 
-        interaction = self.logging_strategy.filtered_interaction(
+        logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
+        interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
@@ -375,7 +385,8 @@ class SenderReceiverRnnGS(nn.Module):
         receiver, 
         loss, 
         length_cost=0.0,
-        logging_strategy: Optional[LoggingStrategy] = None):
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -388,15 +399,18 @@ class SenderReceiverRnnGS(nn.Module):
           and outputs a tuple of (1) a loss tensor of shape (batch size, 1) (2) the dict with auxiliary information
           of the same shape. The loss will be minimized during training, and the auxiliary information aggregated over
           all batches in the dataset.
-
         :param length_cost: the penalty applied to Sender for each symbol produced
+        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
+            later analysis in the callbacks.
+
         """
         super(SenderReceiverRnnGS, self).__init__()
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
         self.length_cost = length_cost
-        self.logging_strategy = logging_strategy if logging_strategy else LoggingStrategy()
+        self.train_logging_strategy = LoggingStrategy() if train_logging_strategy is None else train_logging_strategy
+        self.test_logging_strategy = LoggingStrategy() if test_logging_strategy is None else test_logging_strategy
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
@@ -434,7 +448,8 @@ class SenderReceiverRnnGS(nn.Module):
 
         aux_info['mean_length'] = expected_length
 
-        interaction = self.logging_strategy.filtered_interaction(
+        logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
+        interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
