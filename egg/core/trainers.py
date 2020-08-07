@@ -29,7 +29,8 @@ class Trainer:
             validation_data: Optional[DataLoader] = None,
             device: torch.device = None,
             callbacks: Optional[List[Callback]] = None,
-            grad_norm: float = None
+            grad_norm: float = None,
+            aggregate_interaction_logs: bool = True
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -53,6 +54,7 @@ class Trainer:
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
         self.callbacks = callbacks if callbacks else []
         self.grad_norm = grad_norm
+        self.aggregate_interaction_logs = aggregate_interaction_logs
 
         if common_opts.load_from_checkpoint is not None:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
@@ -123,7 +125,7 @@ class Trainer:
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
-                if self.distributed_context.is_distributed:
+                if self.distributed_context.is_distributed and self.aggregate_interaction_logs:
                     interaction = Interaction.gather_distributed_interactions(interaction)
                 interaction = interaction.to('cpu')
                 mean_loss += optimized_loss
@@ -154,7 +156,7 @@ class Trainer:
 
             n_batches += 1
             mean_loss += optimized_loss.detach()
-            if self.distributed_context.is_distributed:
+            if self.distributed_context.is_distributed and self.aggregate_interaction_logs:
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to('cpu')
             interactions.append(interaction)
