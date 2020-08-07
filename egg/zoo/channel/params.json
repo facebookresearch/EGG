@@ -1,0 +1,15 @@
+{
+  "vocab_size": 5,
+  "n_features": 1000,
+  "n_epoch": 5,
+  "batch_size": 640,
+  "max_len": 30,
+  "random_seed": 21,
+  "batches_per_epoch": 1000,
+  "probs": "powerlaw",
+  "sender_cell": "lstm",
+  "receiver_cell": "lstm",
+  "sender_entropy_coeff": 1,
+  "sender_hidden": 100,
+  "receiver_hidden": 100
+}
