@@ -90,9 +90,21 @@ class Trainer:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
             self.game.to(device_id)
-            game = torch.nn.parallel.DistributedDataParallel(game,
+            # NB: here we are doing something that is a bit shady:
+            # 1/ optimizer was created outside of the Trainer instance, so we don't really know
+            #    what parameters it optimizes. If it holds something what is not within the Game instance
+            #    then it will not participate in distributed training
+            # 2/ if optimizer only holds a subset of Game parameters, it works, but somewhat non-documentedly.
+            #    In fact, optimizer would hold parameters of non-DistributedDataParallel version of the Game. The
+            #    forward/backward calls, however, would happen on the DistributedDataParallel wrapper. This wrapper would
+            #    sync gradients of the underlying tensors - which are the ones that optimizer holds itself. 
+            #    As a result it seems to work, but only because DDP doesn't take any tensor ownership.
+            #    
+
+            self.game = torch.nn.parallel.DistributedDataParallel(self.game,
                                                   device_ids=[device_id],
                                                   output_device=device_id)
+
 
         else:
             self.game.to(self.device)
@@ -111,6 +123,8 @@ class Trainer:
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
+                if self.distributed_context.is_distributed:
+                    interaction = Interaction.gather_distributed_interactions(interaction)
                 interaction = interaction.to('cpu')
                 mean_loss += optimized_loss
                 n_batches += 1
@@ -140,6 +154,8 @@ class Trainer:
 
             n_batches += 1
             mean_loss += optimized_loss.detach()
+            if self.distributed_context.is_distributed:
+                interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to('cpu')
             interactions.append(interaction)
 
@@ -156,8 +172,6 @@ class Trainer:
                 callback.on_epoch_begin(epoch)
 
             train_loss, train_interaction = self.train_epoch()
-            if self.distributed_context.is_distributed:
-                train_interaction = Interaction.gather_distributed_interactions(train_interaction)
 
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_interaction, epoch)
@@ -166,8 +180,6 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_test_begin(epoch)
                 validation_loss, validation_interaction = self.eval()
-                if self.distributed_context.is_distributed:
-                    validation_interaction = Interaction.gather_distributed_interactions(validation_interaction)
 
                 for callback in self.callbacks:
                     callback.on_test_end(validation_loss, validation_interaction, epoch)

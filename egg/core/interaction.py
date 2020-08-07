@@ -37,6 +37,7 @@ class LoggingStrategy:
             aux=aux)
 
 
+
 @dataclass
 class Interaction:
     # incoming data
@@ -134,7 +135,7 @@ class Interaction:
         def send_collect_tensor(tnsr):
             assert tnsr is not None
 
-            tnsr = tnsr.cuda()
+            tnsr = tnsr.contiguous().cuda()
             lst = [torch.zeros_like(tnsr) for _ in range(world_size)]
             distrib.all_gather(lst, tnsr)
             return torch.cat(lst, dim=0).to('cpu')
