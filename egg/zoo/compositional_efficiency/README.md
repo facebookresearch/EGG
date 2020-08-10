@@ -22,7 +22,7 @@ python -m egg.zoo.compositional_efficiency.continuous --vocab_size=100 --batch_s
 ```
 
 
-# Reprodicibility
+# Reproducibility
 If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
 ```bash
 git checkout v1.0
