@@ -4,6 +4,9 @@ This code implements the signalling game described in [1]. The game proceeds as 
  * Receiver obtains Sender's message and all images in random order,
  * Receiver predicts which of the received images is the target one and agents are rewarded if the prediction is correct.
 
+To run the game, you need to pre-install `h5py` (`pip install h5py`).
+
+
 The game can be launched with the following command (with appropriate path to the data):
 ```bash
 python -m egg.zoo.signal_game.train --root=/private/home/kharitonov/work/egg/data/concepts/
