@@ -46,7 +46,7 @@ def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
     Accuracy loss - non-differetiable hence cannot be used with GS
     """
     acc = (labels == receiver_output).float()
-    return -acc, {'acc': acc.mean().item()}
+    return -acc, {'acc': acc}
 
 
 def loss_nll(_sender_input, _message, _receiver_input, receiver_output, labels):
