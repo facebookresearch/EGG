@@ -133,13 +133,12 @@ Statistics about the overall number of unique messages and their distribution ar
 Please run `python -m egg.zoo.objects_game.train -h` for a more comprehensive list of command line arguments
 
 <br/>
-<br/>
 
 [1] *"EMERGENCE OF LINGUISTIC COMMUNICATION FROM REFERENTIAL GAMES WITH SYMBOLIC AND PIXEL INPUT"*, Angeliki Lazaridou, Karl Moritz Hermann, Karl Tuyls, Stephen Clark 
 [[arxiv]](https://arxiv.org/pdf/1804.03984.pdf)
 
 
-# Reprodicibility
+# Reproducibility
 If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
 ```bash
 git checkout v1.0

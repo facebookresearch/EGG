@@ -25,7 +25,7 @@ python -m egg.zoo.language_bottleneck.mnist_classification.train
 
 For the set of game-specific parameters, please check each game's `train.py` script.
 
-# Reprodicibility
+# Reproducibility
 If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
 ```bash
 git checkout v1.0
