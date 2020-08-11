@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import egg.core as core
 from egg.zoo.objects_game.features import VectorsLoader
 from egg.zoo.objects_game.archs import Sender, Receiver
-from egg.zoo.objects_game.util import compute_baseline_accuracy, compute_mi_input_msgs, entropy, mutual_info
+from egg.zoo.objects_game.util import compute_baseline_accuracy, compute_mi_input_msgs, entropy, mutual_info, dump_sender_receiver
 from egg.core.util import move_to
 import operator
 import numpy as np
@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
     if opts.evaluate:
         is_gs = opts.mode == 'gs'
-        sender_inputs, messages, receiver_inputs, receiver_outputs, labels = core.dump_sender_receiver(game, test_data, is_gs, variable_length=True, device=device)
+        sender_inputs, messages, receiver_inputs, receiver_outputs, labels = dump_sender_receiver(game, test_data, is_gs, variable_length=True, device=device)
 
         receiver_outputs = move_to(receiver_outputs, device)
         labels = move_to(labels, device)
