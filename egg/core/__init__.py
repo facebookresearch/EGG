@@ -5,6 +5,7 @@
 
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver
+from .language_analysis import MessageEntropy, TopographicSimilarity
 from .util import init, get_opts, build_optimizer, dump_interactions, move_to, get_summary_writer, close
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
@@ -55,5 +56,7 @@ __all__ = [
     'RnnEncoder',
     'find_lengths',
     'LoggingStrategy',
-    'Interaction'
+    'Interaction',
+    'MessageEntropy',
+    'TopographicSimilarity'
 ]
