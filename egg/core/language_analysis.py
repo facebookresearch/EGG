@@ -47,7 +47,7 @@ def calc_entropy(messages):
 
 
 def _hashable_tensor(t):
-    t = tuple(t.view(-1).tolist())
+    t = tuple(t.tolist())
     return t
 
 
