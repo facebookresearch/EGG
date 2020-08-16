@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Union, Callable
-import random
 from collections import defaultdict
 
 import editdistance
@@ -168,18 +167,16 @@ class PosDisent(Callback):
         Two-symbol messages representing two-attribute world. One symbol encodes on attribute:
         in this case, the metric should be maximized:
         >>> samples = 1_000
-        >>> random.seed(1)
-        >>> attribute1 = [x % 10 for x in range(samples)]
-        >>> attribute2 = [x % 10 for x in range(samples)]
-        >>> random.shuffle(attribute1)
-        >>> random.shuffle(attribute2)
-        >>> attributes = torch.stack([torch.tensor(attribute1), torch.tensor(attribute2)]).view(samples, 2)
+        >>> _ = torch.manual_seed(0)
+        >>> attribute1 = torch.randint(low=0, high=10, size=(samples, 1))
+        >>> attribute2 = torch.randint(low=0, high=10, size=(samples, 1))
+        >>> attributes = torch.cat([attribute1, attribute2], dim=1)
         >>> messages = attributes
         >>> PosDisent.posdis(attributes, messages)
-        0.9848392009735107
+        0.9786556959152222
         >>> messages = torch.cat([messages, torch.zeros_like(messages)], dim=1)
         >>> PosDisent.posdis(attributes, messages)
-        0.9848392009735107
+        0.9786556959152222
         """
         gaps = torch.zeros(messages.size(1))
         non_constant_positions = 0.0
