@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Union, Callable
-
+import random
 from collections import defaultdict
 
 import editdistance
@@ -28,7 +28,11 @@ def entropy_dict(freq_table):
     True
     """
     t = torch.tensor([v for v in freq_table.values()]).float()
-    return torch.distributions.Categorical(probs=t).entropy().item() / np.log(2)
+    if (t < 0.0).any():
+        raise RuntimeError('Encountered negative probabilities')
+
+    t /= t.sum()
+    return -(torch.where(t > 0, t.log(), t) * t).sum().item() / np.log(2)
 
 
 def calc_entropy(messages):
@@ -47,8 +51,30 @@ def calc_entropy(messages):
 
 
 def _hashable_tensor(t):
-    t = tuple(t.tolist())
+    if torch.is_tensor(t) and t.numel() > 1:
+        t = tuple(t.tolist())
+    elif torch.is_tensor(t) and t.numel() == 1:
+        t = t.item()
     return t
+
+
+def mutual_info(xs, ys):
+    """
+    I[x, y] = E[x] + E[y] - E[x,y]
+    """
+    e_x = calc_entropy(xs)
+    e_y = calc_entropy(ys)
+
+    xys = []
+
+    for x, y in zip(xs, ys):
+        xy = (_hashable_tensor(x), _hashable_tensor(y))
+        xys.append(xy)
+
+    e_xy = calc_entropy(xys)
+
+    return e_x + e_y - e_xy
+
 
 
 class MessageEntropy(Callback):
@@ -124,3 +150,72 @@ class TopographicSimilarity(Callback):
 
         output_message = json.dumps(dict(topsim=topsim, epoch=epoch))
         print(output_message, flush=True)
+
+
+class PosDisent(Callback):
+    """
+    Positional disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages", 
+    Chaabouni et al., ACL 2020.
+    """
+    def __init__(self, print_train: bool = True, is_gumbel: bool = False):
+        super().__init__()
+        self.print_train = print_train
+        self.is_gumbel = is_gumbel
+
+    @staticmethod
+    def posdis(attributes, messages):
+        """
+        Two-symbol messages representing two-attribute world. One symbol encodes on attribute:
+        in this case, the metric should be maximized:
+        >>> samples = 1_000
+        >>> random.seed(1)
+        >>> attribute1 = [x % 10 for x in range(samples)]
+        >>> attribute2 = [x % 10 for x in range(samples)]
+        >>> random.shuffle(attribute1)
+        >>> random.shuffle(attribute2)
+        >>> attributes = torch.stack([torch.tensor(attribute1), torch.tensor(attribute2)]).view(samples, 2)
+        >>> messages = attributes
+        >>> PosDisent.posdis(attributes, messages)
+        0.9848392009735107
+        >>> messages = torch.cat([messages, torch.zeros_like(messages)], dim=1)
+        >>> PosDisent.posdis(attributes, messages)
+        0.9848392009735107
+        """
+        gaps = torch.zeros(messages.size(1))
+        non_constant_positions = 0.0
+
+        for j in range(messages.size(1)):
+            symbol_mi = []
+            h_j = None
+            for i in range(attributes.size(1)):
+                x, y = attributes[:, i], messages[:, j]
+                info = mutual_info(x, y)
+                symbol_mi.append(info)
+
+                if h_j is None:
+                    h_j = calc_entropy(y)
+
+            symbol_mi.sort(reverse=True)
+
+            if h_j > 0.0:
+                gaps[j] = (symbol_mi[0] - symbol_mi[1]) / h_j
+                non_constant_positions += 1
+
+        score = gaps.sum() / non_constant_positions
+        return score.item()
+
+    def print_message(self, logs: Interaction, tag: str, epoch: int):
+        message = logs.message.argmax(
+            dim=-1) if self.is_gumbel else logs.message
+
+        posdis = self.posdis(logs.sender_input, message)
+
+        output = json.dumps(dict(posdis=posdis, mode=tag, epoch=epoch))
+        print(output, flush=True)
+
+    def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
+        if self.print_train:
+            self.print_message(logs, 'train', epoch)
+
+    def on_test_end(self, loss, logs, epoch):
+        self.print_message(logs, 'test', epoch)
