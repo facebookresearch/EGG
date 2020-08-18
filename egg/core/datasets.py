@@ -50,7 +50,7 @@ class AttributesValuesIterator:
     >>> it1 = AttributesValuesIterator(10, 2, samples)
     >>> it2 = AttributesValuesIterator(10, 2, samples)
     >>> l1 = [batch[0] for batch in it1]
-    >>> l2 = [batch[0] for batch in it1]
+    >>> l2 = [batch[0] for batch in it2]
     >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
     True
     """
@@ -64,7 +64,7 @@ class AttributesValuesIterator:
         self.n_batches_per_epoch = n_batches_per_epoch
 
         self.batches_generated = -1
-        self.idx = 0
+        self.idx = -1
 
         self.data = samples
         self.random_state = np.random.RandomState(seed)
@@ -74,6 +74,7 @@ class AttributesValuesIterator:
 
     def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
         self.batches_generated += 1
+        self.idx += 1
 
         if self.idx + self.batch_size >= len(self.data) or self.batches_generated >= self.n_batches_per_epoch:
             self.batches_generated = 0
@@ -81,11 +82,84 @@ class AttributesValuesIterator:
             raise StopIteration()
 
         if not self.batches_generated:
-            self.data = self.random_state.permutation(self.data)
+            self.data = torch.from_numpy(self.random_state.permutation(self.data)).float()
 
         tnsr = [torch.Tensor(elem) for elem in self.data[self.idx:self.idx+self.batch_size]]
-        self.idx += self.batch_size
+        self.idx += (self.batch_size - 1)
         batch = torch.stack(tnsr)
         labels = torch.zeros(1)
 
         return batch, labels
+
+
+class AttributesValuesWithDistractorsDataset(AttributesValuesDataset):
+    """
+    >>> d1 = AttributesValuesWithDistractorsDataset(3, 4, 20, 5, 1)
+    >>> epoch1 = [batch for batch in d1]
+    >>> len(epoch1)
+    4
+    >>> epoch1[0][0].shape
+    torch.Size([5, 3])
+    >>> epoch1[0][1].shape
+    torch.Size([5])
+    >>> epoch1[0][2].shape
+    torch.Size([5, 2, 3])
+    """
+    def __init__(self,
+                 n_attributes: int,
+                 n_values: int,
+                 n_train_samples_per_epoch: int,
+                 batch_size: int,
+                 distractors: int = 1,
+                 seed: int = 111):
+        super().__init__(n_attributes,
+                         n_values,
+                         n_train_samples_per_epoch,
+                         batch_size,
+                         seed)
+        self.distractors = distractors
+
+    def __iter__(self):
+        return AttributesValuesWithDistractorsIterator(self.batch_size, self.n_batches_per_epoch, self.samples, self.distractors, self.seed)
+
+
+class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
+    """
+    >>> samples = list(itertools.product(*(range(1, 4) for _ in range(3))))
+    >>> it1 = AttributesValuesWithDistractorsIterator(10, 2, samples, 1)
+    >>> it2 = AttributesValuesWithDistractorsIterator(10, 2, samples, 1)
+    >>> l1 = [batch[0] for batch in it1]
+    >>> l2 = [batch[0] for batch in it2]
+    >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
+    True
+    """
+    def __init__(self,
+                 batch_size: int,
+                 n_batches_per_epoch: int,
+                 samples: Iterable,
+                 distractors: int = 1,
+                 seed: int = 111):
+        super().__init__(batch_size, n_batches_per_epoch, samples)
+        self.distractors = distractors
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        self.batches_generated += 1
+        self.idx += 1
+
+        if self.idx >= len(self.data) or self.batches_generated >= self.n_batches_per_epoch:
+            self.batches_generated = 0
+            self.idx = 0
+            raise StopIteration()
+
+        if not self.batches_generated:
+            self.data = self.random_state.permutation(self.data)
+
+        idxs  = self.random_state.randint(len(self.data), size=(self.batch_size * (self.distractors+1)))
+        receiver_input = np.reshape(self.data[idxs], (self.batch_size, self.distractors+1, -1))
+        labels = self.random_state.choice(self.distractors+1, size=self.batch_size)
+        target = receiver_input[np.arange(self.batch_size), labels]
+
+        return torch.from_numpy(target).float(), torch.from_numpy(labels).float(), torch.from_numpy(receiver_input).float()

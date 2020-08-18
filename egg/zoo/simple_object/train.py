@@ -7,7 +7,7 @@ import argparse
 
 import torch.nn.functional as F
 
-from egg.core.datasets import AttributesValuesDataset
+from egg.core.datasets import AttributesValuesDataset, AttributesValuesWithDistractorsDataset
 import egg.core as core
 from egg.zoo.simple_object.archs import Sender, Receiver
 
@@ -19,10 +19,13 @@ def get_params():
     parser.add_argument('--n_values', type=int, default=30,
                         help='Dimensionality of each "concept" (default: 10)')
 
+    parser.add_argument('--distractors', type=int, default=0,
+                        help='Number of distractors" (default: 0)')
+
     parser.add_argument('--samples_per_epoch', type=int, default=5000,
                         help='Number of samples per epoch (default: 5000)')
     parser.add_argument('--val_samples', type=int, default=1000,
-                        help='Number of validation sampples (default: 1000)')
+                        help='Number of validation samples (default: 1000)')
 
     parser.add_argument('--sender_hidden', type=int, default=10,
                         help='Size of the hidden layer of Sender (default: 10)')
@@ -58,17 +61,30 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
 if __name__ == "__main__":
     opts = get_params()
 
-    train_loader = AttributesValuesDataset(n_attributes=opts.n_attributes,
-                                           n_values=opts.n_values,
-                                           n_train_samples_per_epoch=opts.samples_per_epoch,
-                                           batch_size=opts.batch_size,
-                                           seed=opts.random_seed)
-
-    test_loader = AttributesValuesDataset(n_attributes=opts.n_attributes,
-                                           n_values=opts.n_values,
-                                           n_train_samples_per_epoch=opts.val_samples,
-                                           batch_size=opts.batch_size,
-                                           seed=opts.random_seed+1)
+    if opts.distractors:
+        train_loader = AttributesValuesWithDistractorsDataset(n_attributes=opts.n_attributes,
+                                               n_values=opts.n_values,
+                                               n_train_samples_per_epoch=opts.samples_per_epoch,
+                                               batch_size=opts.batch_size,
+                                               distractors=opts.distractors,
+                                               seed=opts.random_seed)
+        test_loader = AttributesValuesWithDistractorsDataset(n_attributes=opts.n_attributes,
+                                               n_values=opts.n_values,
+                                               n_train_samples_per_epoch=opts.val_samples,
+                                               batch_size=opts.batch_size,
+                                               distractors=opts.distractors,
+                                               seed=opts.random_seed+1)
+    else:
+        train_loader = AttributesValuesDataset(n_attributes=opts.n_attributes,
+                                               n_values=opts.n_values,
+                                               n_train_samples_per_epoch=opts.samples_per_epoch,
+                                               batch_size=opts.batch_size,
+                                               seed=opts.random_seed)
+        test_loader = AttributesValuesDataset(n_attributes=opts.n_attributes,
+                                               n_values=opts.n_values,
+                                               n_train_samples_per_epoch=opts.val_samples,
+                                               batch_size=opts.batch_size,
+                                               seed=opts.random_seed+1)
 
     sender = Sender(n_hidden=opts.sender_hidden, n_features=opts.n_attributes)
     receiver = Receiver(n_features=opts.n_attributes, n_hidden=opts.receiver_hidden)
