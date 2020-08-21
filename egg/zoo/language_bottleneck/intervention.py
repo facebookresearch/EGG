@@ -229,11 +229,13 @@ class CallbackEvaluator(core.Callback):
         self.epoch += 1
 
     def validation(self, game):
-        sender_inputs, messages, _, receiver_outputs, labels = \
-            core.dump_sender_receiver(game, self.dataset, gs=self.is_gs, device=self.device,
+        interactions = \
+            core.dump_interactions(game, self.dataset, gs=self.is_gs, device=self.device,
                                       variable_length=self.var_length)
 
+        messages = [interactions.message[i] for i in range(interactions.size)]
         entropy_messages = entropy(messages)
+        labels = [interactions.labels[i] for i in range(interactions.size)]
 
         message_mapping = {}
 

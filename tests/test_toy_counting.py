@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 import egg.core as core
+from egg.core import Interaction
 
 
 class ToyDataset:
@@ -46,7 +47,7 @@ class ToyGame(torch.nn.Module):
         output = self.agent(x)
         output = output.squeeze(1)
         loss = self.criterion(output, y)
-        return loss, {}
+        return loss, Interaction.empty()
 
 
 def test_toy_counting_gradient():

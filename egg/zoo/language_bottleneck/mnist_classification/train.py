@@ -19,7 +19,7 @@ from egg.core import EarlyStopperAccuracy
 
 def diff_loss_symbol(_sender_input, _message, _receiver_input, receiver_output, labels):
     loss = F.nll_loss(receiver_output, labels, reduction='none').mean()
-    acc = (receiver_output.argmax(dim=1) == labels).float().mean()
+    acc = (receiver_output.argmax(dim=1) == labels).float()
     return loss, {'acc': acc}
 
 
@@ -60,7 +60,8 @@ def main(params):
     receiver = Receiver(vocab_size=opts.vocab_size, n_classes=opts.n_labels, n_hidden=opts.n_hidden)
     sender = core.GumbelSoftmaxWrapper(sender, temperature=opts.temperature)
 
-    game = core.SymbolGameGS(sender, receiver, diff_loss_symbol)
+    logging_strategy = core.LoggingStrategy(store_sender_input=False)
+    game = core.SymbolGameGS(sender, receiver, diff_loss_symbol, logging_strategy=logging_strategy)
 
     optimizer = core.build_optimizer(game.parameters())
 

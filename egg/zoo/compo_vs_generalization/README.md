@@ -19,3 +19,9 @@ The game accepts the following game-specific parameters:
  entropy term in the loss, used to encourage exploration in Reinforce (only for Sender)
  * `sender_hidden/receiver_hidden` -- the size of the hidden layers for the cells
  
+# Reproducibility
+If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
+```bash
+git checkout v1.0
+```
+In later versions of EGG, some metrics are aggregated differently, which might lead to small discrepancies.

@@ -19,7 +19,7 @@ from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 
 def diff_loss_symbol(_sender_input, _message, _receiver_input, receiver_output, labels):
     loss = F.nll_loss(receiver_output, labels, reduction='none').mean()
-    acc = (receiver_output.argmax(dim=1) == labels).float().mean()
+    acc = (receiver_output.argmax(dim=1) == labels).float()
     return loss, {'acc': acc}
 
 

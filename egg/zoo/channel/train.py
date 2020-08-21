@@ -12,6 +12,7 @@ import egg.core as core
 from egg.core import EarlyStopperAccuracy
 from egg.zoo.channel.features import OneHotLoader, UniformLoader
 from egg.zoo.channel.archs import Sender, Receiver
+from egg.core.interaction import LoggingStrategy
 
 
 def get_params(params):
@@ -81,15 +82,18 @@ def dump(game, n_features, device, gs_mode):
     # tiny "dataset"
     dataset = [[torch.eye(n_features).to(device), None]]
 
-    sender_inputs, messages, receiver_inputs, receiver_outputs, _ = \
-        core.dump_sender_receiver(game, dataset, gs=gs_mode, device=device, variable_length=True)
+    interaction = core.dump_interactions(game, dataset, gs=gs_mode, device=device, variable_length=True)
 
     unif_acc = 0.
     powerlaw_acc = 0.
     powerlaw_probs = 1 / np.arange(1, n_features+1, dtype=np.float32)
     powerlaw_probs /= powerlaw_probs.sum()
 
-    for sender_input, message, receiver_output in zip(sender_inputs, messages, receiver_outputs):
+    for i in range(interaction.size):
+        sender_input = interaction.sender_input[i]
+        message = interaction.message[i]
+        receiver_output = interaction.receiver_output[i]
+
         input_symbol = sender_input.argmax()
         output_symbol = receiver_output.argmax()
         acc = (input_symbol == output_symbol).float().item()
@@ -155,8 +159,10 @@ def main(params):
                                              opts.receiver_hidden, cell=opts.receiver_cell,
                                              num_layers=opts.receiver_num_layers)
 
+    empty_logger = LoggingStrategy.minimal()
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff,
                                            receiver_entropy_coeff=opts.receiver_entropy_coeff,
+                                           train_logging_strategy=empty_logger,
                                            length_cost=opts.length_cost)
 
     optimizer = core.build_optimizer(game.parameters())
@@ -172,6 +178,7 @@ def main(params):
 
     trainer.train(n_epochs=opts.n_epochs)
 
+    game.logging_strategy = LoggingStrategy.maximal() # now log everything
     dump(trainer.game, opts.n_features, device, False)
     core.close()
 

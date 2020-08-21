@@ -11,7 +11,8 @@ from typing import Union, Iterable, List, Optional, Any
 
 import numpy as np
 import torch
-
+from .interaction import Interaction
+from .distributed import maybe_init_distributed
 
 common_opts = None
 optimizer = None
@@ -62,6 +63,8 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
     arg_parser.add_argument('--tensorboard_dir', type=str, default='runs/',
                             help='Path for tensorboard log')
 
+    arg_parser.add_argument('--distributed_port', default=18363, type=int, help='Port to use in distributed learning')
+
     return arg_parser
 
 
@@ -71,6 +74,7 @@ def _get_params(arg_parser: argparse.ArgumentParser, params: List[str]) -> argpa
     # just to avoid confusion and be consistent
     args.no_cuda = not args.cuda
     args.device = torch.device("cuda" if args.cuda else "cpu")
+    args.distributed_context = maybe_init_distributed(args)
 
     return args
 
@@ -101,6 +105,9 @@ def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[Li
 
     if common_opts.random_seed is None:
         common_opts.random_seed = random.randint(0, 2**31)
+    elif common_opts.distributed_context:
+        common_opts.random_seed += common_opts.distributed_context.rank
+
     _set_seed(common_opts.random_seed)
 
     optimizers = {'adam': torch.optim.Adam,
@@ -169,80 +176,45 @@ def _set_seed(seed) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def dump_sender_receiver(game: torch.nn.Module,
-                         dataset: 'torch.utils.data.DataLoader',
-                         gs: bool, variable_length: bool,
-                         device: Optional[torch.device] = None):
+def dump_interactions(game: torch.nn.Module,
+                      dataset: 'torch.utils.data.DataLoader',
+                      gs: bool,
+                      variable_length: bool,
+                      device: Optional[torch.device] = None,
+                      apply_padding: bool = True) -> Interaction:
     """
     A tool to dump the interaction between Sender and Receiver
     :param game: A Game instance
     :param dataset: Dataset of inputs to be used when analyzing the communication
-    :param gs: whether Gumbel-Softmax relaxation was used during training
-    :param variable_length: whether variable-length communication is used
-    :param device: device (e.g. 'cuda') to be used
-    :return:
+    :param gs: whether the messages should be argmaxed over the last dimension. 
+        Handy, if Gumbel-Softmax relaxation was used for training.
+    :param variable_length: whether variable-length communication is used.
+    :param device: device (e.g. 'cuda') to be used.
+    :return: The entire log of agent interactions, represented as an Interaction instance.
     """
     train_state = game.training  # persist so we restore it back
     game.eval()
-
     device = device if device is not None else common_opts.device
-
-    sender_inputs, messages, receiver_inputs, receiver_outputs = [], [], [], []
-    labels = []
+    full_interaction = None
 
     with torch.no_grad():
         for batch in dataset:
-            # by agreement, each batch is (sender_input, labels) plus optional (receiver_input)
-            sender_input = move_to(batch[0], device)
-            receiver_input = None if len(batch) == 2 else move_to(batch[2], device)
+            batch = move_to(batch, device)
+            _, interaction = game(*batch)
+            interaction = interaction.to('cpu')
 
-            message = game.sender(sender_input)
+            if gs:
+                interaction.message = interaction.message.argmax(dim=-1)  # actual symbols instead of one-hot encoded
+            if apply_padding and variable_length:
+                assert interaction.message_length is not None
+                for i in range(interaction.size):
+                    l = interaction.message_length[i].long().item()
+                    interaction.message[i, l:] = 0 # 0 is always EOS
 
-            # Under GS, the only output is a message; under Reinforce, two additional tensors are returned.
-            # We don't need them.
-            if not gs: message = message[0]
-
-            output = game.receiver(message, receiver_input)
-            if not gs: output = output[0]
-
-            if batch[1] is not None:
-                labels.extend(batch[1])
-
-            if isinstance(sender_input, list) or isinstance(sender_input, tuple):
-                sender_inputs.extend(zip(*sender_input))
-            else:
-                sender_inputs.extend(sender_input)
-
-            if receiver_input is not None:
-                receiver_inputs.extend(receiver_input)
-
-            if gs: message = message.argmax(dim=-1)  # actual symbols instead of one-hot encoded
-
-            if not variable_length:
-                messages.extend(message)
-                receiver_outputs.extend(output)
-            else:
-                # A trickier part is to handle EOS in the messages. It also might happen that not every message has EOS.
-                # We cut messages at EOS if it is present or return the entire message otherwise. Note, EOS id is always
-                # set to 0.
-
-                for i in range(message.size(0)):
-                    eos_positions = (message[i, :] == 0).nonzero()
-                    message_end = eos_positions[0].item() if eos_positions.size(0) > 0 else -1
-                    assert message_end == -1 or message[i, message_end] == 0
-                    if message_end < 0:
-                        messages.append(message[i, :])
-                    else:
-                        messages.append(message[i, :message_end + 1])
-
-                    if gs:
-                        receiver_outputs.append(output[i, message_end, ...])
-                    else:
-                        receiver_outputs.append(output[i, ...])
+            full_interaction = full_interaction + interaction if full_interaction is not None else interaction
 
     game.train(mode=train_state)
-
-    return sender_inputs, messages, receiver_inputs, receiver_outputs, labels
+    return interaction
 
 
 def move_to(x: Any, device: torch.device) \

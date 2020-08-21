@@ -20,7 +20,14 @@ mnist_adv/ # adversarial robustness experiments
 # Running
 Launching each game is as simple as regular EGG games, e.g.
 ```bash
-python -m egg.zoo.language_bottleneck.mnist_classification
+python -m egg.zoo.language_bottleneck.mnist_classification.train
 ```
 
 For the set of game-specific parameters, please check each game's `train.py` script.
+
+# Reproducibility
+If you want to recover results maximally close to those reported in the paper, please use EGG v1.0. This can be done by running the following command:
+```bash
+git checkout v1.0
+```
+In later versions of EGG, some metrics are aggregated differently, which might lead to small discrepancies.

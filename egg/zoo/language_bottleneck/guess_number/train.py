@@ -15,21 +15,6 @@ from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
 from egg.core import EarlyStopperAccuracy
 
 
-def dump(game, dataset, device, is_gs, is_var_length):
-    sender_inputs, messages, _1, receiver_outputs, _2 = \
-        core.dump_sender_receiver(
-            game, dataset, gs=is_gs, device=device, variable_length=is_var_length)
-
-    for sender_input, message, receiver_output \
-            in zip(sender_inputs, messages, receiver_outputs):
-        sender_input = ''.join(map(str, sender_input.tolist()))
-        if is_var_length:
-            message = ' '.join(map(str, message.tolist()))
-        receiver_output = (receiver_output > 0.5).tolist()
-        receiver_output = ''.join([str(x) for x in receiver_output])
-        print(f'{sender_input} -> {message} -> {receiver_output}')
-
-
 def get_params(params):
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_bits', type=int, default=8,
@@ -72,7 +57,6 @@ def get_params(params):
                         help='Size of the embeddings of Receiver (default: 10)')
     parser.add_argument('--early_stopping_thr', type=float, default=0.99,
                         help="Early stopping threshold on accuracy (defautl: 0.99)")
-    parser.add_argument('--dump_language', action='store_true')
 
     args = core.init(arg_parser=parser, params=params)
     if args.sender_lr is None:
@@ -86,7 +70,7 @@ def get_params(params):
 
 def diff_loss(_sender_input, _message, _receiver_input, receiver_output, labels):
     acc = ((receiver_output > 0.5).long() ==
-           labels).detach().all(dim=1).float().mean()
+           labels).detach().all(dim=1).float()
     loss = F.binary_cross_entropy(
         receiver_output, labels.float(), reduction="none").mean(dim=1)
     return loss, {'acc': acc}
@@ -194,10 +178,6 @@ def main(params):
         callbacks=[core.ConsoleLogger(as_json=True), EarlyStopperAccuracy(opts.early_stopping_thr), intervention])
 
     trainer.train(n_epochs=opts.n_epochs)
-
-    if opts.dump_language:
-        dump(game, test_loader, device, is_gs=opts.mode ==
-             'gs', is_var_length=opts.variable_length)
 
     core.close()
 

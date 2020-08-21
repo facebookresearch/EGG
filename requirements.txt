@@ -3,3 +3,5 @@ torchvision
 scipy
 numpy
 pytest
+editdistance
+dataclasses
