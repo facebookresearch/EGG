@@ -85,7 +85,8 @@ class TopographicSimilarity(Callback):
                  sender_input_distance_fn: Union[str, Callable] = 'cosine',
                  message_distance_fn: Union[str, Callable] = 'edit',
                  compute_topsim_train_set: bool = False,
-                 compute_topsim_test_set: bool = True):
+                 compute_topsim_test_set: bool = True,
+                 is_gumbel: bool = False):
 
         self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None) \
             if isinstance(sender_input_distance_fn, str) else sender_input_distance_fn
@@ -96,6 +97,8 @@ class TopographicSimilarity(Callback):
 
         assert self.sender_input_distance_fn and self.message_distance_fn, f"Cannot recognize {sender_input_distance_fn} or {message_distance_fn} distances"
         assert compute_topsim_train_set or compute_topsim_test_set
+
+        self.is_gumbel = is_gumbel
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_test_set:
@@ -114,6 +117,7 @@ class TopographicSimilarity(Callback):
                     for j, el2 in enumerate(_list[i+1:])
                     ]
 
+        messages = messages.argmax(dim=-1) if self.is_gumbel else messages
         messages = [msg.tolist() for msg in messages]
 
         input_dist = compute_distance(
