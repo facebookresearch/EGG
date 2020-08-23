@@ -16,7 +16,7 @@ class Sender(nn.Module):
     def __init__(self, message_dim):
         super(Sender, self).__init__()
         self.fc1 = nn.Linear(784, 400)
-        self.fc21 = nn.Linear(400, message_dim)
+        self.fc21 = nn.Linear(400, 400)
         self.fc22 = nn.Linear(400, message_dim)
 
     def forward(self, x):
