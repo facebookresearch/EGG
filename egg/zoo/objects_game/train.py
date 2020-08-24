@@ -16,7 +16,7 @@ import operator
 import numpy as np
 import pathlib
 
-def get_params():
+def get_params(params):
     parser = argparse.ArgumentParser()
 
     input_data = parser.add_mutually_exclusive_group()
@@ -77,7 +77,7 @@ def get_params():
     parser.add_argument('--debug', action='store_true', default=False,
                         help="Run egg/objects_game with pdb enabled")
 
-    args = core.init(parser)
+    args = core.init(parser, params)
 
     check_args(args)
     print(args)
@@ -114,8 +114,8 @@ def loss(_sender_input,  _message, _receiver_input, receiver_output, _labels):
     return loss, {'acc': acc}
 
 
-if __name__ == "__main__":
-    opts = get_params()
+def main(params):
+    opts = get_params(params)
 
     device = torch.device('cuda' if opts.cuda else 'cpu')
 
@@ -248,3 +248,7 @@ if __name__ == "__main__":
                 f.write(f'Unique messages produced by sender: {len(msg_dict.keys())}\n')
                 f.write(f"Messagses: 'msg' : msg_count: {str(sorted_msgs)}\n")
                 f.write(f'\nAccuracy: {accuracy}')
+
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1:])

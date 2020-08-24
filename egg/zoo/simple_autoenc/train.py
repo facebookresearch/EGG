@@ -12,7 +12,7 @@ from egg.zoo.simple_autoenc.features import OneHotLoader
 from egg.zoo.simple_autoenc.archs import Sender, Receiver
 
 
-def get_params():
+def get_params(params):
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_features', type=int, default=10,
                         help='Dimensionality of the "concept" space (default: 10)')
@@ -51,7 +51,7 @@ def get_params():
     parser.add_argument('--mode', type=str, default='rf',
                         help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {rf, gs}"
                              "(default: rf)")
-    args = core.init(parser)
+    args = core.init(parser, params)
 
     return args
 
@@ -62,8 +62,8 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     return loss, {'acc': acc}
 
 
-if __name__ == "__main__":
-    opts = get_params()
+def main(params):
+    opts = get_params(params)
 
     device = torch.device("cuda" if opts.cuda else "cpu")
     train_loader = OneHotLoader(n_features=opts.n_features, batch_size=opts.batch_size,
@@ -109,3 +109,6 @@ if __name__ == "__main__":
 
     core.close()
 
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1:])

@@ -210,7 +210,7 @@ class CallbackEvaluator(core.Callback):
 
         return s
 
-    def on_epoch_end(self, loss: float, logs: Dict[str, Any] = None):
+    def on_epoch_end(self, _loss: float, _logs: core.Interaction, _epoch: int):
         game = self.trainer.game
         game.eval()
 
