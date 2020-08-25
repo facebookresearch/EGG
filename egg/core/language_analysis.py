@@ -100,17 +100,17 @@ class TopographicSimilarity(Callback):
 
         self.is_gumbel = is_gumbel
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.compute_topsim_test_set:
-            self.compute_similarity(
-                sender_input=logs.sender_input, messages=logs.message, epoch=epoch)
-
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_train_set:
             self.compute_similarity(
-                sender_input=logs.sender_input, messages=logs.message, epoch=epoch)
+                sender_input=logs.sender_input, messages=logs.message, mode='train', epoch=epoch)
 
-    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor, epoch: int):
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.compute_topsim_test_set:
+            self.compute_similarity(
+                sender_input=logs.sender_input, messages=logs.message, mode='test', epoch=epoch)
+
+    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor, mode: str, epoch: int):
         def compute_distance(_list, distance):
             return [distance(el1, el2)
                     for i, el1 in enumerate(_list[:-1])
@@ -126,5 +126,5 @@ class TopographicSimilarity(Callback):
         topsim = spearmanr(input_dist, message_dist,
                            nan_policy='raise').correlation
 
-        output_message = json.dumps(dict(topsim=topsim, epoch=epoch))
+        output_message = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
         print(output_message, flush=True)
