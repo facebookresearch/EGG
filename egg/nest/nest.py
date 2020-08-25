@@ -78,7 +78,13 @@ if __name__ == '__main__':
     if not args.no_preemption:
         combinations = [
             comb + ['--preemptable', f'--checkpoint_freq={args.checkpoint_freq}'] for comb in combinations]
+
     combinations = [comb + [f'--checkpoint_dir={args.checkpoint_dir}'] for comb in combinations]
+
+    if args.tasks > 1:
+        # ports should be in between 2**10 and 2**16, but we'll start from some random distant offset and use only a part of the space
+        # hopefully we'll never have 2**15 jobs on the same node
+        combinations = [comb + [f'--distributed_port={i % (2**15) + 18363}'] for (i, comb) in enumerate(combinations)]
 
     if args.preview or args.dry_run:
         for comb in combinations:
