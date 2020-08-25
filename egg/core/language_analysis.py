@@ -75,7 +75,6 @@ def mutual_info(xs, ys):
     return e_x + e_y - e_xy
 
 
-
 class MessageEntropy(Callback):
     def __init__(self, print_train: bool = True, is_gumbel: bool = False):
         super().__init__()
@@ -156,9 +155,13 @@ class PosDisent(Callback):
     Positional disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages", 
     Chaabouni et al., ACL 2020.
     """
-    def __init__(self, print_train: bool = True, is_gumbel: bool = False):
+
+    def __init__(self, print_train: bool = False, print_test: bool = True, is_gumbel: bool = False):
         super().__init__()
+        assert print_train or print_test, 'At least on of "print_train" and "print_train" must be enabled'
+
         self.print_train = print_train
+        self.print_test = print_test
         self.is_gumbel = is_gumbel
 
     @staticmethod
@@ -215,4 +218,5 @@ class PosDisent(Callback):
             self.print_message(logs, 'train', epoch)
 
     def on_test_end(self, loss, logs, epoch):
-        self.print_message(logs, 'test', epoch)
+        if self.print_test:
+            self.print_message(logs, 'test', epoch)
