@@ -85,13 +85,13 @@ def test_snapshoting():
     trainer = core.Trainer(game, optimizer, train_data=data, validation_data=None,
                            callbacks=[core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH)])
     trainer.train(2)
-    assert (CHECKPOINT_PATH / Path('0.tar')).exists()
     assert (CHECKPOINT_PATH / Path('1.tar')).exists()
+    assert (CHECKPOINT_PATH / Path('2.tar')).exists()
     assert (CHECKPOINT_PATH / Path('final.tar')).exists()
     del trainer
     trainer = core.Trainer(game, optimizer, train_data=data)  # Re-instantiate trainer
     trainer.load_from_latest(CHECKPOINT_PATH)
-    assert trainer.start_epoch == 1
+    assert trainer.start_epoch == 2
     trainer.train(3)
     shutil.rmtree(CHECKPOINT_PATH)  # Clean-up
 
