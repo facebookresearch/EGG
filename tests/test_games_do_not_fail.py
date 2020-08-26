@@ -65,8 +65,3 @@ def test_mnist_vae():
 def test_simple_object():
     run_game('egg.zoo.simple_object.train',
              dict(n_epochs=1, max_len=2, distractors=1))
-
-
-def test_simple_object2():
-    run_game('egg.zoo.simple_object.train',
-             dict(n_epochs=1, max_len=2))
