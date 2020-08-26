@@ -35,6 +35,7 @@ with PyTorch. However, to get a taste of communication games without writing any
   * [`egg/zoo/mnist_vae`](/egg/zoo/mnist_vae): Continuous-message VAE cast as an auto-encoder game. In this Sender/Receiver (Encoder/Decoder) game, Sender looks onto a MNIST image and sends a multi-dimensional vector to Receiver, who tries to recover the image.
  * [`egg/zoo/summation`](/egg/zoo/summation): Sender and Receiver are jointly trained to recognize the `a^nb^n` grammar: Sender reads an input sequence and Receiver answers if the sequence belongs to the grammar. Which agent actually counts, Sender or Receiver? Does Sender make the decision and send it to Receiver? Or does Sender encode the incoming sequence in the message and it is Receiver that make the decision? Or something in-between?
  * [`egg/zoo/external_game`](/egg/zoo/external_game): A signaling game that takes inputs and ground-truth outputs from CSV files. 
+ * [`egg/zoo/simple_object`](/egg/zoo/simple_object): A signaling game that takes a discrete symbolic target vector and either reconstructs it or discriminates it  among a list if distractors are present.
 </p></details>
 
  <details><summary>Games used in published work</summary><p>
