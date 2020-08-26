@@ -164,4 +164,4 @@ class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
         self.batches_generated += 1
         self.idx += 1
 
-        return torch.from_numpy(target).float(), torch.from_numpy(labels).float(), torch.from_numpy(receiver_input).float()
+        return torch.from_numpy(target).float(), torch.from_numpy(labels).long(), torch.from_numpy(receiver_input).float()

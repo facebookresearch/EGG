@@ -12,7 +12,7 @@ import egg.core as core
 from egg.zoo.simple_object.archs import Sender, Receiver
 
 
-def get_params():
+def get_params(params):
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_attributes', type=int, default=3,
                         help='Dimensionality of the "concept" space (default: 3)')
@@ -47,19 +47,25 @@ def get_params():
     parser.add_argument('--receiver_entropy_coeff', type=float, default=1e-1,
                         help='The entropy regularisation coefficient for Receiver (default: 1e-1)')
 
-    args = core.init(parser)
+    args = core.init(parser, params)
 
     return args
 
 
-def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+def reconstruction_loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     acc = (receiver_output.argmax(dim=1) == sender_input.argmax(dim=1)).detach().float()
     loss = F.cross_entropy(receiver_output, sender_input.argmax(dim=1), reduction="none")
     return loss, {'acc': acc}
 
 
-if __name__ == "__main__":
-    opts = get_params()
+def discrimination_loss(_sender_input,  _message, _receiver_input, receiver_output, _labels):
+    acc = (receiver_output.argmax(dim=1) == _labels).detach().float()
+    loss = F.cross_entropy(receiver_output, _labels, reduction="none")
+    return loss, {'acc': acc}
+
+
+def main(params):
+    opts = get_params(params)
 
     if opts.distractors:
         train_loader = AttributesValuesWithDistractorsDataset(n_attributes=opts.n_attributes,
@@ -93,6 +99,8 @@ if __name__ == "__main__":
 
     receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding, opts.receiver_hidden, cell=opts.receiver_cell)
 
+    loss = discrimination_loss if opts.distractors else reconstruction_loss
+
     game = core.SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=opts.sender_entropy_coeff, receiver_entropy_coeff=opts.receiver_entropy_coeff)
 
     optimizer = core.build_optimizer(game.parameters())
@@ -104,3 +112,8 @@ if __name__ == "__main__":
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
+
+
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1:])
