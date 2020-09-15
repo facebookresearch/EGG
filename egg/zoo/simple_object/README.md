@@ -6,7 +6,7 @@ The communication is performed by mean of variable-length messages; the training
 The game can be run as follows:
 
 ```bash
-python -m egg.zoo.simple_object.train --vocab_size=3 --n_attributes=6 --n_epoch=50 --max_len=10 --batch_size=512 --random_seed=21
+python -m egg.zoo.simple_object.train --vocab_size=3 --n_attributes=2 --n_epoch=50 --max_len=3 --batch_size=512 --random_seed=21
 ```
 
 The game accepts the following game-specific parameters:
