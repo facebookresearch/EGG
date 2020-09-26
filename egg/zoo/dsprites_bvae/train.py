@@ -1,55 +1,26 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 # This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source python -m egg.zoo.dsprites_bvae.train --lr=1e-3 --batch_size=128 --n_epochs=100 --vocab_size=2tree.
+# LICENSE file in the root directory of this source tree.
+
+import os
+import sys
+import pathlib
+import numpy as np
+
 
 import torch
 import torch.utils.data
-from scipy.stats import spearmanr
+
 from torchvision import datasets, transforms, utils
 from torch import nn
 from torch.nn import functional as F
-import egg.core as core
-import pathlib
 from torch.autograd import Variable
-import json
-from typing import Union, Callable
-import os
 
-
-
-import numpy as np
+import egg.core as core
 from .archs import VisualReceiver, VisualSender
 from egg.zoo.dsprites_bvae.data_loaders.data_loaders import get_dsprites_dataloader
 from egg.core.language_analysis import TopographicSimilarity, PosDisent
-
-
-class TopographicSimilarityLatents(TopographicSimilarity):
-    def __init__(self,
-                 sender_input_distance_fn: Union[str, Callable] = 'cosine',
-                 message_distance_fn: Union[str, Callable] = 'edit',
-                 compute_topsim_train_set: bool = False,
-                 compute_topsim_test_set: bool = True):
-
-        super().__init__(sender_input_distance_fn, message_distance_fn, compute_topsim_train_set, compute_topsim_test_set)
-
-    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor, mode: str,  epoch: int):
-        def compute_distance(_list, distance):
-            return [distance(el1, el2)
-                    for i, el1 in enumerate(_list[:-1])
-                    for j, el2 in enumerate(_list[i+1:])
-                    ]
-
-        messages = [msg.tolist() for msg in messages]
-        input_dist = compute_distance(
-            sender_input.numpy(), self.sender_input_distance_fn)
-        message_dist = compute_distance(messages, self.message_distance_fn)
-        topsim = spearmanr(input_dist, message_dist,
-                           nan_policy='raise').correlation
-
-        output_message = json.dumps(dict(topsim=topsim, epoch=epoch))
-        print(output_message, flush=True)
-
 
 def reconstruction_loss(x, x_recon, distribution='bernoulli'):
     batch_size = x.size(0)
@@ -74,7 +45,7 @@ def kl_divergence(mu, logvar):
     if logvar.data.ndimension() == 4:
         logvar = logvar.view(logvar.size(0), logvar.size(1))
 
-    klds = -0.5*(1 + logvar - mu.pow(2) - logvar.exp())
+    klds = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
     total_kld = klds.sum(1).mean(0, True)
     dimension_wise_kld = klds.mean(0)
     mean_kld = klds.mean(1).mean(0, True)
@@ -184,27 +155,21 @@ def main(params):
                                                             batch_size=opts.batch_size, image=True)
     image_shape = (64, 64)
 
-
-
-
-
     sender = VisualSender()
     receiver = VisualReceiver()
     game = betaVAE_Game(sender, receiver)
 
     optimizer = core.build_optimizer(game.parameters())
 
-
     # initialize and launch the trainer
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
                            callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True),
                                       ImageDumpCallback(test_loader.dataset, image_shape=image_shape),
-                                      TopographicSimilarityLatents('euclidean', 'euclidean'), PosDisent()])
+                                      TopographicSimilarity(sender_input_distance_fn='euclidean', message_distance_fn='euclidean', is_gumbel=False), PosDisent()])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
 
 
 if __name__ == "__main__":
-    import sys
     main(sys.argv[1:])

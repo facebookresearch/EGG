@@ -2,7 +2,6 @@
 The game can be used to play around with continuous channel and visual input. By default, topographic similarity and positional disentanglement are logged.
 ```bash
 cd EGG
-pip install wheel editdistance;
 pip install --editable .;
 python -m egg.zoo.dsprites_bvae.train --lr=1e-3 --batch_size=128 --n_epochs=100 --vocab_size=6
 ```
