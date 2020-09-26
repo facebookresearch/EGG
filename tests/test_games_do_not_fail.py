@@ -24,6 +24,10 @@ def test_simple_autoenc():
     run_game('egg.zoo.simple_autoenc.train', dict(
         vocab_size=3, n_features=6, n_epoch=1, max_len=2))
 
+def test_dsprites_bvae():
+    run_game('egg.zoo.dsprites_bvae.train', dict(
+        lr=1e-3, batch_size=32, n_epochs=1, vocab_size=6))
+
 
 def test_objects_game():
     run_game('egg.zoo.objects_game.train', dict(perceptual_dimensions="[4, 4, 4, 4, 4]", vocab_size=10, n_distractors=1,
