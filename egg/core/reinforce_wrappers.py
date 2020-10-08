@@ -63,7 +63,7 @@ def _verify_batch_sizes(loss, sender_probs, receiver_probs):
     if not is_ok:
         raise RuntimeError("Does your loss function returns aggregateed loss? When training with Reinforce, "
                            "the loss returned by your loss function must have the same batch (first) dimension as "
-                           "action log-probabilities retured by Sender and Receiver. However, currently shapes are "
+                           "action log-probabilities returned by Sender and Receiver. However, currently shapes are "
                            f"{loss_size}, {sender_size}, and {receiver_size}, respectively")
 
 
