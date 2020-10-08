@@ -446,7 +446,7 @@ class SenderReceiverRnnGS(nn.Module):
         for name, value in step_aux.items():
             aux_info[name] = value * not_eosed_before + aux_info.get(name, 0.0)
 
-        aux_info['mean_length'] = expected_length
+        aux_info['length'] = expected_length
 
         logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
         interaction = logging_strategy.filtered_interaction(
