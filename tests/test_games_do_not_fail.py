@@ -25,13 +25,8 @@ def test_simple_autoenc():
         vocab_size=3, n_features=6, n_epoch=1, max_len=2))
 
 
-def test_dsprites_bvae():
-    run_game('egg.zoo.dsprites_bvae.train', dict(
-        lr=1e-3, batch_size=32, n_epochs=1, vocab_size=6))
-
-
 def test_objects_game():
-    run_game('egg.zoo.objects_game.train', dict(perceptual_dimensions="[4, 4, 4, 4, 4]", vocab_size=10, n_distractors=1,
+    run_game('egg.zoo.objects_game.train', dict(perceptual_dimensions="[4, 4, 4, 4, 4]", vocab_size=3, n_distractors=1,
                                                 n_epochs=1, max_len=1, train_samples=100, validation_samples=100, test_samples=100))
 
 
@@ -63,5 +58,5 @@ def test_language_bottleneck():
 
 
 def test_mnist_vae():
-    run_game('egg.zoo.language_bottleneck.guess_number.train',
+    run_game('egg.zoo.mnist_vae.train',
              dict(n_epochs=1, vocab_size=5))
