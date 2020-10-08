@@ -441,6 +441,7 @@ class SenderReceiverRnnReinforce(nn.Module):
 
         aux_info['sender_entropy'] = entropy_s.detach()
         aux_info['receiver_entropy'] = entropy_r.detach()
+        aux_info['length'] = message_length.float() # will be averaged
 
         logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
         interaction = logging_strategy.filtered_interaction(sender_input=sender_input,
