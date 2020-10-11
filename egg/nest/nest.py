@@ -18,30 +18,31 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="nest: a stool-like slurm tool for EGG")
     parser.add_argument("--game", type=str, help="Game's full classpath to run, e.g. egg.zoo.mnist_autoenc.train")
     parser.add_argument("--sweep", action='append', default=[], help="Json file with sweep params in the stool format."
-                                                         "It is possible to specify several files: --sweep file1.json --sweep file2.json")
-    parser.add_argument("--py_sweep", action='append', default=[], help="A python module, with a grid() method outputting an iterable with the grid parameters."
+                                                                     "It is possible to specify several files:"
+                                                                     "--sweep file1.json --sweep file2.json")
+    parser.add_argument("--py_sweep", action='append', default=[], help="A python module, with a grid() method"
+                                                                        "returning an iterable with grid parameters."
                         "It is possible to specify several files.")
     parser.add_argument("--checkpoint_dir", type=str, default=None, help="Root folder to save job output")
     parser.add_argument("--preview", action="store_true", help="Don't start jobs, only show the list of commands")
     parser.add_argument("--dry_run", action="store_true", help="Synonym for preview")
 
     parser.add_argument("--name", type=str, default=None, help="sbatch name of job. Also used in the output directory")
-    #parser.add_argument("--ncpu", type=int, default=16, help="sbatch number of cpus required per node")
-    #parser.add_argument("--ngpu", type=int, default=1, help="Number of gpus required per node (--gres=gpu:N in sbatch)")
     parser.add_argument("--tasks", type=int, default=1, help="Number of task per node")
     parser.add_argument("--nodes", type=int, default=1, help="Number of nodes required per task")
     parser.add_argument("--partition", type=str, default="dev", help="Partition requested")
     parser.add_argument("--time", type=int, default=4320, help="Job timeout")
-    parser.add_argument("--checkpoint_freq", type=int, default=1,
-            help="Checkpoint frequency, imposed on an EGG game, in epochs (used to survive preemption). Disabled if set to 0.")
-    parser.add_argument("--no_preemption", action="store_true", help="")
-    parser.add_argument("--comment", type=str, help="")
+    parser.add_argument("--checkpoint_freq", type=int, default=0, help="Checkpoint frequency, imposed on an EGG game,"
+                                                                       "in epochs (used to survive preemption)."
+                                                                       "Disabled if set to 0.")
+    parser.add_argument("--no_preemption", action="store_true", help="Disable preemption from other processes on SLURM")
+    parser.add_argument("--comment", type=str, help="Comment on the list of jobs to launch")
 
     parser.add_argument("--force_requeue", action="store_true", help="Force job requeue after 1 minute [for debug]")
 
     parser.add_argument("--array", action="store_true", help="Use SLURM arrays")
-    parser.add_argument("--array_parallelism", type=int, default=128)
-
+    parser.add_argument("--array_parallelism", type=int, default=128, help="Max number of parallel jobs"
+                                                                           "executed from the search")
 
     args = parser.parse_args()
 
@@ -52,17 +53,6 @@ if __name__ == '__main__':
     if not args.name:
         args.name = args.game.split('.')[-2]
 
-    if args.checkpoint_dir is None:
-        args.checkpoint_dir = (pathlib.PosixPath('~/nest') / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
-    module = importlib.import_module(args.game)
-    executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
-    executor.update_parameters(timeout_min=args.time, partition=args.partition,
-            cpus_per_task=8, gpus_per_node=args.tasks, name=args.name, comment=args.comment,
-            nodes=args.nodes, tasks_per_node=args.tasks)
-
-    if args.array:
-        executor.update_parameters(array_parallelism=args.array_parallelism)
-
     combinations = []
     for sweep_file in args.sweep:
         combinations.extend(sweep(sweep_file))
@@ -70,6 +60,27 @@ if __name__ == '__main__':
     for py_sweep_file in args.py_sweep:
         sweep_module = importlib.import_module(py_sweep_file)
         combinations.extend(sweep_module.grid())
+
+    if args.preview or args.dry_run:
+        print(*combinations, sep='\n')
+        print(f'Total number of combinations: {len(combinations)}')
+        exit()
+
+    if args.checkpoint_dir is None:
+        args.checkpoint_dir = (pathlib.PosixPath('~/nest') / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
+    module = importlib.import_module(args.game)
+    executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
+    executor.update_parameters(timeout_min=args.time,
+                               slurm_partition=args.partition,
+                               cpus_per_task=10,
+                               gpus_per_node=args.tasks,
+                               name=args.name,
+                               slurm_comment=args.comment,
+                               nodes=args.nodes,
+                               tasks_per_node=args.tasks)
+
+    if args.array:
+        executor.update_parameters(array_parallelism=args.array_parallelism)
 
     pathlib.Path(args.checkpoint_dir).mkdir(parents=True)
 
@@ -82,15 +93,12 @@ if __name__ == '__main__':
     combinations = [comb + [f'--checkpoint_dir={args.checkpoint_dir}'] for comb in combinations]
 
     if args.tasks > 1:
-        # ports should be in between 2**10 and 2**16, but we'll start from some random distant offset and use only a part of the space
+        # ports should be in between 2**10 and 2**16, but we'll start from some random
+        # distant offset and use only a part of the space
         # hopefully we'll never have 2**15 jobs on the same node
         combinations = [comb + [f'--distributed_port={i % (2**15) + 18363}'] for (i, comb) in enumerate(combinations)]
 
-    if args.preview or args.dry_run:
-        for comb in combinations:
-            runner = SlurmWrapper(module.main)
-            print(f'{comb}')
-    elif not args.array:
+    if not args.array:
         for comb in combinations:
             runner = SlurmWrapper(module.main)
             job = executor.submit(runner, comb)
