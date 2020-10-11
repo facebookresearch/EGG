@@ -367,7 +367,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     >>> input = torch.zeros((5, 3)).normal_()
     >>> optimized_loss, interaction = game(input, labels=None)
     >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, message length etc
-    ['aux', 'receiver_entropy', 'sender_entropy']
+    ['aux', 'length', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
     (tensor([1., 1., 1., 1., 1.]), tensor(5.))
     """
