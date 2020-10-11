@@ -127,7 +127,7 @@ class VectorsLoader:
             assert possible_tuples > self.train_samples + self.validation_samples + self.test_samples , f'Not enough data for requested split sizes. Reduced split samples or increase perceptual_dimensions'
             train, valid, test = self.generate_tuples(data=all_vectors)
 
-        assert self.train_samples > self.batch_size and self.validation_samples > self.batch_size and self.test_samples > self.batch_size, 'Batch size cannot be smaller than any split size'
+        assert self.train_samples >= self.batch_size and self.validation_samples >= self.batch_size and self.test_samples >= self.batch_size, 'Batch size cannot be smaller than any split size'
 
         train_dataset = TupleDataset(*train)
         valid_dataset = TupleDataset(*valid)
