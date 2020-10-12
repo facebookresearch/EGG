@@ -67,9 +67,6 @@ where:
  * `vocab_size` -- the number of unique symbols in the vocabulary (inluding `<eos>`!). `<eos>` is conventionally mapped to 0. Default: 10.
  * `max_len` -- the maximal length of the message. Receiver's output is processed either after the `<eos>` symbol is received
  or after `max_len` symbols, and further symbols are ignored.
- * `force_eos` -- forces that each message sequence is terminated by a EOS. If not set (by default), the communication stops
- either when Sender sends an EOS symbol or when `max_len` is reached. Hence, it might happen that the last symbol consumed by Receiver is not 
- EOS. If set, all messages are forced to have the EOS. This is achieved by reducing `max_len` by 1 and appending the EOS symbol to each sequence.
 
 ## Training hyper-parameters:
  * `lr` -- the learning rates for the agents' parameters (it might be useful to have Sender's learning rate

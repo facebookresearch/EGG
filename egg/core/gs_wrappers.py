@@ -231,17 +231,12 @@ class RnnSenderGS(nn.Module):
     >>> output.size()  # batch size x max_len x vocab_size
     torch.Size([1, 3, 2])
     """
-    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn', force_eos=True,
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn',
                  trainable_temperature=False, straight_through=False):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
 
-        self.force_eos = force_eos
-
         self.max_len = max_len
-        if self.force_eos:
-            assert self.max_len > 1, "Cannot force eos when max_len is below 1"
-            self.max_len -= 1
 
         self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
         self.embedding = nn.Linear(vocab_size, embed_dim)
@@ -294,11 +289,6 @@ class RnnSenderGS(nn.Module):
             sequence.append(x)
 
         sequence = torch.stack(sequence).permute(1, 0, 2)
-
-        if self.force_eos:
-            eos = torch.zeros_like(sequence[:, 0, :]).unsqueeze(1)
-            eos[:, 0, 0] = 1
-            sequence = torch.cat([sequence, eos], dim=1)
 
         return sequence
 

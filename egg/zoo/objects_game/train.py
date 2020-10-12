@@ -158,7 +158,6 @@ def main(params):
                                     cell=opts.sender_cell,
                                     max_len=opts.max_len,
                                     temperature=opts.temperature,
-                                    force_eos=False
                                     )
 
         receiver = core.RnnReceiverGS(receiver,
