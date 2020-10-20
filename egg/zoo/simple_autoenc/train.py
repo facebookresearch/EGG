@@ -19,9 +19,6 @@ def get_params(params):
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
                         help='Number of batches per epoch (default: 1000)')
 
-    parser.add_argument('--force_eos', action='store_true', default=False,
-                        help='Force EOS at the end of the messages (default: False)')
-
     parser.add_argument('--sender_hidden', type=int, default=10,
                         help='Size of the hidden layer of Sender (default: 10)')
     parser.add_argument('--receiver_hidden', type=int, default=10,
@@ -63,6 +60,7 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
 
 
 def main(params):
+    import pdb; pdb.set_trace()
     opts = get_params(params)
 
     device = torch.device("cuda" if opts.cuda else "cpu")
@@ -77,7 +75,7 @@ def main(params):
     if opts.mode.lower() == 'rf':
         sender = core.RnnSenderReinforce(sender,
                                          opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                         cell=opts.sender_cell, max_len=opts.max_len, force_eos=opts.force_eos)
+                                         cell=opts.sender_cell, max_len=opts.max_len)
         receiver = core.RnnReceiverDeterministic(receiver, opts.vocab_size, opts.receiver_embedding,
                                                  opts.receiver_hidden, cell=opts.receiver_cell)
 
@@ -86,8 +84,7 @@ def main(params):
         callbacks = []
     elif opts.mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                  cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature,
-                                  force_eos=opts.force_eos)
+                                  cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature)
 
         receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_embedding,
                     opts.receiver_hidden, cell=opts.receiver_cell)

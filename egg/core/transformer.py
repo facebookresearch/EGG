@@ -52,7 +52,7 @@ class TransformerEncoder(nn.Module):
                  num_heads: int,
                  hidden_size: int,
                  num_layers: int = 1,
-                 positional_embedding=True,
+                 positional_embedding = True,
                  causal: bool = True) -> None:
         super().__init__()
 

@@ -152,9 +152,8 @@ def main(params):
 
     if opts.sender_cell in ['lstm', 'rnn', 'gru']:
         sender = Sender(n_inputs=n_dim, n_hidden=opts.sender_hidden)
-        sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size,
-                                         embed_dim=opts.sender_emb, hidden_size=opts.sender_hidden, max_len=opts.max_len, force_eos=False,
-                                         cell=opts.sender_cell)
+        sender = core.RnnSenderReinforce(agent=sender, vocab_size=opts.vocab_size, embed_dim=opts.sender_emb,
+                                         hidden_size=opts.sender_hidden, max_len=opts.max_len, cell=opts.sender_cell)
     else:
         raise ValueError(f'Unknown sender cell, {opts.sender_cell}')
 
