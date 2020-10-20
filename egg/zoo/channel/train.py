@@ -110,6 +110,13 @@ def dump(game, n_features, device, gs_mode):
 def main(params):
     opts = get_params(params)
     print(opts, flush=True)
+
+    # For compatibility, after https://github.com/facebookresearch/EGG/pull/130
+    # the meaning of `length` changed a bit. Before it included the EOS symbol; now
+    # it doesn't. To ensure that hyperparameters/CL arguments do not change,
+    # we subtract it here.
+    opts.max_len -= 1
+
     device = opts.device
 
     if opts.probs == 'uniform':
