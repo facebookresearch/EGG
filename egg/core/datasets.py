@@ -42,23 +42,23 @@ class AttributesValuesDataset:
         self.seed = seed
 
     def __iter__(self):
-        return AttributesValuesIterator(self.batch_size, self.n_batches_per_epoch, self.samples, self.seed)
+        return AttributesValuesIterator(self.samples, self.batch_size, self.n_batches_per_epoch, self.seed)
 
 
 class AttributesValuesIterator:
     """
     >>> samples = list(itertools.product(*(range(1, 4) for _ in range(3))))
-    >>> it1 = AttributesValuesIterator(10, 2, samples, 11)
-    >>> it2 = AttributesValuesIterator(10, 2, samples, 11)
+    >>> it1 = AttributesValuesIterator(samples, 10, 2, 11)
+    >>> it2 = AttributesValuesIterator(samples, 10, 2, 11)
     >>> l1 = [batch[0] for batch in it1]
     >>> l2 = [batch[0] for batch in it2]
     >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
     True
     """
     def __init__(self,
+                 samples: Iterable,
                  batch_size: int,
                  n_batches_per_epoch: int,
-                 samples: Iterable,
                  seed: int = None):
 
         self.batch_size = batch_size
@@ -122,26 +122,26 @@ class AttributesValuesWithDistractorsDataset(AttributesValuesDataset):
         self.distractors = distractors
 
     def __iter__(self):
-        return AttributesValuesWithDistractorsIterator(self.batch_size, self.n_batches_per_epoch, self.samples, self.distractors, self.seed)
+        return AttributesValuesWithDistractorsIterator(self.samples, self.batch_size, self.n_batches_per_epoch, self.distractors, self.seed)
 
 
 class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
     """
     >>> samples = list(itertools.product(*(range(1, 4) for _ in range(3))))
-    >>> it1 = AttributesValuesWithDistractorsIterator(10, 2, samples, 1, 22)
-    >>> it2 = AttributesValuesWithDistractorsIterator(10, 2, samples, 1, 22)
+    >>> it1 = AttributesValuesWithDistractorsIterator(samples, 10, 2, 1, 22)
+    >>> it2 = AttributesValuesWithDistractorsIterator(samples, 10, 2, 1, 22)
     >>> l1 = [batch[0] for batch in it1]
     >>> l2 = [batch[0] for batch in it2]
     >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
     True
     """
     def __init__(self,
+                 samples: Iterable,
                  batch_size: int,
                  n_batches_per_epoch: int,
-                 samples: Iterable,
                  distractors: int = 1,
                  seed: int = None):
-        super().__init__(batch_size, n_batches_per_epoch, samples, seed)
+        super().__init__(samples, batch_size, n_batches_per_epoch, seed)
         self.distractors = distractors
 
     def __iter__(self):
