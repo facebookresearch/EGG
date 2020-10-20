@@ -136,3 +136,20 @@ class CheckpointSaver(Callback):
                           model_state_dict=self.trainer.game.state_dict(),
                           optimizer_state_dict=self.trainer.optimizer.state_dict())
 
+
+class InteractionSaver(Callback):
+    def __init__(self,  train_epochs: List = None, test_epochs: List = None, folder_path: str = "~/interaction"):
+        self.train_epochs = train_epochs if train_epochs else []
+        self.test_epochs = test_epochs if test_epochs else []
+        self.folder_path = pathlib.Path(folder_path)
+
+    def dump_interactions(self, logs: Interaction, mode: str, epoch: int):
+        pass
+
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch in self.test_epochs:
+            self.dump_interactins(logs, 'validation', epoch
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch in self.train_epochs:
+            self.dump_interactins(logs, 'train', epoch
