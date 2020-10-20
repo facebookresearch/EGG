@@ -98,7 +98,7 @@ class MessageEntropy(Callback):
 
 
 class TopographicSimilarity(Callback):
-    distances = {'edit': lambda x, y: editdistance.eval(x, y) / (len(x) + len(y)) / 2,
+    distances = {'edit': lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2),
                  'cosine': distance.cosine,
                  'hamming': distance.hamming,
                  'jaccard': distance.jaccard,
