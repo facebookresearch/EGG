@@ -62,5 +62,5 @@ def test_mnist_vae():
     run_game('egg.zoo.mnist_vae.train',
              dict(n_epochs=1, vocab_size=5))
     dump_folder = pathlib.Path.cwd() / 'dump'
-    if os.path.isdir(dump_folder):
+    if dump_folder.is_dir():
         shutil.rmtree(dump_folder)
