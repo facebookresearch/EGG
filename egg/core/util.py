@@ -50,6 +50,8 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
                         help='Optimizer to use [adam, sgd, adagrad] (default: adam)')
     arg_parser.add_argument('--lr', type=float, default=1e-2,
                         help='Learning rate (default: 1e-2)')
+    arg_parser.add_argument('--update_freq', type=int, default=1,
+                        help='Learnable weights are updated every update_freq batches (default: 1)')
 
     # Channel parameters
     arg_parser.add_argument('--vocab_size', type=int, default=10,
