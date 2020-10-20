@@ -4,10 +4,11 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import sys
 import importlib
 import os
-
+import pathlib
+import shutil
+import sys
 
 def run_game(game, params):
     dev_null_file = open(os.devnull, 'w')
@@ -60,3 +61,6 @@ def test_language_bottleneck():
 def test_mnist_vae():
     run_game('egg.zoo.mnist_vae.train',
              dict(n_epochs=1, vocab_size=5))
+    dump_folder = pathlib.Path.cwd() / 'dump'
+    if os.path.isdir(dump_folder):
+        shutil.rmtree(dump_folder)
