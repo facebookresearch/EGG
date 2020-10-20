@@ -60,8 +60,8 @@ def _verify_batch_sizes(loss, sender_probs, receiver_probs):
 
     # Most likely you shouldn't have batch size 1, as Reinforce wouldn't work too well
     # but it is not incorrect either
-    if loss.numel() == sender_probs.numel() == receiver_probs.numbel() == 1:
-        return 
+    if loss.numel() == sender_probs.numel() == receiver_probs.numel() == 1:
+        return
 
     is_ok = loss_size and sender_size and \
         loss_size[0] == sender_size[0]
