@@ -57,15 +57,21 @@ class ReinforceWrapper(nn.Module):
 def _verify_batch_sizes(loss, sender_probs, receiver_probs):
     loss_size, sender_size, receiver_size = loss.size(), sender_probs.size(), receiver_probs.size()
 
-    is_ok = loss_size and sender_size and receiver_size and \
-        loss_size[0] == sender_size[0] == receiver_size[0]
+    is_ok = loss_size and sender_size and \
+        loss_size[0] == sender_size[0]
 
     if not is_ok:
         raise RuntimeError("Does your loss function returns aggregateed loss? When training with Reinforce, "
                            "the loss returned by your loss function must have the same batch (first) dimension as "
-                           "action log-probabilities returned by Sender and Receiver. However, currently shapes are "
-                           f"{loss_size}, {sender_size}, and {receiver_size}, respectively")
+                           "action log-probabilities returned by Sender. However, currently shapes are "
+                           f"{loss_size} and {sender_size}.")
 
+    is_receiver_ok = (receiver_probs.numel() == 1 and receiver_probs.item() == 0.0) or \
+            (receiver_probs.numel() > 1 and receiver_size[0] == loss_size[0])
+    if not is_receiver_ok:
+        raise RuntimeError("The log-probabilites returned by Receiver must have either the same first dimenstion "
+                           "as the loss or be a scalar tensor with value 0.0. "
+                           f"Current shapes are {receiver_size} and {loss_size}.")
 
 class ReinforceDeterministicWrapper(nn.Module):
     """
@@ -140,7 +146,7 @@ class SymbolGameReinforce(nn.Module):
         receiver_output, receiver_log_prob, receiver_entropy = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        _verify_batch_sizes(loss, sender_log_prob, receiver_log_prob)
+        if self.training: _verify_batch_sizes(loss, sender_log_prob, receiver_log_prob)
 
         policy_loss = ((loss.detach() - self.baseline.predict(loss.detach())) * (sender_log_prob + receiver_log_prob)).mean()
         entropy_loss = -(sender_entropy.mean() * self.sender_entropy_coeff + receiver_entropy.mean() * self.receiver_entropy_coeff)
@@ -421,7 +427,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_length)
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        _verify_batch_sizes(loss, log_prob_s, log_prob_r)
+        if self.training: _verify_batch_sizes(loss, log_prob_s, log_prob_r)
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
         effective_entropy_s = torch.zeros_like(entropy_r)

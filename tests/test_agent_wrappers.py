@@ -110,7 +110,7 @@ def test_game_reinforce():
     receiver = core.ReinforceDeterministicWrapper(Receiver())
 
     loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (-(receiver_output == labels).float().mean(), {})
+        (-(receiver_output == labels).float(), {})
 
     game = core.SymbolGameReinforce(sender, receiver, loss, sender_entropy_coeff=1e-1, receiver_entropy_coeff=0.0)
     optimizer = torch.optim.Adagrad(game.parameters(), lr=1e-1)
