@@ -127,6 +127,9 @@ def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[Li
         except ModuleNotFoundError:
             print('Cannot load tensorboard module; makes sure you installed everything required')
 
+    if common_opts.update_freq <= 0:
+        raise RuntimeError(f'update_freq should be an integer, >= 1.')
+
     return common_opts
 
 
