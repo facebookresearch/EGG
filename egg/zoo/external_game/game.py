@@ -69,9 +69,6 @@ def get_params():
                         help='Number of classes for Receiver to output. If not set, is automatically deduced from '
                              'the training set')
 
-    parser.add_argument('--force_eos', action='store_true', default=False,
-                        help="When set, forces that the last symbol of the message is EOS (default: False)")
-
     args = core.init(parser)
     return args
 
@@ -158,8 +155,7 @@ if __name__ == "__main__":
     if opts.train_mode.lower() == 'rf':
         sender = core.RnnSenderReinforce(sender,
                                          opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                         cell=opts.sender_cell, max_len=opts.max_len, force_eos=opts.force_eos,
-                                         num_layers=opts.sender_layers)
+                                         cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_layers)
         receiver = core.RnnReceiverReinforce(receiver, opts.vocab_size, opts.receiver_embedding,
                                                  opts.receiver_hidden, cell=opts.receiver_cell,
                                              num_layers=opts.receiver_layers)
@@ -168,8 +164,7 @@ if __name__ == "__main__":
                                                receiver_entropy_coeff=opts.receiver_entropy_coeff)
     elif opts.train_mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender, opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                  cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature,
-                                  force_eos=opts.force_eos)
+                                  cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature)
 
         receiver = core.RnnReceiverGS(receiver, opts.vocab_size, opts.receiver_embedding,
                     opts.receiver_hidden, cell=opts.receiver_cell)

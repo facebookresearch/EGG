@@ -228,20 +228,16 @@ class RnnSenderGS(nn.Module):
     >>> agent = nn.Linear(10, 5) #  input size 10, the RNN's hidden size is 5
     >>> agent = RnnSenderGS(agent, vocab_size=2, embed_dim=10, hidden_size=5, max_len=3, temperature=1.0, cell='lstm')
     >>> output = agent(torch.ones((1, 10)))
-    >>> output.size()  # batch size x max_len x vocab_size
-    torch.Size([1, 3, 2])
+    >>> output.size()  # batch size x max_len+1 x vocab_size
+    torch.Size([1, 4, 2])
     """
-    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn', force_eos=True,
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn',
                  trainable_temperature=False, straight_through=False):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
 
-        self.force_eos = force_eos
-
+        assert max_len >= 1, "Cannot have a max_len below 1"
         self.max_len = max_len
-        if self.force_eos:
-            assert self.max_len > 1, "Cannot force eos when max_len is below 1"
-            self.max_len -= 1
 
         self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
         self.embedding = nn.Linear(vocab_size, embed_dim)
@@ -295,10 +291,9 @@ class RnnSenderGS(nn.Module):
 
         sequence = torch.stack(sequence).permute(1, 0, 2)
 
-        if self.force_eos:
-            eos = torch.zeros_like(sequence[:, 0, :]).unsqueeze(1)
-            eos[:, 0, 0] = 1
-            sequence = torch.cat([sequence, eos], dim=1)
+        eos = torch.zeros_like(sequence[:, 0, :]).unsqueeze(1)
+        eos[:, 0, 0] = 1
+        sequence = torch.cat([sequence, eos], dim=1)
 
         return sequence
 
