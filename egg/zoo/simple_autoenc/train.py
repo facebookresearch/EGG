@@ -60,7 +60,6 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
 
 
 def main(params):
-    import pdb; pdb.set_trace()
     opts = get_params(params)
 
     device = torch.device("cuda" if opts.cuda else "cpu")
