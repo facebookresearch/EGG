@@ -56,6 +56,8 @@ class Trainer:
         self.grad_norm = grad_norm
         self.aggregate_interaction_logs = aggregate_interaction_logs
 
+        self.update_freq = common_opts.update_freq
+
         if common_opts.load_from_checkpoint is not None:
             print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
@@ -143,16 +145,23 @@ class Trainer:
 
         self.game.train()
 
-        for batch in self.train_data:
-            self.optimizer.zero_grad()
+        self.optimizer.zero_grad()
+
+        for batch_id, batch in enumerate(self.train_data):
             batch = move_to(batch, self.device)
             optimized_loss, interaction = self.game(*batch)
+            if self.update_freq > 1:
+                # throughout EGG, we minimize _mean_ loss, not sum
+                # hence, we need to account for that when aggregating grads
+                optimized_loss = optimized_loss / self.update_freq
             optimized_loss.backward()
 
-            if self.grad_norm:
-                torch.nn.utils.clip_grad_norm_(self.game.parameters(), self.grad_norm)
+            if batch_id % self.update_freq == self.update_freq - 1:
+                if self.grad_norm:
+                    torch.nn.utils.clip_grad_norm_(self.game.parameters(), self.grad_norm)
 
-            self.optimizer.step()
+                self.optimizer.step()
+                self.optimizer.zero_grad()
 
             n_batches += 1
             mean_loss += optimized_loss.detach()
