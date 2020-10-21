@@ -5,12 +5,15 @@
 
 import argparse
 from collections import defaultdict
+import pathlib
+import pickle
 import random
 import sys
 from typing import Union, Iterable, List, Optional, Any
 
 import numpy as np
 import torch
+
 from .interaction import Interaction
 from .distributed import maybe_init_distributed
 
@@ -241,6 +244,16 @@ def move_to(x: Any, device: torch.device) \
     return x
 
 
+def load_interactions(file_path: str):
+    file_path = pathlib.Path(file_path)
+    assert file_path.exists(), f'{file_path} does not exist. Interactions cannot be loaded'
+    try:
+        with open(file_path, 'rb') as fd:
+            return pickle.load(fd)
+    except FileNotFoundError:
+        print(f'{file_path} was an invalid path to load interactions.')
+        exit(1)
+
 def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     """
     :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
@@ -266,4 +279,3 @@ def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     lengths.add_(1).clamp_(max=max_k)
 
     return lengths
-

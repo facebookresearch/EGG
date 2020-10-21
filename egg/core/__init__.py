@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from .trainers import Trainer
-from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver
+from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver, InteractionSaver
 from .language_analysis import MessageEntropy, TopographicSimilarity, PosDisent
 from .util import init, get_opts, build_optimizer, dump_interactions, move_to, get_summary_writer, close
 from .early_stopping import EarlyStopperAccuracy
@@ -32,6 +32,7 @@ __all__ = [
     'ConsoleLogger',
     'TensorboardLogger',
     'TemperatureUpdater',
+    'InteractionSaver',
     'CheckpointSaver',
     'ReinforceWrapper',
     'GumbelSoftmaxWrapper',
