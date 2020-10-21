@@ -60,8 +60,8 @@ def _verify_batch_sizes(loss, sender_probs, receiver_probs):
 
     # Most likely you shouldn't have batch size 1, as Reinforce wouldn't work too well
     # but it is not incorrect either
-    if loss.numel() == sender_probs.numel() == receiver_probs.numbel() == 1:
-        return 
+    if loss.numel() == sender_probs.numel() == receiver_probs.numel() == 1:
+        return
 
     is_ok = loss_size and sender_size and \
         loss_size[0] == sender_size[0]
@@ -188,17 +188,15 @@ class RnnSenderReinforce(nn.Module):
     is replaced by argmax.
 
     >>> agent = nn.Linear(10, 3)
-    >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm', force_eos=False)
+    >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm')
     >>> input = torch.FloatTensor(16, 10).uniform_(-0.1, 0.1)
     >>> message, logprob, entropy = agent(input)
-    >>> message.size()
-    torch.Size([16, 10])
-    >>> (entropy > 0).all().item()
-    1
-    >>> message.size()  # batch size x max_len
-    torch.Size([16, 10])
+    >>> message.size()  # batch size x max_len+1
+    torch.Size([16, 11])
+    >>> (entropy[:, -1] > 0).all().item()  # EOS symbol will have 0 entropy
+    False
     """
-    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, num_layers=1, cell='rnn', force_eos=True):
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, num_layers=1, cell='rnn'):
         """
         :param agent: the agent to be wrapped
         :param vocab_size: the communication vocabulary size
@@ -206,18 +204,12 @@ class RnnSenderReinforce(nn.Module):
         :param hidden_size: the RNN cell's hidden state size
         :param max_len: maximal length of the output messages
         :param cell: type of the cell used (rnn, gru, lstm)
-        :param force_eos: if set to True, each message is extended by an EOS symbol. To ensure that no message goes
-        beyond `max_len`, Sender only generates `max_len - 1` symbols from an RNN cell and appends EOS.
         """
         super(RnnSenderReinforce, self).__init__()
         self.agent = agent
 
-        self.force_eos = force_eos
-
+        assert max_len >= 1, "Cannot have a max_len below 1"
         self.max_len = max_len
-        if force_eos:
-            assert self.max_len > 1, "Cannot force eos when max_len is below 1"
-            self.max_len -= 1
 
         self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
         self.embedding = nn.Embedding(vocab_size, embed_dim)
@@ -282,12 +274,11 @@ class RnnSenderReinforce(nn.Module):
         logits = torch.stack(logits).permute(1, 0)
         entropy = torch.stack(entropy).permute(1, 0)
 
-        if self.force_eos:
-            zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
+        zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
 
-            sequence = torch.cat([sequence, zeros.long()], dim=1)
-            logits = torch.cat([logits, zeros], dim=1)
-            entropy = torch.cat([entropy, zeros], dim=1)
+        sequence = torch.cat([sequence, zeros.long()], dim=1)
+        logits = torch.cat([logits, zeros], dim=1)
+        entropy = torch.cat([entropy, zeros], dim=1)
 
         return sequence, logits, entropy
 
@@ -510,7 +501,7 @@ class TransformerReceiverDeterministic(nn.Module):
 
 class TransformerSenderReinforce(nn.Module):
     def __init__(self, agent, vocab_size, embed_dim, max_len, num_layers, num_heads, hidden_size,
-                 generate_style='standard', causal=True, force_eos=True):
+                 generate_style='standard', causal=True):
         """
         :param agent: the agent to be wrapped, returns the "encoder" state vector, which is the unrolled into a message
         :param vocab_size: vocab size of the message
@@ -525,20 +516,16 @@ class TransformerSenderReinforce(nn.Module):
             Then,
             'standard': [s1 s2 s3] -> embeddings [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
             'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> embeddings [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
-        :param force_eos: <eos> added to the end of each sequence
         """
         super(TransformerSenderReinforce, self).__init__()
         self.agent = agent
 
-        self.force_eos = force_eos
         assert generate_style in ['standard', 'in-place']
         self.generate_style = generate_style
         self.causal = causal
 
+        assert max_len >= 1, "Cannot have a max_len below 1"
         self.max_len = max_len
-
-        if force_eos:
-            self.max_len -= 1
 
         self.transformer = TransformerDecoder(embed_dim=embed_dim,
                                               max_len=max_len, num_layers=num_layers,
@@ -637,13 +624,10 @@ class TransformerSenderReinforce(nn.Module):
         logits = torch.stack(logits).permute(1, 0)
         entropy = torch.stack(entropy).permute(1, 0)
 
-        if self.force_eos:
-            zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
+        zeros = torch.zeros((sequence.size(0), 1)).to(sequence.device)
 
-            sequence = torch.cat([sequence, zeros.long()], dim=1)
-            logits = torch.cat([logits, zeros], dim=1)
-            entropy = torch.cat([entropy, zeros], dim=1)
+        sequence = torch.cat([sequence, zeros.long()], dim=1)
+        logits = torch.cat([logits, zeros], dim=1)
+        entropy = torch.cat([entropy, zeros], dim=1)
 
         return sequence, logits, entropy
-
-

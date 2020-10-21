@@ -152,14 +152,12 @@ def main(params):
 
     if opts.mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender,
-                                    opts.vocab_size,
-                                    opts.sender_embedding,
-                                    opts.sender_hidden,
-                                    cell=opts.sender_cell,
-                                    max_len=opts.max_len,
-                                    temperature=opts.temperature,
-                                    force_eos=False
-                                    )
+                                  opts.vocab_size,
+                                  opts.sender_embedding,
+                                  opts.sender_hidden,
+                                  cell=opts.sender_cell,
+                                  max_len=opts.max_len,
+                                  temperature=opts.temperature)
 
         receiver = core.RnnReceiverGS(receiver,
                                     opts.vocab_size,

@@ -21,8 +21,6 @@ def get_params(params):
                         help='Dimensionality of the "concept" space (default: 10)')
     parser.add_argument('--batches_per_epoch', type=int, default=1000,
                         help='Number of batches per epoch (default: 1000)')
-    parser.add_argument('--force_eos', type=int, default=0,
-                        help='Force EOS at the end of the messages (default: 0)')
 
     parser.add_argument('--sender_hidden', type=int, default=10,
                         help='Size of the hidden layer of Sender (default: 10)')
@@ -112,9 +110,14 @@ def dump(game, n_features, device, gs_mode):
 def main(params):
     opts = get_params(params)
     print(opts, flush=True)
-    device = opts.device
 
-    force_eos = opts.force_eos == 1
+    # For compatibility, after https://github.com/facebookresearch/EGG/pull/130
+    # the meaning of `length` changed a bit. Before it included the EOS symbol; now
+    # it doesn't. To ensure that hyperparameters/CL arguments do not change,
+    # we subtract it here.
+    opts.max_len -= 1
+
+    device = opts.device
 
     if opts.probs == 'uniform':
         probs = np.ones(opts.n_features)
@@ -138,7 +141,6 @@ def main(params):
                                                  embed_dim=opts.sender_embedding, max_len=opts.max_len,
                                                  num_layers=opts.sender_num_layers, num_heads=opts.sender_num_heads,
                                                  hidden_size=opts.sender_hidden,
-                                                 force_eos=opts.force_eos,
                                                  generate_style=opts.sender_generate_style,
                                                  causal=opts.causal_sender)
     else:
@@ -146,8 +148,7 @@ def main(params):
 
         sender = core.RnnSenderReinforce(sender,
                                    opts.vocab_size, opts.sender_embedding, opts.sender_hidden,
-                                   cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers,
-                                   force_eos=force_eos)
+                                   cell=opts.sender_cell, max_len=opts.max_len, num_layers=opts.sender_num_layers)
     if opts.receiver_cell == 'transformer':
         receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_embedding)
         receiver = core.TransformerReceiverDeterministic(receiver, opts.vocab_size, opts.max_len,
