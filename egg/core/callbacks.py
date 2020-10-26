@@ -3,10 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from collections import defaultdict
 import json
 import pathlib
-from typing import Dict, Any, Union,  NamedTuple, List, Callable
+import time
+from typing import Dict, Any, Union, NamedTuple, List
 
 import torch
 
@@ -40,7 +40,7 @@ class ConsoleLogger(Callback):
         self.as_json = as_json
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
-        dump = dict(loss=loss) 
+        dump = dict(loss=loss)
         aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
         dump.update(aggregated_metrics)
 
@@ -68,12 +68,12 @@ class TensorboardLogger(Callback):
             self.writer = get_summary_writer()
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        self.writer.add_scalar(tag=f'test/loss', scalar_value=loss, global_step=epoch)
+        self.writer.add_scalar(tag='test/loss', scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
             self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        self.writer.add_scalar(tag=f'train/loss', scalar_value=loss, global_step=epoch)
+        self.writer.add_scalar(tag='train/loss', scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
             self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=epoch)
 
@@ -136,3 +136,32 @@ class CheckpointSaver(Callback):
                           model_state_dict=self.trainer.game.state_dict(),
                           optimizer_state_dict=self.trainer.optimizer.state_dict())
 
+
+class InteractionSaver(Callback):
+    def __init__(self, train_epochs: List = None, test_epochs: List = None, folder_path: str = "./interactions"):
+        if isinstance(train_epochs, list):
+            assert all(map(lambda x: x > 0, train_epochs))
+            self.train_epochs =  train_epochs
+        else:
+            self.train_epochs =  []
+        if isinstance(test_epochs, list):
+            assert all(map(lambda x: x > 0, test_epochs))
+            self.test_epochs =  test_epochs
+        else:
+            self.test_epochs = []
+
+        self.folder_path = (pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
+
+    @staticmethod
+    def dump_interactions(logs: Interaction, mode: str, epoch: int, dump_dir: str = './interactions'):
+        dump_dir = pathlib.Path(dump_dir) / mode
+        dump_dir.mkdir(exist_ok=True, parents=True)
+        torch.save(logs, dump_dir / f'interactions_epoch{epoch}')
+
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch in self.test_epochs:
+            self.dump_interactions(logs, 'validation', epoch, self.folder_path)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch in self.train_epochs:
+            self.dump_interactions(logs, 'train', epoch, self.folder_path)

@@ -80,7 +80,7 @@ if __name__ == '__main__':
                                tasks_per_node=args.tasks)
 
     if args.array:
-        executor.update_parameters(array_parallelism=args.array_parallelism)
+        executor.update_parameters(slurm_array_parallelism=args.array_parallelism)
 
     pathlib.Path(args.checkpoint_dir).mkdir(parents=True)
 
