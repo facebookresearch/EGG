@@ -5,7 +5,6 @@
 
 import json
 import pathlib
-import pickle
 import time
 from typing import Dict, Any, Union, NamedTuple, List
 
@@ -157,8 +156,7 @@ class InteractionSaver(Callback):
     def dump_interactions(logs: Interaction, mode: str, epoch: int, dump_dir: str = './interactions'):
         dump_dir = pathlib.Path(dump_dir) / mode
         dump_dir.mkdir(exist_ok=True, parents=True)
-        with open(dump_dir / f'interactions_epoch{epoch}', 'wb') as fd:
-            pickle.dump(logs, fd, pickle.HIGHEST_PROTOCOL)
+        torch.save(logs, dump_dir / f'interactions_epoch{epoch}')
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
