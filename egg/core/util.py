@@ -6,7 +6,6 @@
 import argparse
 from collections import defaultdict
 import pathlib
-import pickle
 import random
 import sys
 from typing import Union, Iterable, List, Optional, Any
@@ -248,8 +247,7 @@ def load_interactions(file_path: str):
     file_path = pathlib.Path(file_path)
     assert file_path.exists(), f'{file_path} does not exist. Interactions cannot be loaded'
     try:
-        with open(file_path, 'rb') as fd:
-            return pickle.load(fd)
+        return torch.load(file_path)
     except FileNotFoundError:
         print(f'{file_path} was an invalid path to load interactions.')
         exit(1)
