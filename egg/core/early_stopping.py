@@ -9,12 +9,12 @@ from .callbacks import Callback
 from .interaction import Interaction
 
 
-class BaseEarlyStopper(Callback):
+class EarlyStopper(Callback):
     """
     A base class, supports the running statistic which is could be used for early stopping
     """
     def __init__(self, validation: bool = True):
-        super(BaseEarlyStopper, self).__init__()
+        super(EarlyStopper, self).__init__()
         self.train_stats: List[Tuple[float, Interaction]] = []
         self.validation_stats: List[Tuple[float, Interaction]] = []
         self.epoch: int = 0
@@ -37,7 +37,7 @@ class BaseEarlyStopper(Callback):
         raise NotImplementedError()
 
 
-class EarlyStopperAccuracy(BaseEarlyStopper):
+class EarlyStopperAccuracy(EarlyStopper):
     """
     Implements early stopping logic that stops training when a threshold on a metric
     is achieved.

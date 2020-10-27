@@ -196,6 +196,11 @@ class Trainer:
                     callback.on_test_end(validation_loss, validation_interaction, epoch+1)
 
             if self.should_stop:
+                for callback in self.callbacks:
+                    if not ('validation_loss' in locals() or 'validation_interaction' in locals()):
+                        validation_loss = validation_interaction = None
+
+                    callback.on_early_stopping(train_loss, train_interaction, epoch+1, validation_loss, validation_interaction)
                 break
 
         for callback in self.callbacks:
