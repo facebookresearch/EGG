@@ -98,65 +98,80 @@ class MessageEntropy(Callback):
 
 
 class TopographicSimilarity(Callback):
-    distances = {'edit': lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2),
-                 'cosine': distance.cosine,
-                 'hamming': distance.hamming,
-                 'jaccard': distance.jaccard,
-                 'euclidean': distance.euclidean,
-                 }
-
+    """
+    >>> words = ['cat', 'dog', 'pen', 'ben', 'ten']
+    >>> mean = [[ord(c) for c in w] for w in words]
+    >>> mess = [[ord(c) for c in w] for w in words]
+    >>> round(TopographicSimilarity.compute_topsim(mean, mess, 'hamming', 'hamming'), 6)
+    1.0
+    >>> round(TopographicSimilarity.compute_topsim(mean, mess, 'hamming', lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2)),  6)
+    1.0
+    """
     def __init__(self,
-                 sender_input_distance_fn: Union[str, Callable] = 'cosine',
+                 sender_input_distance_fn: Union[str, Callable] = 'hamming',
                  message_distance_fn: Union[str, Callable] = 'edit',
                  compute_topsim_train_set: bool = False,
                  compute_topsim_test_set: bool = True,
                  is_gumbel: bool = False):
 
-        self.sender_input_distance_fn = self.distances.get(sender_input_distance_fn, None) \
-            if isinstance(sender_input_distance_fn, str) else sender_input_distance_fn
-        self.message_distance_fn = self.distances.get(message_distance_fn, None) \
-            if isinstance(message_distance_fn, str) else message_distance_fn
+        self.sender_input_distance_fn = sender_input_distance_fn
+        self.message_distance_fn = message_distance_fn
+
         self.compute_topsim_train_set = compute_topsim_train_set
         self.compute_topsim_test_set = compute_topsim_test_set
-
-        assert self.sender_input_distance_fn and self.message_distance_fn, f"Cannot recognize {sender_input_distance_fn} or {message_distance_fn} distances"
         assert compute_topsim_train_set or compute_topsim_test_set
 
         self.is_gumbel = is_gumbel
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_train_set:
-            self.compute_similarity(
-                sender_input=logs.sender_input, messages=logs.message, mode='train', epoch=epoch)
+            self.print_message(logs, 'train', epoch)
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_test_set:
-            self.compute_similarity(
-                sender_input=logs.sender_input, messages=logs.message, mode='test', epoch=epoch)
+            self.print_message(logs, 'test', epoch)
 
-    def compute_similarity(self, sender_input: torch.Tensor, messages: torch.Tensor, mode: str, epoch: int):
-        def compute_distance(_list, distance):
-            return [distance(el1, el2)
-                    for i, el1 in enumerate(_list[:-1])
-                    for j, el2 in enumerate(_list[i+1:])
-                    ]
+    @staticmethod
+    def compute_topsim(meanings: torch.Tensor,
+                       messages: torch.Tensor,
+                       meaning_distance_fn: Union[str, Callable] = 'hamming',
+                       message_distance_fn: Union[str, Callable] = 'edit') -> float:
 
-        messages = messages.argmax(dim=-1) if self.is_gumbel else messages
-        messages = [msg.tolist() for msg in messages]
+        distances = {'edit': lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2),
+                     'cosine': distance.cosine,
+                     'hamming': distance.hamming,
+                     'jaccard': distance.jaccard,
+                     'euclidean': distance.euclidean,
+                     }
 
-        input_dist = compute_distance(
-            sender_input.numpy(), self.sender_input_distance_fn)
-        message_dist = compute_distance(messages, self.message_distance_fn)
-        topsim = spearmanr(input_dist, message_dist,
+        meaning_distance_fn = distances.get(meaning_distance_fn, None) \
+            if isinstance(meaning_distance_fn, str) else meaning_distance_fn
+        message_distance_fn = distances.get(message_distance_fn, None) \
+            if isinstance(message_distance_fn, str) else message_distance_fn
+
+        assert meaning_distance_fn and message_distance_fn, f"Cannot recognize {meaning_distance_fn} or {message_distance_fn} distances"
+
+        meaning_dist = distance.pdist(meanings, meaning_distance_fn)
+        message_dist = distance.pdist(messages, message_distance_fn)
+
+        topsim = spearmanr(meaning_dist, message_dist,
                            nan_policy='raise').correlation
 
-        output_message = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
-        print(output_message, flush=True)
+        return topsim
+
+    def print_message(self, logs: Interaction, mode: str, epoch: int) -> None:
+        messages = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
+        messages = [msg.tolist() for msg in messages]
+
+        topsim = self.compute_topsim(logs.sender_input, messages)
+
+        output = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
+        print(output, flush=True)
 
 
 class PosDisent(Callback):
     """
-    Positional disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages", 
+    Positional disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages",
     Chaabouni et al., ACL 2020.
     """
 
