@@ -21,6 +21,14 @@ class Callback:
     def on_train_end(self):
         pass
 
+    def on_early_stopping(self,
+                          train_loss: float,
+                          train_logs: Interaction,
+                          epoch: int,
+                          test_loss: float = None,
+                          test_logs: Interaction = None):
+        pass
+
     def on_test_begin(self, epoch: int):
         pass
 
