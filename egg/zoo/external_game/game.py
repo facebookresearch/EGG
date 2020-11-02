@@ -16,7 +16,6 @@ from torch.utils.data import DataLoader
 
 from egg.zoo.external_game.archs import Sender, Receiver, ReinforceReceiver
 
-
 def get_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_data', type=str, default=None,
