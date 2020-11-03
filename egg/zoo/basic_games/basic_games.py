@@ -12,22 +12,29 @@ import numpy as np
 
 def get_params(params):
     parser = argparse.ArgumentParser()
+    # arguments controlling the game type
     parser.add_argument('--game_type', type=str, default='reco',
                         help="Selects whether to play a reco(nstruction) or discri(mination) game (default: reco)")
+    # arguments concerning the input data and how they are processed
     parser.add_argument('--train_data', type=str, default=None,
                         help='Path to the train data')
     parser.add_argument('--validation_data', type=str, default=None,
                         help='Path to the validation data')
-    # following argument is only used in the reco game
+    # (the following is only used in the reco game)
     parser.add_argument('--n_attributes', type=int, default=None,
                         help='Number of attributes in Sender input (must match data set, and it is only used in reco game)')
     parser.add_argument('--n_values', type=int, default=None,
                         help='Number of values for each attribute (must match data set)')
-
     parser.add_argument('--validation_batch_size', type=int, default=1000,
                         help='Batch size when processing validation data, whereas training data batch_size is controlled by batch_size (default: 1000)')
-
-    
+    # arguments concerning the training method
+    parser.add_argument('--mode', type=str, default='rf',
+                        help="Selects whether Reinforce or Gumbel-Softmax relaxation is used for training {rf, gs} (default: rf)")
+    parser.add_argument('--temperature', type=float, default=1.0,
+                        help="GS temperature for the sender, only relevant in Gumbel-Softmax (gs) mode (default: 1.0)")
+    parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
+                        help='Reinforce entropy regularization coefficient for Sender, only relevant in Reinforce (rf) mode (default: 1e-1)')
+    # arguments concerning the agent architectures
     parser.add_argument('--sender_cell', type=str, default='rnn',
                         help='Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)')
     parser.add_argument('--receiver_cell', type=str, default='rnn',
@@ -40,12 +47,10 @@ def get_params(params):
                         help='Output dimensionality of the layer that embeds symbols produced at previous step in Sender (default: 10)')
     parser.add_argument('--receiver_embedding', type=int, default=10,
                         help='Output dimensionality of the layer that embeds the message symbols for Receiver (default: 10)')
-    parser.add_argument('--mode', type=str, default='rf',
-                        help="Selects whether Reinforce or Gumbel-Softmax relaxation is used for training {rf, gs} (default: rf)")
-    parser.add_argument('--temperature', type=float, default=1.0,
-                        help="GS temperature for the sender, only relevant in Gumbel-Softmax (gs) mode (default: 1.0)")
-    parser.add_argument('--sender_entropy_coeff', type=float, default=1e-1,
-                        help='Reinforce entropy regularization coefficient for Sender, only relevant in Reinforce (rf) mode (default: 1e-1)')
+    # arguments controlling the script output
+    parser.add_argument('--print_validation_events', default=False, action='store_true',
+                        help='If this flag is passed, at the end of training the script prints the input validation data, the corresponding messages produced bytthe Sender, and the output probabilities produced by the Receiver (default: do not print)')
+    # NB: the script also inherits the default EGG arguments (https://github.com/mbaroni/EGG/blob/basic_games/egg/core/util.py)
     args = core.init(parser,params)
     return args
 
@@ -134,17 +139,6 @@ class Sender(nn.Module):
     def forward(self, x):
         return self.fc1(x)
         # here, it might make sense to add a non-linearity, such as tanh
-      
-# def loss(sender_input, _message, _receiver_input, receiver_output, labels,n_attributes=opts.n_attributes,n_values=opts.n_values):
-#     batch_size = sender_input.size(0)
-#     receiver_output = receiver_output.view(batch_size*n_attributes, n_values)
-#     receiver_guesses = receiver_output.argmax(dim=1)
-#     correct_samples = (receiver_guesses == labels.view(-1)).view(batch_size,n_attributes).detach()
-#     acc = (torch.sum(correct_samples, dim=-1) == n_attributes).float()
-#     labels = labels.view(batch_size*n_attributes)
-#     loss = F.cross_entropy(receiver_output, labels, reduction="none")
-#     loss = loss.view(batch_size,-1).mean(dim=1)
-#     return loss, {'acc': acc}
 
 class PrintInMsgOut(Callback):
     def __init__(self, n_epochs):
