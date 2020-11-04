@@ -248,9 +248,9 @@ class PrintValidationEvents(Callback):
         if (epoch==self.n_epochs):
             print("INPUTS")
             print([m.tolist() for m in logs.sender_input], sep='\n')
-            print("GROUND TRUTH LABELS")
+            print("LABELS")
             print([m.tolist() for m in logs.labels], sep='\n')
             print("MESSAGES")
             print([m.tolist() for m in logs.message], sep='\n')
-            print("OUTPUT PROBABILITIES")
+            print("OUTPUTS")
             print([m.tolist() for m in logs.receiver_output], sep='\n')

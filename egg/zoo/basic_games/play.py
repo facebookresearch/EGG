@@ -1,10 +1,11 @@
 import argparse
 
+import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 import egg.core as core
-from egg.core import Callback, Interaction
+from egg.core import Callback, Interaction, PrintValidationEvents
 
 import numpy as np
 
@@ -116,8 +117,8 @@ def main(params):
         callbacks = []
         
     optimizer = core.build_optimizer(game.parameters())
-    if (print_validation_events == True):
-        trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,validation_data=test_loader,callbacks=callbacks+[core.ConsoleLogger(print_train_loss=True, as_json=True),core.PrintValidationExamples(n_epochs=opts.n_epochs)])
+    if (opts.print_validation_events == True):
+        trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,validation_data=test_loader,callbacks=callbacks+[core.ConsoleLogger(print_train_loss=True, as_json=True),core.PrintValidationEvents(n_epochs=opts.n_epochs)])
     else:
         trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,validation_data=test_loader,callbacks=callbacks+[core.ConsoleLogger(print_train_loss=True, as_json=True)])
 

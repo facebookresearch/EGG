@@ -5,7 +5,7 @@
 
 from .trainers import Trainer
 from .callbacks import Callback, ConsoleLogger, TensorboardLogger, TemperatureUpdater, CheckpointSaver, InteractionSaver
-from .language_analysis import MessageEntropy, TopographicSimilarity, PosDisent
+from .language_analysis import MessageEntropy, TopographicSimilarity, PosDisent, PrintValidationEvents
 from .util import init, get_opts, build_optimizer, dump_interactions, move_to, get_summary_writer, close
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (GumbelSoftmaxWrapper,
