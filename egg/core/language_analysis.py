@@ -239,3 +239,18 @@ class PosDisent(Callback):
     def on_test_end(self, loss, logs, epoch):
         if self.print_test:
             self.print_message(logs, 'test', epoch)
+
+class PrintValidationEvents(Callback):
+    def __init__(self, n_epochs):
+        super().__init__()
+        self.n_epochs=n_epochs
+    def on_test_end(self, _loss, logs: Interaction, epoch: int):
+        if (epoch==self.n_epochs):
+            print("INPUTS")
+            print([m.tolist() for m in logs.sender_input], sep='\n')
+            print("GROUND TRUTH LABELS")
+            print([m.tolist() for m in logs.labels], sep='\n')
+            print("MESSAGES")
+            print([m.tolist() for m in logs.message], sep='\n')
+            print("OUTPUT PROBABILITIES")
+            print([m.tolist() for m in logs.receiver_output], sep='\n')
