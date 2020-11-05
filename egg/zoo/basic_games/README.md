@@ -24,7 +24,7 @@ In this particular instance, the following parameters are invoked:
  * `n_epochs` -- how many times the data in the input training file should be traversed: note that they will be traversed in a different random order each time.
  * `batch_size` -- batch size for training data (can't be smaller than number of item items in training file).
  * `validation_batch_size` -- batch size for validation data, provided as a separate argument as it is often convenient to traverse the whole validation set in a single step.
- * `max_len` -- after `max_len`-1 symbols without `<eos>` have been emitted by the Sender, an `<eos>` is forced; consequently, the longest possible message will contain `max_len` symbols, with the last ne always being `<eos>`.
+ * `max_len` -- after `max_len` symbols without `<eos>` have been emitted by the Sender, an `<eos>` is forced; consequently, the longest possible message will contain `max_len` symbols, followed by `<eos>`.
  * `vocab_size` -- the number of unique symbols in the Sender vocabulary (inluding `<eos>`!).
  * `sender_hidden/receiver_hidden` -- the size of the hidden layers of the agents.
  ing SENDER_EMBEDDING
