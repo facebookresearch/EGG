@@ -1,5 +1,7 @@
 ## Introduction
 
+Many language emergence games research use a *reconstruction* or a *discrimination* task.
+
 `simple_autoenc` is a simple Sender/Receiver game where a pair of agents is trained to 
 encode and decode (i.e. autoencode) a one-hot vector of a fixed dimension.
 
