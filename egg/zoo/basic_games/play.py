@@ -27,8 +27,8 @@ def get_params(params):
                         help='Number of attributes in Sender input (must match data set, and it is only used in reco game)')
     parser.add_argument('--n_values', type=int, default=None,
                         help='Number of values for each attribute (must match data set)')
-    parser.add_argument('--validation_batch_size', type=int, default=1000,
-                        help='Batch size when processing validation data, whereas training data batch_size is controlled by batch_size (default: 1000)')
+    parser.add_argument('--validation_batch_size', type=int, default=0,
+                        help='Batch size when processing validation data, whereas training data batch_size is controlled by batch_size (default: same as training data batch size)')
     # arguments concerning the training method
     parser.add_argument('--mode', type=str, default='rf',
                         help="Selects whether Reinforce or Gumbel-Softmax relaxation is used for training {rf, gs} (default: rf)")
@@ -59,6 +59,8 @@ def get_params(params):
 
 def main(params):
     opts = get_params(params)
+    if (opts.validation_batch_size==0):
+        opts.validation_batch_size=opts.batch_size
     print(opts, flush=True)
 
     if (opts.game_type=='discri'):
