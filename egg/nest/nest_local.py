@@ -4,14 +4,13 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor, wait
 import importlib
 import pathlib
 import time
+from concurrent.futures import ProcessPoolExecutor, wait
 
 from egg.nest.common import sweep
 from egg.nest.wrappers import ConcurrentWrapper
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="nest_local: a simple grid-search tool for EGG")

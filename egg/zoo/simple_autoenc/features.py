@@ -3,12 +3,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import pickle
-import torch.utils.data as data
-import torch.nn.parallel
 import os
-import torch
+import pickle
+
 import numpy as np
+import torch
+import torch.nn.parallel
+import torch.utils.data as data
 
 
 class _OneHotIterator:

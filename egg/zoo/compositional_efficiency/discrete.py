@@ -3,20 +3,19 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import argparse
+import json
+import math
 import random
 
-from egg.zoo.compositional_efficiency.dataset import AttributeValueData
-from egg.zoo.compositional_efficiency.archs import (
-    Receiver, IdentitySender, RotatedSender)
-
-
-import json
-import argparse
-import torch.utils.data
 import torch.nn.functional as F
-import egg.core as core
+import torch.utils.data
 from torch.utils.data import DataLoader
-import math
+
+import egg.core as core
+from egg.zoo.compositional_efficiency.archs import (IdentitySender, Receiver,
+                                                    RotatedSender)
+from egg.zoo.compositional_efficiency.dataset import AttributeValueData
 
 
 def get_params(params):

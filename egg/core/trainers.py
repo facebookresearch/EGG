@@ -8,13 +8,15 @@ import pathlib
 from typing import List, Optional
 
 import torch
-from torch.utils.data import DataLoader
 import torch.distributed as distrib
+from torch.utils.data import DataLoader
 
-from .util import get_opts, move_to
-from .callbacks import Callback, ConsoleLogger, Checkpoint, CheckpointSaver, TensorboardLogger
+from .callbacks import (Callback, Checkpoint, CheckpointSaver, ConsoleLogger,
+                        TensorboardLogger)
+from .distributed import get_preemptive_checkpoint_dir, maybe_init_distributed
 from .interaction import Interaction
-from .distributed import maybe_init_distributed, get_preemptive_checkpoint_dir
+from .util import get_opts, move_to
+
 
 class Trainer:
     """

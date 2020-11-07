@@ -10,10 +10,10 @@ import time
 
 from egg.nest.common import sweep
 
-
 if __name__ == '__main__':
-    from egg.nest.wrappers import SlurmWrapper
     import submitit
+
+    from egg.nest.wrappers import SlurmWrapper
 
     parser = argparse.ArgumentParser(description="nest: a stool-like slurm tool for EGG")
     parser.add_argument("--game", type=str, help="Game's full classpath to run, e.g. egg.zoo.mnist_autoenc.train")

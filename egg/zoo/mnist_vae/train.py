@@ -3,13 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import pathlib
+
 import torch
 import torch.utils.data
-from torchvision import datasets, transforms, utils
 from torch import nn
 from torch.nn import functional as F
+from torchvision import datasets, transforms, utils
+
 import egg.core as core
-import pathlib
 
 
 class Sender(nn.Module):

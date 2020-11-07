@@ -3,16 +3,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import json
 import argparse
-import torch.utils.data
-import torch.nn.functional as F
-import egg.core as core
-from egg.zoo.language_bottleneck.guess_number.features import OneHotLoader, UniformLoader
-from egg.zoo.language_bottleneck.guess_number.archs import Sender, Receiver, ReinforcedReceiver
+import json
 
-from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
+import torch.nn.functional as F
+import torch.utils.data
+
+import egg.core as core
 from egg.core import EarlyStopperAccuracy
+from egg.zoo.language_bottleneck.guess_number.archs import (Receiver,
+                                                            ReinforcedReceiver,
+                                                            Sender)
+from egg.zoo.language_bottleneck.guess_number.features import (OneHotLoader,
+                                                               UniformLoader)
+from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
 
 
 def get_params(params):

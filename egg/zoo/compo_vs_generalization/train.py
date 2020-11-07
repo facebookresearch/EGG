@@ -3,20 +3,26 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import json
 import argparse
 import copy
-import torch
-from torch.utils.data import DataLoader
-import torch.nn.functional as F
-import egg.core as core
-from egg.zoo.compo_vs_generalization.data import ScaledDataset, enumerate_attribute_value, split_train_test, one_hotify, split_holdout, \
-    select_subset_V1, select_subset_V2
-from egg.zoo.compo_vs_generalization.archs import Sender, Receiver, \
-    Freezer, PlusOneWrapper, NonLinearReceiver
-from egg.zoo.compo_vs_generalization.intervention import Metrics, Evaluator
+import json
 
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
+import egg.core as core
 from egg.core import EarlyStopperAccuracy
+from egg.zoo.compo_vs_generalization.archs import (Freezer, NonLinearReceiver,
+                                                   PlusOneWrapper, Receiver,
+                                                   Sender)
+from egg.zoo.compo_vs_generalization.data import (ScaledDataset,
+                                                  enumerate_attribute_value,
+                                                  one_hotify, select_subset_V1,
+                                                  select_subset_V2,
+                                                  split_holdout,
+                                                  split_train_test)
+from egg.zoo.compo_vs_generalization.intervention import Evaluator, Metrics
 
 
 def get_params(params):
@@ -200,6 +206,7 @@ def main(params):
     if validation_acc > 0.99:
         def _set_seed(seed):
             import random
+
             import numpy as np
 
             random.seed(seed)

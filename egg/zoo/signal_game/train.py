@@ -3,12 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 import argparse
+import os
+
 import torch.nn.functional as F
+
 import egg.core as core
-from egg.zoo.signal_game.features import ImageNetFeat, ImagenetLoader
 from egg.zoo.signal_game.archs import InformedSender, Receiver
+from egg.zoo.signal_game.features import ImageNetFeat, ImagenetLoader
 
 
 def parse_arguments():

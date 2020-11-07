@@ -4,17 +4,19 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import print_function
-import sys
+
 import argparse
 import contextlib
+import sys
 
-import torch.utils.data
 import torch.nn.functional as F
-import egg.core as core
-from egg.zoo.external_game.features import CSVDataset
+import torch.utils.data
 from torch.utils.data import DataLoader
 
-from egg.zoo.external_game.archs import Sender, Receiver, ReinforceReceiver
+import egg.core as core
+from egg.zoo.external_game.archs import Receiver, ReinforceReceiver, Sender
+from egg.zoo.external_game.features import CSVDataset
+
 
 def get_params():
     parser = argparse.ArgumentParser()
