@@ -3,16 +3,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import json
 import argparse
+import json
+
 import numpy as np
-import torch.utils.data
 import torch.nn.functional as F
+import torch.utils.data
+
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
-from egg.zoo.channel.features import OneHotLoader, UniformLoader
-from egg.zoo.channel.archs import Sender, Receiver
 from egg.core.interaction import LoggingStrategy
+from egg.zoo.channel.archs import Receiver, Sender
+from egg.zoo.channel.features import OneHotLoader, UniformLoader
 
 
 def get_params(params):

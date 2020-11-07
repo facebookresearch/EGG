@@ -4,17 +4,17 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
-from collections import defaultdict
 import pathlib
 import random
 import sys
-from typing import Union, Iterable, List, Optional, Any
+from collections import defaultdict
+from typing import Any, Iterable, List, Optional, Union
 
 import numpy as np
 import torch
 
-from .interaction import Interaction
 from .distributed import maybe_init_distributed
+from .interaction import Interaction
 
 common_opts = None
 optimizer = None

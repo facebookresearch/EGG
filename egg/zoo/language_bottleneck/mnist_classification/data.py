@@ -5,6 +5,7 @@
 
 import torch
 
+
 class DoubleMnist:
     def __init__(self, loader, label_mapping):
         self.loader = loader

@@ -5,16 +5,18 @@
 
 import argparse
 import json
-from torch.nn import functional as F
-import torch.utils.data
-from torchvision import datasets, transforms
-import torch.distributions
-import egg.core as core
 
-from egg.zoo.language_bottleneck.mnist_classification.archs import Sender, Receiver
-from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
-from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
+import torch.distributions
+import torch.utils.data
+from torch.nn import functional as F
+from torchvision import datasets, transforms
+
+import egg.core as core
 from egg.core import EarlyStopperAccuracy
+from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
+from egg.zoo.language_bottleneck.mnist_classification.archs import (Receiver,
+                                                                    Sender)
+from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 
 
 def diff_loss_symbol(_sender_input, _message, _receiver_input, receiver_output, labels):

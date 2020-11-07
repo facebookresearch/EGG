@@ -6,11 +6,12 @@
 import json
 import pathlib
 import time
-from typing import Dict, Any, Union, NamedTuple, List
+from typing import Any, Dict, List, NamedTuple, Union
 
 import torch
 
 from egg.core.util import get_summary_writer
+
 from .interaction import Interaction
 
 

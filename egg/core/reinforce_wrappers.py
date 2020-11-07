@@ -3,9 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional, Callable
-from collections import defaultdict
 import math
+from collections import defaultdict
+from typing import Callable, Optional
 
 import numpy as np
 import torch
@@ -13,11 +13,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 
-from .rnn import RnnEncoder
-from .transformer import TransformerEncoder, TransformerDecoder
-from .util import find_lengths
-from .baselines import MeanBaseline, Baseline
+from .baselines import Baseline, MeanBaseline
 from .interaction import Interaction, LoggingStrategy
+from .rnn import RnnEncoder
+from .transformer import TransformerDecoder, TransformerEncoder
+from .util import find_lengths
+
 
 class ReinforceWrapper(nn.Module):
     """

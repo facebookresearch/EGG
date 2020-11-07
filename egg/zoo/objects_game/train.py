@@ -4,17 +4,24 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import print_function
+
 import argparse
-import torch.utils.data
-import torch.nn.functional as F
-import egg.core as core
-from egg.zoo.objects_game.features import VectorsLoader
-from egg.zoo.objects_game.archs import Sender, Receiver
-from egg.zoo.objects_game.util import compute_baseline_accuracy, compute_mi_input_msgs, entropy, mutual_info, dump_sender_receiver
-from egg.core.util import move_to
 import operator
-import numpy as np
 import pathlib
+
+import numpy as np
+import torch.nn.functional as F
+import torch.utils.data
+
+import egg.core as core
+from egg.core.util import move_to
+from egg.zoo.objects_game.archs import Receiver, Sender
+from egg.zoo.objects_game.features import VectorsLoader
+from egg.zoo.objects_game.util import (compute_baseline_accuracy,
+                                       compute_mi_input_msgs,
+                                       dump_sender_receiver, entropy,
+                                       mutual_info)
+
 
 def get_params(params):
     parser = argparse.ArgumentParser()

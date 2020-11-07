@@ -4,12 +4,14 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import print_function
+
 import torch
+import torch.distributions
 import torch.utils.data
-from torchvision import datasets, transforms
 from torch import nn
 from torch.nn import functional as F
-import torch.distributions
+from torchvision import datasets, transforms
+
 import egg.core as core
 
 

@@ -3,10 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
+import copy
 import itertools
 import random
-import copy
+
+import torch
 
 
 def enumerate_attribute_value(n_attributes, n_values):

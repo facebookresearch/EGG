@@ -3,18 +3,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Union, Callable
+import json
 from collections import defaultdict
+from typing import Callable, Union
 
 import editdistance
+import numpy as np
+import torch
 from scipy.spatial import distance
 from scipy.stats import spearmanr
 
-import numpy as np
-import torch
 from .callbacks import Callback
 from .interaction import Interaction
-import json
 
 
 def entropy_dict(freq_table):

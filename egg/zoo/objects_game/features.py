@@ -3,14 +3,17 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
-from torch.utils import data
-import numpy as np
-from functools import reduce
-from egg.zoo.objects_game.util import compute_binomial
 import itertools
 import os
 import pathlib
+from functools import reduce
+
+import numpy as np
+import torch
+from torch.utils import data
+
+from egg.zoo.objects_game.util import compute_binomial
+
 
 class VectorsLoader:
     def __init__(self,
