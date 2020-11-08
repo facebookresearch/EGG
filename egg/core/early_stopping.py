@@ -13,6 +13,7 @@ class EarlyStopper(Callback):
     """
     A base class, supports the running statistic which is could be used for early stopping
     """
+
     def __init__(self, validation: bool = True):
         super(EarlyStopper, self).__init__()
         self.train_stats: List[Tuple[float, Interaction]] = []
@@ -42,7 +43,10 @@ class EarlyStopperAccuracy(EarlyStopper):
     Implements early stopping logic that stops training when a threshold on a metric
     is achieved.
     """
-    def __init__(self, threshold: float, field_name: str = 'acc', validation: bool = True) -> None:
+
+    def __init__(
+        self, threshold: float, field_name: str = "acc", validation: bool = True
+    ) -> None:
         """
         :param threshold: early stopping threshold for the validation set accuracy
             (assumes that the loss function returns the accuracy under name `field_name`)
@@ -56,10 +60,14 @@ class EarlyStopperAccuracy(EarlyStopper):
 
     def should_stop(self) -> bool:
         if self.validation:
-            assert self.validation_stats, 'Validation data must be provided for early stooping to work'
+            assert (
+                self.validation_stats
+            ), "Validation data must be provided for early stooping to work"
             loss, last_epoch_interactions = self.validation_stats[-1]
         else:
-            assert self.train_stats, 'Training data must be provided for early stooping to work'
+            assert (
+                self.train_stats
+            ), "Training data must be provided for early stooping to work"
             loss, last_epoch_interactions = self.train_stats[-1]
 
         metric_mean = last_epoch_interactions.aux[self.field_name].mean()

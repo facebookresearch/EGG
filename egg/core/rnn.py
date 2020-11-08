@@ -17,7 +17,14 @@ class RnnEncoder(nn.Module):
     Assumes that the eos token has the id equal to 0.
     """
 
-    def __init__(self, vocab_size: int, embed_dim: int, n_hidden: int, cell: str = 'rnn', num_layers: int = 1) -> None:
+    def __init__(
+        self,
+        vocab_size: int,
+        embed_dim: int,
+        n_hidden: int,
+        cell: str = "rnn",
+        num_layers: int = 1,
+    ) -> None:
         """
         Arguments:
             vocab_size {int} -- The size of the input vocabulary (including eos)
@@ -31,17 +38,23 @@ class RnnEncoder(nn.Module):
         super(RnnEncoder, self).__init__()
 
         cell = cell.lower()
-        cell_types = {'rnn': nn.RNN, 'gru': nn.GRU, 'lstm': nn.LSTM}
+        cell_types = {"rnn": nn.RNN, "gru": nn.GRU, "lstm": nn.LSTM}
 
         if cell not in cell_types:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
-        self.cell = cell_types[cell](input_size=embed_dim, batch_first=True,
-                                     hidden_size=n_hidden, num_layers=num_layers)
+        self.cell = cell_types[cell](
+            input_size=embed_dim,
+            batch_first=True,
+            hidden_size=n_hidden,
+            num_layers=num_layers,
+        )
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
 
-    def forward(self, message: torch.Tensor, lengths: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(
+        self, message: torch.Tensor, lengths: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         """Feeds a sequence into an RNN cell and returns the last hidden state of the last layer.
         Arguments:
             message {torch.Tensor} -- A sequence to be processed, a torch.Tensor of type Long, dimensions [B, T]
@@ -56,7 +69,8 @@ class RnnEncoder(nn.Module):
             lengths = find_lengths(message)
 
         packed = nn.utils.rnn.pack_padded_sequence(
-            emb, lengths, batch_first=True, enforce_sorted=False)
+            emb, lengths, batch_first=True, enforce_sorted=False
+        )
         _, rnn_hidden = self.cell(packed)
 
         if isinstance(self.cell, nn.LSTM):

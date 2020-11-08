@@ -10,8 +10,13 @@ from typing import List, Optional
 import torch
 from torch.utils.data import DataLoader
 
-from .callbacks import (Callback, Checkpoint, CheckpointSaver, ConsoleLogger,
-                        TensorboardLogger)
+from .callbacks import (
+    Callback,
+    Checkpoint,
+    CheckpointSaver,
+    ConsoleLogger,
+    TensorboardLogger,
+)
 from .distributed import get_preemptive_checkpoint_dir
 from .interaction import Interaction
 from .util import get_opts, move_to
@@ -22,16 +27,17 @@ class Trainer:
     Implements the training logic. Some common configuration (checkpointing frequency, path, validation frequency)
     is done by checking util.common_opts that is set via the CL.
     """
+
     def __init__(
-            self,
-            game: torch.nn.Module,
-            optimizer: torch.optim.Optimizer,
-            train_data: DataLoader,
-            validation_data: Optional[DataLoader] = None,
-            device: torch.device = None,
-            callbacks: Optional[List[Callback]] = None,
-            grad_norm: float = None,
-            aggregate_interaction_logs: bool = True
+        self,
+        game: torch.nn.Module,
+        optimizer: torch.optim.Optimizer,
+        train_data: DataLoader,
+        validation_data: Optional[DataLoader] = None,
+        device: torch.device = None,
+        callbacks: Optional[List[Callback]] = None,
+        grad_norm: float = None,
+        aggregate_interaction_logs: bool = True,
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -60,30 +66,43 @@ class Trainer:
         self.update_freq = common_opts.update_freq
 
         if common_opts.load_from_checkpoint is not None:
-            print(f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}")
+            print(
+                f"# Initializing model, trainer, and optimizer from {common_opts.load_from_checkpoint}"
+            )
             self.load_from_checkpoint(common_opts.load_from_checkpoint)
 
         self.distributed_context = common_opts.distributed_context
         if self.distributed_context.is_distributed:
-            print('# Distributed context: ', self.distributed_context)
+            print("# Distributed context: ", self.distributed_context)
 
-        if self.distributed_context.is_leader and not any(isinstance(x, CheckpointSaver) for x in self.callbacks):
+        if self.distributed_context.is_leader and not any(
+            isinstance(x, CheckpointSaver) for x in self.callbacks
+        ):
             if common_opts.preemptable:
-                assert common_opts.checkpoint_dir, 'checkpointing directory has to be specified'
+                assert (
+                    common_opts.checkpoint_dir
+                ), "checkpointing directory has to be specified"
                 d = get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
                 self.checkpoint_path = d
                 self.load_from_latest(d)
             else:
-                self.checkpoint_path = None if common_opts.checkpoint_dir is None \
+                self.checkpoint_path = (
+                    None
+                    if common_opts.checkpoint_dir is None
                     else pathlib.Path(common_opts.checkpoint_dir)
+                )
 
             if self.checkpoint_path:
-                checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path,
-                                               checkpoint_freq=common_opts.checkpoint_freq)
+                checkpointer = CheckpointSaver(
+                    checkpoint_path=self.checkpoint_path,
+                    checkpoint_freq=common_opts.checkpoint_freq,
+                )
                 self.callbacks.append(checkpointer)
 
         if self.distributed_context.is_leader and common_opts.tensorboard:
-            assert common_opts.tensorboard_dir, 'tensorboard directory has to be specified'
+            assert (
+                common_opts.tensorboard_dir
+            ), "tensorboard directory has to be specified"
             tensorboard_logger = TensorboardLogger()
             self.callbacks.append(tensorboard_logger)
 
@@ -107,9 +126,9 @@ class Trainer:
             #    This wrapper would sync gradients of the underlying tensors - which are the ones that optimizer
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
 
-            self.game = torch.nn.parallel.DistributedDataParallel(self.game,
-                                                                  device_ids=[device_id],
-                                                                  output_device=device_id)
+            self.game = torch.nn.parallel.DistributedDataParallel(
+                self.game, device_ids=[device_id], output_device=device_id
+            )
 
         else:
             self.game.to(self.device)
@@ -128,9 +147,14 @@ class Trainer:
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
-                if self.distributed_context.is_distributed and self.aggregate_interaction_logs:
-                    interaction = Interaction.gather_distributed_interactions(interaction)
-                interaction = interaction.to('cpu')
+                if (
+                    self.distributed_context.is_distributed
+                    and self.aggregate_interaction_logs
+                ):
+                    interaction = Interaction.gather_distributed_interactions(
+                        interaction
+                    )
+                interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
                 n_batches += 1
                 interactions.append(interaction)
@@ -159,16 +183,21 @@ class Trainer:
 
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.grad_norm:
-                    torch.nn.utils.clip_grad_norm_(self.game.parameters(), self.grad_norm)
+                    torch.nn.utils.clip_grad_norm_(
+                        self.game.parameters(), self.grad_norm
+                    )
 
                 self.optimizer.step()
                 self.optimizer.zero_grad()
 
             n_batches += 1
             mean_loss += optimized_loss.detach()
-            if self.distributed_context.is_distributed and self.aggregate_interaction_logs:
+            if (
+                self.distributed_context.is_distributed
+                and self.aggregate_interaction_logs
+            ):
                 interaction = Interaction.gather_distributed_interactions(interaction)
-            interaction = interaction.to('cpu')
+            interaction = interaction.to("cpu")
             interactions.append(interaction)
 
         mean_loss /= n_batches
@@ -181,29 +210,39 @@ class Trainer:
 
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
-                callback.on_epoch_begin(epoch+1)  # noqa: E226
+                callback.on_epoch_begin(epoch + 1)  # noqa: E226
 
             train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(train_loss, train_interaction, epoch+1)  # noqa: E226
+                callback.on_epoch_end(
+                    train_loss, train_interaction, epoch + 1
+                )  # noqa: E226
 
             validation_loss = validation_interaction = None
-            if self.validation_data is not None and self.validation_freq > 0 and (epoch+1) % self.validation_freq == 0:  # noqa: E226, E501
+            if (
+                self.validation_data is not None
+                and self.validation_freq > 0
+                and (epoch + 1) % self.validation_freq == 0
+            ):  # noqa: E226, E501
                 for callback in self.callbacks:
-                    callback.on_test_begin(epoch+1)  # noqa: E226
+                    callback.on_test_begin(epoch + 1)  # noqa: E226
                 validation_loss, validation_interaction = self.eval()
 
                 for callback in self.callbacks:
-                    callback.on_test_end(validation_loss, validation_interaction, epoch+1)  # noqa: E226
+                    callback.on_test_end(
+                        validation_loss, validation_interaction, epoch + 1
+                    )  # noqa: E226
 
             if self.should_stop:
                 for callback in self.callbacks:
-                    callback.on_early_stopping(train_loss,
-                                               train_interaction,
-                                               epoch+1,  # noqa: E226
-                                               validation_loss,
-                                               validation_interaction)
+                    callback.on_early_stopping(
+                        train_loss,
+                        train_interaction,
+                        epoch + 1,  # noqa: E226
+                        validation_loss,
+                        validation_interaction,
+                    )
                 break
 
         for callback in self.callbacks:
@@ -219,14 +258,14 @@ class Trainer:
         Loads the game, agents, and optimizer state from a file
         :param path: Path to the file
         """
-        print(f'# loading trainer state from {path}')
+        print(f"# loading trainer state from {path}")
         checkpoint = torch.load(path)
         self.load(checkpoint)
 
     def load_from_latest(self, path):
         latest_file, latest_time = None, None
 
-        for file in path.glob('*.tar'):
+        for file in path.glob("*.tar"):
             creation_time = os.stat(file).st_ctime
             if latest_time is None or creation_time > latest_time:
                 latest_file, latest_time = file, creation_time

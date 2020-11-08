@@ -12,7 +12,7 @@ class Baseline(ABC):
     @abstractmethod
     def update(self, loss: torch.Tensor) -> None:
         """Update internal state according to the observed loss
-            loss (torch.Tensor): batch of losses
+        loss (torch.Tensor): batch of losses
         """
         pass
 
@@ -54,7 +54,9 @@ class MeanBaseline(Baseline):
         if self.mean_baseline.device != loss.device:
             self.mean_baseline = self.mean_baseline.to(loss.device)
 
-        self.mean_baseline += (loss.detach().mean().item() - self.mean_baseline) / self.n_points
+        self.mean_baseline += (
+            loss.detach().mean().item() - self.mean_baseline
+        ) / self.n_points
 
     def predict(self, loss: torch.Tensor) -> torch.Tensor:
         if self.mean_baseline.device != loss.device:
