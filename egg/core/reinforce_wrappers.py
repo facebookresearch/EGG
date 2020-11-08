@@ -5,16 +5,15 @@
 
 import math
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Callable
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 
 from .baselines import Baseline, MeanBaseline
-from .interaction import Interaction, LoggingStrategy
+from .interaction import LoggingStrategy
 from .rnn import RnnEncoder
 from .transformer import TransformerDecoder, TransformerEncoder
 from .util import find_lengths
@@ -55,6 +54,7 @@ class ReinforceWrapper(nn.Module):
 
         return sample, log_prob, entropy
 
+
 def _verify_batch_sizes(loss, sender_probs, receiver_probs):
     """Raises an excepption if tensors are not appropriately sized"""
     loss_size, sender_size, receiver_size = loss.size(), sender_probs.size(), receiver_probs.size()
@@ -76,11 +76,12 @@ def _verify_batch_sizes(loss, sender_probs, receiver_probs):
     # As Receiver can be deterministic (and have constant zero log-probs for all its actions)
     # we allow them to be a scalar tensor
     is_receiver_ok = (receiver_probs.numel() == 1 and receiver_probs.item() == 0.0) or \
-            (receiver_probs.numel() > 1 and receiver_size[0] == loss_size[0])
+                     (receiver_probs.numel() > 1 and receiver_size[0] == loss_size[0])
     if not is_receiver_ok:
         raise RuntimeError("The log-probabilites returned by Receiver must have either the same first dimenstion "
                            "as the loss or be a scalar tensor with value 0.0. "
                            f"Current shapes are {receiver_size} and {loss_size}.")
+
 
 class ReinforceDeterministicWrapper(nn.Module):
     """
@@ -155,10 +156,14 @@ class SymbolGameReinforce(nn.Module):
         receiver_output, receiver_log_prob, receiver_entropy = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        if self.training: _verify_batch_sizes(loss, sender_log_prob, receiver_log_prob)
 
-        policy_loss = ((loss.detach() - self.baseline.predict(loss.detach())) * (sender_log_prob + receiver_log_prob)).mean()
-        entropy_loss = -(sender_entropy.mean() * self.sender_entropy_coeff + receiver_entropy.mean() * self.receiver_entropy_coeff)
+        if self.training:
+            _verify_batch_sizes(loss, sender_log_prob, receiver_log_prob)
+
+        policy_loss = ((loss.detach() - self.baseline.predict(loss.detach())) * \
+                       (sender_log_prob + receiver_log_prob)).mean()  # noqa: E502
+        entropy_loss = -(sender_entropy.mean() * self.sender_entropy_coeff + receiver_entropy.mean() * \
+                         self.receiver_entropy_coeff)  # noqa: E502
 
         if self.training:
             self.baseline.update(loss.detach())
@@ -229,7 +234,8 @@ class RnnSenderReinforce(nn.Module):
         cell_type = cell_types[cell]
         self.cells = nn.ModuleList([
             cell_type(input_size=embed_dim, hidden_size=hidden_size) if i == 0 else \
-            cell_type(input_size=hidden_size, hidden_size=hidden_size) for i in range(self.num_layers)])
+            cell_type(input_size=hidden_size, hidden_size=hidden_size) \
+            for i in range(self.num_layers)])  # noqa: E502
 
         self.reset_parameters()
 
@@ -367,12 +373,14 @@ class SenderReceiverRnnReinforce(nn.Module):
     ...         return self.fc(rnn_output)
     >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, embed_dim=10, hidden_size=5)
     >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
-    ...     return F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1), {'aux': torch.ones(sender_input.size(0))}
+    ...     loss = F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1)
+    ...     aux = {'aux': torch.ones(sender_input.size(0))}
+    ...     return loss, aux
     >>> game = SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0,
     ...                                   length_cost=1e-2)
     >>> input = torch.zeros((5, 3)).normal_()
     >>> optimized_loss, interaction = game(input, labels=None)
-    >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, message length etc
+    >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, msg length etc
     ['aux', 'length', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
     (tensor([1., 1., 1., 1., 1.]), tensor(5.))
@@ -427,7 +435,8 @@ class SenderReceiverRnnReinforce(nn.Module):
         receiver_output, log_prob_r, entropy_r = self.receiver(message, receiver_input, message_length)
 
         loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
-        if self.training: _verify_batch_sizes(loss, log_prob_s, log_prob_r)
+        if self.training:
+            _verify_batch_sizes(loss, log_prob_s, log_prob_r)
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
         effective_entropy_s = torch.zeros_like(entropy_r)
@@ -443,13 +452,14 @@ class SenderReceiverRnnReinforce(nn.Module):
         effective_entropy_s = effective_entropy_s / message_length.float()
 
         weighted_entropy = effective_entropy_s.mean() * self.sender_entropy_coeff + \
-                entropy_r.mean() * self.receiver_entropy_coeff
+            entropy_r.mean() * self.receiver_entropy_coeff
 
         log_prob = effective_log_prob_s + log_prob_r
 
         length_loss = message_length.float() * self.length_cost
 
-        policy_length_loss = ((length_loss - self.baselines['length'].predict(length_loss)) * effective_log_prob_s).mean()
+        policy_length_loss = ((length_loss - self.baselines['length'].predict(length_loss)) * \
+                              effective_log_prob_s).mean()  # noqa: E502
         policy_loss = ((loss.detach() - self.baselines['loss'].predict(loss.detach())) * log_prob).mean()
 
         optimized_loss = policy_length_loss + policy_loss - weighted_entropy
@@ -462,20 +472,31 @@ class SenderReceiverRnnReinforce(nn.Module):
 
         aux_info['sender_entropy'] = entropy_s.detach()
         aux_info['receiver_entropy'] = entropy_r.detach()
-        aux_info['length'] = message_length.float() # will be averaged
+        aux_info['length'] = message_length.float()  # will be averaged
 
         logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
         interaction = logging_strategy.filtered_interaction(sender_input=sender_input,
-                                                                 labels=labels, receiver_input=receiver_input,
-                                                                 message=message.detach(), receiver_output=receiver_output.detach(),
-                                                                 message_length=message_length, aux=aux_info)
+                                                            labels=labels,
+                                                            receiver_input=receiver_input,
+                                                            message=message.detach(),
+                                                            receiver_output=receiver_output.detach(),
+                                                            message_length=message_length,
+                                                            aux=aux_info)
 
         return optimized_loss, interaction
 
 
 class TransformerReceiverDeterministic(nn.Module):
-    def __init__(self, agent, vocab_size, max_len, embed_dim, num_heads, hidden_size, num_layers, positional_emb=True,
-                causal=True):
+    def __init__(self,
+                 agent,
+                 vocab_size,
+                 max_len,
+                 embed_dim,
+                 num_heads,
+                 hidden_size,
+                 num_layers,
+                 positional_emb=True,
+                 causal=True):
         super(TransformerReceiverDeterministic, self).__init__()
         self.agent = agent
         self.encoder = TransformerEncoder(vocab_size=vocab_size,
@@ -516,7 +537,9 @@ class TransformerSenderReinforce(nn.Module):
             after three symbols [s1 s2 s3] were generated.
             Then,
             'standard': [s1 s2 s3] -> embeddings [[e1] [e2] [e3]] -> (s4 = argmax(linear(e3)))
-            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] -> embeddings [[e1] [e2] [e3] [e4]] -> (s4 = argmax(linear(e4)))
+            'in-place': [s1 s2 s3] -> [s1 s2 s3 <need-symbol>] \
+                                   -> embeddings [[e1] [e2] [e3] [e4]] \
+                                   -> (s4 = argmax(linear(e4)))
         """
         super(TransformerSenderReinforce, self).__init__()
         self.agent = agent
@@ -555,7 +578,7 @@ class TransformerSenderReinforce(nn.Module):
 
         for step in range(self.max_len):
             if self.causal:
-                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)
+                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)  # noqa: E226
                 attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
             else:
                 attn_mask = None
@@ -589,7 +612,7 @@ class TransformerSenderReinforce(nn.Module):
         for step in range(self.max_len):
             input = torch.cat(output + [special_symbol], dim=1)
             if self.causal:
-                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)
+                attn_mask = torch.triu(torch.ones(step+1, step+1).byte(), diagonal=1).to(device)  # noqa: E226
                 attn_mask = attn_mask.float().masked_fill(attn_mask == 1, float('-inf'))
             else:
                 attn_mask = None

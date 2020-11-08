@@ -8,7 +8,7 @@ import pathlib
 import random
 import sys
 from collections import defaultdict
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional
 
 import numpy as np
 import torch
@@ -23,43 +23,43 @@ summary_writer = None
 
 def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     arg_parser.add_argument('--random_seed', type=int, default=None,
-                        help='Set random seed')
+                            help='Set random seed')
     # trainer params
     arg_parser.add_argument('--checkpoint_dir', type=str, default=None,
-                        help='Where the checkpoints are stored')
+                            help='Where the checkpoints are stored')
     arg_parser.add_argument('--preemptable', default=False,
                             action='store_true',
                             help='If the flag is set, Trainer would always try to initialise itself from a checkpoint')
 
     arg_parser.add_argument('--checkpoint_freq', type=int, default=0,
-                        help='How often the checkpoints are saved')
+                            help='How often the checkpoints are saved')
     arg_parser.add_argument('--validation_freq', type=int, default=1,
-                        help='The validation would be run every `validation_freq` epochs')
+                            help='The validation would be run every `validation_freq` epochs')
     arg_parser.add_argument('--n_epochs', type=int, default=10,
-                        help='Number of epochs to train (default: 10)')
+                            help='Number of epochs to train (default: 10)')
     arg_parser.add_argument('--load_from_checkpoint', type=str, default=None,
-                        help='If the parameter is set, model, trainer, and optimizer states are loaded from the '
-                             'checkpoint (default: None)')
+                            help='If the parameter is set, model, trainer, and optimizer states are loaded from the '
+                            'checkpoint (default: None)')
     # cuda setup
     arg_parser.add_argument('--no_cuda', default=False, help='disable cuda',
-                        action='store_true')
+                            action='store_true')
     # dataset
     arg_parser.add_argument('--batch_size', type=int, default=32,
-                        help='Input batch size for training (default: 32)')
+                            help='Input batch size for training (default: 32)')
 
     # optimizer
     arg_parser.add_argument('--optimizer', type=str, default='adam',
-                        help='Optimizer to use [adam, sgd, adagrad] (default: adam)')
+                            help='Optimizer to use [adam, sgd, adagrad] (default: adam)')
     arg_parser.add_argument('--lr', type=float, default=1e-2,
-                        help='Learning rate (default: 1e-2)')
+                            help='Learning rate (default: 1e-2)')
     arg_parser.add_argument('--update_freq', type=int, default=1,
-                        help='Learnable weights are updated every update_freq batches (default: 1)')
+                            help='Learnable weights are updated every update_freq batches (default: 1)')
 
     # Channel parameters
     arg_parser.add_argument('--vocab_size', type=int, default=10,
-                        help='Number of symbols (terms) in the vocabulary (default: 10)')
+                            help='Number of symbols (terms) in the vocabulary (default: 10)')
     arg_parser.add_argument('--max_len', type=int, default=1,
-                        help='Max length of the sequence (default: 1)')
+                            help='Max length of the sequence (default: 1)')
 
     # Setting up tensorboard
     arg_parser.add_argument('--tensorboard', default=False, help='enable tensorboard',
@@ -83,7 +83,8 @@ def _get_params(arg_parser: argparse.ArgumentParser, params: List[str]) -> argpa
     return args
 
 
-def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[List[str]] = None) -> argparse.Namespace:
+def init(arg_parser: Optional[argparse.ArgumentParser] = None,
+         params: Optional[List[str]] = None) -> argparse.Namespace:
     """
     Should be called before any code using egg; initializes the common components, such as
     seeding logic etc.
@@ -115,8 +116,8 @@ def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[Li
     _set_seed(common_opts.random_seed)
 
     optimizers = {'adam': torch.optim.Adam,
-                 'sgd': torch.optim.SGD,
-                 'adagrad': torch.optim.Adagrad}
+                  'sgd': torch.optim.SGD,
+                  'adagrad': torch.optim.Adagrad}
     if common_opts.optimizer in optimizers:
         optimizer = optimizers[common_opts.optimizer]
     else:
@@ -130,7 +131,7 @@ def init(arg_parser:Optional[argparse.ArgumentParser] = None, params:Optional[Li
             print('Cannot load tensorboard module; makes sure you installed everything required')
 
     if common_opts.update_freq <= 0:
-        raise RuntimeError(f'update_freq should be an integer, >= 1.')
+        raise RuntimeError('update_freq should be an integer, >= 1.')
 
     return common_opts
 
@@ -140,7 +141,8 @@ def close() -> None:
     Should be called at the end of the program - however, not required unless Tensorboard is used
     """
     global summary_writer
-    if summary_writer: summary_writer.close()
+    if summary_writer:
+        summary_writer.close()
 
 
 def get_opts() -> argparse.Namespace:
@@ -193,7 +195,7 @@ def dump_interactions(game: torch.nn.Module,
     A tool to dump the interaction between Sender and Receiver
     :param game: A Game instance
     :param dataset: Dataset of inputs to be used when analyzing the communication
-    :param gs: whether the messages should be argmaxed over the last dimension. 
+    :param gs: whether the messages should be argmaxed over the last dimension.
         Handy, if Gumbel-Softmax relaxation was used for training.
     :param variable_length: whether variable-length communication is used.
     :param device: device (e.g. 'cuda') to be used.
@@ -216,7 +218,7 @@ def dump_interactions(game: torch.nn.Module,
                 assert interaction.message_length is not None
                 for i in range(interaction.size):
                     l = interaction.message_length[i].long().item()
-                    interaction.message[i, l:] = 0 # 0 is always EOS
+                    interaction.message[i, l:] = 0  # 0 is always EOS
 
             full_interaction = full_interaction + interaction if full_interaction is not None else interaction
 
@@ -227,10 +229,12 @@ def dump_interactions(game: torch.nn.Module,
 def move_to(x: Any, device: torch.device) \
         -> Any:
     """
-    Simple utility function that moves a tensor or a dict/list/tuple of (dict/list/tuples of ...) tensors to a specified device, recursively.
+    Simple utility function that moves a tensor or a dict/list/tuple of (dict/list/tuples of ...) tensors
+        to a specified device, recursively.
     :param x: tensor, list, tuple, or dict with values that are lists, tuples or dicts with values of ...
     :param device: device to be moved to
-    :return: Same as input, but with all tensors placed on device. Non-tensors are not affected. For dicts, the changes are done in-place!
+    :return: Same as input, but with all tensors placed on device. Non-tensors are not affected.
+             For dicts, the changes are done in-place!
     """
     if hasattr(x, 'to'):
         return x.to(device)
@@ -252,6 +256,7 @@ def load_interactions(file_path: str):
         print(f'{file_path} was an invalid path to load interactions.')
         exit(1)
 
+
 def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     """
     :param messages: A tensor of term ids, encoded as Long values, of size (batch size, max sequence length).
@@ -270,7 +275,7 @@ def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     # zero_mask contains ones on positions where 0 occur in the outputs, and 1 otherwise
     # zero_mask.cumsum(dim=1) would contain non-zeros on all positions after 0 occurred
     # zero_mask.cumsum(dim=1) > 0 would contain ones on all positions after 0 occurred
-    # (zero_mask.cumsum(dim=1) > 0).sum(dim=1) equates to the number of steps that happened after 0 occured (including it)
+    # (zero_mask.cumsum(dim=1) > 0).sum(dim=1) equates to the number of steps  happened after 0 occured (including it)
     # max_k - (zero_mask.cumsum(dim=1) > 0).sum(dim=1) is the number of steps before 0 took place
 
     lengths = max_k - (zero_mask.cumsum(dim=1) > 0).sum(dim=1)

@@ -29,10 +29,10 @@ def grid():
     `--param1=value1 --param2`
     """
     for random_seed in range(4):
-      for vocab_size in [10, 15]:
+        for vocab_size in [10, 15]:
             params = dict(vocab_size=vocab_size, random_seed=random_seed, n_epoch=15, batch_size=256)
             yield dict2string(params)
 
-      for vocab_size in [16, 32]:
+        for vocab_size in [16, 32]:
             params = dict(vocab_size=vocab_size, random_seed=random_seed, n_epoch=150, batch_size=128)
             yield dict2string(params)

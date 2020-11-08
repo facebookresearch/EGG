@@ -13,7 +13,8 @@ from .util import find_lengths
 
 class RnnEncoder(nn.Module):
     """Feeds a sequence into an RNN (vanilla RNN, GRU, LSTM) cell and returns a vector representation
-    of it, which is found as the last hidden state of the last RNN layer. Assumes that the eos token has the id equal to 0.
+    of it, which is found as the last hidden state of the last RNN layer.
+    Assumes that the eos token has the id equal to 0.
     """
 
     def __init__(self, vocab_size: int, embed_dim: int, n_hidden: int, cell: str = 'rnn', num_layers: int = 1) -> None:
@@ -22,7 +23,7 @@ class RnnEncoder(nn.Module):
             vocab_size {int} -- The size of the input vocabulary (including eos)
             embed_dim {int} -- Dimensionality of the embeddings
             n_hidden {int} -- Dimensionality of the cell's hidden state
-        
+
         Keyword Arguments:
             cell {str} -- Type of the cell ('rnn', 'gru', or 'lstm') (default: {'rnn'})
             num_layers {int} -- Number of the stacked RNN layers (default: {1})
@@ -36,7 +37,7 @@ class RnnEncoder(nn.Module):
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
         self.cell = cell_types[cell](input_size=embed_dim, batch_first=True,
-                               hidden_size=n_hidden, num_layers=num_layers)
+                                     hidden_size=n_hidden, num_layers=num_layers)
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
 

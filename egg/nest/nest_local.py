@@ -18,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument("--sweep", action='append', default=[], help="Json file with sweep params in the stool format."
                         "It is possible to specify several files: --sweep file1.json --sweep file2.json")
     parser.add_argument("--py_sweep", action='append', default=[], help="A python module, with a grid() method"
-                                                                        "returning an iterable with the grid parameters."
+                                                                        "returning an iterable w/ the grid parameters."
                                                                         "It is possible to specify several files.")
     parser.add_argument("--root_dir", type=str, default=None, help="Root folder to save the output")
     parser.add_argument("--name", type=str, default=None, help="Name for the run")
@@ -49,7 +49,8 @@ if __name__ == '__main__':
         combinations.extend(enumerate(sweep_module.grid(), start=comb_id + 1))
 
     if args.root_dir is None:
-        args.root_dir = (pathlib.PosixPath('~/nest_local') / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
+        base_dir = pathlib.PosixPath('~/nest_local')
+        args.root_dir = (base_dir / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
 
     if args.preview or args.dry_run:
         print(*combinations, sep='\n')

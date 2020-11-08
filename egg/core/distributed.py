@@ -8,7 +8,6 @@ import subprocess
 import uuid
 from dataclasses import dataclass
 
-import torch
 import torch.distributed as dist
 
 

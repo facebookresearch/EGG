@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional, Union
+from typing import Dict, Iterable, Optional
 
 import torch
 import torch.distributed as distrib
@@ -46,6 +46,7 @@ class LoggingStrategy:
     def maximal(cls):
         return cls()
 
+
 @dataclass
 class Interaction:
     # incoming data
@@ -63,15 +64,21 @@ class Interaction:
 
     @property
     def size(self):
-        for t in [self.sender_input, self.receiver_input, self.labels, self.message, self.receiver_output, self.message_length]:
-            if t is not None: return t.size(0)
+        interaction_fields = [
+            self.sender_input, self.receiver_input, self.labels,
+            self.message, self.receiver_output, self.message_length
+        ]
+        for t in interaction_fields:
+            if t is not None:
+                return t.size(0)
         raise RuntimeError('Cannot determine interaction log size; it is empty.')
 
     def to(self, *args, **kwargs) -> 'Interaction':
         """Moves all stored tensor to a device. For instance, it might be not
         useful to store the interaction logs in CUDA memory."""
         def _to(x):
-            if x is None or not torch.is_tensor(x): return x
+            if x is None or not torch.is_tensor(x):
+                return x
             return x.to(*args, **kwargs)
 
         self.sender_input = _to(self.sender_input)
@@ -113,7 +120,6 @@ class Interaction:
                                    "Normally this shouldn't happen!")
             return torch.cat(lst, dim=0)
 
-
         assert interactions, 'list must not be empty'
         assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
 
@@ -133,7 +139,6 @@ class Interaction:
     @staticmethod
     def empty() -> 'Interaction':
         return Interaction(None, None, None, None, None, None, {})
-
 
     @staticmethod
     def gather_distributed_interactions(log: 'Interaction') -> Optional['Interaction']:
@@ -158,8 +163,9 @@ class Interaction:
 
             return new_d
 
-        interaction_as_dict = dict((name, getattr(log, name)) for name in \
-            ['sender_input', 'receiver_input', 'labels', 'message', 'message_length', 'receiver_output'])
+        inter_fields = ['sender_input', 'receiver_input', 'labels', 'message', 'message_length', 'receiver_output']
+        interaction_as_dict = dict((name, getattr(log, name)) for name in inter_fields)
+
         interaction_as_dict = send_collect_dict(interaction_as_dict)
         synced_aux = send_collect_dict(log.aux)
         interaction_as_dict['aux'] = synced_aux
