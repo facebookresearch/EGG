@@ -14,13 +14,14 @@ class SlurmWrapper:
     """
     We assume that checkpointing is done within trainer, each epoch.
     """
+
     def __init__(self, runnable):
         self.runnable = runnable
         self.args = None
 
     def __call__(self, args):
         self.args = args
-        print(f'# launching {json.dumps(args)}', flush=True)
+        print(f"# launching {json.dumps(args)}", flush=True)
         self.runnable(args)
 
     def checkpoint(self, _something):
@@ -38,11 +39,11 @@ class ConcurrentWrapper:
         self.job_id = job_id
 
     def __call__(self, args):
-        stdout_path = pathlib.Path(self.log_dir) / f'{self.job_id}.out'
-        self.stdout = open(stdout_path, 'w')
+        stdout_path = pathlib.Path(self.log_dir) / f"{self.job_id}.out"
+        self.stdout = open(stdout_path, "w")
 
-        stderr_path = pathlib.Path(self.log_dir) / f'{self.job_id}.err'
-        self.stderr = open(stderr_path, 'w')
+        stderr_path = pathlib.Path(self.log_dir) / f"{self.job_id}.err"
+        self.stderr = open(stderr_path, "w")
 
         sys.stdout = self.stdout
         sys.stderr = self.stderr
@@ -50,7 +51,7 @@ class ConcurrentWrapper:
         n_devices = torch.cuda.device_count()
         if n_devices > 0:
             cuda_id = self.job_id % n_devices
-        print(f'# {json.dumps(args)}', flush=True)
+        print(f"# {json.dumps(args)}", flush=True)
 
         with torch.cuda.device(cuda_id):
             self.runnable(args)

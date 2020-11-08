@@ -17,8 +17,10 @@ def parse_json_sweep(config):
         elif type(v) is bool:
             return f"--{k}" if v else ""
         elif type(v) is str:
-            assert '"' not in v, f"Key {k} has string value {v} which contains forbidden quotes."
-            return f'--{k}={v}'
+            assert (
+                '"' not in v
+            ), f"Key {k} has string value {v} which contains forbidden quotes."
+            return f"--{k}={v}"
         else:
             raise Exception(f"Key {k} has value {v} of unsupported type {type(v)}.")
 
@@ -30,6 +32,6 @@ def parse_json_sweep(config):
 
 
 def sweep(fname):
-    with open(fname, 'r') as config_file:
+    with open(fname, "r") as config_file:
         config = json.loads(config_file.read())
     return parse_json_sweep(config)
