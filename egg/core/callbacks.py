@@ -16,7 +16,7 @@ from .interaction import Interaction
 
 
 class Callback:
-    def on_train_begin(self, trainer_instance: 'Trainer'):
+    def on_train_begin(self, trainer_instance: 'Trainer'):  # noqa: F821
         self.trainer = trainer_instance
 
     def on_train_end(self):
@@ -150,12 +150,12 @@ class InteractionSaver(Callback):
     def __init__(self, train_epochs: List = None, test_epochs: List = None, folder_path: str = "./interactions"):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
-            self.train_epochs =  train_epochs
+            self.train_epochs = train_epochs
         else:
-            self.train_epochs =  []
+            self.train_epochs = []
         if isinstance(test_epochs, list):
             assert all(map(lambda x: x > 0, test_epochs))
-            self.test_epochs =  test_epochs
+            self.test_epochs = test_epochs
         else:
             self.test_epochs = []
 

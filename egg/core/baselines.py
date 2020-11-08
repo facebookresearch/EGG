@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from abc import ABC, abstractmethod
-from collections import defaultdict
 
 import torch
 
@@ -55,8 +54,7 @@ class MeanBaseline(Baseline):
         if self.mean_baseline.device != loss.device:
             self.mean_baseline = self.mean_baseline.to(loss.device)
 
-        self.mean_baseline += (loss.detach().mean().item() -
-                               self.mean_baseline) / self.n_points
+        self.mean_baseline += (loss.detach().mean().item() - self.mean_baseline) / self.n_points
 
     def predict(self, loss: torch.Tensor) -> torch.Tensor:
         if self.mean_baseline.device != loss.device:
@@ -66,7 +64,7 @@ class MeanBaseline(Baseline):
 
 class BuiltInBaseline(Baseline):
     """Built-in baseline; for any row in the batch, the mean of all other rows serves as a control variate.
-    To use BuiltInBaseline, rows in the batch must be independent. Most likely BuiltInBaseline 
+    To use BuiltInBaseline, rows in the batch must be independent. Most likely BuiltInBaseline
     would work poorly for small batch sizes.
     """
 

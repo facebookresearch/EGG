@@ -67,7 +67,8 @@ if __name__ == '__main__':
         exit()
 
     if args.checkpoint_dir is None:
-        args.checkpoint_dir = (pathlib.PosixPath('~/nest') / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
+        base_dir = pathlib.PosixPath('~/nest')
+        args.checkpoint_dir = (base_dir / args.name / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
     module = importlib.import_module(args.game)
     executor = submitit.AutoExecutor(folder=args.checkpoint_dir)
     executor.update_parameters(timeout_min=args.time,
@@ -105,7 +106,7 @@ if __name__ == '__main__':
             print(f'job id {job.job_id}, args {comb}')
             jobs.append(job)
     else:
-        runner = lambda x: SlurmWrapper(module.main)(x)
+        runner = lambda x: SlurmWrapper(module.main)(x)  # noqa: E731
         jobs = executor.map_array(runner, combinations)
 
         for job, comb in zip(jobs, combinations):

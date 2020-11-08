@@ -104,7 +104,10 @@ class TopographicSimilarity(Callback):
     >>> mess = [[ord(c) for c in w] for w in words]
     >>> round(TopographicSimilarity.compute_topsim(mean, mess, 'hamming', 'hamming'), 6)
     1.0
-    >>> round(TopographicSimilarity.compute_topsim(mean, mess, 'hamming', lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2)),  6)
+    >>> round(TopographicSimilarity.compute_topsim(mean,
+    ...                                            mess,
+    ...                                           'hamming',
+    ...                                            lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2)),  6)
     1.0
     """
     def __init__(self,
@@ -149,7 +152,8 @@ class TopographicSimilarity(Callback):
         message_distance_fn = distances.get(message_distance_fn, None) \
             if isinstance(message_distance_fn, str) else message_distance_fn
 
-        assert meaning_distance_fn and message_distance_fn, f"Cannot recognize {meaning_distance_fn} or {message_distance_fn} distances"
+        assert meaning_distance_fn and message_distance_fn, f"Cannot recognize {meaning_distance_fn} \
+            or {message_distance_fn} distances"
 
         meaning_dist = distance.pdist(meanings, meaning_distance_fn)
         message_dist = distance.pdist(messages, message_distance_fn)

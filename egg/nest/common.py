@@ -8,7 +8,7 @@ import json
 
 
 def parse_json_sweep(config):
-    config = { k: v if type(v) is list else [v] for k, v in config.items() }
+    config = {k: v if type(v) is list else [v] for k, v in config.items()}
     perms = list(itertools.product(*config.values()))
 
     def to_arg(k, v):

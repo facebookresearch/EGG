@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
-from .interaction import Interaction, LoggingStrategy
+from .interaction import LoggingStrategy
 
 
 def gumbel_softmax_sample(
@@ -62,8 +62,8 @@ class GumbelSoftmaxWrapper(nn.Module):
     """
     Gumbel-Softmax Wrapper for an agent that outputs a single symbol. Assumes that during the forward pass,
     the agent returns log-probabilities over the potential output symbols. During training, the wrapper
-    transforms them into a sample from the Gumbel Softmax (GS) distribution; eval-time it returns greedy one-hot encoding
-    of the same shape.
+    transforms them into a sample from the Gumbel Softmax (GS) distribution;
+    eval-time it returns greedy one-hot encoding of the same shape.
 
     >>> inp = torch.zeros((4, 10)).uniform_()
     >>> outp = GumbelSoftmaxWrapper(nn.Linear(10, 2))(inp)
@@ -198,7 +198,13 @@ class RelaxedEmbedding(nn.Embedding):
     """
     def forward(self, x):
         if isinstance(x, torch.LongTensor) or (torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)):
-            return F.embedding(x, self.weight, self.padding_idx, self.max_norm, self.norm_type, self.scale_grad_by_freq, self.sparse)
+            return F.embedding(x,
+                               self.weight,
+                               self.padding_idx,
+                               self.max_norm,
+                               self.norm_type,
+                               self.scale_grad_by_freq,
+                               self.sparse)
         else:
             return torch.matmul(x, self.weight)
 
@@ -304,8 +310,8 @@ class RnnReceiverGS(nn.Module):
     Gumbel Softmax-based wrapper for Receiver agent in variable-length communication game. The user implemented logic
     is passed in `agent` and is responsible for mapping (RNN's hidden state + Receiver's optional input)
     into the output vector. Since, due to the relaxation, end-of-sequence symbol might have non-zero probability at
-    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic is handled by
-    `SenderReceiverRnnGS`.
+    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic 
+    is handled by `SenderReceiverRnnGS`.
     """
     def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn'):
         super(RnnReceiverGS, self).__init__()
@@ -376,13 +382,13 @@ class SenderReceiverRnnGS(nn.Module):
     >>> loss.item() > 0
     True
     """
-    def __init__(self, 
-        sender, 
-        receiver, 
-        loss, 
-        length_cost=0.0,
-        train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None):
+    def __init__(self,
+                 sender,
+                 receiver,
+                 loss,
+                 length_cost=0.0,
+                 train_logging_strategy: Optional[LoggingStrategy] = None,
+                 test_logging_strategy: Optional[LoggingStrategy] = None):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -419,7 +425,11 @@ class SenderReceiverRnnGS(nn.Module):
         aux_info = {}
         z = 0.0
         for step in range(receiver_output.size(1)):
-            step_loss, step_aux = self.loss(sender_input, message[:, step, ...], receiver_input, receiver_output[:, step, ...], labels)
+            step_loss, step_aux = self.loss(sender_input,
+                                            message[:, step, ...],
+                                            receiver_input,
+                                            receiver_output[:, step, ...],
+                                            labels)
             eos_mask = message[:, step, 0]  # always eos == 0
 
             add_mask = eos_mask * not_eosed_before

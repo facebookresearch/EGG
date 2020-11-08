@@ -8,12 +8,11 @@ import pathlib
 from typing import List, Optional
 
 import torch
-import torch.distributed as distrib
 from torch.utils.data import DataLoader
 
 from .callbacks import (Callback, Checkpoint, CheckpointSaver, ConsoleLogger,
                         TensorboardLogger)
-from .distributed import get_preemptive_checkpoint_dir, maybe_init_distributed
+from .distributed import get_preemptive_checkpoint_dir
 from .interaction import Interaction
 from .util import get_opts, move_to
 
@@ -79,7 +78,8 @@ class Trainer:
                     else pathlib.Path(common_opts.checkpoint_dir)
 
             if self.checkpoint_path:
-                checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path, checkpoint_freq=common_opts.checkpoint_freq)
+                checkpointer = CheckpointSaver(checkpoint_path=self.checkpoint_path,
+                                               checkpoint_freq=common_opts.checkpoint_freq)
                 self.callbacks.append(checkpointer)
 
         if self.distributed_context.is_leader and common_opts.tensorboard:
@@ -96,21 +96,20 @@ class Trainer:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
             self.game.to(device_id)
+
             # NB: here we are doing something that is a bit shady:
             # 1/ optimizer was created outside of the Trainer instance, so we don't really know
             #    what parameters it optimizes. If it holds something what is not within the Game instance
             #    then it will not participate in distributed training
             # 2/ if optimizer only holds a subset of Game parameters, it works, but somewhat non-documentedly.
             #    In fact, optimizer would hold parameters of non-DistributedDataParallel version of the Game. The
-            #    forward/backward calls, however, would happen on the DistributedDataParallel wrapper. This wrapper would
-            #    sync gradients of the underlying tensors - which are the ones that optimizer holds itself. 
-            #    As a result it seems to work, but only because DDP doesn't take any tensor ownership.
-            #    
+            #    forward/backward calls, however, would happen on the DistributedDataParallel wrapper.
+            #    This wrapper would sync gradients of the underlying tensors - which are the ones that optimizer
+            #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
 
             self.game = torch.nn.parallel.DistributedDataParallel(self.game,
-                                                  device_ids=[device_id],
-                                                  output_device=device_id)
-
+                                                                  device_ids=[device_id],
+                                                                  output_device=device_id)
 
         else:
             self.game.to(self.device)
@@ -182,25 +181,29 @@ class Trainer:
 
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
-                callback.on_epoch_begin(epoch+1)
+                callback.on_epoch_begin(epoch+1)  # noqa: E226
 
             train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(train_loss, train_interaction, epoch+1)
+                callback.on_epoch_end(train_loss, train_interaction, epoch+1)  # noqa: E226
 
             validation_loss = validation_interaction = None
-            if self.validation_data is not None and self.validation_freq > 0 and (epoch+1) % self.validation_freq == 0:
+            if self.validation_data is not None and self.validation_freq > 0 and (epoch+1) % self.validation_freq == 0:  # noqa: E226, E501
                 for callback in self.callbacks:
-                    callback.on_test_begin(epoch+1)
+                    callback.on_test_begin(epoch+1)  # noqa: E226
                 validation_loss, validation_interaction = self.eval()
 
                 for callback in self.callbacks:
-                    callback.on_test_end(validation_loss, validation_interaction, epoch+1)
+                    callback.on_test_end(validation_loss, validation_interaction, epoch+1)  # noqa: E226
 
             if self.should_stop:
                 for callback in self.callbacks:
-                    callback.on_early_stopping(train_loss, train_interaction, epoch+1, validation_loss, validation_interaction)
+                    callback.on_early_stopping(train_loss,
+                                               train_interaction,
+                                               epoch+1,  # noqa: E226
+                                               validation_loss,
+                                               validation_interaction)
                 break
 
         for callback in self.callbacks:
