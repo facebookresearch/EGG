@@ -310,7 +310,7 @@ class RnnReceiverGS(nn.Module):
     Gumbel Softmax-based wrapper for Receiver agent in variable-length communication game. The user implemented logic
     is passed in `agent` and is responsible for mapping (RNN's hidden state + Receiver's optional input)
     into the output vector. Since, due to the relaxation, end-of-sequence symbol might have non-zero probability at
-    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic 
+    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic
     is handled by `SenderReceiverRnnGS`.
     """
     def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn'):
