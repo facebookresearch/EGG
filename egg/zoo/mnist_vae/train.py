@@ -85,9 +85,10 @@ class VAE_Game(nn.Module):
 
 
 class ImageDumpCallback(core.Callback):
-    def __init__(self, eval_dataset):
+    def __init__(self, eval_dataset, device):
         super().__init__()
         self.eval_dataset = eval_dataset
+        self.device= device
 
     def on_epoch_end(self, loss, logs, epoch):
         dump_dir = pathlib.Path.cwd() / 'dump' / str(epoch)
@@ -98,7 +99,7 @@ class ImageDumpCallback(core.Callback):
 
         for i in range(5):
             example = self.eval_dataset[i]
-            example = core.move_to(example, torch.device('cuda'))
+            example = core.move_to(example, self.device)
             _, interaction = self.trainer.game(*example)
 
             image = example[0][0]
@@ -130,7 +131,7 @@ def main(params):
 
     # initialize and launch the trainer
     trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
-                           callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), ImageDumpCallback(test_loader.dataset)])
+                           callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), ImageDumpCallback(test_loader.dataset, opts.device)])
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
