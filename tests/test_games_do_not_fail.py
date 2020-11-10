@@ -31,11 +31,6 @@ def test_objects_game():
                                                 n_epochs=1, max_len=1, train_samples=100, validation_samples=100, test_samples=100))
 
 
-def test_mnist_autoenc():
-    run_game('egg.zoo.mnist_autoenc.train', dict(
-        vocab_size=3, n_epochs=1, batch_size=16))
-
-
 def test_channel():
     run_game('egg.zoo.channel.train', dict(
         vocab_size=3, n_features=5, n_epoch=1, max_len=2))
