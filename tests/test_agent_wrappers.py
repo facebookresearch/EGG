@@ -6,12 +6,12 @@
 
 import sys
 from pathlib import Path
-sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 
+import egg.core as core
 import torch
 from torch.nn import functional as F
 
-import egg.core as core
+sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 
 BATCH_X = torch.eye(8)
 BATCH_Y = torch.tensor([0, 0, 0, 0, 1, 1, 1, 1]).long()
@@ -74,8 +74,10 @@ def test_game_gs():
     core.init()
     sender = core.GumbelSoftmaxWrapper(ToyAgent())
     receiver = Receiver()
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (F.cross_entropy(receiver_output, labels), {})
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+        F.cross_entropy(receiver_output, labels),
+        {},
+    )
 
     game = core.SymbolGameGS(sender, receiver, loss)
     optimizer = torch.optim.Adam(game.parameters())
@@ -109,17 +111,23 @@ def test_game_reinforce():
     sender = core.ReinforceWrapper(ToyAgent())
     receiver = core.ReinforceDeterministicWrapper(Receiver())
 
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: \
-        (-(receiver_output == labels).float(), {})
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+        -(receiver_output == labels).float(),
+        {},
+    )
 
-    game = core.SymbolGameReinforce(sender, receiver, loss, sender_entropy_coeff=1e-1, receiver_entropy_coeff=0.0)
+    game = core.SymbolGameReinforce(
+        sender, receiver, loss, sender_entropy_coeff=1e-1, receiver_entropy_coeff=0.0
+    )
     optimizer = torch.optim.Adagrad(game.parameters(), lr=1e-1)
 
     data = Dataset()
     trainer = core.Trainer(game, optimizer, train_data=data, validation_data=None)
     trainer.train(5000)
 
-    assert (sender.agent.fc1.weight.t().argmax(dim=1).cpu() == BATCH_Y).all(), str(sender.agent.fc1.weight)
+    assert (sender.agent.fc1.weight.t().argmax(dim=1).cpu() == BATCH_Y).all(), str(
+        sender.agent.fc1.weight
+    )
 
 
 def test_symbol_wrapper():
@@ -135,7 +143,9 @@ def test_symbol_wrapper():
 
     # when trained with Gumbel-Softmax, the message would be encoded as one-hots
     message_gs = torch.zeros((16, 15))
-    message_gs.scatter_(1, message_rf.unsqueeze(1), 1.0)  # same message, one-hot-encoded
+    message_gs.scatter_(
+        1, message_rf.unsqueeze(1), 1.0
+    )  # same message, one-hot-encoded
     output_gs = receiver(message_gs)
 
     assert output_rf.eq(output_gs).all().item() == 1
