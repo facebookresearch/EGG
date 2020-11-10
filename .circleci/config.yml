@@ -1,0 +1,36 @@
+# Python CircleCI 2.1 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  build:
+    working_directory: ~/EGG
+    docker:
+      # specify the version you desire here
+      - image: circleci/python:3.7
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -U pip setuptools
+            pip install -r requirements.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: pytest
+          command: |
+            . venv/bin/activate
+            python -m pytest
