@@ -5,16 +5,16 @@
 
 from setuptools import find_packages, setup
 
-with open('requirements.txt') as f:
+with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name = 'EGG',
-    version = '0.1.0',
-    url = 'https://github.com/facebookresearch/EGG',
-    author = 'Eugene Kharitonov',
-    author_email = 'kharitonov@fb.com',
-    description = 'Emergence of lanGuage in Games (EGG): A toolbox for language games research',
-    packages = find_packages(),
+    name="EGG",
+    version="0.1.0",
+    url="https://github.com/facebookresearch/EGG",
+    author="Eugene Kharitonov",
+    author_email="kharitonov@fb.com",
+    description="Emergence of lanGuage in Games (EGG): A toolbox for language games research",
+    packages=find_packages(),
     install_requires=requirements,
 )

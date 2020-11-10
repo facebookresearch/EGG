@@ -16,18 +16,20 @@ from .interaction import Interaction
 
 
 class Callback:
-    def on_train_begin(self, trainer_instance: 'Trainer'):  # noqa: F821
+    def on_train_begin(self, trainer_instance: "Trainer"):  # noqa: F821
         self.trainer = trainer_instance
 
     def on_train_end(self):
         pass
 
-    def on_early_stopping(self,
-                          train_loss: float,
-                          train_logs: Interaction,
-                          epoch: int,
-                          test_loss: float = None,
-                          test_logs: Interaction = None):
+    def on_early_stopping(
+        self,
+        train_loss: float,
+        train_logs: Interaction,
+        epoch: int,
+        test_loss: float = None,
+        test_logs: Interaction = None,
+    ):
         pass
 
     def on_test_begin(self, epoch: int):
@@ -57,16 +59,16 @@ class ConsoleLogger(Callback):
             dump.update(dict(mode=mode, epoch=epoch))
             output_message = json.dumps(dump)
         else:
-            output_message = ', '.join(sorted([f'{k}={v}' for k, v in dump.items()]))
-            output_message = f'{mode}: epoch {epoch}, loss {loss}, ' + output_message
+            output_message = ", ".join(sorted([f"{k}={v}" for k, v in dump.items()]))
+            output_message = f"{mode}: epoch {epoch}, loss {loss}, " + output_message
         print(output_message, flush=True)
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        self.aggregate_print(loss, logs, 'test', epoch)
+        self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.print_train_loss:
-            self.aggregate_print(loss, logs, 'train', epoch)
+            self.aggregate_print(loss, logs, "train", epoch)
 
 
 class TensorboardLogger(Callback):
@@ -77,14 +79,18 @@ class TensorboardLogger(Callback):
             self.writer = get_summary_writer()
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        self.writer.add_scalar(tag='test/loss', scalar_value=loss, global_step=epoch)
+        self.writer.add_scalar(tag="test/loss", scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
-            self.writer.add_scalar(tag=f'test/{k}', scalar_value=v.mean(), global_step=epoch)
+            self.writer.add_scalar(
+                tag=f"test/{k}", scalar_value=v.mean(), global_step=epoch
+            )
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        self.writer.add_scalar(tag='train/loss', scalar_value=loss, global_step=epoch)
+        self.writer.add_scalar(tag="train/loss", scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
-            self.writer.add_scalar(tag=f'train/{k}', scalar_value=v.mean(), global_step=epoch)
+            self.writer.add_scalar(
+                tag=f"train/{k}", scalar_value=v.mean(), global_step=epoch
+            )
 
     def on_train_end(self):
         self.writer.close()
@@ -93,16 +99,21 @@ class TensorboardLogger(Callback):
 class TemperatureUpdater(Callback):
     def __init__(self, agent, decay=0.9, minimum=0.1, update_frequency=1):
         self.agent = agent
-        assert hasattr(agent, 'temperature'), 'Agent must have a `temperature` attribute'
-        assert not isinstance(agent.temperature, torch.nn.Parameter), \
-            'When using TemperatureUpdater, `temperature` cannot be trainable'
+        assert hasattr(
+            agent, "temperature"
+        ), "Agent must have a `temperature` attribute"
+        assert not isinstance(
+            agent.temperature, torch.nn.Parameter
+        ), "When using TemperatureUpdater, `temperature` cannot be trainable"
         self.decay = decay
         self.minimum = minimum
         self.update_frequency = update_frequency
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch % self.update_frequency == 0:
-            self.agent.temperature = max(self.minimum, self.agent.temperature * self.decay)
+            self.agent.temperature = max(
+                self.minimum, self.agent.temperature * self.decay
+            )
 
 
 class Checkpoint(NamedTuple):
@@ -113,10 +124,10 @@ class Checkpoint(NamedTuple):
 
 class CheckpointSaver(Callback):
     def __init__(
-            self,
-            checkpoint_path: Union[str, pathlib.Path],
-            checkpoint_freq: int = 1,
-            prefix: str = ''
+        self,
+        checkpoint_path: Union[str, pathlib.Path],
+        checkpoint_freq: int = 1,
+        prefix: str = "",
     ):
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
@@ -125,29 +136,44 @@ class CheckpointSaver(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         self.epoch_counter = epoch
-        if self.checkpoint_freq > 0 and (self.epoch_counter % self.checkpoint_freq == 0):
-            filename = f'{self.prefix}_{self.epoch_counter}' if self.prefix else str(self.epoch_counter)
+        if self.checkpoint_freq > 0 and (
+            self.epoch_counter % self.checkpoint_freq == 0
+        ):
+            filename = (
+                f"{self.prefix}_{self.epoch_counter}"
+                if self.prefix
+                else str(self.epoch_counter)
+            )
             self.save_checkpoint(filename=filename)
 
     def on_train_end(self):
-        self.save_checkpoint(filename=f'{self.prefix}_final' if self.prefix else 'final')
+        self.save_checkpoint(
+            filename=f"{self.prefix}_final" if self.prefix else "final"
+        )
 
     def save_checkpoint(self, filename: str):
         """
         Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
         """
         self.checkpoint_path.mkdir(exist_ok=True, parents=True)
-        path = self.checkpoint_path / f'{filename}.tar'
+        path = self.checkpoint_path / f"{filename}.tar"
         torch.save(self.get_checkpoint(), path)
 
     def get_checkpoint(self):
-        return Checkpoint(epoch=self.epoch_counter,
-                          model_state_dict=self.trainer.game.state_dict(),
-                          optimizer_state_dict=self.trainer.optimizer.state_dict())
+        return Checkpoint(
+            epoch=self.epoch_counter,
+            model_state_dict=self.trainer.game.state_dict(),
+            optimizer_state_dict=self.trainer.optimizer.state_dict(),
+        )
 
 
 class InteractionSaver(Callback):
-    def __init__(self, train_epochs: List = None, test_epochs: List = None, folder_path: str = "./interactions"):
+    def __init__(
+        self,
+        train_epochs: List = None,
+        test_epochs: List = None,
+        folder_path: str = "./interactions",
+    ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
             self.train_epochs = train_epochs
@@ -159,18 +185,22 @@ class InteractionSaver(Callback):
         else:
             self.test_epochs = []
 
-        self.folder_path = (pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()
+        self.folder_path = (
+            pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")
+        ).expanduser()
 
     @staticmethod
-    def dump_interactions(logs: Interaction, mode: str, epoch: int, dump_dir: str = './interactions'):
+    def dump_interactions(
+        logs: Interaction, mode: str, epoch: int, dump_dir: str = "./interactions"
+    ):
         dump_dir = pathlib.Path(dump_dir) / mode
         dump_dir.mkdir(exist_ok=True, parents=True)
-        torch.save(logs, dump_dir / f'interactions_epoch{epoch}')
+        torch.save(logs, dump_dir / f"interactions_epoch{epoch}")
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
-            self.dump_interactions(logs, 'validation', epoch, self.folder_path)
+            self.dump_interactions(logs, "validation", epoch, self.folder_path)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.train_epochs:
-            self.dump_interactions(logs, 'train', epoch, self.folder_path)
+            self.dump_interactions(logs, "train", epoch, self.folder_path)
