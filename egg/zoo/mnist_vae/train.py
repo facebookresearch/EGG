@@ -88,7 +88,7 @@ class ImageDumpCallback(core.Callback):
     def __init__(self, eval_dataset, device):
         super().__init__()
         self.eval_dataset = eval_dataset
-        self.device= device
+        self.device = device
 
     def on_epoch_end(self, loss, logs, epoch):
         dump_dir = pathlib.Path.cwd() / 'dump' / str(epoch)
