@@ -220,8 +220,8 @@ class PosDisent(Callback):
         >>> round(PosDisent.posdis(attributes, messages), 6)
         0.978656
         >>> messages = torch.cat([messages, torch.zeros_like(messages)], dim=1)
-        >>> PosDisent.posdis(attributes, messages)
-        0.9786556959152222
+        >>> round(PosDisent.posdis(attributes, messages), 6)
+        0.978656
         """
         gaps = torch.zeros(messages.size(1))
         non_constant_positions = 0.0

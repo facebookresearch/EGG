@@ -112,7 +112,7 @@ class Interaction:
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})  # noqa: E501
+        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
         >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
