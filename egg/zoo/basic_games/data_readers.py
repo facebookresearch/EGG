@@ -2,6 +2,18 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 
+# the classes in this file take input data from a text file and convert them to the format
+# appropriate for the recognition and discrimination games, so that they can be read by
+# pytorch standard DataLoader: note that the latter requires the data reading classes to support
+# a __len__(self) method, returning the size of the dataset, and a __getitem__(self, idx)
+# method, returning the idx-th item in the dataset
+
+# this class takes an input file with a space-delimited attribute-value vector per
+# line, creates a data-frame with the two mandatory fields expected in EGG games, namely sender_input
+# and labels
+# in this case, the two field contain the same information, namely the input attribute-value vector,
+# which is represented as one-hot in sender_input, and in the original integer-based format in
+# labels
 class AttValRecoDataset(Dataset):
     def __init__(self, path,n_attributes,n_values):
         frame = np.loadtxt(path, dtype='S10')
