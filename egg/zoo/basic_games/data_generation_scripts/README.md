@@ -1,4 +1,4 @@
-This directory contains perl scripts to generate data in the formats expected by the basic reconstruction and discriminatio games, as well as example files generated with them. The headers of both scripts show usage and provide more information.
+This directory contains perl scripts to generate data in the formats expected by the basic reconstruction and discrimination games, as well as example files generated with them. The headers of both scripts show usage and provide more information.
 
 The example data were generated with the following commands.
 
