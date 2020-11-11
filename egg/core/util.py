@@ -280,8 +280,8 @@ def dump_interactions(
             if apply_padding and variable_length:
                 assert interaction.message_length is not None
                 for i in range(interaction.size):
-                    l = interaction.message_length[i].long().item()
-                    interaction.message[i, l:] = 0  # 0 is always EOS
+                    length = interaction.message_length[i].long().item()
+                    interaction.message[i, length:] = 0  # 0 is always EOS
 
             full_interaction = (
                 full_interaction + interaction

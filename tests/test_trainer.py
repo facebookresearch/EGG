@@ -8,9 +8,10 @@ import shutil
 import sys
 from pathlib import Path
 
-import egg.core as core
 import torch
 from torch.nn import functional as F
+
+import egg.core as core
 
 sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 
