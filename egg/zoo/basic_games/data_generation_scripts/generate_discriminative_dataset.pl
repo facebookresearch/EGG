@@ -1,5 +1,32 @@
 #!/usr/bin/perl -w
 
+#!/usr/bin/perl -w
+
+# This script generates a data set in the format expected by EGG's basic_games discrimination game.
+
+# Note that the script only generates distinct input tuples. More
+# precisely, no input item *set* is ever repeated (e.g., if one input
+# tuple contains (A, B, C), no other input line will be made of the
+# same items, e.g., no (B, A, C) or (C, B, A) is permitted to occur in
+# the same data set).
+
+# Usage:
+
+# perl -w N_INPUTS N_ATTRIBUTES N_VALUES N_ITEMS > discri_dataset.txt
+
+# where
+
+# N_INPUTS specifies the number of input tuples we are requesting,
+# N_ATTRIBUTES specifies the number of attributes of each item,
+# N_VALUES specifies the number of possible values for each attribute and
+# N_ITEMS specifies how many items there are in a tuple (target+distractors).
+
+# Note that, in the output, the requested tuples will be followed by a random index pointing to the position of the target (counting from 0).
+
+# Note also that 0 is a possible value, thus, if N values are requested, the highest possible integer observed in the output will be N-1
+
+
+
 # taken from: https://stackoverflow.com/questions/4736626/how-can-i-generate-all-ordered-combinations-of-length-k-in-perl
 sub ordered_combinations
 {
@@ -39,22 +66,22 @@ sub binom {
 
 
 $n_distinct_samples = shift;
-$sequence_length = shift;
+$item_length = shift;
 $vocabulary_size = shift;
 $n_items = shift;
 
 # sanity check
-$possible_distinct_items_count = $vocabulary_size**$sequence_length;
+$possible_distinct_items_count = $vocabulary_size**$item_length;
 $max_samples_count = binom($possible_distinct_items_count,$n_items);
 if ($n_distinct_samples>$max_samples_count) {
-    print "with $n_items distinct items of length $sequence_length and vocabulary size $vocabulary_size, I can maximally generate $max_samples_count samples\n";
+    print "with $n_items distinct items of length $item_length with $vocabulary_size values, I can maximally generate $max_samples_count samples\n";
     exit;
 }
 
 $vocabulary_size--;
 
-@possible_sequences = (0..$vocabulary_size);
-@all_distinct_combinations = ordered_combinations(\@possible_sequences,$sequence_length);
+@possible_items = (0..$vocabulary_size);
+@all_distinct_combinations = ordered_combinations(\@possible_items,$item_length);
 
 $current_sample_n = 0;
 while ($current_sample_n<$n_distinct_samples) {
