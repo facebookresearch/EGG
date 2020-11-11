@@ -33,7 +33,9 @@ class SinusoidalPositionEmbedding(nn.Module):
         Returns:
             torch.Tensor -- Input updated with positional embeddings
         """
+        # fmt: off
         t = self.pe[:, :x.size(1), :]
+        # fmt: on
         return x + t
 
 

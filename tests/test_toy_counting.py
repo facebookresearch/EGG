@@ -6,8 +6,9 @@
 import sys
 from pathlib import Path
 
-import egg.core as core
 import torch
+
+import egg.core as core
 from egg.core import Interaction
 
 sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
