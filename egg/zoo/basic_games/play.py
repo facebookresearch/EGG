@@ -12,6 +12,9 @@ import numpy as np
 from egg.zoo.basic_games.data_readers import AttValRecoDataset, AttValDiscriDataset
 from egg.zoo.basic_games.architectures import RecoReceiver, DiscriReceiver, Sender
 
+
+# The following section specifies parameters that are specific to our games, note that we will also inherit the
+# standard EGG parameters from https://github.com/facebookresearch/EGG/blob/master/egg/core/util.py
 def get_params(params):
     parser = argparse.ArgumentParser()
     # arguments controlling the game type
@@ -63,20 +66,42 @@ def main(params):
         opts.validation_batch_size=opts.batch_size
     print(opts, flush=True)
 
+    # the following if statement controls aspects specific to the two game tasks: the loss, the input data and the architecture of the Receiver
+    # (the Sender is identical in both cases, mapping a single input attribute-value vector to a variable-length message)
     if (opts.game_type=='discri'):
+        # the game object below takes as one of its mandatory arguments a loss: a loss in EGG is expected to take as arguments the sender input,
+        # the message, the Receiver input, the Receiver output and the labels (although some of these elements might not actually be used by a particular loss);
+        # together with the actual loss computation, the loss function can return a dictionary with other auxiliary statistics: in this case, accuracy 
         def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+            # in the discriminative case, accuracy is computed by comparing the index of highest value of Receiver output (a distribution of unnormalized probabilities
+            # over target poisition) and the label read from input, indicating the ground-truth position of the target
             acc = (receiver_output.argmax(dim=1) == labels).detach().float()
+            # similarly, the loss computes cross-entropy between the Receiver-produced target-position probability distribution and the labels 
             loss = F.cross_entropy(receiver_output, labels, reduction="none")
             return loss, {'acc': acc}
-
+        # the input data are read into DataLodaer objects, which are pytorch constructs implementing standard data processing functionalities, such as shuffling
+        # and batching
+        # within our games, we implement dataset classes, such as AttValDiscriDataset, to read out text files and producing the output required by DataLoader
+        # look at the definition of the AttValDiscrDataset in data_readers.py for further details
+        # note that, for the training dataset, we first instantiate the AttValDiscriDataset and then feed it to DataLoader, whereas for the validation data
+        # (confusingly called "test" data for code heritage inertia issues) we directly declare the AttValDiscriDataset when instantiating DataLoader: the
+        # reason for this difference is that we want an independent train_ds object to retrieve the number of features of the input vectors
         train_ds = AttValDiscriDataset(path=opts.train_data, n_values=opts.n_values)
         train_loader = DataLoader(train_ds,batch_size=opts.batch_size, shuffle=True, num_workers=1)
-        test_loader = DataLoader(AttValDiscriDataset(path=opts.validation_data,n_values=opts.n_values),batch_size=opts.validation_batch_size, shuffle=False, num_workers=1)
+        test_loader = DataLoader(AttValDiscriDataset(path=opts.validation_data,n_values=opts.n_values),batch_size=opts.validation_batch_size, shuffle=False, num_workers=1)       
+        # note that the number of features retrieved here is for the inputs after they are converted to 1-hot vectors
         n_features=train_ds.get_n_features()
+        # we define here the core of the Receiver for the discriminative game, see the architectures.py file for details
         receiver = DiscriReceiver(n_features=n_features, n_hidden=opts.receiver_hidden)
 
     else: # reco game
         def loss(sender_input, _message, _receiver_input, receiver_output, labels):
+            # in the case of the recognition game, for each attribute we compute a different cross-entropy score
+            # based on comparing the probability distribution produced by the Receiver over values of each attribute
+            # with the corresponding ground truth, and then averaging across attributes
+            # accuracy is instead computed by considering as a hit only cases where, for each attribute, the Receiver
+            # assigned the largest probability to the correct value
+            # most of this function is the usual pytorch madness in reshaping tensors in order to perform these computations
             n_attributes=opts.n_attributes
             n_values=opts.n_values
             batch_size = sender_input.size(0)
@@ -87,8 +112,8 @@ def main(params):
             labels = labels.view(batch_size*n_attributes)
             loss = F.cross_entropy(receiver_output, labels, reduction="none")
             loss = loss.view(batch_size,-1).mean(dim=1)
-            return loss, {'acc': acc}
-    
+            return loss, {'acc': acc}    
+        # again, see data_readers.py in this directory for the AttValRecoDataset data reading class
         train_loader = DataLoader(AttValRecoDataset(path=opts.train_data,
                                                     n_attributes=opts.n_attributes,
                                                     n_values=opts.n_values),
@@ -99,13 +124,16 @@ def main(params):
                                                    n_values=opts.n_values),
                                  batch_size=opts.validation_batch_size,
                                  shuffle=False, num_workers=1)
-
+        # the number of features for the Receiver and the Sender is given by n_attributes*n_values because
+        # they are fed 1-hot representations of the input vectors
         n_features=opts.n_attributes*opts.n_values
-
+        # we define here the core of the receiver for the discriminative game, see the architectures.py file for details
         receiver = RecoReceiver(n_features=n_features, n_hidden=opts.receiver_hidden)
 
+    # we are now outside the block that defined game-type-specific aspects of the games: note that the core Sender architecture
+    # (see architectures.py for details) is shared by the two games (it maps an input vector to a hidden layer that will be use to initialize 
+    # the message-producing RNN)
     sender = Sender(n_hidden=opts.sender_hidden, n_features=n_features)
-
     
     if opts.mode.lower() == 'gs':
         sender = core.RnnSenderGS(sender, vocab_size=opts.vocab_size, embed_dim=opts.sender_embedding, hidden_size=opts.sender_hidden, cell=opts.sender_cell, max_len=opts.max_len, temperature=opts.temperature)
