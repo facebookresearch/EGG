@@ -17,7 +17,7 @@ python -m egg.zoo.basic_games.play --mode 'gs' --train_data "train_file.txt" --v
 ```
 
 In this particular instance, the following parameters are invoked:
- * `mode` -- tells whether to use reinforce (`rf`) or Gumbel-Softmax (`gs`) for training.
+ * `mode` -- tells whether to use Reinforce (`rf`) or Gumbel-Softmax (`gs`) for training.
  * `train_data/validation_data` -- paths to the files containing training data and validation data (the latter used at each epoch to track the progress of training); both files are in the same format.
  * `n_attributes` -- this is the number of elements that the input file vectors have: for example, given this ADD file, `n_attributes` should be set to XXX.
  * `n_values` -- number of distinct values that each input file vector element can take: as we are counting from 0, if the maximum value is 3, `n_values` should be set to 4 (and 0 should be used as a possible values).
@@ -39,7 +39,7 @@ python -m egg.zoo.basic_games.play -h
 ```
 ## Discrimination game
 
-The discrimination game reads the input from files that have, on each line, a sequence of items (attribute-value lists), followed by the index of the target in this sequence (counting from 0), as in this example file ADD!!!!. Items are period-delimited, and values are space-delimited. As in the reconstruction game, although values are represented by integers, they are categorical, that is, for the purpose of the game, they are converted to a one-hot vector representation where there is not inherent similarity between numerically close values.
+The discrimination game reads the input from files that have, on each line, a sequence of items (attribute-value lists), followed by the index of the target in this sequence (counting from 0), as in this example file ADD!!!!. Items are period-delimited, and values are space-delimited. Note that the same number of items is expected in each line, that is, the number of distractors cannot change from episode to episode. As in the reconstruction game, although values are represented by integers, they are categorical, that is, for the purpose of the game, they are converted to a one-hot vector representation where there is not inherent similarity between numerically close values.
 
 Here is an example of a discrimination game run:
 
@@ -48,10 +48,17 @@ python -m egg.zoo.basic_games.play --game_type 'discri' --mode 'rf' --train_data
 ```
 
 Most parameters were explained above, but notice here the following:
- * ...
+ * `game_type` -- this determines whether we're going to play a discrimination (`discri`) or recognition (`reco`, the default) game.
+ * `n_values` -- number of distinct values that each input attribute-value item (target or distractor) can take. In the discrimination game, the number of attributes and the number of distractors is automatically computed by the script based on the input.
+ * `random_seed` -- a random seed can be passed to ensure that exactly the same experiment (same initializations, same shuffling of training data, etc.) can be reproduced.
  
 ## Output
 
-The script will write output to STDOUT, including information on the chosen parameters, and training and validation statistics at each epoc. The exact output might change depending on the chosen parameters and independent EGG development, but it will always contain information about the loss and accuracy (proportion of successful game rounds). Whe the `printer_validation_events` flag is passed, the script also prints, for all inputs in the validation set, and as separate lists represented in text format: the inputs, the corresponding gold labels, the messages produced by the Sender and the outputs of the Receiver (after full training). The exact nature of each of these lists will change depending on game type and other parameters. In particular,  under Gumbel-Softmax training the script prints the outputs emitted by the ...
-ONE-HOT!
+The script will write output to STDOUT, including information on the chosen parameters, and training and validation statistics at each epoch. The exact output might change depending on the chosen parameters and independent EGG development, but it will always contain information about the loss and accuracy (proportion of successful game rounds).
+
+Whe the `printer_validation_events` flag is passed, the script also prints, for all inputs in the validation set, and as separate lists represented in text format: the inputs, the corresponding gold labels, the messages produced by the Sender and the outputs of the Receiver (after full training). The exact nature of each of these lists will change depending on game type and other parameters, but the following considerations hold in general:
+* `INPUTS` -- The input items are printed in one-hot vector format. In discrimination games, only Sender input (that is, the target vectors) are printed.
+* `LABELS` -- In discrimination games, these are the same indices of target location present in the input file. In recognition games, they are identical to the input items (in the original input format).
+* `MESSAGES` -- For technical reasons, these are represented in integer format when using Reinforce (with 0 as `<eos>` delimiter) and as one-hot vectors for Gumbel-Softmax (with the 0-th position denoting `<eos>`). Note that, at validation/test time, any symbol following the first occurrence of `<eos>` can be ignored.
+* `OUTPUTS` -- These are the non-normalized (pre-softmax) scores produced by the Receiver. In reconstruction games, each output will be the concatenation of the distributions over the values of each input attributes: for example, if inputs are two-attribute vectors with 5 possible values, each output item will be a list of 10 numbers, the first half to be interpreted as a non-normalized probability distribution over the values of the first attribute, and the second half as the same for the second attribute. In discrimination games, the output represents non-normalized probabilities for the possible position of the target in the input item array. When training with Gumbel-Softmax, this distribution is printed for each symbol produced by Sender. The one that is taken as the effective Receiver output for evaluation purposes is the distribution emitted in correspondance to the first `<eos>` emitted by Sender.
  
