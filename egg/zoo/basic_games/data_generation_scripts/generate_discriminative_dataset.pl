@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 
-#!/usr/bin/perl -w
-
-# This script generates a data set in the format expected by EGG's basic_games discrimination game.
+# This script generates a data set in the format expected by EGG's
+# basic_games discrimination game.
 
 # Note that the script only generates distinct input tuples. More
 # precisely, no input item *set* is ever repeated (e.g., if one input
@@ -21,9 +20,13 @@
 # N_VALUES specifies the number of possible values for each attribute and
 # N_ITEMS specifies how many items there are in a tuple (target+distractors).
 
-# Note that, in the output, the requested tuples will be followed by a random index pointing to the position of the target (counting from 0).
+# Note that, in the output, the requested tuples will be followed by a
+# random index pointing to the position of the target (counting from
+# 0).
 
-# Note also that 0 is a possible value, thus, if N values are requested, the highest possible integer observed in the output will be N-1
+# Note also that 0 is a possible value, thus, if N values are
+# requested, the highest possible integer observed in the output will
+# be N-1
 
 
 
@@ -67,20 +70,20 @@ sub binom {
 
 $n_distinct_samples = shift;
 $item_length = shift;
-$vocabulary_size = shift;
+$n_values = shift;
 $n_items = shift;
 
 # sanity check
-$possible_distinct_items_count = $vocabulary_size**$item_length;
+$possible_distinct_items_count = $n_values**$item_length;
 $max_samples_count = binom($possible_distinct_items_count,$n_items);
 if ($n_distinct_samples>$max_samples_count) {
-    print "with $n_items distinct items of length $item_length with $vocabulary_size values, I can maximally generate $max_samples_count samples\n";
+    print "with $n_items distinct items of length $item_length with $n_values values, I can maximally generate $max_samples_count samples\n";
     exit;
 }
 
-$vocabulary_size--;
+$n_values--;
 
-@possible_items = (0..$vocabulary_size);
+@possible_items = (0..$n_values);
 @all_distinct_combinations = ordered_combinations(\@possible_items,$item_length);
 
 $current_sample_n = 0;
