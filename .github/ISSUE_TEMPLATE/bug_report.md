@@ -1,3 +1,10 @@
+---
+name: Bug Report
+about: Submit a bug report to help us improve
+labels: 'bug'
+
+---
+
 Hello! Thanks for taking interest in EGG. We are glad you're here to help us improve it!
 Please fill this template as thoroughly as possible, that would make things much easier for us :) 
 

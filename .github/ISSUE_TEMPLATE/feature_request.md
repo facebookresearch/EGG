@@ -1,3 +1,10 @@
+---
+name: Feature Request
+about: Submit a proposal/request for a new feature
+labels: 'enhancement, help wanted'
+
+---
+
 Is your proposal related to a problem?
 
 <!--
