@@ -240,12 +240,16 @@ class PosDisent(Callback):
         if self.print_test:
             self.print_message(logs, 'test', epoch)
 
+# The PrintValidationEvent callback function checks that we are at the last epoch, and it prints sender_input,
+# labels, message and receiver_output for all data points in the validation set.
+# These data are stored in an Interaction object (see interaction.py under core), that logs various data
+# about each game data point.
 class PrintValidationEvents(Callback):
     def __init__(self, n_epochs):
         super().__init__()
         self.n_epochs=n_epochs
-    def on_test_end(self, _loss, logs: Interaction, epoch: int):
-        if (epoch==self.n_epochs):
+    def on_test_end(self, _loss, logs: Interaction, epoch: int): # here is where we make sure we are printing the validation set (on_test_end, not on_epoch_end)
+        if (epoch==self.n_epochs): # here is where we check that we are at the last epoch
             print("INPUTS")
             print([m.tolist() for m in logs.sender_input], sep='\n')
             print("LABELS")
