@@ -8,7 +8,7 @@ labels: 'enhancement, help wanted'
 Is your proposal related to a problem?
 
 <!--
-  Please rovide a clear and concise description of the problem.
+  Please provide a clear and concise description of the problem.
   For example, "I'm always frustrated when..."
 -->
 
