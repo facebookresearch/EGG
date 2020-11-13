@@ -3,21 +3,23 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
 import sys
-
 from pathlib import Path
-sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
+
+import torch
+
 import egg.core as core
 from egg.core import Interaction
+
+sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 
 
 class ToyDataset:
     def __init__(self):
         data = []
 
-        for i in range(2**8):
-            s = [int(x) for x in '{0:08b}'.format(i)]
+        for i in range(2 ** 8):
+            s = [int(x) for x in "{0:08b}".format(i)]
             data.append(s)
         self.data = torch.tensor(data).float()
         self.y = self.data.sum(dim=1)
@@ -61,6 +63,7 @@ def test_toy_counting_gradient():
     trainer = core.Trainer(game, optimizer, train_data=d, validation_data=None)
     trainer.train(10000)
 
-    are_close = torch.allclose(agent.fc1.weight, torch.ones_like(agent.fc1.weight), rtol=0.05)
+    are_close = torch.allclose(
+        agent.fc1.weight, torch.ones_like(agent.fc1.weight), rtol=0.05
+    )
     assert are_close, agent.fc1.weight
-

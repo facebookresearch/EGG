@@ -5,17 +5,18 @@
 
 import argparse
 import json
-from torch.nn import functional as F
-import torch.utils.data
-from torchvision import datasets, transforms
-import torch.distributions
-import egg.core as core
 
-from egg.zoo.language_bottleneck.mnist_overfit.archs import Sender, Receiver
+import torch.distributions
+import torch.utils.data
+from torch.nn import functional as F
+from torchvision import datasets, transforms
+
+import egg.core as core
+from egg.core import EarlyStopperAccuracy
 from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
+from egg.zoo.language_bottleneck.mnist_overfit.archs import Receiver, Sender
 from egg.zoo.language_bottleneck.mnist_overfit.data import corrupt_labels_
 from egg.zoo.language_bottleneck.relaxed_channel import AlwaysRelaxedWrapper
-from egg.core import EarlyStopperAccuracy
 
 
 def diff_loss_symbol(_sender_input, _message, _receiver_input, receiver_output, labels):

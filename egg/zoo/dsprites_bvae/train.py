@@ -4,23 +4,24 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import sys
 import pathlib
+import sys
+
 import numpy as np
-
-
 import torch
 import torch.utils.data
-
-from torchvision import datasets, transforms, utils
 from torch import nn
-from torch.nn import functional as F
 from torch.autograd import Variable
+from torch.nn import functional as F
+from torchvision import datasets, transforms, utils
 
 import egg.core as core
+from egg.core.language_analysis import PosDisent, TopographicSimilarity
+from egg.zoo.dsprites_bvae.data_loaders.data_loaders import \
+    get_dsprites_dataloader
+
 from .archs import VisualReceiver, VisualSender
-from egg.zoo.dsprites_bvae.data_loaders.data_loaders import get_dsprites_dataloader
-from egg.core.language_analysis import TopographicSimilarity, PosDisent
+
 
 def reconstruction_loss(x, x_recon, distribution='bernoulli'):
     batch_size = x.size(0)

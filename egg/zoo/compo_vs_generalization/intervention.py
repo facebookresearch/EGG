@@ -4,12 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import torch
-from egg.zoo.language_bottleneck.intervention import mutual_info, entropy
-import egg.core as core
 import json
+
+import torch
 from scipy import spatial
 from scipy.stats import spearmanr
+
+import egg.core as core
+from egg.zoo.language_bottleneck.intervention import entropy, mutual_info
+
 try:
     import editdistance  # package to install https://pypi.org/project/editdistance/0.3.1/
 except ImportError:

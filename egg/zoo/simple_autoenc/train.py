@@ -4,12 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 
 from __future__ import print_function
+
 import argparse
-import torch.utils.data
+
 import torch.nn.functional as F
+import torch.utils.data
+
 import egg.core as core
+from egg.zoo.simple_autoenc.archs import Receiver, Sender
 from egg.zoo.simple_autoenc.features import OneHotLoader
-from egg.zoo.simple_autoenc.archs import Sender, Receiver
 
 
 def get_params(params):

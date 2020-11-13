@@ -3,13 +3,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import math
-import torch.utils.data as data
-import torch.nn.parallel
-import torch
-import numpy as np
-import math
 import itertools
+import math
+
+import numpy as np
+import torch
+import torch.nn.parallel
+import torch.utils.data as data
 
 
 def enumerate_attribute_value(n_attributes, n_values, mode):

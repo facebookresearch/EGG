@@ -3,16 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions import Bernoulli
 import random
 from collections import defaultdict
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.distributions import Bernoulli, Categorical
 
 import egg.core as core
-from torch.distributions import Categorical
 
 
 class Receiver(nn.Module):

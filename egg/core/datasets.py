@@ -4,8 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import itertools
-import random
-from typing import Iterable, List, Tuple
+from typing import Iterable, Tuple
 
 import numpy as np
 import torch
@@ -20,12 +19,15 @@ class AttributesValuesDataset:
     >>> epoch1[0][0].shape
     torch.Size([5, 3])
     """
-    def __init__(self,
-                 n_attributes: int,
-                 n_values: int,
-                 n_train_samples_per_epoch: int,
-                 batch_size: int,
-                 seed: int = None):
+
+    def __init__(
+        self,
+        n_attributes: int,
+        n_values: int,
+        n_train_samples_per_epoch: int,
+        batch_size: int,
+        seed: int = None,
+    ):
 
         self.n_attributes = n_attributes
         self.n_values = n_values
@@ -36,13 +38,17 @@ class AttributesValuesDataset:
         self.n_batches_per_epoch = int(n_train_samples_per_epoch) // batch_size
         assert self.n_batches_per_epoch
 
-        self.samples = list(itertools.product(*(range(1, n_values+1) for _ in range(n_attributes))))
+        self.samples = list(
+            itertools.product(*(range(1, n_values + 1) for _ in range(n_attributes)))
+        )  # noqa: E226
 
         seed = seed if seed else np.random.randint(0, 2 ** 31)
         self.seed = seed
 
     def __iter__(self):
-        return AttributesValuesIterator(self.samples, self.batch_size, self.n_batches_per_epoch, self.seed)
+        return AttributesValuesIterator(
+            self.samples, self.batch_size, self.n_batches_per_epoch, self.seed
+        )
 
 
 class AttributesValuesIterator:
@@ -55,11 +61,14 @@ class AttributesValuesIterator:
     >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
     True
     """
-    def __init__(self,
-                 samples: Iterable,
-                 batch_size: int,
-                 n_batches_per_epoch: int,
-                 seed: int = None):
+
+    def __init__(
+        self,
+        samples: Iterable,
+        batch_size: int,
+        n_batches_per_epoch: int,
+        seed: int = None,
+    ):
 
         self.batch_size = batch_size
         self.n_batches_per_epoch = n_batches_per_epoch
@@ -75,16 +84,23 @@ class AttributesValuesIterator:
         return self
 
     def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        if self.idx + self.batch_size >= len(self.data) or self.batches_generated >= self.n_batches_per_epoch:
+        if (
+            self.idx + self.batch_size >= len(self.data)
+            or self.batches_generated >= self.n_batches_per_epoch
+        ):
             self.batches_generated = 0
             self.idx = 0
             raise StopIteration()
 
         if not self.batches_generated:
-            self.data = torch.from_numpy(self.random_state.permutation(self.data)).float()
+            self.data = torch.from_numpy(
+                self.random_state.permutation(self.data)
+            ).float()
 
-        tnsr = [torch.Tensor(elem) for elem in self.data[self.idx:self.idx+self.batch_size]]
+        # fmt: off
+        tnsr = [torch.Tensor(elem) for elem in self.data[self.idx:self.idx+self.batch_size]]  # noqa: E226
         self.idx += (self.batch_size - 1)
+        # fmt: on
         batch = torch.stack(tnsr)
         labels = torch.zeros(1)
 
@@ -107,22 +123,29 @@ class AttributesValuesWithDistractorsDataset(AttributesValuesDataset):
     >>> epoch1[0][2].shape
     torch.Size([5, 2, 3])
     """
-    def __init__(self,
-                 n_attributes: int,
-                 n_values: int,
-                 n_train_samples_per_epoch: int,
-                 batch_size: int,
-                 distractors: int = 1,
-                 seed: int = 111):
-        super().__init__(n_attributes,
-                         n_values,
-                         n_train_samples_per_epoch,
-                         batch_size,
-                         seed)
+
+    def __init__(
+        self,
+        n_attributes: int,
+        n_values: int,
+        n_train_samples_per_epoch: int,
+        batch_size: int,
+        distractors: int = 1,
+        seed: int = 111,
+    ):
+        super().__init__(
+            n_attributes, n_values, n_train_samples_per_epoch, batch_size, seed
+        )
         self.distractors = distractors
 
     def __iter__(self):
-        return AttributesValuesWithDistractorsIterator(self.samples, self.batch_size, self.n_batches_per_epoch, self.distractors, self.seed)
+        return AttributesValuesWithDistractorsIterator(
+            self.samples,
+            self.batch_size,
+            self.n_batches_per_epoch,
+            self.distractors,
+            self.seed,
+        )
 
 
 class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
@@ -135,12 +158,15 @@ class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
     >>> all([v1.allclose(v2) for v1, v2 in zip(l1, l2)])
     True
     """
-    def __init__(self,
-                 samples: Iterable,
-                 batch_size: int,
-                 n_batches_per_epoch: int,
-                 distractors: int = 1,
-                 seed: int = None):
+
+    def __init__(
+        self,
+        samples: Iterable,
+        batch_size: int,
+        n_batches_per_epoch: int,
+        distractors: int = 1,
+        seed: int = None,
+    ):
         super().__init__(samples, batch_size, n_batches_per_epoch, seed)
         self.distractors = distractors
 
@@ -148,7 +174,10 @@ class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
         return self
 
     def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        if self.idx >= len(self.data) or self.batches_generated >= self.n_batches_per_epoch:
+        if (
+            self.idx >= len(self.data)
+            or self.batches_generated >= self.n_batches_per_epoch
+        ):
             self.batches_generated = 0
             self.idx = 0
             raise StopIteration()
@@ -156,12 +185,17 @@ class AttributesValuesWithDistractorsIterator(AttributesValuesIterator):
         if not self.batches_generated:
             self.data = self.random_state.permutation(self.data)
 
-        idxs  = self.random_state.randint(len(self.data), size=(self.batch_size * (self.distractors+1)))
-        receiver_input = np.reshape(self.data[idxs], (self.batch_size, self.distractors+1, -1))
-        labels = self.random_state.choice(self.distractors+1, size=self.batch_size)
-        target = receiver_input[np.arange(self.batch_size), labels]
+        # fmt: off
+        idxs = self.random_state.randint(len(self.data), size=(self.batch_size * (self.distractors+1)))  # noqa: E226
+        receiver_input = np.reshape(self.data[idxs], (self.batch_size, self.distractors+1, -1))  # noqa: E226
+        labels = self.random_state.choice(self.distractors+1, size=self.batch_size)  # noqa: E226
+        # fmt: on
+        target = receiver_input[np.arange(self.batch_size), labels]  # noqa: E226
 
         self.batches_generated += 1
         self.idx += 1
 
-        return torch.from_numpy(target).float(), torch.from_numpy(labels).long(), torch.from_numpy(receiver_input).float()
+        target = torch.from_numpy(target).float()
+        labels = torch.from_numpy(labels).long()
+        receiver_input = torch.from_numpy(receiver_input).float()
+        return target, labels, receiver_input

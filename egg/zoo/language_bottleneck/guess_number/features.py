@@ -3,10 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch.utils.data as data
-import torch.nn.parallel
-import torch
 import numpy as np
+import torch
+import torch.nn.parallel
+import torch.utils.data as data
 
 
 def sender_receiver_examples(examples, n_bits, bits_s, bits_r):

@@ -2,20 +2,22 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from typing import Optional, Callable
+from typing import Callable, Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
-from .interaction import Interaction, LoggingStrategy
+from .interaction import LoggingStrategy
 
 
 def gumbel_softmax_sample(
-        logits: torch.Tensor,
-        temperature: float = 1.0,
-        training: bool = True,
-        straight_through: bool = False):
+    logits: torch.Tensor,
+    temperature: float = 1.0,
+    training: bool = True,
+    straight_through: bool = False,
+):
 
     size = logits.size()
     if not training:
@@ -25,8 +27,7 @@ def gumbel_softmax_sample(
         one_hot = one_hot.view(*size)
         return one_hot
 
-    sample = RelaxedOneHotCategorical(
-        logits=logits, temperature=temperature).rsample()
+    sample = RelaxedOneHotCategorical(logits=logits, temperature=temperature).rsample()
 
     if straight_through:
         size = sample.size()
@@ -40,10 +41,12 @@ def gumbel_softmax_sample(
 
 
 class GumbelSoftmaxLayer(nn.Module):
-    def __init__(self,
-                 temperature: float = 1.0,
-                 trainable_temperature: bool = False,
-                 straight_through: bool = False):
+    def __init__(
+        self,
+        temperature: float = 1.0,
+        trainable_temperature: bool = False,
+        straight_through: bool = False,
+    ):
         super(GumbelSoftmaxLayer, self).__init__()
         self.straight_through = straight_through
 
@@ -51,18 +54,21 @@ class GumbelSoftmaxLayer(nn.Module):
             self.temperature = temperature
         else:
             self.temperature = torch.nn.Parameter(
-                torch.tensor([temperature]), requires_grad=True)
+                torch.tensor([temperature]), requires_grad=True
+            )
 
     def forward(self, logits: torch.Tensor):
-        return gumbel_softmax_sample(logits, self.temperature, self.training, self.straight_through)
+        return gumbel_softmax_sample(
+            logits, self.temperature, self.training, self.straight_through
+        )
 
 
 class GumbelSoftmaxWrapper(nn.Module):
     """
     Gumbel-Softmax Wrapper for an agent that outputs a single symbol. Assumes that during the forward pass,
     the agent returns log-probabilities over the potential output symbols. During training, the wrapper
-    transforms them into a sample from the Gumbel Softmax (GS) distribution; eval-time it returns greedy one-hot encoding
-    of the same shape.
+    transforms them into a sample from the Gumbel Softmax (GS) distribution;
+    eval-time it returns greedy one-hot encoding of the same shape.
 
     >>> inp = torch.zeros((4, 10)).uniform_()
     >>> outp = GumbelSoftmaxWrapper(nn.Linear(10, 2))(inp)
@@ -76,11 +82,13 @@ class GumbelSoftmaxWrapper(nn.Module):
     True
     """
 
-    def __init__(self,
-                 agent,
-                 temperature=1.0,
-                 trainable_temperature=False,
-                 straight_through=False):
+    def __init__(
+        self,
+        agent,
+        temperature=1.0,
+        trainable_temperature=False,
+        straight_through=False,
+    ):
         """
         :param agent: The agent to be wrapped. agent.forward() has to output log-probabilities over the vocabulary
         :param temperature: The temperature of the Gumbel Softmax distribution
@@ -94,12 +102,14 @@ class GumbelSoftmaxWrapper(nn.Module):
             self.temperature = temperature
         else:
             self.temperature = torch.nn.Parameter(
-                torch.tensor([temperature]), requires_grad=True)
+                torch.tensor([temperature]), requires_grad=True
+            )
 
     def forward(self, *args, **kwargs):
         logits = self.agent(*args, **kwargs)
         sample = gumbel_softmax_sample(
-            logits, self.temperature, self.training, self.straight_through)
+            logits, self.temperature, self.training, self.straight_through
+        )
         return sample
 
 
@@ -125,12 +135,14 @@ class SymbolGameGS(nn.Module):
     1
     """
 
-    def __init__(self,
-                 sender: nn.Module,
-                 receiver: nn.Module,
-                 loss: Callable,
-                 train_logging_strategy: Optional[LoggingStrategy] = None,
-                 test_logging_strategy: Optional[LoggingStrategy] = None):
+    def __init__(
+        self,
+        sender: nn.Module,
+        receiver: nn.Module,
+        loss: Callable,
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None,
+    ):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
         :param receiver: Receiver agent. receiver.forward() has to accept two parameters: message and receiver_input.
@@ -148,16 +160,28 @@ class SymbolGameGS(nn.Module):
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
-        self.train_logging_strategy = LoggingStrategy() if train_logging_strategy is None else train_logging_strategy
-        self.test_logging_strategy = LoggingStrategy() if test_logging_strategy is None else test_logging_strategy
+        self.train_logging_strategy = (
+            LoggingStrategy()
+            if train_logging_strategy is None
+            else train_logging_strategy
+        )
+        self.test_logging_strategy = (
+            LoggingStrategy()
+            if test_logging_strategy is None
+            else test_logging_strategy
+        )
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
         receiver_output = self.receiver(message, receiver_input)
 
-        loss, aux_info = self.loss(sender_input, message, receiver_input, receiver_output, labels)
+        loss, aux_info = self.loss(
+            sender_input, message, receiver_input, receiver_output, labels
+        )
 
-        logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
+        logging_strategy = (
+            self.train_logging_strategy if self.training else self.test_logging_strategy
+        )
         interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
@@ -165,7 +189,8 @@ class SymbolGameGS(nn.Module):
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),
-            aux=aux_info)
+            aux=aux_info,
+        )
 
         return loss.mean(), interaction
 
@@ -195,9 +220,20 @@ class RelaxedEmbedding(nn.Embedding):
     >>> (emb(float_query) == emb(long_query)).all().item()
     1
     """
+
     def forward(self, x):
-        if isinstance(x, torch.LongTensor) or (torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)):
-            return F.embedding(x, self.weight, self.padding_idx, self.max_norm, self.norm_type, self.scale_grad_by_freq, self.sparse)
+        if isinstance(x, torch.LongTensor) or (
+            torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)
+        ):
+            return F.embedding(
+                x,
+                self.weight,
+                self.padding_idx,
+                self.max_norm,
+                self.norm_type,
+                self.scale_grad_by_freq,
+                self.sparse,
+            )
         else:
             return torch.matmul(x, self.weight)
 
@@ -207,6 +243,7 @@ class SymbolReceiverWrapper(nn.Module):
     An optional wrapper for single-symbol Receiver, both Gumbel-Softmax and Reinforce. Receives a message, embeds it,
     and passes to the wrapped agent.
     """
+
     def __init__(self, agent, vocab_size, agent_input_size):
         super(SymbolReceiverWrapper, self).__init__()
         self.agent = agent
@@ -231,8 +268,19 @@ class RnnSenderGS(nn.Module):
     >>> output.size()  # batch size x max_len+1 x vocab_size
     torch.Size([1, 4, 2])
     """
-    def __init__(self, agent, vocab_size, embed_dim, hidden_size, max_len, temperature, cell='rnn',
-                 trainable_temperature=False, straight_through=False):
+
+    def __init__(
+        self,
+        agent,
+        vocab_size,
+        embed_dim,
+        hidden_size,
+        max_len,
+        temperature,
+        cell="rnn",
+        trainable_temperature=False,
+        straight_through=False,
+    ):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
 
@@ -248,18 +296,20 @@ class RnnSenderGS(nn.Module):
         if not trainable_temperature:
             self.temperature = temperature
         else:
-            self.temperature = torch.nn.Parameter(torch.tensor([temperature]), requires_grad=True)
+            self.temperature = torch.nn.Parameter(
+                torch.tensor([temperature]), requires_grad=True
+            )
 
         self.straight_through = straight_through
         self.cell = None
 
         cell = cell.lower()
 
-        if cell == 'rnn':
+        if cell == "rnn":
             self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
-        elif cell == 'gru':
+        elif cell == "gru":
             self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
-        elif cell == 'lstm':
+        elif cell == "lstm":
             self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
@@ -283,7 +333,9 @@ class RnnSenderGS(nn.Module):
                 h_t = self.cell(e_t, prev_hidden)
 
             step_logits = self.hidden_to_output(h_t)
-            x = gumbel_softmax_sample(step_logits, self.temperature, self.training, self.straight_through)
+            x = gumbel_softmax_sample(
+                step_logits, self.temperature, self.training, self.straight_through
+            )
 
             prev_hidden = h_t
             e_t = self.embedding(x)
@@ -303,20 +355,21 @@ class RnnReceiverGS(nn.Module):
     Gumbel Softmax-based wrapper for Receiver agent in variable-length communication game. The user implemented logic
     is passed in `agent` and is responsible for mapping (RNN's hidden state + Receiver's optional input)
     into the output vector. Since, due to the relaxation, end-of-sequence symbol might have non-zero probability at
-    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic is handled by
-    `SenderReceiverRnnGS`.
+    each timestep of the message, `RnnReceiverGS` is applied for each timestep. The corresponding EOS logic
+    is handled by `SenderReceiverRnnGS`.
     """
-    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell='rnn'):
+
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell="rnn"):
         super(RnnReceiverGS, self).__init__()
         self.agent = agent
 
         self.cell = None
         cell = cell.lower()
-        if cell == 'rnn':
+        if cell == "rnn":
             self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
-        elif cell == 'gru':
+        elif cell == "gru":
             self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
-        elif cell == 'lstm':
+        elif cell == "lstm":
             self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
@@ -335,8 +388,11 @@ class RnnReceiverGS(nn.Module):
         for step in range(message.size(1)):
             e_t = emb[:, step, ...]
             if isinstance(self.cell, nn.LSTMCell):
-                h_t, prev_c = self.cell(e_t, (prev_hidden, prev_c)) if prev_hidden is not None else \
-                    self.cell(e_t)
+                h_t, prev_c = (
+                    self.cell(e_t, (prev_hidden, prev_c))
+                    if prev_hidden is not None
+                    else self.cell(e_t)
+                )
             else:
                 h_t = self.cell(e_t, prev_hidden)
 
@@ -375,13 +431,16 @@ class SenderReceiverRnnGS(nn.Module):
     >>> loss.item() > 0
     True
     """
-    def __init__(self, 
-        sender, 
-        receiver, 
-        loss, 
+
+    def __init__(
+        self,
+        sender,
+        receiver,
+        loss,
         length_cost=0.0,
         train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None):
+        test_logging_strategy: Optional[LoggingStrategy] = None,
+    ):
         """
         :param sender: sender agent
         :param receiver: receiver agent
@@ -404,21 +463,37 @@ class SenderReceiverRnnGS(nn.Module):
         self.receiver = receiver
         self.loss = loss
         self.length_cost = length_cost
-        self.train_logging_strategy = LoggingStrategy() if train_logging_strategy is None else train_logging_strategy
-        self.test_logging_strategy = LoggingStrategy() if test_logging_strategy is None else test_logging_strategy
+        self.train_logging_strategy = (
+            LoggingStrategy()
+            if train_logging_strategy is None
+            else train_logging_strategy
+        )
+        self.test_logging_strategy = (
+            LoggingStrategy()
+            if test_logging_strategy is None
+            else test_logging_strategy
+        )
 
     def forward(self, sender_input, labels, receiver_input=None):
         message = self.sender(sender_input)
         receiver_output = self.receiver(message, receiver_input)
 
         loss = 0
-        not_eosed_before = torch.ones(receiver_output.size(0)).to(receiver_output.device)
+        not_eosed_before = torch.ones(receiver_output.size(0)).to(
+            receiver_output.device
+        )
         expected_length = 0.0
 
         aux_info = {}
         z = 0.0
         for step in range(receiver_output.size(1)):
-            step_loss, step_aux = self.loss(sender_input, message[:, step, ...], receiver_input, receiver_output[:, step, ...], labels)
+            step_loss, step_aux = self.loss(
+                sender_input,
+                message[:, step, ...],
+                receiver_input,
+                receiver_output[:, step, ...],
+                labels,
+            )
             eos_mask = message[:, step, 0]  # always eos == 0
 
             add_mask = eos_mask * not_eosed_before
@@ -432,18 +507,25 @@ class SenderReceiverRnnGS(nn.Module):
             not_eosed_before = not_eosed_before * (1.0 - eos_mask)
 
         # the remainder of the probability mass
-        loss += step_loss * not_eosed_before + self.length_cost * (step + 1.0) * not_eosed_before
+        loss += (
+            step_loss * not_eosed_before
+            + self.length_cost * (step + 1.0) * not_eosed_before
+        )
         expected_length += (step + 1) * not_eosed_before
 
         z += not_eosed_before
-        assert z.allclose(torch.ones_like(z)), f"lost probability mass, {z.min()}, {z.max()}"
+        assert z.allclose(
+            torch.ones_like(z)
+        ), f"lost probability mass, {z.min()}, {z.max()}"
 
         for name, value in step_aux.items():
             aux_info[name] = value * not_eosed_before + aux_info.get(name, 0.0)
 
-        aux_info['length'] = expected_length
+        aux_info["length"] = expected_length
 
-        logging_strategy = self.train_logging_strategy if self.training else self.test_logging_strategy
+        logging_strategy = (
+            self.train_logging_strategy if self.training else self.test_logging_strategy
+        )
         interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
@@ -451,6 +533,7 @@ class SenderReceiverRnnGS(nn.Module):
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=expected_length.detach(),
-            aux=aux_info)
+            aux=aux_info,
+        )
 
         return loss.mean(), interaction

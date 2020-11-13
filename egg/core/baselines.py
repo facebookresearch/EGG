@@ -3,8 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import abstractmethod, ABC
-from collections import defaultdict
+from abc import ABC, abstractmethod
 
 import torch
 
@@ -13,7 +12,7 @@ class Baseline(ABC):
     @abstractmethod
     def update(self, loss: torch.Tensor) -> None:
         """Update internal state according to the observed loss
-            loss (torch.Tensor): batch of losses
+        loss (torch.Tensor): batch of losses
         """
         pass
 
@@ -55,8 +54,9 @@ class MeanBaseline(Baseline):
         if self.mean_baseline.device != loss.device:
             self.mean_baseline = self.mean_baseline.to(loss.device)
 
-        self.mean_baseline += (loss.detach().mean().item() -
-                               self.mean_baseline) / self.n_points
+        self.mean_baseline += (
+            loss.detach().mean().item() - self.mean_baseline
+        ) / self.n_points
 
     def predict(self, loss: torch.Tensor) -> torch.Tensor:
         if self.mean_baseline.device != loss.device:
@@ -66,7 +66,7 @@ class MeanBaseline(Baseline):
 
 class BuiltInBaseline(Baseline):
     """Built-in baseline; for any row in the batch, the mean of all other rows serves as a control variate.
-    To use BuiltInBaseline, rows in the batch must be independent. Most likely BuiltInBaseline 
+    To use BuiltInBaseline, rows in the batch must be independent. Most likely BuiltInBaseline
     would work poorly for small batch sizes.
     """
 

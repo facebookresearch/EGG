@@ -3,12 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import numpy as np
-
 import torch
-
-from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import transforms
+
 
 class DSpritesDataset(Dataset):
     def __init__(self, path_to_data, subsample=100, transform=None, image=False):
