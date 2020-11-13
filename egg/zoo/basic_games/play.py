@@ -181,8 +181,6 @@ def main(params):
     # and finally we train!
     trainer.train(n_epochs=opts.n_epochs)
 
-    # this mysterious line is here because I cut-and-pasted it from somewhere
-    core.close()
     
 if __name__ == "__main__":
     import sys
