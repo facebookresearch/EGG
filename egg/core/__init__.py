@@ -60,5 +60,6 @@ __all__ = [
     'Interaction',
     'MessageEntropy',
     'TopographicSimilarity',
-    'PosDisent'
+    'PosDisent',
+    'PrintValidationEvents'
 ]
