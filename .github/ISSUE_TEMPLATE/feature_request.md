@@ -5,7 +5,7 @@ labels: 'enhancement, help wanted'
 
 ---
 
-Is your proposal related to a problem?
+### Is your proposal related to a problem?
 
 <!--
   Please provide a clear and concise description of the problem.
