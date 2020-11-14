@@ -260,7 +260,8 @@ class PosDisent(Callback):
 
     def on_test_end(self, loss, logs, epoch):
         if self.print_test:
-            self.print_message(logs, 'test', epoch)
+            self.print_message(logs, "test", epoch)
+
 
 # The PrintValidationEvent callback function checks that we are at the
 # last epoch (either the last epoch required by the user, or because
@@ -271,23 +272,25 @@ class PosDisent(Callback):
 class PrintValidationEvents(Callback):
     def __init__(self, n_epochs):
         super().__init__()
-        self.n_epochs=n_epochs
+        self.n_epochs = n_epochs
 
     @staticmethod
     def print_events(logs: Interaction):
         print("INPUTS")
-        print([m.tolist() for m in logs.sender_input], sep='\n')
+        print([m.tolist() for m in logs.sender_input], sep="\n")
         print("LABELS")
-        print([m.tolist() for m in logs.labels], sep='\n')
+        print([m.tolist() for m in logs.labels], sep="\n")
         print("MESSAGES")
-        print([m.tolist() for m in logs.message], sep='\n')
+        print([m.tolist() for m in logs.message], sep="\n")
         print("OUTPUTS")
-        print([m.tolist() for m in logs.receiver_output], sep='\n')
-        
-    def on_test_end(self, _loss, logs: Interaction, epoch: int): # here is where we make sure we are printing the validation set (on_test_end, not on_epoch_end)
-        if (epoch==self.n_epochs): # here is where we check that we are at the last epoch
+        print([m.tolist() for m in logs.receiver_output], sep="\n")
+
+    # here is where we make sure we are printing the validation set (on_test_end, not on_epoch_end)
+    def on_test_end(self, _loss, logs: Interaction, epoch: int):
+        # here is where we check that we are at the last epoch
+        if epoch == self.n_epochs:
             self.print_events(logs)
 
-    def on_early_stopping(self,  _train_loss, _train_logs, epoch, _test_loss, test_logs): # same behaviour if we reached early stopping
+    # same behaviour if we reached early stopping
+    def on_early_stopping(self, _train_loss, _train_logs, epoch, _test_loss, test_logs):
         self.print_events(test_logs)
-
