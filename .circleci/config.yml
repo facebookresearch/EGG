@@ -37,21 +37,3 @@ jobs:
           command: |
             . venv/bin/activate
             pytest
-
-      - run:
-          name: black-check
-          command: |
-            . venv/bin/activate
-            tox -e black-check
-
-      - run:
-          name: isort-check
-          command: |
-            . venv/bin/activate
-            tox -e isort-check
-
-      - run:
-          name: flake8
-          command: |
-            . venv/bin/activate
-            tox -e flake8

@@ -44,6 +44,7 @@ def test_objects_game():
         ),
     )
 
+
 def test_basic_games_game():
     run_game(
         "egg.zoo.basic_games.play",
@@ -59,6 +60,7 @@ def test_basic_games_game():
             n_epochs=1,
         ),
     )
+
 
 def test_mnist_autoenc():
     run_game(
