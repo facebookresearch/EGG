@@ -44,6 +44,21 @@ def test_objects_game():
         ),
     )
 
+def test_basic_games_game():
+    run_game(
+        "egg.zoo.basic_games.play",
+        dict(
+            mode="gs",
+            train_data="egg/zoo/basic_games/data_generation_scripts/example_reconstruction_input.txt",
+            validation_data="egg/zoo/basic_games/data_generation_scripts/example_reconstruction_input.txt",
+            n_attributes=5,
+            n_values=3,
+            batch_size=50,
+            max_len=4,
+            vocab_size=100,
+            n_epochs=1,
+        ),
+    )
 
 def test_mnist_autoenc():
     run_game(

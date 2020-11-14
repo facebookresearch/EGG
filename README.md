@@ -28,6 +28,8 @@ with PyTorch. However, to get a taste of communication games without writing any
  
  * [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb): A Jupyter tutorial that implements a MNIST discrete auto-encoder step-by-step, covering the basic concepts of EGG. The tutorial starts with pre-training a "vision" module and builds single- and multiple symbol auto-encoder communication games with channel optimization done by Reinforce and Gumbel-Softmax relaxation ([notebook](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)).
  
+* [`egg/zoo/basic_games`](/egg/zoo/basic_games): Simple implementations of reconstruction and discrimination games, taking their inputs from text files, and with thoroughly annotated code. These might be a good starting point to learn to play with EGG.
+ 
  * [`egg/zoo/signal_game`](/egg/zoo/signal_game): Modern version of a Lewis' signaling game. In this game, Sender is presented with a target image and with one or more distractor images. Then all images are shuffled and Receiver has to point to the target image based on a message from Sender. This implementation is based on Diane Bouchacourt's code.
  
  * [`egg/zoo/simple_autoenc`](/egg/zoo/simple_autoenc): Discrete auto-encoder Sender/Receiver game that auto-encodes one-hot vectors using variable-length messages.
@@ -99,7 +101,8 @@ The repo is organised as follows:
 
 ## How-to-Start and Learning more
 * The step-by-step [`MNIST autoencoder tutorial`](/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb) goes over all essential steps to create a full-featured communication game with variable length messages between the agents. NB: depending on your computational resources, this might take a while to run! [(open in colab)](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/tutorials/EGG%20walkthrough%20with%20a%20MNIST%20autoencoder.ipynb)
-* The simplest starter code for implementing a Sender/Receiver game is the MNIST autoencoder
+* The simplest starter code is in [`egg/zoo/basic_games`](/egg/zoo/basic_games), providing implementations of basic reconstruction and discrimination games. Input can be provided through text files, and the code is thoroughly commented.
+* Another good starting point to implement a Sender/Receiver game is the MNIST autoencoder
 game, [MNIST auto-encoder game](/egg/zoo/mnist_autoenc). The game features both Gumbel-Softmax 
 and Reinforce-based implementations.
 * EGG provides some utility boilerplate around commonly used command line parameters. Documentation about using it can be found
