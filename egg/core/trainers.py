@@ -6,6 +6,7 @@
 import os
 import pathlib
 from typing import List, Optional
+from contextlib import nullcontext
 
 import torch
 from torch.utils.data import DataLoader
@@ -21,6 +22,10 @@ from .distributed import get_preemptive_checkpoint_dir
 from .interaction import Interaction
 from .util import get_opts, move_to
 
+try:
+    from torch.cuda.amp import GradScaler, autocast
+except ImportError:
+    pass
 
 class Trainer:
     """
@@ -137,6 +142,11 @@ class Trainer:
             # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
             self.optimizer.state = move_to(self.optimizer.state, self.device)
 
+        if common_opts.fp16:
+            self.scaler = GradScaler()
+        else:
+            self.scaler = None
+
     def eval(self):
         mean_loss = 0.0
         interactions = []
@@ -174,20 +184,34 @@ class Trainer:
 
         for batch_id, batch in enumerate(self.train_data):
             batch = move_to(batch, self.device)
-            optimized_loss, interaction = self.game(*batch)
-            if self.update_freq > 1:
-                # throughout EGG, we minimize _mean_ loss, not sum
-                # hence, we need to account for that when aggregating grads
-                optimized_loss = optimized_loss / self.update_freq
-            optimized_loss.backward()
+
+            context = autocast() if self.scaler else nullcontext()
+            with context: 
+                optimized_loss, interaction = self.game(*batch)
+
+                if self.update_freq > 1:
+                    # throughout EGG, we minimize _mean_ loss, not sum
+                    # hence, we need to account for that when aggregating grads
+                    optimized_loss = optimized_loss / self.update_freq
+
+            if self.scaler:
+                self.scaler.scale(optimized_loss).backward()
+            else:
+                optimized_loss.backward()
 
             if batch_id % self.update_freq == self.update_freq - 1:
+                if self.scaler: self.scaler.unscale_(self.optimizer)
+
                 if self.grad_norm:
                     torch.nn.utils.clip_grad_norm_(
                         self.game.parameters(), self.grad_norm
                     )
-
-                self.optimizer.step()
+                if self.scaler:
+                    self.scaler.step(self.optimizer)
+                    self.scaler.update()
+                else:
+                    self.optimizer.step()
+                    
                 self.optimizer.zero_grad()
 
             n_batches += 1
