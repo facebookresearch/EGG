@@ -6,7 +6,13 @@
 import os
 import pathlib
 from typing import List, Optional
-from contextlib import nullcontext
+try:
+    # requires python >= 3.7
+    from contextlib import nullcontext
+except ImportError:
+    # not exactly the same, but will do for our purposes
+    from contextlib import suppress as nullcontext
+
 
 import torch
 from torch.utils.data import DataLoader
