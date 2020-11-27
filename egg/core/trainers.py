@@ -6,13 +6,13 @@
 import os
 import pathlib
 from typing import List, Optional
+
 try:
     # requires python >= 3.7
     from contextlib import nullcontext
 except ImportError:
     # not exactly the same, but will do for our purposes
     from contextlib import suppress as nullcontext
-
 
 import torch
 from torch.utils.data import DataLoader
@@ -32,6 +32,7 @@ try:
     from torch.cuda.amp import GradScaler, autocast
 except ImportError:
     pass
+
 
 class Trainer:
     """
@@ -192,7 +193,7 @@ class Trainer:
             batch = move_to(batch, self.device)
 
             context = autocast() if self.scaler else nullcontext()
-            with context: 
+            with context:
                 optimized_loss, interaction = self.game(*batch)
 
                 if self.update_freq > 1:
@@ -206,7 +207,8 @@ class Trainer:
                 optimized_loss.backward()
 
             if batch_id % self.update_freq == self.update_freq - 1:
-                if self.scaler: self.scaler.unscale_(self.optimizer)
+                if self.scaler:
+                    self.scaler.unscale_(self.optimizer)
 
                 if self.grad_norm:
                     torch.nn.utils.clip_grad_norm_(
@@ -217,7 +219,7 @@ class Trainer:
                     self.scaler.update()
                 else:
                     self.optimizer.step()
-                    
+
                 self.optimizer.zero_grad()
 
             n_batches += 1
