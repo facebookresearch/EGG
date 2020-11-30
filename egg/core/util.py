@@ -119,6 +119,13 @@ def _populate_cl_params(arg_parser: argparse.ArgumentParser) -> argparse.Argumen
         help="Port to use in distributed learning",
     )
 
+    arg_parser.add_argument(
+        "--fp16",
+        default=False,
+        help="Use mixed-precision for training/evaluating models",
+        action="store_true",
+    )
+
     return arg_parser
 
 
@@ -131,6 +138,10 @@ def _get_params(
     args.no_cuda = not args.cuda
     args.device = torch.device("cuda" if args.cuda else "cpu")
     args.distributed_context = maybe_init_distributed(args)
+
+    if args.fp16 and torch.__version__ < "1.6.0":
+        print("--fp16 is only supported with pytorch >= 1.6.0, please update!")
+        args.fp16 = False
 
     return args
 
