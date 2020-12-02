@@ -249,28 +249,6 @@ class PosDisent(Callback):
         0.978656
         """
         return gap_mi_first_second(attributes, messages)
-        gaps = torch.zeros(messages.size(1))
-        non_constant_positions = 0.0
-
-        for j in range(messages.size(1)):
-            symbol_mi = []
-            h_j = None
-            for i in range(attributes.size(1)):
-                x, y = attributes[:, i], messages[:, j]
-                info = mutual_info(x, y)
-                symbol_mi.append(info)
-
-                if h_j is None:
-                    h_j = calc_entropy(y)
-
-            symbol_mi.sort(reverse=True)
-
-            if h_j > 0.0:
-                gaps[j] = (symbol_mi[0] - symbol_mi[1]) / h_j
-                non_constant_positions += 1
-
-        score = gaps.sum() / non_constant_positions
-        return score.item()
 
     def print_message(self, logs: Interaction, tag: str, epoch: int):
         message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
