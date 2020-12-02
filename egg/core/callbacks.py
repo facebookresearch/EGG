@@ -118,7 +118,8 @@ class TemperatureUpdater(Callback):
 
 class Checkpoint(NamedTuple):
     epoch: int
-    model_state_dict: Dict[str, Any]
+    sender_state_dict: Dict[str, Any]
+    receiver_state_dict: Dict[str, Any]
     optimizer_state_dict: Dict[str, Any]
 
 
@@ -162,7 +163,8 @@ class CheckpointSaver(Callback):
     def get_checkpoint(self):
         return Checkpoint(
             epoch=self.epoch_counter,
-            model_state_dict=self.trainer.game.state_dict(),
+            sender_state_dict=self.trainer.game.sender.state_dict(),
+            receiver_state_dict=self.trainer.game.receiver.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
         )
 

@@ -281,7 +281,8 @@ class Trainer:
             callback.on_train_end()
 
     def load(self, checkpoint: Checkpoint):
-        self.game.load_state_dict(checkpoint.model_state_dict)
+        self.game.sender.load_state_dict(checkpoint.sender_state_dict)
+        self.game.receiver.load_state_dict(checkpoint.receiver_state_dict)
         self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
         self.start_epoch = checkpoint.epoch
 
