@@ -2,7 +2,8 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
+import random
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Iterable, Optional
 
@@ -10,14 +11,65 @@ import torch
 import torch.distributed as distrib
 
 
-@dataclass
-class LoggingStrategy:
-    store_sender_input: bool = True
-    store_receiver_input: bool = True
-    store_labels: bool = True
-    store_message: bool = True
-    store_receiver_output: bool = True
-    store_message_length: bool = True
+class BaseStrategy(ABC):
+    """
+    Logic applied to log interaction between receiver and sender.
+    Each interaction is logged at each step (batch) of an epoch.
+    Args:
+        store_sender_input: if to store the sender input
+        store_receiver_input: if to store the receiver input
+        store_labels: if to store the labels
+        store_message: if to store the message
+        store_receiver_output: if to store the receiver output
+        store_message_length: if to store the message length
+    """
+
+    def __init__(
+        self,
+        store_sender_input: bool = True,
+        store_receiver_input: bool = True,
+        store_labels: bool = True,
+        store_message: bool = True,
+        store_receiver_output: bool = True,
+        store_message_length: bool = True,
+    ):
+
+        self.store_sender_input = store_sender_input
+        self.store_receiver_input = store_receiver_input
+        self.store_labels = store_labels
+        self.store_message = store_message
+        self.store_receiver_output = store_receiver_output
+        self.store_message_length = store_message_length
+
+    @abstractmethod
+    def filtered_interaction(
+        self,
+        sender_input: Optional[torch.Tensor],
+        receiver_input: Optional[torch.Tensor],
+        labels: Optional[torch.Tensor],
+        message: Optional[torch.Tensor],
+        receiver_output: Optional[torch.Tensor],
+        message_length: Optional[torch.Tensor],
+        aux: Dict[str, torch.Tensor],
+    ):
+        return
+
+    @classmethod
+    def minimal(cls):
+        args = [False] * 5 + [True]
+        return cls(*args)
+
+    @classmethod
+    def maximal(cls):
+        return cls()
+
+
+class LoggingStrategy(BaseStrategy):
+    """
+    Log input based on argument
+    """
+    def __init__(self, *args):
+        super().__init__(*args)
 
     def filtered_interaction(
         self,
@@ -29,7 +81,6 @@ class LoggingStrategy:
         message_length: Optional[torch.Tensor],
         aux: Dict[str, torch.Tensor],
     ):
-
         return Interaction(
             sender_input=sender_input if self.store_sender_input else None,
             receiver_input=receiver_input if self.store_receiver_input else None,
@@ -40,14 +91,51 @@ class LoggingStrategy:
             aux=aux,
         )
 
-    @classmethod
-    def minimal(cls):
-        args = [False] * 5 + [True]
-        return cls(*args)
 
-    @classmethod
-    def maximal(cls):
-        return cls()
+class RandomLogging(LoggingStrategy):
+    """
+    Log strategy based on random probability
+    """
+    def __init__(self, log_prob=1, random_seed=42, *args):
+
+        super().__init__(*args)
+
+        self.log_prob = log_prob
+        self.store_sender_input = self.random_log
+        self.store_receiver_input = self.random_log
+        self.store_labels = self.random_log
+        self.store_receiver_output = self.random_log
+        self.store_message = self.random_log
+        self.store_message_length = self.random_log
+
+        random.seed(a=random_seed)
+
+    def random_log(self, inp, rnd):
+        if rnd < self.log_prob:
+            return inp
+        else:
+            return None
+
+    def filtered_interaction(
+        self,
+        sender_input: Optional[torch.Tensor],
+        receiver_input: Optional[torch.Tensor],
+        labels: Optional[torch.Tensor],
+        message: Optional[torch.Tensor],
+        receiver_output: Optional[torch.Tensor],
+        message_length: Optional[torch.Tensor],
+        aux: Dict[str, torch.Tensor],
+    ):
+        rnd = random.random()
+        return Interaction(
+            sender_input=self.random_log(sender_input, rnd),
+            receiver_input=self.random_log(receiver_input, rnd),
+            labels=self.random_log(labels, rnd),
+            message=self.random_log(message, rnd),
+            receiver_output=self.random_log(receiver_output, rnd),
+            message_length=self.random_log(message_length, rnd),
+            aux=aux,
+        )
 
 
 @dataclass
@@ -113,22 +201,13 @@ class Interaction:
         2
         >>> c
         Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
-        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
-        >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
         """
 
         def _check_cat(lst):
             if all(x is None for x in lst):
                 return None
-            # if some but not all are None: not good
-            if any(x is None for x in lst):
-                raise RuntimeError(
-                    "Appending empty and non-empty interactions logs. "
-                    "Normally this shouldn't happen!"
-                )
+            # if some but not all are None: filter out None
+            lst = [elem for elem in lst if elem is not None]
             return torch.cat(lst, dim=0)
 
         assert interactions, "list must not be empty"
