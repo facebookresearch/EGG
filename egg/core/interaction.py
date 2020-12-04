@@ -11,7 +11,7 @@ import torch.distributed as distrib
 
 
 @dataclass
-class LoggingStrategy:
+class BaseLoggingStrategy:
     store_sender_input: bool = True
     store_receiver_input: bool = True
     store_labels: bool = True
@@ -29,16 +29,7 @@ class LoggingStrategy:
         message_length: Optional[torch.Tensor],
         aux: Dict[str, torch.Tensor],
     ):
-
-        return Interaction(
-            sender_input=sender_input if self.store_sender_input else None,
-            receiver_input=receiver_input if self.store_receiver_input else None,
-            labels=labels if self.store_labels else None,
-            message=message if self.store_message else None,
-            receiver_output=receiver_output if self.store_receiver_output else None,
-            message_length=message_length if self.store_message_length else None,
-            aux=aux,
-        )
+        raise NotImplementedError
 
     @classmethod
     def minimal(cls):
@@ -48,6 +39,62 @@ class LoggingStrategy:
     @classmethod
     def maximal(cls):
         return cls()
+
+
+class FullLoggingStrategy:
+    def filtered_interaction(
+        self,
+        sender_input: Optional[torch.Tensor],
+        receiver_input: Optional[torch.Tensor],
+        labels: Optional[torch.Tensor],
+        message: Optional[torch.Tensor],
+        receiver_output: Optional[torch.Tensor],
+        message_length: Optional[torch.Tensor],
+        aux: Dict[str, torch.Tensor],
+    ):
+
+            return Interaction(
+                sender_input=sender_input if self.store_sender_input else None,
+                receiver_input=receiver_input if self.store_receiver_input else None,
+                labels=labels if self.store_labels else None,
+                message=message if self.store_message else None,
+                receiver_output=receiver_output if self.store_receiver_output else None,
+                message_length=message_length if self.store_message_length else None,
+                aux=aux,
+            )
+
+@dataclass
+class RandomLoggingStrategy(FullLoggingStrategy):
+        random_p: float = 0.1
+        seed: int = 111
+
+    def __post_init__(self):
+        import random
+        random.seed(seed)
+
+    def filtered_interaction(
+        self,
+        sender_input: Optional[torch.Tensor],
+        receiver_input: Optional[torch.Tensor],
+        labels: Optional[torch.Tensor],
+        message: Optional[torch.Tensor],
+        receiver_output: Optional[torch.Tensor],
+        message_length: Optional[torch.Tensor],
+        aux: Dict[str, torch.Tensor],
+    )
+
+        if random.random() <= random_p:
+            return super(RandomLoggingStrategy, self).filtered_interaction(
+                sender_input=sender_input),
+                receiver_input=receiver_input,
+                labels=labels,
+                message=message,
+                receiver_output=receiver_output,
+                message_length=message_length,
+                aux=aux,
+            )
+        args = [None] * 5 + [{}]
+        return Interaction(*args)
 
 
 @dataclass
