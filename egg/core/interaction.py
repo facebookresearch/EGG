@@ -41,7 +41,7 @@ class BaseLoggingStrategy:
         return cls()
 
 
-class FullLoggingStrategy:
+class FullLoggingStrategy(BaseLoggingStrategy):
     def filtered_interaction(
         self,
         sender_input: Optional[torch.Tensor],
