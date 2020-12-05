@@ -17,6 +17,31 @@ from .callbacks import Callback
 from .interaction import Interaction
 
 
+def gap_mi_first_second(attributes, representations):
+    gaps = torch.zeros(representations.size(1))
+    non_constant_positions = 0.0
+
+    for j in range(representations.size(1)):
+        symbol_mi = []
+        h_j = None
+        for i in range(attributes.size(1)):
+            x, y = attributes[:, i], representations[:, j]
+            info = mutual_info(x, y)
+            symbol_mi.append(info)
+
+            if h_j is None:
+                h_j = calc_entropy(y)
+
+        symbol_mi.sort(reverse=True)
+
+        if h_j > 0.0:
+            gaps[j] = (symbol_mi[0] - symbol_mi[1]) / h_j
+            non_constant_positions += 1
+
+    score = gaps.sum() / non_constant_positions
+    return score.item()
+
+
 def entropy_dict(freq_table):
     """
     >>> d = {'a': 1, 'b': 1}
@@ -207,7 +232,7 @@ class PosDisent(Callback):
         self.is_gumbel = is_gumbel
 
     @staticmethod
-    def posdis(attributes, messages):
+    def posdis(attributes: torch.Tensor, messages: torch.Tensor) -> float:
         """
         Two-symbol messages representing two-attribute world. One symbol encodes on attribute:
         in this case, the metric should be maximized:
@@ -223,28 +248,7 @@ class PosDisent(Callback):
         >>> round(PosDisent.posdis(attributes, messages), 6)
         0.978656
         """
-        gaps = torch.zeros(messages.size(1))
-        non_constant_positions = 0.0
-
-        for j in range(messages.size(1)):
-            symbol_mi = []
-            h_j = None
-            for i in range(attributes.size(1)):
-                x, y = attributes[:, i], messages[:, j]
-                info = mutual_info(x, y)
-                symbol_mi.append(info)
-
-                if h_j is None:
-                    h_j = calc_entropy(y)
-
-            symbol_mi.sort(reverse=True)
-
-            if h_j > 0.0:
-                gaps[j] = (symbol_mi[0] - symbol_mi[1]) / h_j
-                non_constant_positions += 1
-
-        score = gaps.sum() / non_constant_positions
-        return score.item()
+        return gap_mi_first_second(attributes, messages)
 
     def print_message(self, logs: Interaction, tag: str, epoch: int):
         message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
@@ -252,6 +256,72 @@ class PosDisent(Callback):
         posdis = self.posdis(logs.sender_input, message)
 
         output = json.dumps(dict(posdis=posdis, mode=tag, epoch=epoch))
+        print(output, flush=True)
+
+    def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
+        if self.print_train:
+            self.print_message(logs, "train", epoch)
+
+    def on_test_end(self, loss, logs, epoch):
+        if self.print_test:
+            self.print_message(logs, "test", epoch)
+
+
+class BosDisent(Callback):
+    """
+    Bag-of-symbols disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages",
+    Chaabouni et al., ACL 2020.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        print_train: bool = False,
+        print_test: bool = True,
+        is_gumbel: bool = False,
+    ):
+        super().__init__()
+        assert (
+            print_train or print_test
+        ), 'At least on of "print_train" and "print_train" must be enabled'
+
+        self.vocab_size = vocab_size
+        self.print_train = print_train
+        self.print_test = print_test
+        self.is_gumbel = is_gumbel
+
+    @staticmethod
+    def bosdis(attributes: torch.Tensor, messages, vocab_size) -> float:
+        """Miniature language with perfect (=1) bosdis. Taken from Chaabouni et al. 2020, Appendix section 8.2.
+        >>> attributes = torch.Tensor(
+        ... [[0, 0], [0, 1], [0, 2], [0, 3],
+        ... [1, 0], [1, 1], [1, 2], [1, 3],
+        ... [2, 0], [2, 1], [2, 2], [2, 3],
+        ... [3, 0], [3, 1], [3, 2], [3, 3]]
+        ... )
+        >>> messages = torch.Tensor(
+        ... [[0, 0, 4], [0, 0, 5], [0, 0, 6], [0, 0, 7],
+        ... [1, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1],
+        ... [2, 4, 2], [2, 5, 2], [2, 6, 2], [2, 7, 2],
+        ... [3, 4, 3], [3, 3, 5], [3, 3, 6], [3, 3, 7]]
+        ... )
+        >>> BosDisent.bosdis(attributes, messages, vocab_size=3)
+        1.0
+        """
+
+        batch_size = messages.size(0)
+        histogram = torch.zeros(batch_size, vocab_size, device=messages.device)
+        for v in range(vocab_size):
+            histogram[:, v] = messages.eq(v).sum(dim=-1)
+        histogram = histogram[:, 1:]  # ignoring eos symbol
+        return gap_mi_first_second(attributes, histogram)
+
+    def print_message(self, logs: Interaction, tag: str, epoch: int):
+        message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
+
+        bosdis = self.bosdis(logs.sender_input, message, self.vocab_size)
+
+        output = json.dumps(dict(bosdis=bosdis, mode=tag, epoch=epoch))
         print(output, flush=True)
 
     def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
