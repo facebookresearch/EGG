@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, Optional, Any
 
 import torch
 import torch.distributed as distrib
@@ -20,16 +20,17 @@ class LoggingStrategy:
     store_message_length: bool = True
 
     def filtered_interaction(
-        self,
-        sender_input: Optional[torch.Tensor],
-        receiver_input: Optional[torch.Tensor],
-        labels: Optional[torch.Tensor],
-        message: Optional[torch.Tensor],
-        receiver_output: Optional[torch.Tensor],
-        message_length: Optional[torch.Tensor],
-        aux: Dict[str, torch.Tensor],
-    ):
+            self,
+            sender_input: Optional[torch.Tensor],
+            receiver_input: Optional[torch.Tensor],
+            labels: Optional[torch.Tensor],
+            message: Optional[torch.Tensor],
+            receiver_output: Optional[torch.Tensor],
+            message_length: Optional[torch.Tensor],
+            aux: Dict[str, torch.Tensor],
+            aux_input: Dict[str, Any] = None,
 
+    ):
         return Interaction(
             sender_input=sender_input if self.store_sender_input else None,
             receiver_input=receiver_input if self.store_receiver_input else None,
@@ -38,6 +39,8 @@ class LoggingStrategy:
             receiver_output=receiver_output if self.store_receiver_output else None,
             message_length=message_length if self.store_message_length else None,
             aux=aux,
+            aux_input=aux_input,
+
         )
 
     @classmethod
@@ -64,6 +67,7 @@ class Interaction:
     # auxilary info
     message_length: Optional[torch.Tensor]
     aux: Dict[str, torch.Tensor]
+    aux_input: Dict[str, Any]
 
     @property
     def size(self):
@@ -104,16 +108,16 @@ class Interaction:
     @staticmethod
     def from_iterable(interactions: Iterable["Interaction"]) -> "Interaction":
         """
-        >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {}, None)
         >>> a.size
         1
-        >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {}, None)
         >>> c = Interaction.from_iterable((a, b))
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
-        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
+        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={}, aux_input={})
+        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {}, None)
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
         ...
@@ -131,12 +135,32 @@ class Interaction:
                 )
             return torch.cat(lst, dim=0)
 
+        def _aux_input_cat(lst):
+            """
+            Transform aux inputs from list of dict to dict of list extending the original key
+            """
+            # filter out None and return {} if empty
+            lst = [x for x in lst if x is not None]
+            if len(lst) == 0:
+                return {}
+
+            # build final dict
+            cat = {k: [] for k in lst[0].keys()}
+            # populate
+            for elem in lst:
+                for k, v in elem.items():
+                    cat[k] += v
+            
+            return cat
+
         assert interactions, "list must not be empty"
         assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
 
         aux = {}
         for k in interactions[0].aux:
             aux[k] = _check_cat([x.aux[k] for x in interactions])
+
+        aux_input = _aux_input_cat([x.aux_input for x in interactions])
 
         return Interaction(
             sender_input=_check_cat([x.sender_input for x in interactions]),
@@ -146,6 +170,7 @@ class Interaction:
             message_length=_check_cat([x.message_length for x in interactions]),
             receiver_output=_check_cat([x.receiver_output for x in interactions]),
             aux=aux,
+            aux_input=aux_input,
         )
 
     @staticmethod

@@ -146,7 +146,8 @@ class Trainer:
         with torch.no_grad():
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
-                optimized_loss, interaction = self.game(*batch)
+                args, kwargs = batch
+                optimized_loss, interaction = self.game(*args, **kwargs)
                 if (
                     self.distributed_context.is_distributed
                     and self.aggregate_interaction_logs
@@ -174,7 +175,8 @@ class Trainer:
 
         for batch_id, batch in enumerate(self.train_data):
             batch = move_to(batch, self.device)
-            optimized_loss, interaction = self.game(*batch)
+            args, kwargs = batch
+            optimized_loss, interaction = self.game(*args, **kwargs)
             if self.update_freq > 1:
                 # throughout EGG, we minimize _mean_ loss, not sum
                 # hence, we need to account for that when aggregating grads

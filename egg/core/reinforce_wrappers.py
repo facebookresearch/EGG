@@ -288,8 +288,8 @@ class RnnSenderReinforce(nn.Module):
     def reset_parameters(self):
         nn.init.normal_(self.sos_embedding, 0.0, 0.01)
 
-    def forward(self, x):
-        prev_hidden = [self.agent(x)]
+    def forward(self, x, **kwargs):
+        prev_hidden = [self.agent(x, **kwargs)]
         prev_hidden.extend(
             [torch.zeros_like(prev_hidden[0]) for _ in range(self.num_layers - 1)]
         )
@@ -396,9 +396,9 @@ class RnnReceiverDeterministic(nn.Module):
         self.agent = agent
         self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
 
-    def forward(self, message, input=None, lengths=None):
+    def forward(self, message, input=None, lengths=None, **kwargs):
         encoded = self.encoder(message, lengths)
-        agent_output = self.agent(encoded, input)
+        agent_output = self.agent(encoded, input, **kwargs)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
         entropy = logits
@@ -494,15 +494,15 @@ class SenderReceiverRnnReinforce(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message, log_prob_s, entropy_s = self.sender(sender_input)
+    def forward(self, sender_input, labels, receiver_input=None, **kwargs):
+        message, log_prob_s, entropy_s = self.sender(sender_input, **kwargs)
         message_length = find_lengths(message)
         receiver_output, log_prob_r, entropy_r = self.receiver(
-            message, receiver_input, message_length
+            message, receiver_input, message_length, **kwargs
         )
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, **kwargs
         )
         if self.training:
             _verify_batch_sizes(loss, log_prob_s, log_prob_r)
@@ -560,6 +560,7 @@ class SenderReceiverRnnReinforce(nn.Module):
             receiver_output=receiver_output.detach(),
             message_length=message_length,
             aux=aux_info,
+            aux_input=kwargs,
         )
 
         return optimized_loss, interaction
