@@ -74,25 +74,10 @@ class RandomLogging(LoggingStrategy):
     Log strategy based on random probability
     """
 
-    def __init__(self, log_prob=1, random_seed=42, *args):
+    def __init__(self, store_prob=1, random_seed=42, *args):
 
         super().__init__(*args)
-
-        self.log_prob = log_prob
-        self.store_sender_input = self.random_log
-        self.store_receiver_input = self.random_log
-        self.store_labels = self.random_log
-        self.store_receiver_output = self.random_log
-        self.store_message = self.random_log
-        self.store_message_length = self.random_log
-
         random.seed(a=random_seed)
-
-    def random_log(self, inp, rnd):
-        if rnd < self.log_prob:
-            return inp
-        else:
-            return None
 
     def filtered_interaction(
             self,
@@ -105,14 +90,15 @@ class RandomLogging(LoggingStrategy):
             aux: Dict[str, torch.Tensor],
     ):
         rnd = random.random()
+        should_store = rnd < self.store_prob
         return Interaction(
-            sender_input=self.random_log(sender_input, rnd),
-            receiver_input=self.random_log(receiver_input, rnd),
-            labels=self.random_log(labels, rnd),
-            message=self.random_log(message, rnd),
-            receiver_output=self.random_log(receiver_output, rnd),
-            message_length=self.random_log(message_length, rnd),
-            aux=aux,
+            sender_input=sender_input if should_store else None,
+            receiver_input=receiver_input if should_store else None,
+            labels=labels if should_store else None,
+            message=message if should_store else None,
+            receiver_output=receiver_output if should_store else None,
+            message_length=message_length if should_store else None,
+            aux=aux if should_store else None,
         )
 
 
