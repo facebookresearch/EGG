@@ -74,10 +74,9 @@ class RandomLogging(LoggingStrategy):
     Log strategy based on random probability
     """
 
-    def __init__(self, store_prob=1, random_seed=42, *args):
+    def __init__(self, store_prob=1, *args):
 
         super().__init__(*args)
-        random.seed(a=random_seed)
 
     def filtered_interaction(
             self,
