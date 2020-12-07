@@ -67,7 +67,7 @@ class Interaction:
     # auxilary info
     message_length: Optional[torch.Tensor]
     aux: Dict[str, torch.Tensor]
-    aux_input: Dict[str, Any]
+    aux_input: Dict[str, Any] = None
 
     @property
     def size(self):

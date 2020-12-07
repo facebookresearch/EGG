@@ -163,7 +163,7 @@ class Trainer:
         with torch.no_grad():
             for batch in self.validation_data:
                 batch = move_to(batch, self.device)
-                args, kwargs = batch
+                args, kwargs = extract_kwargs(batch)
                 optimized_loss, interaction = self.game(*args, **kwargs)
                 if (
                     self.distributed_context.is_distributed
@@ -194,7 +194,8 @@ class Trainer:
             batch = move_to(batch, self.device)
             context = autocast() if self.scaler else nullcontext()
             with context:
-                args, kwargs = batch
+
+                args, kwargs = extract_kwargs(batch)
                 optimized_loss, interaction = self.game(*args, **kwargs)
 
                 if self.update_freq > 1:
@@ -305,3 +306,16 @@ class Trainer:
 
         if latest_file is not None:
             self.load_from_checkpoint(latest_file)
+
+
+def extract_kwargs(batch):
+    """
+    Check whenever the batch format is (args, kwargs) and return proper split
+    """
+    if isinstance(batch[1], dict):
+        args, kwargs = batch
+    else:
+        args = batch
+        kwargs = {}
+
+    return args, kwargs
