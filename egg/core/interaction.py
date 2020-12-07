@@ -169,7 +169,6 @@ class Interaction:
         def _check_cat(lst):
             if all(x is None for x in lst):
                 return None
-            # if some but not all are None: filter out None
             lst = [x for x in lst if x is not None]
             return torch.cat(lst, dim=0)
 
