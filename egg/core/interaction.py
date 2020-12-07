@@ -52,7 +52,7 @@ class LoggingStrategy:
 
 @dataclass
 class ProbabilisticLoggingStrategy(LoggingStrategy):
-    random_p: float = 1.0
+    random_p: float = 0.5
 
     def __post_init__(self):
         assert self.random_p >= 0.0, f"random number in Logging must be positive, found {self.random_p}"

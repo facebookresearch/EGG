@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 
 from .baselines import Baseline, MeanBaseline
-from .interaction import ProbabilisticLoggingStrategy, LoggingStrategy
+from .interaction import LoggingStrategy
 from .rnn import RnnEncoder
 from .transformer import TransformerDecoder, TransformerEncoder
 from .util import find_lengths
@@ -450,8 +450,8 @@ class SenderReceiverRnnReinforce(nn.Module):
         receiver_entropy_coeff: float = 0.0,
         length_cost: float = 0.0,
         baseline_type: Baseline = MeanBaseline,
-        train_logging_strategy: ProbabilisticLoggingStrategy = None,
-        test_logging_strategy: ProbabilisticLoggingStrategy = None,
+        train_logging_strategy: LoggingStrategy = None,
+        test_logging_strategy: LoggingStrategy = None,
     ):
         """
         :param sender: sender agent
