@@ -29,7 +29,16 @@ class BaseLoggingStrategy:
         message_length: Optional[torch.Tensor],
         aux: Dict[str, torch.Tensor],
     ):
-        raise NotImplementedError
+
+        return Interaction(
+            sender_input=sender_input if self.store_sender_input else None,
+            receiver_input=receiver_input if self.store_receiver_input else None,
+            labels=labels if self.store_labels else None,
+            message=message if self.store_message else None,
+            receiver_output=receiver_output if self.store_receiver_output else None,
+            message_length=message_length if self.store_message_length else None,
+            aux=aux,
+        )
 
     @classmethod
     def minimal(cls):
@@ -41,30 +50,8 @@ class BaseLoggingStrategy:
         return cls()
 
 
-class FullLoggingStrategy(BaseLoggingStrategy):
-    def filtered_interaction(
-        self,
-        sender_input: Optional[torch.Tensor],
-        receiver_input: Optional[torch.Tensor],
-        labels: Optional[torch.Tensor],
-        message: Optional[torch.Tensor],
-        receiver_output: Optional[torch.Tensor],
-        message_length: Optional[torch.Tensor],
-        aux: Dict[str, torch.Tensor],
-    ):
-
-            return Interaction(
-                sender_input=sender_input if self.store_sender_input else None,
-                receiver_input=receiver_input if self.store_receiver_input else None,
-                labels=labels if self.store_labels else None,
-                message=message if self.store_message else None,
-                receiver_output=receiver_output if self.store_receiver_output else None,
-                message_length=message_length if self.store_message_length else None,
-                aux=aux,
-            )
-
 @dataclass
-class RandomLoggingStrategy(FullLoggingStrategy):
+class ProbabilisticLoggingStrategy(FullLoggingStrategy):
         random_p: float = 0.1
         seed: int = 111
 
@@ -81,7 +68,7 @@ class RandomLoggingStrategy(FullLoggingStrategy):
         receiver_output: Optional[torch.Tensor],
         message_length: Optional[torch.Tensor],
         aux: Dict[str, torch.Tensor],
-    )
+    ):
 
         if random.random() <= random_p:
             return super(RandomLoggingStrategy, self).filtered_interaction(
