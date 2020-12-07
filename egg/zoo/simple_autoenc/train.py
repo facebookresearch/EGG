@@ -64,6 +64,7 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
 
 def main(params):
     opts = get_params(params)
+    breakpoint()
 
     device = torch.device("cuda" if opts.cuda else "cpu")
     train_loader = OneHotLoader(n_features=opts.n_features, batch_size=opts.batch_size,

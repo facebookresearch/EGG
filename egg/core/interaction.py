@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import random
 from dataclasses import dataclass
 from typing import Dict, Iterable, Optional
 
@@ -12,7 +11,7 @@ import torch.distributed as distrib
 
 
 @dataclass
-class BaseLoggingStrategy:
+class LoggingStrategy:
     store_sender_input: bool = True
     store_receiver_input: bool = True
     store_labels: bool = True
@@ -52,13 +51,11 @@ class BaseLoggingStrategy:
 
 
 @dataclass
-class ProbabilisticLoggingStrategy(FullLoggingStrategy):
-        random_p: float = 0.1
-        seed: int = 111
+class ProbabilisticLoggingStrategy(LoggingStrategy):
+    random_p: float = 1.0
 
     def __post_init__(self):
-        import random
-        random.seed(seed)
+        assert self.random_p >= 0.0, f"random number in Logging must be positive, found {self.random_p}"
 
     def filtered_interaction(
         self,
@@ -73,7 +70,7 @@ class ProbabilisticLoggingStrategy(FullLoggingStrategy):
 
         if random.random() <= random_p:
             return super(RandomLoggingStrategy, self).filtered_interaction(
-                sender_input=sender_input),
+                sender_input=sender_input,
                 receiver_input=receiver_input,
                 labels=labels,
                 message=message,
