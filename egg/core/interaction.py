@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import random
 from dataclasses import dataclass
 from typing import Dict, Iterable, Optional
 
@@ -18,41 +19,7 @@ class LoggingStrategy:
     store_message: bool = True
     store_receiver_output: bool = True
     store_message_length: bool = True
-
-    def filtered_interaction(
-        self,
-        sender_input: Optional[torch.Tensor],
-        receiver_input: Optional[torch.Tensor],
-        labels: Optional[torch.Tensor],
-        message: Optional[torch.Tensor],
-        receiver_output: Optional[torch.Tensor],
-        message_length: Optional[torch.Tensor],
-        aux: Dict[str, torch.Tensor],
-    ):
-
-        return Interaction(
-            sender_input=sender_input if self.store_sender_input else None,
-            receiver_input=receiver_input if self.store_receiver_input else None,
-            labels=labels if self.store_labels else None,
-            message=message if self.store_message else None,
-            receiver_output=receiver_output if self.store_receiver_output else None,
-            message_length=message_length if self.store_message_length else None,
-            aux=aux,
-        )
-
-    @classmethod
-    def minimal(cls):
-        args = [False] * 5 + [True]
-        return cls(*args)
-
-    @classmethod
-    def maximal(cls):
-        return cls()
-
-
-@dataclass
-class ProbabilisticLoggingStrategy(LoggingStrategy):
-    random_p: float = 0.5
+    random_p: float = 1.0
 
     def __post_init__(self):
         assert self.random_p >= 0.0, f"random number in Logging must be positive, found {self.random_p}"
@@ -68,18 +35,27 @@ class ProbabilisticLoggingStrategy(LoggingStrategy):
         aux: Dict[str, torch.Tensor],
     ):
 
-        if random.random() <= random_p:
-            return super(RandomLoggingStrategy, self).filtered_interaction(
-                sender_input=sender_input,
-                receiver_input=receiver_input,
-                labels=labels,
-                message=message,
-                receiver_output=receiver_output,
-                message_length=message_length,
+        if random.random() <= self.random_p:
+            return Interaction(
+                sender_input=sender_input if self.store_sender_input else None,
+                receiver_input=receiver_input if self.store_receiver_input else None,
+                labels=labels if self.store_labels else None,
+                message=message if self.store_message else None,
+                receiver_output=receiver_output if self.store_receiver_output else None,
+                message_length=message_length if self.store_message_length else None,
                 aux=aux,
             )
         args = [None] * 5 + [{}]
         return Interaction(*args)
+
+    @classmethod
+    def minimal(cls):
+        args = [False] * 5 + [True]
+        return cls(*args)
+
+    @classmethod
+    def maximal(cls):
+        return cls()
 
 
 @dataclass
