@@ -2,16 +2,15 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
 import json
 import pathlib
 import time
 from typing import Any, Dict, List, NamedTuple, Union
 
 import torch
+from tqdm import tqdm
 
 from egg.core.util import get_summary_writer
-
 from .interaction import Interaction
 
 
@@ -23,12 +22,12 @@ class Callback:
         pass
 
     def on_early_stopping(
-        self,
-        train_loss: float,
-        train_logs: Interaction,
-        epoch: int,
-        test_loss: float = None,
-        test_logs: Interaction = None,
+            self,
+            train_loss: float,
+            train_logs: Interaction,
+            epoch: int,
+            test_loss: float = None,
+            test_logs: Interaction = None,
     ):
         pass
 
@@ -44,11 +43,22 @@ class Callback:
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
+    def on_batch(self, logs: Interaction, loss: float, data_len: int):
+        pass
+
 
 class ConsoleLogger(Callback):
-    def __init__(self, print_train_loss=False, as_json=False):
+    def __init__(self, print_train_loss=False, as_json=False, print_batch_progress=False, n_epochs=-1):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
+        self.print_batch_progress = print_batch_progress
+        self.batch_info = dict(
+            n_epochs=n_epochs,
+            cur_batch=0,
+            cur_epoch=0,
+            batch_time=time.time(),
+        )
+        self.tqdm = tqdm(desc="Batch", unit="btc")
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
         dump = dict(loss=loss)
@@ -69,6 +79,24 @@ class ConsoleLogger(Callback):
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.print_train_loss:
             self.aggregate_print(loss, logs, "train", epoch)
+        self.batch_info['cur_epoch'] += 1
+        self.batch_info['cur_batch'] = 0
+        print()
+
+    def on_batch(self, logs: Interaction, loss: float, data_len: int):
+
+        bi = self.batch_info
+        elapsed = time.time() - bi['batch_time']
+
+        to_print = f"\rEpoch {bi['cur_epoch']}"
+        if bi['n_epochs'] > 0: to_print += f"/{bi['n_epochs']}"
+        to_print += "| train: "
+        to_print += self.tqdm.format_meter(n=bi['cur_batch'], total=data_len, elapsed=elapsed)
+        print(to_print, end="")
+
+        # update batch and time
+        bi['cur_batch'] += 1
+        bi['batch_time'] = time.time()
 
 
 class TensorboardLogger(Callback):
@@ -124,10 +152,10 @@ class Checkpoint(NamedTuple):
 
 class CheckpointSaver(Callback):
     def __init__(
-        self,
-        checkpoint_path: Union[str, pathlib.Path],
-        checkpoint_freq: int = 1,
-        prefix: str = "",
+            self,
+            checkpoint_path: Union[str, pathlib.Path],
+            checkpoint_freq: int = 1,
+            prefix: str = "",
     ):
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
@@ -137,7 +165,7 @@ class CheckpointSaver(Callback):
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         self.epoch_counter = epoch
         if self.checkpoint_freq > 0 and (
-            self.epoch_counter % self.checkpoint_freq == 0
+                self.epoch_counter % self.checkpoint_freq == 0
         ):
             filename = (
                 f"{self.prefix}_{self.epoch_counter}"
@@ -169,10 +197,10 @@ class CheckpointSaver(Callback):
 
 class InteractionSaver(Callback):
     def __init__(
-        self,
-        train_epochs: List = None,
-        test_epochs: List = None,
-        folder_path: str = "./interactions",
+            self,
+            train_epochs: List = None,
+            test_epochs: List = None,
+            folder_path: str = "./interactions",
     ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
@@ -186,12 +214,12 @@ class InteractionSaver(Callback):
             self.test_epochs = []
 
         self.folder_path = (
-            pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")
+                pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")
         ).expanduser()
 
     @staticmethod
     def dump_interactions(
-        logs: Interaction, mode: str, epoch: int, dump_dir: str = "./interactions"
+            logs: Interaction, mode: str, epoch: int, dump_dir: str = "./interactions"
     ):
         dump_dir = pathlib.Path(dump_dir) / mode
         dump_dir.mkdir(exist_ok=True, parents=True)

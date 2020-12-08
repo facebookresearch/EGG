@@ -29,15 +29,15 @@ class Trainer:
     """
 
     def __init__(
-        self,
-        game: torch.nn.Module,
-        optimizer: torch.optim.Optimizer,
-        train_data: DataLoader,
-        validation_data: Optional[DataLoader] = None,
-        device: torch.device = None,
-        callbacks: Optional[List[Callback]] = None,
-        grad_norm: float = None,
-        aggregate_interaction_logs: bool = True,
+            self,
+            game: torch.nn.Module,
+            optimizer: torch.optim.Optimizer,
+            train_data: DataLoader,
+            validation_data: Optional[DataLoader] = None,
+            device: torch.device = None,
+            callbacks: Optional[List[Callback]] = None,
+            grad_norm: float = None,
+            aggregate_interaction_logs: bool = True,
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -76,7 +76,7 @@ class Trainer:
             print("# Distributed context: ", self.distributed_context)
 
         if self.distributed_context.is_leader and not any(
-            isinstance(x, CheckpointSaver) for x in self.callbacks
+                isinstance(x, CheckpointSaver) for x in self.callbacks
         ):
             if common_opts.preemptable:
                 assert (
@@ -148,8 +148,8 @@ class Trainer:
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
-                    self.distributed_context.is_distributed
-                    and self.aggregate_interaction_logs
+                        self.distributed_context.is_distributed
+                        and self.aggregate_interaction_logs
                 ):
                     interaction = Interaction.gather_distributed_interactions(
                         interaction
@@ -172,6 +172,12 @@ class Trainer:
 
         self.optimizer.zero_grad()
 
+        try:
+            data_len = len(self.train_data)
+        except TypeError:
+            # len not implemented
+            data_len = -1
+
         for batch_id, batch in enumerate(self.train_data):
             batch = move_to(batch, self.device)
             optimized_loss, interaction = self.game(*batch)
@@ -193,12 +199,14 @@ class Trainer:
             n_batches += 1
             mean_loss += optimized_loss.detach()
             if (
-                self.distributed_context.is_distributed
-                and self.aggregate_interaction_logs
+                    self.distributed_context.is_distributed
+                    and self.aggregate_interaction_logs
             ):
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to("cpu")
             interactions.append(interaction)
+            for callback in self.callbacks:
+                callback.on_batch(interaction, optimized_loss.detach(), data_len)
 
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
@@ -221,9 +229,9 @@ class Trainer:
 
             validation_loss = validation_interaction = None
             if (
-                self.validation_data is not None
-                and self.validation_freq > 0
-                and (epoch + 1) % self.validation_freq == 0
+                    self.validation_data is not None
+                    and self.validation_freq > 0
+                    and (epoch + 1) % self.validation_freq == 0
             ):  # noqa: E226, E501
                 for callback in self.callbacks:
                     callback.on_test_begin(epoch + 1)  # noqa: E226
