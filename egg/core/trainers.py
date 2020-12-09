@@ -172,6 +172,12 @@ class Trainer:
 
         self.optimizer.zero_grad()
 
+        try:
+            data_len = len(self.train_data)
+        except TypeError:
+            # len not implemented
+            data_len = -1
+
         for batch_id, batch in enumerate(self.train_data):
             batch = move_to(batch, self.device)
             optimized_loss, interaction = self.game(*batch)
@@ -199,6 +205,8 @@ class Trainer:
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to("cpu")
             interactions.append(interaction)
+            for callback in self.callbacks:
+                callback.on_batch(interaction, optimized_loss.detach(), data_len)
 
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
