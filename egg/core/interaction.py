@@ -5,7 +5,7 @@
 
 import random
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, List, Optional, Union
 
 import torch
 import torch.distributed as distrib
@@ -19,7 +19,7 @@ class LoggingStrategy:
     store_message: bool = True
     store_receiver_output: bool = True
     store_message_length: bool = True
-    random_p: float = 1.0
+    random_p: Optional[float] = 1.0
 
     def __post_init__(self):
         assert self.random_p >= 0.0, f"random number in Logging must be positive, found {self.random_p}"
@@ -45,7 +45,7 @@ class LoggingStrategy:
                 message_length=message_length if self.store_message_length else None,
                 aux=aux,
             )
-        args = [None] * 5 + [{}]
+        args = [None] * 6 + [{}]
         return Interaction(*args)
 
     @classmethod
@@ -75,18 +75,35 @@ class Interaction:
 
     @property
     def size(self):
-        interaction_fields = [
+        for t in self.interaction_fields():
+            if t is not None and isinstance(t, torch.Tensor):
+                return t.size(0)
+        raise RuntimeError("Cannot determine interaction log size; it is empty.")
+
+    def interaction_fields(self) ->List[Union[torch.Tensor, Dict]]:
+        return [
             self.sender_input,
             self.receiver_input,
             self.labels,
             self.message,
             self.receiver_output,
             self.message_length,
+            self.aux
         ]
-        for t in interaction_fields:
-            if t is not None:
-                return t.size(0)
-        raise RuntimeError("Cannot determine interaction log size; it is empty.")
+
+    def is_empty(self) -> bool:
+        """Checks if an interactions is empty by testing if all its fields are not None.
+        >>> a = Interaction(None, None, None, None, None, None, {})
+        >>> a.is_empty()
+        True
+        >>> b = Interaction(None, None, None, torch.ones(1), None, None, {})
+        >>> b.is_empty()
+        False
+        """
+        for t in self.interaction_fields():
+            if (isinstance(t, torch.Tensor) and t is not None) or (isinstance(t, dict) and t):
+                return False
+        return True
 
     def to(self, *args, **kwargs) -> "Interaction":
         """Moves all stored tensor to a device. For instance, it might be not
@@ -140,7 +157,8 @@ class Interaction:
             return torch.cat(lst, dim=0)
 
         assert interactions, "list must not be empty"
-        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
+        interactions = [interact for interact in interactions if not interact.is_empty()]
+        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions[1:] if x.aux)
 
         aux = {}
         for k in interactions[0].aux:
