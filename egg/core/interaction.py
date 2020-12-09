@@ -22,7 +22,9 @@ class LoggingStrategy:
     random_p: Optional[float] = 1.0
 
     def __post_init__(self):
-        assert self.random_p >= 0.0, f"random number in Logging must be positive, found {self.random_p}"
+        assert (
+            self.random_p >= 0.0
+        ), f"random number in Logging must be positive, found {self.random_p}"
 
     def filtered_interaction(
         self,
@@ -80,7 +82,7 @@ class Interaction:
                 return t.size(0)
         raise RuntimeError("Cannot determine interaction log size; it is empty.")
 
-    def interaction_fields(self) ->List[Union[torch.Tensor, Dict]]:
+    def interaction_fields(self) -> List[Union[torch.Tensor, Dict]]:
         return [
             self.sender_input,
             self.receiver_input,
@@ -88,7 +90,7 @@ class Interaction:
             self.message,
             self.receiver_output,
             self.message_length,
-            self.aux
+            self.aux,
         ]
 
     def is_empty(self) -> bool:
@@ -101,7 +103,9 @@ class Interaction:
         False
         """
         for t in self.interaction_fields():
-            if (isinstance(t, torch.Tensor) and t is not None) or (isinstance(t, dict) and t):
+            if (isinstance(t, torch.Tensor) and t is not None) or (
+                isinstance(t, dict) and t
+            ):
                 return False
         return True
 
@@ -156,9 +160,14 @@ class Interaction:
                 )
             return torch.cat(lst, dim=0)
 
-        assert interactions, "list must not be empty"
-        interactions = [interact for interact in interactions if not interact.is_empty()]
-        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions[1:] if x.aux)
+        interactions = [
+            interact for interact in interactions if not interact.is_empty()
+        ]
+        if (
+            not interactions
+        ):  # handling the extreme case where all interactions have been filtered out
+            return Interaction.empty()
+        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
 
         aux = {}
         for k in interactions[0].aux:
