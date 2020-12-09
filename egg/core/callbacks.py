@@ -44,6 +44,8 @@ class Callback:
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
+    def on_batch(self, logs: Interaction, loss: float, data_len: int):
+        pass
 
 class ConsoleLogger(Callback):
     def __init__(self, print_train_loss=False, as_json=False):
