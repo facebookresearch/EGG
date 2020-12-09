@@ -9,6 +9,7 @@ import time
 from typing import Any, Dict, List, NamedTuple, Union
 
 import torch
+from tqdm import tqdm
 
 from egg.core.util import get_summary_writer
 
@@ -46,6 +47,38 @@ class Callback:
 
     def on_batch(self, logs: Interaction, loss: float, data_len: int):
         pass
+
+
+class ProgressBarLogger(Callback):
+    def __init__(self, n_epochs=-1):
+
+        self.n_epochs = n_epochs
+        self.cur_batch = 0
+        self.cur_epoch = 0
+        self.batch_time = time.time()
+        self.tqdm = tqdm(desc="Batch", unit="btc")
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.cur_epoch += 1
+        self.cur_batch = 0
+        print()
+
+    def on_batch(self, logs: Interaction, loss: float, data_len: int):
+
+        elapsed = time.time() - self.batch_time
+
+        to_print = f"\rEpoch {self.cur_epoch}"
+        if self.n_epochs > 0:
+            to_print += f"/{self.n_epochs}"
+        to_print += "| train: "
+        to_print += self.tqdm.format_meter(
+            n=self.cur_batch, total=data_len, elapsed=elapsed
+        )
+        print(to_print, end="")
+
+        # update batch and time
+        self.cur_batch += 1
+        self.batch_time = time.time()
 
 
 class ConsoleLogger(Callback):
