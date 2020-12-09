@@ -44,7 +44,7 @@ class Callback:
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
-    def on_batch(self, logs: Interaction, loss: float, data_len: int):
+    def on_batch(self, logs: Interaction, loss: float, batch_id: int):
         pass
 
 
