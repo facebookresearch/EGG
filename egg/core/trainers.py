@@ -231,6 +231,8 @@ class Trainer:
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to("cpu")
             interactions.append(interaction)
+            for callback in self.callbacks:
+                callback.on_batch(interaction, optimized_loss, batch_id)
 
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
