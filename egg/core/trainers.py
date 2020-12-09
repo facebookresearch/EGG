@@ -191,7 +191,7 @@ class Trainer:
 
         try:
             data_len = len(self.train_data)
-        except TypeError:
+        except (TypeError , AttributeError):
             # len not implemented
             data_len = -1
 
