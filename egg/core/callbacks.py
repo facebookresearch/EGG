@@ -9,6 +9,7 @@ import time
 from typing import Any, Dict, List, NamedTuple, Union
 
 import torch
+from tqdm import tqdm
 
 from egg.core.util import get_summary_writer
 
