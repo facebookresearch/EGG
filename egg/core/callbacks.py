@@ -9,7 +9,14 @@ import time
 from typing import Any, Dict, List, NamedTuple, Union
 
 import torch
-from tqdm import tqdm
+from rich.progress import (
+    BarColumn,
+    Progress,
+    ProgressColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
+from rich.text import Text
 
 from egg.core.util import get_summary_writer
 
@@ -45,7 +52,9 @@ class Callback:
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
-    def on_batch_end(self, logs: Interaction, loss: float, batch_id: int):
+    def on_batch_end(
+        self, logs: Interaction, loss: float, batch_id: int, is_training: bool
+    ):
         pass
 
 
@@ -208,3 +217,115 @@ class InteractionSaver(Callback):
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.train_epochs:
             self.dump_interactions(logs, "train", epoch, self.folder_path)
+
+
+class ProgressBarLogger(Callback):
+    class CompletedColumn(ProgressColumn):
+        def render(self, task):
+            """Calculate common unit for completed and total."""
+            download_status = f"{int(task.completed)}/{int(task.total)} btc"
+            return Text(download_status, style="progress.download")
+
+    class TransferSpeedColumn(ProgressColumn):
+        """Renders human readable transfer speed."""
+
+        def render(self, task):
+            """Show data transfer speed."""
+            speed = task.speed
+            if speed is None:
+                return Text("?", style="progress.data.speed")
+            speed = f"{speed:,.{2}f}"
+            return Text(f"{speed} btc/s", style="progress.data.speed")
+
+    def __init__(
+        self,
+        n_epochs,
+        train_data_len=None,
+        eval_data_len=None,
+    ):
+        self.n_epochs = n_epochs
+        self.cur_epoch = 1
+        self.train_data_len = train_data_len
+        self.eval_data_len = eval_data_len
+        self.progress = Progress(
+            TextColumn(
+                "[bold]Epoch {task.fields[cur_epoch]}/{task.fields[n_epochs]} | [blue]{task.fields[mode]}",
+                justify="right",
+            ),
+            BarColumn(bar_width=None),
+            "[progress.percentage]{task.percentage:>3.1f}%",
+            "•",
+            self.CompletedColumn(),
+            "•",
+            self.TransferSpeedColumn(),
+            "•",
+            TimeRemainingColumn(),
+        )
+
+        self.progress.start()
+        self.train_p = self.progress.add_task(
+            description="",
+            mode="Train",
+            cur_epoch=self.cur_epoch,
+            n_epochs=self.n_epochs,
+            start=False,
+            visible=False,
+            total=self.train_data_len,
+        )
+        self.eval_p = self.progress.add_task(
+            description="",
+            mode="Eval",
+            cur_epoch=self.cur_epoch,
+            n_epochs=self.n_epochs,
+            start=False,
+            visible=False,
+            total=self.eval_data_len,
+        )
+
+    def on_epoch_begin(self, epoch: int):
+
+        self.progress.start_task(self.train_p)
+        self.progress.update(self.train_p, visible=True)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.cur_epoch += 1
+        self.progress.stop_task(self.train_p)
+        self.progress.update(self.train_p, visible=False)
+        self.progress.reset(
+            task_id=self.train_p,
+            total=self.train_data_len,
+            start=False,
+            visible=False,
+            cur_epoch=self.cur_epoch,
+            n_epochs=self.n_epochs,
+            mode="Train",
+        )
+
+    def on_test_begin(self, epoch: int):
+        self.progress.start_task(self.eval_p)
+        self.progress.update(self.eval_p, visible=True)
+
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        self.progress.stop_task(self.eval_p)
+        self.progress.update(self.eval_p, visible=False)
+        self.progress.reset(
+            task_id=self.eval_p,
+            total=self.eval_data_len,
+            start=False,
+            visible=False,
+            cur_epoch=self.cur_epoch,
+            n_epochs=self.n_epochs,
+            mode="Eval",
+        )
+
+    def on_train_end(self):
+        self.progress.stop()
+
+    def on_batch_end(
+        self, logs: Interaction, loss: float, batch_id: int, is_training: bool
+    ):
+
+        if is_training:
+            self.progress.update(self.train_p, refresh=True, advance=1)
+        else:
+            self.progress.update(self.eval_p, refresh=True, advance=1)

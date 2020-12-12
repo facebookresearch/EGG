@@ -123,3 +123,16 @@ def test_early_stopping():
     )
     trainer.train(1)
     assert trainer.should_stop
+
+
+def test_progress_bar():
+    game, data = MockGame(), Dataset()
+    progress_bar = core.ProgressBarLogger(n_epochs=1, train_data_len=8)
+    trainer = core.Trainer(
+        game=game,
+        optimizer=torch.optim.Adam(game.parameters()),
+        train_data=data,
+        validation_data=data,
+        callbacks=[progress_bar],
+    )
+    trainer.train(1)

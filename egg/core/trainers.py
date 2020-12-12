@@ -158,10 +158,9 @@ class Trainer:
         mean_loss = 0.0
         interactions = []
 
-        n_batches = 0
         self.game.eval()
         with torch.no_grad():
-            for batch in self.validation_data:
+            for batch_id, batch in enumerate(self.validation_data):
                 batch = move_to(batch, self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
@@ -173,9 +172,14 @@ class Trainer:
                     )
                 interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
-                n_batches += 1
+
+                for callback in self.callbacks:
+                    callback.on_batch_end(
+                        interaction, optimized_loss, batch_id, is_training=False
+                    )
+
                 interactions.append(interaction)
-        mean_loss /= n_batches
+        mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
 
         return mean_loss.item(), full_interaction
@@ -232,7 +236,9 @@ class Trainer:
             interaction = interaction.to("cpu")
 
             for callback in self.callbacks:
-                callback.on_batch_end(interaction, optimized_loss, batch_id)
+                callback.on_batch_end(
+                    interaction, optimized_loss, batch_id, is_training=True
+                )
 
             interactions.append(interaction)
 

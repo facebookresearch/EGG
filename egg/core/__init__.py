@@ -8,6 +8,7 @@ from .callbacks import (
     CheckpointSaver,
     ConsoleLogger,
     InteractionSaver,
+    ProgressBarLogger,
     TemperatureUpdater,
     TensorboardLogger,
 )
@@ -60,6 +61,7 @@ __all__ = [
     "Callback",
     "EarlyStopperAccuracy",
     "ConsoleLogger",
+    "ProgressBarLogger",
     "TensorboardLogger",
     "TemperatureUpdater",
     "InteractionSaver",
