@@ -220,6 +220,10 @@ class InteractionSaver(Callback):
 
 
 class ProgressBarLogger(Callback):
+    """
+    Displays a progress bar with information about the current epoch and the epoch progression.
+    """
+
     class CompletedColumn(ProgressColumn):
         def render(self, task):
             """Calculate common unit for completed and total."""
@@ -239,14 +243,22 @@ class ProgressBarLogger(Callback):
 
     def __init__(
         self,
-        n_epochs,
-        train_data_len=None,
-        eval_data_len=None,
+        n_epochs: int,
+        train_data_len: int = None,
+        test_data_len: int = None,
+        cur_epoch: int = 1,
     ):
+        """
+        :param n_epochs: total number of epochs
+        :param train_data_len: length of the dataset generation for training
+        :param test_data_len: length of the dataset generation for testing
+        :param cur_epoch: current epoch when resuming training
+        """
+
         self.n_epochs = n_epochs
-        self.cur_epoch = 1
+        self.cur_epoch = cur_epoch
         self.train_data_len = train_data_len
-        self.eval_data_len = eval_data_len
+        self.test_data_len = test_data_len
         self.progress = Progress(
             TextColumn(
                 "[bold]Epoch {task.fields[cur_epoch]}/{task.fields[n_epochs]} | [blue]{task.fields[mode]}",
@@ -279,7 +291,7 @@ class ProgressBarLogger(Callback):
             n_epochs=self.n_epochs,
             start=False,
             visible=False,
-            total=self.eval_data_len,
+            total=self.test_data_len,
         )
 
     def on_epoch_begin(self, epoch: int):
@@ -310,7 +322,7 @@ class ProgressBarLogger(Callback):
         self.progress.update(self.eval_p, visible=False)
         self.progress.reset(
             task_id=self.eval_p,
-            total=self.eval_data_len,
+            total=self.test_data_len,
             start=False,
             visible=False,
             cur_epoch=self.cur_epoch,
