@@ -244,8 +244,8 @@ class ProgressBarLogger(Callback):
     def __init__(
         self,
         n_epochs: int,
-        train_data_len: int = None,
-        test_data_len: int = None,
+        train_data_len: int = 0,
+        test_data_len: int = 0,
         cur_epoch: int = 1,
     ):
         """
