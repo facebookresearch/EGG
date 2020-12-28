@@ -196,7 +196,7 @@ def init(
 
             summary_writer = SummaryWriter(log_dir=common_opts.tensorboard_dir)
         except ModuleNotFoundError:
-            print(
+            raise ModuleNotFoundError(
                 "Cannot load tensorboard module; makes sure you installed everything required"
             )
 
