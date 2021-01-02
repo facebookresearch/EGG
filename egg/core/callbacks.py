@@ -4,7 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
+import os
 import pathlib
+import re
+import sys
 import time
 from typing import Any, Dict, List, NamedTuple, Union
 
@@ -131,11 +134,23 @@ class CheckpointSaver(Callback):
         checkpoint_path: Union[str, pathlib.Path],
         checkpoint_freq: int = 1,
         prefix: str = "",
+        start_epoch: int = 0,
+        max_chk: int = sys.maxsize,
     ):
+        """Saves a checkpoint file for training
+        Arguments:
+            checkpoint_path {Union[str, pathlib.Path]} -- path to checkpoint directory, will be created if not present
+            checkpoint_freq {int} -- Number of epochs for checkpoint saving
+            prefix {str} -- Name of checkpoint file, will be {prefix}{current_epoch}.tar
+            start_epoch {int} -- For resuming training you can either use Trainer.load_from_latest or specify the epoch
+             here
+            max_chk {int} -- Max number of concurrent checkpoint files in the directory.
+        """
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
         self.prefix = prefix
-        self.epoch_counter = 0
+        self.epoch_counter = start_epoch
+        self.max_chk_keep = max_chk
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         self.epoch_counter = epoch
@@ -159,6 +174,8 @@ class CheckpointSaver(Callback):
         Saves the game, agents, and optimizer states to the checkpointing path under `<number_of_epochs>.tar` name
         """
         self.checkpoint_path.mkdir(exist_ok=True, parents=True)
+        if len(self.get_chk_files()) > self.max_chk_keep:
+            self.remove_old_chk()
         path = self.checkpoint_path / f"{filename}.tar"
         torch.save(self.get_checkpoint(), path)
 
@@ -168,6 +185,30 @@ class CheckpointSaver(Callback):
             model_state_dict=self.trainer.game.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
         )
+
+    def get_chk_files(self):
+        """
+        Return a list of the files in the checkpoint dir
+        """
+        return [name for name in os.listdir(self.checkpoint_path) if ".tar" in name]
+
+    @staticmethod
+    def natural_sort(to_sort):
+        """
+        Sort a list of files naturally
+        E.g. [file1,file4,file32,file2] -> [file1,file2,file4,file32]
+        """
+        convert = lambda text: int(text) if text.isdigit() else text.lower()
+        alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
+        return sorted(to_sort, key=alphanum_key)
+
+    def remove_old_chk(self):
+        """
+        Remove the oldest checkpoint from the dir
+        """
+        chk_points = self.natural_sort(self.get_chk_files())
+        to_remove = chk_points[0]
+        os.remove(os.path.join(self.checkpoint_path, to_remove))
 
 
 class InteractionSaver(Callback):
