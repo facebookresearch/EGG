@@ -97,7 +97,7 @@ def test_snapshoting():
         optimizer,
         train_data=data,
         validation_data=None,
-        callbacks=[core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH, max_chk=2)],
+        callbacks=[core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH, max_checkpoints=2)],
     )
     trainer.train(n_epochs=6)
     assert (CHECKPOINT_PATH / Path("5.tar")).exists()
