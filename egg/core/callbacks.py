@@ -198,7 +198,7 @@ class CheckpointSaver(Callback):
         alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
         return sorted(to_sort, key=alphanum_key)
 
-    def remove_old_chk(self):
+    def remove_oldest_checkpoint(self):
         """
         Remove the oldest checkpoint from the dir
         """
