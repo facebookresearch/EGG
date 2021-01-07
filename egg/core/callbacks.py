@@ -241,7 +241,7 @@ class CustomProgress(Progress):
             speed = f"{speed:,.{2}f}"
             return Text(f"{speed} btc/s", style="progress.data.speed")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, use_info_table: bool = True, **kwargs):
         super(CustomProgress, self).__init__(*args, **kwargs)
 
         self.info_table = Table(show_footer=False)
@@ -249,13 +249,7 @@ class CustomProgress(Progress):
 
         self.test_style = "black on white"
         self.train_style = "white on black"
-
-    def get_info_table(self):
-
-        if "info_table" in self.__dict__.keys():
-            return self.info_table
-        else:
-            return Table()
+        self.use_info_table = use_info_table
 
     def add_info_table_cols(self, new_cols):
         """
@@ -290,9 +284,22 @@ class CustomProgress(Progress):
 
     def get_renderables(self) -> Iterable[RenderableType]:
         """Display progress together with info table"""
-        task_table = self.make_tasks_table(self.tasks)
-        c = Columns((self.get_info_table(), task_table), align="left", expand=True)
-        yield c
+
+        # this method is called once before the init, so check if the attribute is present
+        if hasattr(self, "use_info_table"):
+            use_table = self.use_info_table
+            info_table = self.info_table
+        else:
+            use_table = False
+            info_table = Table()
+
+        if use_table:
+            task_table = self.make_tasks_table(self.tasks)
+            rendable = Columns((info_table, task_table), align="left", expand=True)
+        else:
+            rendable = self.make_tasks_table(self.tasks)
+
+        yield rendable
 
 
 class ProgressBarLogger(Callback):
@@ -306,12 +313,14 @@ class ProgressBarLogger(Callback):
         train_data_len: int = 0,
         test_data_len: int = 0,
         cur_epoch: int = 1,
+        use_info_table: bool = True,
     ):
         """
         :param n_epochs: total number of epochs
         :param train_data_len: length of the dataset generation for training
         :param test_data_len: length of the dataset generation for testing
         :param cur_epoch: current epoch when resuming training
+        :param use_info_table: true to add an information table on top of the progress bar
         """
 
         self.n_epochs = n_epochs
@@ -331,6 +340,7 @@ class ProgressBarLogger(Callback):
             CustomProgress.TransferSpeedColumn(),
             "•",
             TimeRemainingColumn(),
+            use_info_table=use_info_table,
         )
 
         self.progress.start()
