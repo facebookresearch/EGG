@@ -145,7 +145,7 @@ class CheckpointSaver(Callback):
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
         self.prefix = prefix
-        self.max_checkpoints_keep = max_checkpoints
+        self.max_checkpoints = max_checkpoints
         self.epoch_counter = 0
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
