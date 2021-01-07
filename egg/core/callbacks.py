@@ -53,7 +53,7 @@ class Callback:
         pass
 
     def on_batch_end(
-        self, logs: Interaction, loss: float, batch_id: int, is_training: bool
+        self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True
     ):
         pass
 
