@@ -336,7 +336,6 @@ class ProgressBarLogger(Callback):
     def on_batch_end(
         self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True
     ):
-
         if is_training:
             self.progress.update(self.train_p, refresh=True, advance=1)
         else:
