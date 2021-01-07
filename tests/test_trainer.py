@@ -2,8 +2,6 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
-
 import shutil
 import sys
 from pathlib import Path
@@ -131,14 +129,17 @@ def test_max_snapshoting():
         optimizer,
         train_data=data,
         validation_data=None,
-        callbacks=[core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH, max_checkpoints=2)],
+        callbacks=[
+            core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH, max_checkpoints=2)
+        ],
     )
     trainer.train(n_epochs=6)
     assert (CHECKPOINT_PATH / Path("5.tar")).exists()
     assert (CHECKPOINT_PATH / Path("6.tar")).exists()
     assert (CHECKPOINT_PATH / Path("final.tar")).exists()
+    assert len([x for x in CHECKPOINT_PATH.glob("**/*") if x.is_file()]) == 3
     del trainer
-   
+
 
 def test_early_stopping():
     game, data = MockGame(), Dataset()
