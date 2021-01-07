@@ -137,10 +137,10 @@ class CheckpointSaver(Callback):
         max_checkpoints: int = sys.maxsize,
     ):
         """Saves a checkpoint file for training.
-            :param checkpoint_path:  path to checkpoint directory, will be created if not present
-            :param checkpoint_freq:  Number of epochs for checkpoint saving
-            :param prefix: Name of checkpoint file, will be {prefix}{current_epoch}.tar
-            :param max_checkpoints: Max number of concurrent checkpoint files in the directory.
+        :param checkpoint_path:  path to checkpoint directory, will be created if not present
+        :param checkpoint_freq:  Number of epochs for checkpoint saving
+        :param prefix: Name of checkpoint file, will be {prefix}{current_epoch}.tar
+        :param max_checkpoints: Max number of concurrent checkpoint files in the directory.
         """
         self.checkpoint_path = pathlib.Path(checkpoint_path)
         self.checkpoint_freq = checkpoint_freq
@@ -150,14 +150,8 @@ class CheckpointSaver(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         self.epoch_counter = epoch
-        if self.checkpoint_freq > 0 and (
-            self.epoch_counter % self.checkpoint_freq == 0
-        ):
-            filename = (
-                f"{self.prefix}_{self.epoch_counter}"
-                if self.prefix
-                else str(self.epoch_counter)
-            )
+        if self.checkpoint_freq > 0 and (epoch % self.checkpoint_freq == 0):
+            filename = f"{self.prefix}_{epoch}" if self.prefix else str(epoch)
             self.save_checkpoint(filename=filename)
 
     def on_train_end(self):
@@ -171,7 +165,7 @@ class CheckpointSaver(Callback):
         """
         self.checkpoint_path.mkdir(exist_ok=True, parents=True)
         if len(self.get_checkpoint_files()) > self.max_checkpoints:
-            self.remove_old_chk()
+            self.remove_oldest_checkpoint()
         path = self.checkpoint_path / f"{filename}.tar"
         torch.save(self.get_checkpoint(), path)
 
@@ -202,9 +196,8 @@ class CheckpointSaver(Callback):
         """
         Remove the oldest checkpoint from the dir
         """
-        chk_points = self.natural_sort(self.get_checkpoint_files())
-        to_remove = chk_points[0]
-        os.remove(os.path.join(self.checkpoint_path, to_remove))
+        checkpoints = self.natural_sort(self.get_checkpoint_files())
+        os.remove(os.path.join(self.checkpoint_path, checkpoints[0]))
 
 
 class InteractionSaver(Callback):
