@@ -239,7 +239,7 @@ class Trainer:
 
             for callback in self.callbacks:
                 callback.on_batch_end(
-                    interaction, optimized_loss, batch_id, is_training=True
+                    interaction, optimized_loss, batch_id
                 )
 
             interactions.append(interaction)
