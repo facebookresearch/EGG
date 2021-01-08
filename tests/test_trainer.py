@@ -2,8 +2,6 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
-
 import shutil
 import sys
 from pathlib import Path
@@ -109,6 +107,38 @@ def test_snapshoting():
     assert trainer.start_epoch == 2
     trainer.train(3)
     shutil.rmtree(CHECKPOINT_PATH)  # Clean-up
+
+
+def test_max_snapshoting():
+    CHECKPOINT_PATH = Path("./test_checkpoints")
+
+    core.init()
+    sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
+    receiver = Receiver()
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+        F.cross_entropy(receiver_output, labels),
+        {},
+    )
+
+    game = core.SymbolGameGS(sender, receiver, loss)
+    optimizer = torch.optim.Adam(game.parameters())
+
+    data = Dataset()
+    trainer = core.Trainer(
+        game,
+        optimizer,
+        train_data=data,
+        validation_data=None,
+        callbacks=[
+            core.CheckpointSaver(checkpoint_path=CHECKPOINT_PATH, max_checkpoints=2)
+        ],
+    )
+    trainer.train(n_epochs=6)
+    assert (CHECKPOINT_PATH / Path("5.tar")).exists()
+    assert (CHECKPOINT_PATH / Path("6.tar")).exists()
+    assert (CHECKPOINT_PATH / Path("final.tar")).exists()
+    assert len([x for x in CHECKPOINT_PATH.glob("**/*") if x.is_file()]) == 3
+    del trainer
 
 
 def test_early_stopping():
