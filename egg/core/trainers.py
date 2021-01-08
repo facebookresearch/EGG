@@ -158,7 +158,6 @@ class Trainer:
         mean_loss = 0.0
         interactions = []
         n_batches = 0
-
         self.game.eval()
         with torch.no_grad():
             for batch in self.validation_data:
