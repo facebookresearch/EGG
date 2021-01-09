@@ -342,19 +342,16 @@ class ProgressBarLogger(Callback):
         n_epochs: int,
         train_data_len: int = 0,
         test_data_len: int = 0,
-        cur_epoch: int = 1,
         use_info_table: bool = True,
     ):
         """
         :param n_epochs: total number of epochs
         :param train_data_len: length of the dataset generation for training
         :param test_data_len: length of the dataset generation for testing
-        :param cur_epoch: current epoch when resuming training
         :param use_info_table: true to add an information table on top of the progress bar
         """
 
         self.n_epochs = n_epochs
-        self.cur_epoch = cur_epoch
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
         self.progress = CustomProgress(
@@ -377,7 +374,7 @@ class ProgressBarLogger(Callback):
         self.train_p = self.progress.add_task(
             description="",
             mode="Train",
-            cur_epoch=self.cur_epoch,
+            cur_epoch=0,
             n_epochs=self.n_epochs,
             start=False,
             visible=False,
@@ -386,7 +383,7 @@ class ProgressBarLogger(Callback):
         self.test_p = self.progress.add_task(
             description="",
             mode="Test",
-            cur_epoch=self.cur_epoch,
+            cur_epoch=0,
             n_epochs=self.n_epochs,
             start=False,
             visible=False,
@@ -404,12 +401,19 @@ class ProgressBarLogger(Callback):
         return od
 
     def on_epoch_begin(self, epoch: int):
-
+        self.progress.reset(
+            task_id=self.train_p,
+            total=self.train_data_len,
+            start=False,
+            visible=False,
+            cur_epoch=epoch,
+            n_epochs=self.n_epochs,
+            mode="Train",
+        )
         self.progress.start_task(self.train_p)
         self.progress.update(self.train_p, visible=True)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        self.cur_epoch += 1
         self.progress.stop_task(self.train_p)
         self.progress.update(self.train_p, visible=False)
 
@@ -422,7 +426,7 @@ class ProgressBarLogger(Callback):
             total=self.train_data_len,
             start=False,
             visible=False,
-            cur_epoch=self.cur_epoch,
+            cur_epoch=epoch,
             n_epochs=self.n_epochs,
             mode="Train",
         )
@@ -431,6 +435,16 @@ class ProgressBarLogger(Callback):
         self.progress.update_info_table(od, "train")
 
     def on_test_begin(self, epoch: int):
+        self.progress.reset(
+            task_id=self.test_p,
+            total=self.test_data_len,
+            start=False,
+            visible=False,
+            cur_epoch=epoch,
+            n_epochs=self.n_epochs,
+            mode="Test",
+        )
+
         self.progress.start_task(self.test_p)
         self.progress.update(self.test_p, visible=True)
 
@@ -447,7 +461,7 @@ class ProgressBarLogger(Callback):
             total=self.test_data_len,
             start=False,
             visible=False,
-            cur_epoch=self.cur_epoch,
+            cur_epoch=epoch,
             n_epochs=self.n_epochs,
             mode="Test",
         )
