@@ -172,7 +172,6 @@ class Trainer:
                     )
                 interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
-                n_batches += 1
 
                 for callback in self.callbacks:
                     callback.on_batch_end(
@@ -180,6 +179,8 @@ class Trainer:
                     )
 
                 interactions.append(interaction)
+                n_batches += 1
+
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
 
