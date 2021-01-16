@@ -139,6 +139,11 @@ def test_max_snapshoting():
     assert (CHECKPOINT_PATH / Path("final.tar")).exists()
     assert len([x for x in CHECKPOINT_PATH.glob("**/*") if x.is_file()]) == 3
     del trainer
+    trainer = core.Trainer(game, optimizer, train_data=data)  # Re-instantiate trainer
+    trainer.load_from_latest(CHECKPOINT_PATH)
+    assert trainer.start_epoch == 6
+    trainer.train(3)
+    shutil.rmtree(CHECKPOINT_PATH)  # Clean-up
 
 
 def test_early_stopping():
@@ -153,16 +158,3 @@ def test_early_stopping():
     )
     trainer.train(1)
     assert trainer.should_stop
-
-
-def test_progress_bar():
-    game, data = MockGame(), Dataset()
-    progress_bar = core.ProgressBarLogger(n_epochs=1, train_data_len=8)
-    trainer = core.Trainer(
-        game=game,
-        optimizer=torch.optim.Adam(game.parameters()),
-        train_data=data,
-        validation_data=data,
-        callbacks=[progress_bar],
-    )
-    trainer.train(1)
