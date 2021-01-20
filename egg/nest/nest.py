@@ -169,7 +169,7 @@ if __name__ == "__main__":
     for job, comb in zip(jobs, combinations):
         print(job.job_id, comb)
 
-    print(f"Total jobs launched: {len(jobs)}, total combinations: {len(combinations)}")
+    print(f'Total jobs launched for total combinations: {len(combinations)}')
 
     if args.force_requeue:
         time.sleep(60)
