@@ -160,20 +160,16 @@ if __name__ == "__main__":
             for (i, comb) in enumerate(combinations)
         ]
 
+    runner = SlurmWrapper(module.main)
     if not args.array:
-        for comb in combinations:
-            runner = SlurmWrapper(module.main)
-            job = executor.submit(runner, comb)
-            print(f"job id {job.job_id}, args {comb}")
-            jobs.append(job)
+        jobs = (executor.submit(runner, comb) for comb in combinations)
     else:
-        runner = lambda x: SlurmWrapper(module.main)(x)  # noqa: E731
         jobs = executor.map_array(runner, combinations)
 
-        for job, comb in zip(jobs, combinations):
-            print(job.job_id, comb)
+    for job, comb in zip(jobs, combinations):
+        print(job.job_id, comb)
 
-    print(f"Total jobs launched: {len(jobs)}, total combinations: {len(combinations)}")
+    print(f"Total jobs launched for total combinations: {len(combinations)}")
 
     if args.force_requeue:
         time.sleep(60)
