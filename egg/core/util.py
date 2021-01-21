@@ -388,7 +388,9 @@ def set_sys_args(params):
     params = [x for sub in params for x in sub]
 
     # check if there are any bool
-    assert not any(isinstance(x, bool) for x in params), "Cannot pass Bool values when action store is true"
+    assert not any(
+        isinstance(x, bool) for x in params
+    ), "Cannot pass Bool values when action store is true"
 
     # cast to string
     params = [str(x) for x in params]
@@ -415,7 +417,7 @@ def hypertune(main_function):
 
     sweep_file_name = "sweep_file"
     sweep_file_arg = f"--{sweep_file_name}"
-    console=Console()
+    console = Console()
 
     # parse params
     parser = argparse.ArgumentParser()
@@ -467,5 +469,6 @@ def hypertune(main_function):
 
 def play_bell(duration=1, freq=640, reps=4):
     import os
+
     for _ in range(reps):
-        os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq))
+        os.system("play -nq -t alsa synth {} sine {}".format(duration, freq))
