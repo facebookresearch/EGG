@@ -435,7 +435,7 @@ class SenderReceiverRnnReinforce(nn.Module):
     ...                                   length_cost=1e-2)
     >>> input = torch.zeros((5, 3)).normal_()
     >>> optimized_loss, interaction = game(input, labels=None)
-    >>> sorted(list(interaction.aux.keys()))  # returns some debug info, such as entropies of the agents, msg length etc
+    >>> sorted(list(interaction.aux.keys()))  # returns debug info such as entropies of the agents, message length etc
     ['aux', 'length', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
     (tensor([1., 1., 1., 1., 1.]), tensor(5.))
@@ -472,14 +472,50 @@ class SenderReceiverRnnReinforce(nn.Module):
         :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
         :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
             later analysis in callbacks
-
         """
         super(SenderReceiverRnnReinforce, self).__init__()
         self.sender = sender
         self.receiver = receiver
+        self.loss = loss
+
+        self.mechanics = CommunicationRnnReinforce(
+            sender_entropy_coeff,
+            receiver_entropy_coeff,
+            length_cost,
+            baseline_type,
+            train_logging_strategy,
+            test_logging_strategy,
+        )
+
+    def forward(self, sender_input, labels, receiver_input=None):
+        return self.mechanics(
+            self.sender, self.receiver, self.loss, sender_input, labels, receiver_input
+        )
+
+
+class CommunicationRnnReinforce(nn.Module):
+    def __init__(
+        self,
+        sender_entropy_coeff: float,
+        receiver_entropy_coeff: float,
+        length_cost: float = 0.0,
+        baseline_type: Baseline = MeanBaseline,
+        train_logging_strategy: LoggingStrategy = None,
+        test_logging_strategy: LoggingStrategy = None,
+    ):
+        """
+        :param sender_entropy_coeff: entropy regularization coeff for sender
+        :param receiver_entropy_coeff: entropy regularization coeff for receiver
+        :param length_cost: the penalty applied to Sender for each symbol produced
+        :param baseline_type: Callable, returns a baseline instance (eg a class specializing core.baselines.Baseline)
+        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
+            later analysis in callbacks
+
+        """
+        super().__init__()
+
         self.sender_entropy_coeff = sender_entropy_coeff
         self.receiver_entropy_coeff = receiver_entropy_coeff
-        self.loss = loss
         self.length_cost = length_cost
 
         self.baselines = defaultdict(baseline_type)
@@ -494,18 +530,18 @@ class SenderReceiverRnnReinforce(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message, log_prob_s, entropy_s = self.sender(sender_input)
+    def forward(
+        self, sender, receiver, loss, sender_input, labels, receiver_input=None
+    ):
+        message, log_prob_s, entropy_s = sender(sender_input)
         message_length = find_lengths(message)
-        receiver_output, log_prob_r, entropy_r = self.receiver(
+        receiver_output, log_prob_r, entropy_r = receiver(
             message, receiver_input, message_length
         )
 
-        loss, aux_info = self.loss(
+        loss, aux_info = loss(
             sender_input, message, receiver_input, receiver_output, labels
         )
-        if self.training:
-            _verify_batch_sizes(loss, log_prob_s, log_prob_r)
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
         effective_entropy_s = torch.zeros_like(entropy_r)
@@ -532,7 +568,7 @@ class SenderReceiverRnnReinforce(nn.Module):
         policy_length_loss = (
             (length_loss - self.baselines["length"].predict(length_loss))
             * effective_log_prob_s
-        ).mean()  # noqa: E502
+        ).mean()
         policy_loss = (
             (loss.detach() - self.baselines["loss"].predict(loss.detach())) * log_prob
         ).mean()
