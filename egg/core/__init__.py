@@ -30,6 +30,7 @@ from .language_analysis import (
     TopographicSimilarity,
 )
 from .reinforce_wrappers import (
+    CommunicationRnnReinforce,
     ReinforceDeterministicWrapper,
     ReinforceWrapper,
     RnnReceiverDeterministic,
@@ -75,6 +76,7 @@ __all__ = [
     "RnnReceiverReinforce",
     "RnnSenderReinforce",
     "SenderReceiverRnnReinforce",
+    "CommunicationRnnReinforce",
     "RnnReceiverDeterministic",
     "RnnSenderGS",
     "RnnReceiverGS",
