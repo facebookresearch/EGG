@@ -178,7 +178,11 @@ class SymbolGameReinforce(nn.Module):
         )
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input=sender_input,
+            message=message,
+            receiver_input=receiver_input,
+            receiver_output=receiver_output,
+            labels=labels,
         )
 
         if self.training:
@@ -540,7 +544,11 @@ class CommunicationRnnReinforce(nn.Module):
         )
 
         loss, aux_info = loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input=sender_input,
+            message=message,
+            receiver_input=receiver_input,
+            receiver_output=receiver_output,
+            labels=labels,
         )
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
