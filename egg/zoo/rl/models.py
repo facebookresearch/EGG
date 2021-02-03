@@ -12,7 +12,7 @@ import egg.core as core
 
 
 def build_vision_module(model_name: str = "resnet50", vision_hidden_dim: int = 1000):
-    vision_module = models.__dict__[model_name]
+    vision_module = models.__dict__[model_name]()
     if "resnet" in model_name.lower():
         vision_module.fc = nn.Linear(512, vision_hidden_dim)
     elif "alexnet" in model_name.lower() or model_name.lower() == "vgg11":
@@ -62,7 +62,7 @@ class Sender(nn.Module):
         vision_hidden_dim: int = 128
     ):
         super(Sender, self).__init__()
-        self.vision_module = nn.Sequential(build_vision_module(model_name=model_name, vision_hidden_dim=vision_hidden_dim))
+        self.vision_module = build_vision_module(model_name=model_name, vision_hidden_dim=vision_hidden_dim)
 
     def forward(self, input):
         return self.vision_module(input)

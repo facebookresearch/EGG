@@ -4,12 +4,12 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import wandb
+# import wandb
 
 import torch
 
 import egg.core as core
-from egg.zoo.rl.dataloader import get_loader
+from egg.zoo.rl.dataloaders import get_loader
 from egg.zoo.rl.models import build_game
 from egg.zoo.rl.utils import get_opts
 
@@ -26,19 +26,24 @@ from egg.zoo.rl.utils import get_opts
 # )
 
 
-def main():
-    wandb.init(project="language-as-rl")
-    opts = get_opts()
-    wandb.config.update(opts)
+def main(params):
+    # wandb.init(project="language-as-rl")
+    opts = get_opts(params)
+    print(opts)
+    if opts.pdb:
+        breakpoint()
+    # wandb.config.update(opts)
 
-    train_loader = get_loader()
+    train_loader = get_loader(opts)
 
-    game = build_game()
+    game = build_game(opts)
 
     optimizer = torch.optim.Adam([
         {'params': game.sender.parameters(), 'lr': opts.sender_lr},
         {'params': game.receiver.parameters(), 'lr': opts.receiver_lr}
     ])
+
+    print(f"| There are {sum(p.numel() for p in game.parameters() if p.requires_grad)} parameters in the model.")
 
     trainer = core.Trainer(
         game=game,
@@ -47,7 +52,7 @@ def main():
     )
     trainer.train(n_epochs=opts.n_epochs)
 
-    wandb.watch(game)
+    # wandb.watch(game)
 
 
 if __name__ == "__main__":

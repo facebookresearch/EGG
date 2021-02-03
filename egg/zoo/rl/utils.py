@@ -7,6 +7,8 @@ import argparse
 
 import torchvision.models as models
 
+import egg.core as core
+
 
 model_names = sorted(
     name
@@ -15,7 +17,7 @@ model_names = sorted(
 )
 
 
-def get_opts():
+def get_opts(params):
     parser = argparse.ArgumentParser(description="PyTorch ImageNet Training")
     parser.add_argument("data", metavar="DIR", help="path to dataset")
     parser.add_argument(
@@ -24,21 +26,19 @@ def get_opts():
         choices=["resnet50"],  # choices=model_names,
         help=f"model architecture: {' | '.join(model_names)} (default: resnet50)",
     )
-    parser.add_argument("--num_classes", type=int, default=1000)
-    parser.add_argument("--data_workers", type=int, default=2)
 
-    parser.add_argument("--sender_rl", type=float, default=0.001)
-    parser.add_argument("--receiver_rl", type=float, default=0.001)
+    parser.add_argument("--distractors", type=int, default=1)
+    parser.add_argument("--max_targets_seen", type=int, default=100)
+
+    parser.add_argument("--sender_lr", type=float, default=0.001)
+    parser.add_argument("--receiver_lr", type=float, default=0.001)
 
     parser.add_argument("--sender_embedding", type=int, default=128)
     parser.add_argument("--receiver_embedding", type=int, default=128)
 
     parser.add_argument("--sender_hidden", type=int, default=128)
     parser.add_argument("--receiver_hidden", type=int, default=128)
-
-    parser.add_argument("--vision_hidden_dim_sender", type=int, default=128)
     parser.add_argument("--vision_hidden_dim_receiver", type=int, default=128)
-    parser.add_argument("--message_hidden_dim", type=int, default=128)
 
     parser.add_argument("--similarity_projection", type=int, default=128)
 
@@ -54,5 +54,7 @@ def get_opts():
         choices=["rnn", "lstm", "gru"],
     )
 
-    args = parser.parse_args()
+    parser.add_argument("--pdb", action="store_true", default=False)
+
+    args = core.init(arg_parser=parser, params=params)
     return args
