@@ -6,13 +6,13 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-import torch.nn.function as F
+import torch.nn.functional as F
 
 import egg.core as core
 
 
 def build_vision_module(model_name: str = "resnet50", vision_hidden_dim: int = 1000):
-    vision_module = models.__dict__[model_name](vision_hidden_dim=vision_hidden_dim)
+    vision_module = models.__dict__[model_name]
     if "resnet" in model_name.lower():
         vision_module.fc = nn.Linear(512, vision_hidden_dim)
     elif "alexnet" in model_name.lower() or model_name.lower() == "vgg11":
@@ -49,6 +49,12 @@ def nt_xent_loss(queries, keys, temperature=0.1):
     return loss
 
 
+def discriminative_loss(_sender_input, _message, _receiver_input, receiver_output, _labels):
+    acc = (receiver_output.argmax(dim=1) == _labels).detach().float()
+    loss = F.cross_entropy(receiver_output, _labels, reduction="none")
+    return loss, {'acc': acc}
+
+
 class Sender(nn.Module):
     def __init__(
         self,
@@ -56,7 +62,7 @@ class Sender(nn.Module):
         vision_hidden_dim: int = 128
     ):
         super(Sender, self).__init__()
-        self.vision_module = build_vision_module(model_name=model_name, vision_hidden_dim=vision_hidden_dim)
+        self.vision_module = nn.Sequential(build_vision_module(model_name=model_name, vision_hidden_dim=vision_hidden_dim))
 
     def forward(self, input):
         return self.vision_module(input)
@@ -70,7 +76,7 @@ class Receiver(nn.Module):
         message_hidden_dim: int = 128,
         similarity_projection: int = 128
     ):
-        super(Sender, self).__init__()
+        super(Receiver, self).__init__()
         self.vision_module = build_vision_module(model_name=model_name, vision_hidden_dim=vision_hidden_dim)
         self.fc_vision = nn.Linear(vision_hidden_dim, similarity_projection)
         self.fc_message = nn.Linear(message_hidden_dim, similarity_projection)
@@ -84,7 +90,7 @@ class Receiver(nn.Module):
 
 
 def build_game(opts):
-    sender = Sender(model_name=opts.arch, vision_hidden_dim=opts.vision_hidden_dim_sender)
+    sender = Sender(model_name=opts.arch, vision_hidden_dim=opts.sender_hidden)
     sender = core.RnnSenderReinforce(
         sender,
         opts.vocab_size,
@@ -96,7 +102,7 @@ def build_game(opts):
     receiver = Receiver(
         model_name=opts.arch,
         vision_hidden_dim=opts.vision_hidden_dim_receiver,
-        message_hidden_dim=opts.message_hidden_dim,
+        message_hidden_dim=opts.receiver_hidden,
         similarity_projection=opts.similarity_projection
     )
     receiver = core.RnnReceiverDeterministic(
@@ -110,7 +116,7 @@ def build_game(opts):
     game = core.SenderReceiverRnnReinforce(
         sender,
         receiver,
-        contrastive_loss,  # check loss and make it a param
+        discriminative_loss,  # check loss and make it a param
         sender_entropy_coeff=0.1  # TODO, make it a param
     )
     return game
