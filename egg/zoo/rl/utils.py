@@ -23,7 +23,7 @@ def get_opts(params):
     parser.add_argument(
         "--arch",
         default="resnet50",
-        choices=["resnet50"],  # choices=model_names,
+        choices=model_names,
         help=f"model architecture: {' | '.join(model_names)} (default: resnet50)",
     )
 

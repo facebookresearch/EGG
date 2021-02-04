@@ -4,9 +4,8 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import wandb
-
 import torch
+import wandb
 
 import egg.core as core
 from egg.zoo.rl.dataloaders import get_loader
