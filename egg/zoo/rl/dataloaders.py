@@ -8,6 +8,7 @@ import pathlib
 from PIL import Image
 import random
 
+import numpy as np
 import torch
 import torchvision.transforms as transforms
 
@@ -17,7 +18,7 @@ class _BatchIterator:
         self.dataset = dataset
         self.batch_size = batch_size
         self.distractors = distractors
-        self.max_targets_seen = max_targets_seen if max_targets_seen else len(dataset)
+        self.max_targets_seen = max_targets_seen if max_targets_seen > 0 else len(dataset)
 
         self.targets_seen = 0
 
@@ -26,31 +27,30 @@ class _BatchIterator:
 
     def __next__(self):
         if self.targets_seen + self.batch_size > self.max_targets_seen:
-            raise StopIteration()  # TODO add drop_last
-        targets = random.sample(range(len(self.dataset)), self.batch_size)
-        target_positions = []
-        receiver_input = []
-        for target in targets:
-            img_lineup = []
-            not_found = True
-            while not_found:
-                img_lineup = random.sample(range(len(self.dataset)), self.distractors)
-                if target not in img_lineup:
-                    not_found = False
-            img_lineup.append(target)
-            final_img_lineup, target_position = self._sample_target_position_and_add_it_in_right_position(
-                img_lineup
+            self.targets_seen = 0  # implement drop_last
+            raise StopIteration()
+        lineup_size = self.batch_size * (self.distractors + 1)
+        sampled_idxs = random.sample(range(len(self.dataset)), lineup_size)
+        targets_position = torch.from_numpy(
+            np.random.randint(
+                self.distractors + 1,
+                size=self.batch_size
             )
-            target_positions.append(target_position)
-            t = torch.cat([self.dataset[idx] for idx in final_img_lineup], dim=0)
-            receiver_input.append(t.unsqueeze(dim=0))
+        )
+        receiver_input = torch.cat(
+            [self.dataset[idx] for idx in sampled_idxs]
+        )
+        receiver_input = receiver_input.view(self.batch_size, self.distractors + 1, 3, 224, 224)
 
-        targets = torch.cat([self.dataset[idx] for idx in targets])
-        target_positions = torch.LongTensor(target_positions)
-        receiver_input = torch.cat(receiver_input, dim=0)
+        targets = []
+        for idx in range(self.batch_size):
+            targets.append(receiver_input[idx, targets_position[idx], :, : , :].unsqueeze(0))
 
+        receiver_input = receiver_input.view(self.batch_size * (self.distractors + 1), 3, 224, 224)
+
+        targets = torch.cat(targets, dim=0)
         self.targets_seen += self.batch_size
-        return targets, target_positions, receiver_input
+        return targets, targets_position, receiver_input
 
     def _sample_target_position_and_add_it_in_right_position(self, img_lineup):
         target_position = random.randrange(self.distractors + 1)
@@ -97,8 +97,8 @@ def get_loader(opts):
     train_path = pathlib.Path(opts.data)
 
     transformations = [
-        transforms.ToTensor(),
         transforms.RandomResizedCrop(224),
+        transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]

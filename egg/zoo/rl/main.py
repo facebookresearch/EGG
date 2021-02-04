@@ -4,35 +4,24 @@
 # LICENSE file in the root directory of this source tree.
 
 
-# import wandb
+import wandb
 
 import torch
 
 import egg.core as core
 from egg.zoo.rl.dataloaders import get_loader
-from egg.zoo.rl.models import build_game
+from egg.zoo.rl.game import build_game
 from egg.zoo.rl.utils import get_opts
 
 
-# example_images.append(wandb.Image(
-#    data[0],
-#    caption="Pred: {} Truth: {}".format(pred[0].item(), target[0])
-#    )
-# )
-# wandb.log({
-#    "Examples": example_images,
-#    "Test Accuracy": 100. * correct / len(test_loader.dataset),
-#    "Test Loss": test_loss}
-# )
-
-
 def main(params):
-    # wandb.init(project="language-as-rl")
     opts = get_opts(params)
     print(opts)
     if opts.pdb:
         breakpoint()
-    # wandb.config.update(opts)
+    if opts.wandb:
+        wandb.init(project="language-as-rl")
+        wandb.config.update(opts)
 
     train_loader = get_loader(opts)
 
@@ -45,14 +34,17 @@ def main(params):
 
     print(f"| There are {sum(p.numel() for p in game.parameters() if p.requires_grad)} parameters in the model.")
 
+    callbacks = [core.ConsoleLogger(print_train_loss=True)]
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
         train_data=train_loader,
+        callbacks=callbacks
     )
     trainer.train(n_epochs=opts.n_epochs)
 
-    # wandb.watch(game)
+    if opts.wandb:
+        wandb.watch(game)
 
 
 if __name__ == "__main__":

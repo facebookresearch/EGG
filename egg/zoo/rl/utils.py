@@ -19,7 +19,7 @@ model_names = sorted(
 
 def get_opts(params):
     parser = argparse.ArgumentParser(description="PyTorch ImageNet Training")
-    parser.add_argument("data", metavar="DIR", help="path to dataset")
+    parser.add_argument("--data", metavar="DIR", help="path to dataset")
     parser.add_argument(
         "--arch",
         default="resnet50",
@@ -28,10 +28,10 @@ def get_opts(params):
     )
 
     parser.add_argument("--distractors", type=int, default=1)
-    parser.add_argument("--max_targets_seen", type=int, default=100)
+    parser.add_argument("--max_targets_seen", type=int, default=-1)
 
-    parser.add_argument("--sender_lr", type=float, default=0.001)
-    parser.add_argument("--receiver_lr", type=float, default=0.001)
+    parser.add_argument("--sender_lr", type=float, default=0.0005)
+    parser.add_argument("--receiver_lr", type=float, default=0.0005)
 
     parser.add_argument("--sender_embedding", type=int, default=128)
     parser.add_argument("--receiver_embedding", type=int, default=128)
@@ -55,6 +55,7 @@ def get_opts(params):
     )
 
     parser.add_argument("--pdb", action="store_true", default=False)
+    parser.add_argument("--wandb", action="store_true", default=False)
 
     args = core.init(arg_parser=parser, params=params)
     return args
