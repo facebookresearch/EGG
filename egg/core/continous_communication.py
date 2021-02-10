@@ -22,7 +22,7 @@ class ContinuousLinearSender(nn.Module):
     ):
         super(ContinuousLinearSender, self).__init__()
 
-        activations = {"relu": F.relu, "tanh": F.tanh, "leaky_rely": F.leaky_relu, "identity": nn.Identity()}
+        activations = {"relu": F.relu, "tanh": F.tanh, "leaky_relu": F.leaky_relu, "identity": nn.Identity()}
         try:
             self.activation = activations[activation.lower()]
         except KeyError:
