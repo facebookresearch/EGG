@@ -23,10 +23,7 @@ class ContinuousLinearSender(nn.Module):
         super(ContinuousLinearSender, self).__init__()
 
         activations = {"relu": F.relu, "tanh": F.tanh, "leaky_relu": F.leaky_relu, "identity": nn.Identity()}
-        try:
-            self.activation = activations[activation.lower()]
-        except KeyError:
-            self.activation = nn.Identity()
+        self.activation = activations[activation.lower()]
 
         encoder_hidden_sizes = [encoder_hidden_size] * num_layers
         encoder_layer_dimensions = [(encoder_input_size, encoder_hidden_sizes[0])]
@@ -41,7 +38,7 @@ class ContinuousLinearSender(nn.Module):
 
     def forward(self, x):
         for hidden_layer in self.decoder_hidden_layers[:-1]:
-            x = F.relu(hidden_layer(x))
+            x = self.activation(hidden_layer(x))
         sender_output = self.decoder_hidden_layers[-1](x)
         return sender_output
 
