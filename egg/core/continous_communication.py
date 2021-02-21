@@ -22,6 +22,7 @@ class ContinuousLinearSender(nn.Module):
     ):
         super(ContinuousLinearSender, self).__init__()
 
+        self.agent = agent
         activations = {"relu": F.relu, "tanh": F.tanh, "leaky_relu": F.leaky_relu, "identity": nn.Identity()}
         self.activation = activations[activation.lower()]
 
@@ -37,6 +38,7 @@ class ContinuousLinearSender(nn.Module):
         )
 
     def forward(self, x):
+        x = self.agent(x)
         for hidden_layer in self.decoder_hidden_layers[:-1]:
             x = self.activation(hidden_layer(x))
         sender_output = self.decoder_hidden_layers[-1](x)
