@@ -9,24 +9,43 @@ import torchvision
 from torchvision import datasets
 
 
-def get_dataloader(opts):
-    print(f"Using dataset {opts.dataset_name} with image size: {opts.image_size}. ")
-
-    if opts.dataset_name == "CIFAR10":
+def get_dataloader(
+    dataset_name: str,
+    dataset_dir: str,
+    image_size: int,
+    batch_size: int,
+    num_workers: int
+):
+    print(f"Using dataset {dataset_name} with image size: {image_size}. ")
+    transformation = TransformsIdentity(image_size)
+    if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
-            opts.dataset_dir,
+            dataset_dir,
             train=True,
             download=True,
-            transform=TransformsIdentity(opts.image_size)
+            transform=transformation
+        )
+    elif dataset_name == "cifar100":
+        train_dataset = datasets.CIFAR100(
+            dataset_dir,
+            train=True,
+            download=True,
+            transform=transformation
+        )
+    elif dataset_name == "imagenet":
+        train_dataset = datasets.ImageNet(
+            dataset_dir,
+            "train",
+            transform=transformation
         )
     else:
-        raise NotImplementedError(f"{opts.dataset_name} is currently not supported.")
+        raise NotImplementedError(f"{dataset_name} is currently not supported.")
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=opts.batch_size,
+        batch_size=batch_size,
         shuffle=True,
         drop_last=True,
-        num_workers=8,
+        num_workers=num_workers,
     )
     return train_loader
 
