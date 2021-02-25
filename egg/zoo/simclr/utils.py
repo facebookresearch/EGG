@@ -4,67 +4,38 @@
 # LICENSE file in the root directory of this source tree.
 
 
+import pathlib
+
 import torch
-import torchvision
-from torchvision import datasets
+
+from egg.core import Callback, Interaction
 
 
-def get_dataloader(
-    dataset_name: str,
-    dataset_dir: str,
-    image_size: int,
-    batch_size: int,
-    num_workers: int
-):
-    print(f"Using dataset {dataset_name} with image size: {image_size}. ")
-    transformation = TransformsIdentity(image_size)
-    if dataset_name == "cifar10":
-        train_dataset = datasets.CIFAR10(
-            dataset_dir,
-            train=True,
-            download=True,
-            transform=transformation
-        )
-    elif dataset_name == "cifar100":
-        train_dataset = datasets.CIFAR100(
-            dataset_dir,
-            train=True,
-            download=True,
-            transform=transformation
-        )
-    elif dataset_name == "imagenet":
-        train_dataset = datasets.ImageNet(
-            dataset_dir,
-            "train",
-            transform=transformation
-        )
-    else:
-        raise NotImplementedError(f"{dataset_name} is currently not supported.")
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        drop_last=True,
-        num_workers=num_workers,
-    )
-    return train_loader
+class BestStatsTracker(Callback):
+    def __init__(self):
+        super().__init__()
+        self.best_acc = -1.
+        self.best_loss = float("inf")
+        self.best_epoch = -1
+
+    def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
+        if logs.aux["acc"].mean().item() > self.best_acc:
+            self.best_acc = logs.aux["acc"].mean().item()
+            self.best_epoch = epoch
+            self.best_loss = _loss
+
+    def on_train_end(self):
+        print(f"BEST: epoch {self.best_epoch}, acc: {self.best_acc}, loss: {self.best_loss}")
 
 
-class TransformsIdentity:
-    """
-    A minimal transformation module that transforms any given data example
-    into two identical views of the same example, denoted x ̃i and x ̃j,
-    which we consider as a positive pair.
-    """
+class VisionModelSaver(Callback):
+    def __init__(self, path):
+        super().__init__()
+        self.path = pathlib.Path(path)
 
-    def __init__(self, size):
-        self.transform = torchvision.transforms.Compose(
-            [
-                torchvision.transforms.Resize(size=size),
-                torchvision.transforms.ToTensor()
-            ]
-        )
-
-    def __call__(self, x):
-        x_i, x_j = self.transform(x), self.transform(x)
-        return x_i, x_j
+    def on_train_end(self):
+        if self.self.trainer.game.vision_module.shared:
+            torch.save(self.trainer.game.vision_module.encoder, self.path / "vision_module_shared.pt")
+        if self.self.trainer.game.vision_module.shared:
+            torch.save(self.trainer.game.vision_module.encoder, self.path / "vision_module_sender.pt")
+            torch.save(self.trainer.game.vision_module.encoder_recv, self.path / "vision_module_recv.pt")

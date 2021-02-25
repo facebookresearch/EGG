@@ -1,0 +1,18 @@
+{
+    "n_epoch": [50],
+    "batch_size": [128, 256, 512],
+    "lr": [0.001, 0.0005, 0.0001],
+    "random_seed": [111],
+    "model_name": ["resnet50"],
+    "vision_projection_dim": [64],
+    "sender_output_size": [128],
+    "receiver_output_size": [256],
+    "early_stopping_thr": [0.99],
+    "dataset_name": ["imagenet"],
+    "dataset_dir": ["/datasets01/imagenet_full_size/061417/"],
+    "image_size": [224],
+    "ntxent_tau": [0.05],
+    "communication_channel": ["continuous"],
+    "shared_vision": [true],
+    "fp16": [true]
+}
