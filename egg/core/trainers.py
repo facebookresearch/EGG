@@ -96,7 +96,8 @@ class Trainer:
                 ), "checkpointing directory has to be specified"
                 d = get_preemptive_checkpoint_dir(common_opts.checkpoint_dir)
                 self.checkpoint_path = d
-                self.load_from_latest(d)
+                if not common_opts.load_from_checkpoint:
+                    self.load_from_latest(d)
             else:
                 self.checkpoint_path = (
                     None
