@@ -27,6 +27,12 @@ def get_resnet(name, pretrained=False):
     model = resnets[name]
     n_features = model.fc.in_features
     model.fc = nn.Identity()
+
+    if pretrained:
+        for param in model.parameters():
+            param.requires_grad = False
+        model = model.eval()
+
     return model, n_features
 
 

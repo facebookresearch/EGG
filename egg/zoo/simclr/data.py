@@ -15,13 +15,10 @@ def get_dataloader(
     image_size: int,
     batch_size: int,
     num_workers: int = 4,
-    use_augmentations: bool = True
+    use_augmentations: bool = True,
+    is_distributed: bool = False,
+    seed: int = 111
 ):
-    print(
-        f"Using dataset {dataset_name} with image size: {image_size}. "
-        f"Applying augmentations: {use_augmentations}"
-    )
-
     imagent_normalization = dataset_name.lower() == "imagenet"
     transformations = TransformsIdentity(image_size, imagent_normalization)
     if use_augmentations:
@@ -48,13 +45,24 @@ def get_dataloader(
         )
     else:
         raise NotImplementedError(f"{dataset_name} is currently not supported.")
+
+    train_sampler = None
+    if is_distributed:
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset,
+            shuffle=True,
+            drop_last=True,
+            seed=seed
+        )
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=batch_size,
-        shuffle=True,
-        drop_last=True,
+        shuffle=(train_sampler is None),
+        sampler=train_sampler,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
+        drop_last=True,
     )
     return train_loader
 

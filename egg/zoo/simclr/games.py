@@ -33,7 +33,12 @@ def build_game(opts):
     )
 
     train_logging_strategy = LoggingStrategy.minimal()
-    loss = Loss(opts.batch_size, opts.ntxent_tau, device)
+    batch_size = opts.batch_size // opts.distributed_context.world_size
+    assert not batch_size % 2, (
+        f"Batch size must be multiple of 2. Effective bsz is {opts.batch_size} split "
+        f"in opts.distributed_{opts.distributed_context.world_size} yielding {batch_size} samples per process"
+    )
+    loss = Loss(batch_size, opts.ntxent_tau, device)
 
     if opts.communication_channel == "rf":
         sender = RnnSenderReinforce(
