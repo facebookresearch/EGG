@@ -66,9 +66,17 @@ class Callback:
 
 
 class ConsoleLogger(Callback):
-    def __init__(self, print_train_loss=False, as_json=False):
+    def __init__(
+        self,
+        print_train_loss: bool = False,
+        as_json: bool = False,
+        is_distributed: bool = False,
+        rank: int = 0
+    ):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
+        self.is_distributed = is_distributed
+        self.rank = rank
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
         dump = dict(loss=loss)
@@ -84,11 +92,13 @@ class ConsoleLogger(Callback):
         print(output_message, flush=True)
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        self.aggregate_print(loss, logs, "test", epoch)
+        if self.is_distributed and self.rank == 0:
+            self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.print_train_loss:
-            self.aggregate_print(loss, logs, "train", epoch)
+        if self.is_distributed and self.rank == 0:
+            if self.print_train_loss:
+                self.aggregate_print(loss, logs, "train", epoch)
 
 
 class TensorboardLogger(Callback):
