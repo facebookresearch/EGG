@@ -26,7 +26,7 @@ class RecoLoss:
         self.batch_size = batch_size
 
     def __call__(self, sender_input, _message, _receiver_input, receiver_output, labels):
-        self.reconstruction_loss(
+        return self.reconstruction_loss(
             receiver_output,
             labels,
             self.batch_size,
