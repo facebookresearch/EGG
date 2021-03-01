@@ -66,7 +66,7 @@ class NTXentLoss:
         self.device = device
 
         similarities = {"cosine", "dot"}
-        assert similarity.lower() in similarities, "Cannot recognize similarity function {similarity}"
+        assert similarity.lower() in similarities, f"Cannot recognize similarity function {similarity}"
         self.similarity = similarity
 
         self.normalized_before = normalize_before
