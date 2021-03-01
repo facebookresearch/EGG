@@ -41,11 +41,15 @@ class VisionModule(nn.Module):
         self,
         encoder_arch: str,
         projection_dim: int,
-        shared: bool = False
+        shared: bool = False,
+        pretrain_vision: bool = False
     ):
         super(VisionModule, self).__init__()
 
-        self.encoder, features_dim = get_resnet(encoder_arch)
+        if pretrain_vision:
+            assert shared, "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
+
+        self.encoder, features_dim = get_resnet(encoder_arch, pretrain_vision)
         self.fc = nn.Sequential(
             nn.Linear(features_dim, projection_dim, bias=False),
             nn.ReLU(),

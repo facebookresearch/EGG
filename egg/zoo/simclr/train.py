@@ -38,7 +38,7 @@ def main(params):
         dataset_name=opts.dataset_name,
         dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
-        batch_size=batch_size,
+        batch_size=batch_size,  # effective batch size is batch_size * world_size
         num_workers=opts.num_workers,
         use_augmentations=opts.use_augmentations,
         is_distributed=opts.distributed_context.is_distributed,
@@ -50,19 +50,10 @@ def main(params):
     optimizer = core.build_optimizer(simclr_game.parameters())
 
     callbacks = [
-        core.ConsoleLogger(
-            as_json=True,
-            print_train_loss=True,
-            is_distributed=opts.distributed_context.is_distributed,
-            rank=opts.distributed_context.local_rank
-        ),
+        core.ConsoleLogger(as_json=True, print_train_loss=True),
         EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
-        VisionModelSaver(
-            opts.shared_vision,
-            is_distributed=opts.distributed_context.is_distributed,
-            rank=opts.distributed_context.local_rank
-        )
+        VisionModelSaver(opts.shared_vision)
     ]
 
     if opts.distributed_context.is_distributed:

@@ -52,6 +52,12 @@ def get_opts(params):
         action="store_true",
         help="If set, Sender and Receiver will share the vision encoder"
     )
+    parser.add_argument(
+        "--pretrain_vision",
+        default=False,
+        action="store_true",
+        help="If set, pretrained vision modules will be used"
+    )
 
     # Loss opts
     parser.add_argument(

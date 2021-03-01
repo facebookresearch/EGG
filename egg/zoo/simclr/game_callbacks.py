@@ -10,15 +10,16 @@ from egg.core import Callback, Interaction
 
 
 class BestStatsTracker(Callback):
-    def __init__(self, is_distributed: bool = False, rank: int = 0):
+    def __init__(self):
         super().__init__()
-
-        self.is_distributed = is_distributed
-        self.rank = rank
 
         self.best_acc = -1.
         self.best_loss = float("inf")
         self.best_epoch = -1
+
+        self.last_acc = 0.
+        self.last_loss = 0.
+        self.last_epoch = 0
 
     def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
         if logs.aux["acc"].mean().item() > self.best_acc:
@@ -26,9 +27,16 @@ class BestStatsTracker(Callback):
             self.best_epoch = epoch
             self.best_loss = _loss
 
+            self.last_acc = logs.aux["acc"].mean().item()
+            self.last_epoch = epoch
+            self.last_loss = _loss
+
     def on_train_end(self):
-        if (not self.is_distributed) or (self.is_distributed and self.rank == 0):
+        is_distributed = self.trainer.distributed_context.is_distributed
+        rank = self.trainer.distributed_context.local_rank
+        if (not is_distributed) or (is_distributed and rank == 0):
             print(f"BEST: epoch {self.best_epoch}, acc: {self.best_acc}, loss: {self.best_loss}")
+            print(f"LAST: epoch {self.last_epoch}, acc: {self.last_acc}, loss: {self.last_loss}")
 
 
 class VisionModelSaver(Callback):
@@ -36,20 +44,24 @@ class VisionModelSaver(Callback):
     def __init__(
         self,
         shared: bool,
-        is_distributed: bool = False,
-        rank: int = 0
     ):
         super().__init__()
 
         self.shared = shared
-        self.is_distributed = is_distributed
-        self.rank = rank
 
     def on_train_end(self):
+        is_distributed = self.trainer.distributed_context.is_distributed
+        rank = self.trainer.distributed_context.local_rank
         if hasattr(self.trainer, "checkpoint_path"):
-            if (not self.is_distributed) or (self.is_distributed and self.rank == 0):
+            if (
+                self.trainer.checkpoint_path and (
+                    (not is_distributed) or (is_distributed and rank == 0)
+                )
+            ):
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
-                if self.is_distributed:
+                if is_distributed:
+                    # if distributed training the model is an instance of the DistributedDataParallel class
+                    # and we need to unpack it from it.
                     vision_module = self.trainer.game.module.vision_module
                 else:
                     vision_module = self.trainer.game.vision_module
@@ -75,4 +87,6 @@ class DistributedSamplerEpochSetter(Callback):
         super().__init__()
 
     def on_epoch_begin(self, epoch):
-        self.trainer.train_data.sampler.set_epoch(epoch)
+        # just being cautious here given that non distirbuted jobd won't have probaly have distributed sampler set
+        if self.trainer.distributed_context.is_distributed:
+            self.trainer.train_data.sampler.set_epoch(epoch)

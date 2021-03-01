@@ -29,7 +29,8 @@ def build_game(opts):
     vision_encoder = VisionModule(
         encoder_arch=opts.model_name,
         projection_dim=opts.vision_projection_dim,
-        shared=opts.shared_vision
+        shared=opts.shared_vision,
+        pretrain_vision=opts.pretrain_vision
     )
 
     train_logging_strategy = LoggingStrategy.minimal()
