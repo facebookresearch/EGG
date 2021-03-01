@@ -66,17 +66,9 @@ class Callback:
 
 
 class ConsoleLogger(Callback):
-    def __init__(
-        self,
-        print_train_loss: bool = False,
-        as_json: bool = False,
-        is_distributed: bool = False,
-        rank: int = 0
-    ):
+    def __init__(self, print_train_loss: bool = False, as_json: bool = False):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
-        self.is_distributed = is_distributed
-        self.rank = rank
 
     def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
         dump = dict(loss=loss)
@@ -92,11 +84,15 @@ class ConsoleLogger(Callback):
         print(output_message, flush=True)
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.is_distributed and self.rank == 0:
+        is_distributed = self.trainer.distributed_context.is_distributed
+        rank = self.trainer.distributed_context.local_rank
+        if (not is_distributed) or (is_distributed and rank == 0):
             self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.is_distributed and self.rank == 0:
+        is_distributed = self.trainer.distributed_context.is_distributed
+        rank = self.trainer.distributed_context.local_rank
+        if (not is_distributed) or (is_distributed and rank == 0):
             if self.print_train_loss:
                 self.aggregate_print(loss, logs, "train", epoch)
 
