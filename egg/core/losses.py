@@ -3,18 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Callable
-
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-
-
-class Loss:
-    def __init__(self, loss_fn: Callable):
-        self.loss_fn = loss_fn
-
-    def __call__(self, sender_input, _message, _receiver_input, receiver_output, labels):
-        return self.loss_fn(sender_input, _message, _receiver_input, receiver_output, labels)
 
 
 class DiscriminationLoss:
@@ -61,39 +52,57 @@ class RecoLoss:
         return loss, {'acc': acc}
 
 
-class NT_xent_loss:
-    def __init__(self, temperature: float = 0.1, similarity: str = "dot"):
+class NTXentLoss:
+    def __init__(
+            self,
+            batch_size: int,
+            temperature: float = 0.1,
+            device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            similarity: str = "cosine",
+            normalize_before: bool = True
+    ):
         self.temperature = temperature
+        self.batch_size = batch_size
+        self.device = device
+
+        similarities = {"cosine", "dot"}
+        assert similarity.lower() in similarities, "Cannot recognize similarity function {similarity}"
         self.similarity = similarity
 
-    def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
-        self.nt_xent_loss(
-            message,
-            receiver_output,
-            self.similarity,
-            self.temperature
+        self.normalized_before = normalize_before
+
+    def __call__(self, sender_input, _message, _receiver_input, receiver_output, _labels):
+        input = receiver_output
+        if self.normalize_before:
+            input = F.normalize(input, dim=1)
+
+        if self.similarity == "cosine":
+            similarity_f = nn.CosineSimilarity(dim=2)
+            similarity_matrix = similarity_f(input.unsqueeze(1), input.unsqueeze(0)) / self.temperature
+        elif self.similarity == "dot":
+            similarity_matrix = input @ input.t()
+
+        N = 2 * self.batch_size
+
+        sim_i_j = torch.diag(similarity_matrix, self.batch_size)
+        sim_j_i = torch.diag(similarity_matrix, -self.batch_size)
+
+        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(
+            N, 1
         )
 
-    @staticmethod
-    def nt_xent_loss(message, receiver_output, similarity, temperature=0.1):
-        batch_size, device = message.shape[0], message.device
+        mask = torch.ones((N, N), dtype=bool)
+        mask = mask.fill_diagonal_(0)
+        for i in range(self.batch_size):
+            mask[i, self.batch_size + i] = 0
+            mask[self.batch_size + i, i] = 0
 
-        n_samples = batch_size * 2
-        projs = torch.cat((message, receiver_output))
+        negative_samples = similarity_matrix[mask].reshape(N, -1)
 
-        if similarity.lower() == "dot":
-            logits = projs @ projs.t()
-        else:  # add cosine similarity
-            raise NotImplementedError(f"| ERROR cannot recognize {similarity} in nt_xent_loss")
-
-        mask = torch.eye(n_samples, device=device).bool()
-        logits = logits[~mask].reshape(n_samples, n_samples - 1)
-        logits /= temperature
-
-        labels = torch.cat(
-            (
-                (torch.arange(batch_size, device=device) + batch_size - 1), torch.arange(batch_size, device=device)
-            ),
-            dim=0
-        )
-        return F.cross_entropy(logits, labels, reduction='none')
+        labels = torch.zeros(N).to(positive_samples.device).long()
+        logits = torch.cat((positive_samples, negative_samples), dim=1)
+        loss_ij = F.cross_entropy(logits[:self.batch_size], labels[:self.batch_size], reduction="none")
+        loss_ji = F.cross_entropy(logits[self.batch_size:], labels[self.batch_size:], reduction="none")
+        loss = (loss_ij + loss_ji) / 2
+        acc = (torch.argmax(logits, dim=1) == labels).float()
+        return loss, {"acc": acc}
