@@ -139,7 +139,10 @@ class Trainer:
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
 
             self.game = torch.nn.parallel.DistributedDataParallel(
-                self.game, device_ids=[device_id], output_device=device_id
+                self.game,
+                device_ids=[device_id],
+                output_device=device_id,
+                find_unused_parameters=True
             )
 
         else:
