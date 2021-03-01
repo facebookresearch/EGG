@@ -19,7 +19,7 @@ class DiscriminationLoss:
         return loss, {'acc': acc}
 
 
-class RecoLoss:
+class ReconstructionLoss:
     def __init__(self, n_attributes: int, n_values: int, batch_size: int):
         self.n_attributes = n_attributes
         self.n_values = n_values
@@ -57,13 +57,11 @@ class NTXentLoss:
             self,
             batch_size: int,
             temperature: float = 0.1,
-            device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             similarity: str = "cosine",
             normalize_before: bool = True
     ):
         self.temperature = temperature
         self.batch_size = batch_size
-        self.device = device
 
         similarities = {"cosine", "dot"}
         assert similarity.lower() in similarities, f"Cannot recognize similarity function {similarity}"
