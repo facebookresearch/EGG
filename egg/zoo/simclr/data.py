@@ -11,9 +11,12 @@ from torchvision import datasets
 
 def get_dataloader(
     dataset_name: str,
-    dataset_dir: str,
-    image_size: int,
-    batch_size: int,
+    train_dataset_dir: str,
+    image_size: int = 32,
+    batch_size: int = 32,
+    val_batch_size: int = 32,
+    do_validation: bool = False,
+    val_dataset_dir: str = None,
     num_workers: int = 4,
     use_augmentations: bool = True,
     is_distributed: bool = False,
@@ -26,21 +29,21 @@ def get_dataloader(
 
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
-            dataset_dir,
+            train_dataset_dir,
             train=True,
             download=True,
             transform=transformations
         )
     elif dataset_name == "cifar100":
         train_dataset = datasets.CIFAR100(
-            dataset_dir,
+            train_dataset_dir,
             train=True,
             download=True,
             transform=transformations
         )
     elif dataset_name == "imagenet":
         train_dataset = datasets.ImageFolder(
-            dataset_dir,
+            train_dataset_dir,
             transform=transformations
         )
     else:
@@ -64,7 +67,14 @@ def get_dataloader(
         pin_memory=True,
         drop_last=True,
     )
-    return train_loader
+    validation_loader = None
+    if do_validation:
+        train_dataset = datasets.ImageFolder(
+            val_dataset_dir,
+            transform=transformations
+        )
+
+    return train_loader, validation_loader
 
 
 class TransformsIdentity:

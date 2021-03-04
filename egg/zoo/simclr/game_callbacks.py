@@ -87,6 +87,11 @@ class DistributedSamplerEpochSetter(Callback):
         super().__init__()
 
     def on_epoch_begin(self, epoch):
-        # just being cautious here given that non distirbuted jobd won't have probaly have distributed sampler set
+        # just being cautious here given that non distributed jobs won't have probaly have distributed sampler set
         if self.trainer.distributed_context.is_distributed:
             self.trainer.train_data.sampler.set_epoch(epoch)
+
+    def on_test_begin(self, epoch):
+        # just being cautious here given that non distributed jobs won't have probaly have distributed sampler set
+        if self.trainer.distributed_context.is_distributed and self.trainer.validation_data:
+            self.trainer.validation_data.sampler.set_epoch(epoch)

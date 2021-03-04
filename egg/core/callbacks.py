@@ -70,6 +70,11 @@ class ConsoleLogger(Callback):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
+    def on_train_begin(self, trainer_instance: "Trainer"):  # noqa: F821
+        self.trainer = trainer_instance
+        self.is_distributed = self.trainer.distributed_context.is_distributed
+        self.rank = self.trainer.distributed_context.local_rank
+
     def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
         dump = dict(loss=loss)
         aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
@@ -84,15 +89,11 @@ class ConsoleLogger(Callback):
         print(output_message, flush=True)
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        is_distributed = self.trainer.distributed_context.is_distributed
-        rank = self.trainer.distributed_context.local_rank
-        if (not is_distributed) or (is_distributed and rank == 0):
+        if (not self.is_distributed) or (self.is_distributed and self.rank == 0):
             self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        is_distributed = self.trainer.distributed_context.is_distributed
-        rank = self.trainer.distributed_context.local_rank
-        if (not is_distributed) or (is_distributed and rank == 0):
+        if (not self.is_distributed) or (self.is_distributed and self.rank == 0):
             if self.print_train_loss:
                 self.aggregate_print(loss, logs, "train", epoch)
 

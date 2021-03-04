@@ -20,7 +20,7 @@ def get_opts(params):
         help="Dataset name",
     )
     parser.add_argument(
-        "--dataset_dir",
+        "--train_dataset_dir",
         type=str,
         default="./data",
         help="Dataset location",
@@ -36,6 +36,18 @@ def get_opts(params):
         type=int,
         default=8,
         help="Workers used in the dataloader"
+    )
+    parser.add_argument(
+        "--val_batch_size",
+        type=int,
+        default=32,
+        help="Batch size used in the evaluataion loop"
+    )
+    parser.add_argument(
+        "--val_dataset_dir",
+        type=str,
+        default=None,
+        help="Validation data location. Currently this will look for ImageNet validatoin data only",
     )
 
     # Vision module opts
@@ -57,6 +69,11 @@ def get_opts(params):
         default=False,
         action="store_true",
         help="If set, pretrained vision modules will be used"
+    )
+    parser.add_argument(
+        "--use_augmentations",
+        action="store_true",
+        default=False
     )
 
     # Loss opts
@@ -81,7 +98,7 @@ def get_opts(params):
         "--vision_projection_dim",
         type=int,
         default=64,
-        help="Projection head's dimension for image features"
+        help="Projection head's dimension for image features. If <= 0 image features won't be linearly projected"
     )
     parser.add_argument(
         "--receiver_output_size",
@@ -159,11 +176,6 @@ def get_opts(params):
         default=False
     )
     parser.add_argument(
-        "--use_augmentations",
-        action="store_true",
-        default=False
-    )
-    parser.add_argument(
         "--early_stopping_thr",
         type=float, default=0.99,
         help="Early stopping threshold on accuracy (defautl: 0.99)"
@@ -173,6 +185,12 @@ def get_opts(params):
         action="store_true",
         default=False,
         help="Run the game with pdb enabled"
+    )
+    parser.add_argument(
+        "--do_evaluation",
+        action="store_true",
+        default=False,
+        help="Performa an evaluation loop on Imagenet validation data"
     )
 
     opts = core.init(arg_parser=parser, params=params)
