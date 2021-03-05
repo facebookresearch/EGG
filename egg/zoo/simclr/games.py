@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import torch.nn as nn
 
 from egg.core.continous_communication import (
     ContinuousLinearSender,
@@ -16,8 +15,10 @@ from egg.core.reinforce_wrappers import (
     SenderReceiverRnnReinforce,
 )
 from egg.zoo.simclr.archs import (
+    get_vision_modules,
     Receiver,
     RnnReceiverDeterministicContrastive,
+    Sender,
     VisionGameWrapper,
     VisionModule
 )
@@ -26,11 +27,14 @@ from egg.zoo.simclr.losses import Loss
 
 def build_game(opts):
     device = torch.device("cuda" if opts.cuda else "cpu")
-    vision_encoder = VisionModule(
+    sender_vision_module, receiver_vision_module, visual_features_dim = get_vision_modules(
         encoder_arch=opts.model_name,
-        projection_dim=opts.vision_projection_dim,
         shared=opts.shared_vision,
         pretrain_vision=opts.pretrain_vision
+    )
+    vision_encoder = VisionModule(
+        seneder_vision_module=sender_vision_module,
+        receiver_vision_module=receiver_vision_module
     )
 
     train_logging_strategy = LoggingStrategy.minimal()
@@ -39,21 +43,27 @@ def build_game(opts):
         f"Batch size must be multiple of 2. Effective bsz is {opts.batch_size} split "
         f"in opts.distributed_{opts.distributed_context.world_size} yielding {batch_size} samples per process"
     )
+
     loss = Loss(batch_size, opts.ntxent_tau, device)
 
+    sender = Sender(
+        visual_features_dim=visual_features_dim,
+        projection_dim=opts.projection_dim
+    )
+    effective_projection_dim = opts.projection_dim if opts.projection_dim != -1 else visual_features_dim
     if opts.communication_channel == "rf":
         sender = RnnSenderReinforce(
-            agent=nn.Identity(),
+            agent=sender,
             vocab_size=opts.vocab_size,
             embed_dim=opts.sender_embedding,
-            hidden_size=opts.vision_projection_dim,
+            hidden_size=effective_projection_dim,
             max_len=opts.max_len,
             num_layers=opts.sender_rnn_num_layers,
             cell=opts.sender_cell
         )
         receiver = Receiver(
             msg_input_dim=opts.receiver_rnn_hidden,
-            img_feats_input_dim=opts.vision_projection_dim,
+            img_feats_input_dim=effective_projection_dim,
             output_dim=opts.receiver_output_size
         )
         receiver = RnnReceiverDeterministicContrastive(
@@ -73,13 +83,13 @@ def build_game(opts):
         )
     elif opts.communication_channel == "continuous":
         sender = ContinuousLinearSender(
-            agent=nn.Identity(),
-            encoder_input_size=opts.vision_projection_dim,
+            agent=sender,
+            encoder_input_size=effective_projection_dim,
             encoder_hidden_size=opts.sender_output_size
         )
         receiver = Receiver(
             msg_input_dim=opts.sender_output_size,
-            img_feats_input_dim=opts.vision_projection_dim,
+            img_feats_input_dim=effective_projection_dim,
             output_dim=opts.receiver_output_size
         )
 

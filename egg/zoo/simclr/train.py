@@ -35,7 +35,7 @@ def main(params):
         if opts.pdb:
             breakpoint()
 
-    train_loader = get_dataloader(
+    train_loader, validation_loader = get_dataloader(
         dataset_name=opts.dataset_name,
         train_dataset_dir=opts.train_dataset_dir,
         image_size=opts.image_size,
@@ -67,6 +67,7 @@ def main(params):
         game=simclr_game,
         optimizer=optimizer,
         train_data=train_loader,
+        validation_data=validation_loader,
         callbacks=callbacks
     )
     trainer.train(n_epochs=opts.n_epochs)
