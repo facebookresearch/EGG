@@ -88,7 +88,7 @@ class VisionModelSaver(Callback):
                         vision_module.encoder.state_dict(),
                         self.trainer.checkpoint_path / "vision_module_{'shared' if self.shared else 'sender'}.pt"
                     )
-                if self.shared:
+                if not self.shared:
                     torch.save(
                         vision_module.encoder_recv.state_dict(),
                         self.trainer.checkpoint_path / "vision_module_recv.pt"
