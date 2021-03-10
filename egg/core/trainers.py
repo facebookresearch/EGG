@@ -45,6 +45,7 @@ class Trainer:
         game: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         train_data: DataLoader,
+        optimizer_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         validation_data: Optional[DataLoader] = None,
         device: torch.device = None,
         callbacks: Optional[List[Callback]] = None,
@@ -56,6 +57,7 @@ class Trainer:
             where loss is differentiable loss to be minimized and d is a dictionary (potentially empty) with auxiliary
             metrics that would be aggregated and reported
         :param optimizer: An instance of torch.optim.Optimizer
+        :param optimizer_scheduler: An optimizer scheduler to adjust lr throughout training
         :param train_data: A DataLoader for the training set
         :param validation_data: A DataLoader for the validation set (can be None)
         :param device: A torch.device on which to tensors should be stored
@@ -63,6 +65,7 @@ class Trainer:
         """
         self.game = game
         self.optimizer = optimizer
+        self.optimizer_scheduler = optimizer_scheduler
         self.train_data = train_data
         self.validation_data = validation_data
         common_opts = get_opts()
@@ -225,6 +228,8 @@ class Trainer:
                     self.scaler.update()
                 else:
                     self.optimizer.step()
+
+                self.optimizer_scheduler.step()
 
                 self.optimizer.zero_grad()
 
