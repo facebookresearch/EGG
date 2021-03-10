@@ -229,8 +229,6 @@ class Trainer:
                 else:
                     self.optimizer.step()
 
-                self.optimizer_scheduler.step()
-
                 self.optimizer.zero_grad()
 
             n_batches += 1
@@ -246,6 +244,9 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
+
+        if self.optimizer_scheduler:
+            self.optimizer_scheduler.step()
 
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
@@ -298,6 +299,8 @@ class Trainer:
     def load(self, checkpoint: Checkpoint):
         self.game.load_state_dict(checkpoint.model_state_dict)
         self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+        if checkpoint.optimizer_scheduler_state_dict:
+            self.optimizer_scheduler.load_state_dict(checkpoint.optimizer_scheduler_state_dict)
         self.start_epoch = checkpoint.epoch
 
     def load_from_checkpoint(self, path):

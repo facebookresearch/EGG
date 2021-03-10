@@ -100,8 +100,10 @@ def main(params):
         {'params': game.sender.parameters(), 'lr': opts.sender_lr},
         {'params': game.receiver.parameters(), 'lr': opts.receiver_lr}
     ])
+    lmbda = lambda epoch: 0.95
+    scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lmbda)
 
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader,
+    trainer = core.Trainer(game=game, optimizer=optimizer, optimizer_scheduler=scheduler, train_data=train_loader,
                            validation_data=test_loader,
                            callbacks=callbacks + [core.ConsoleLogger(as_json=True)])
     trainer.train(n_epochs=opts.n_epochs)
