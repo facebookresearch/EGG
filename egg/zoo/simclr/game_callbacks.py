@@ -84,10 +84,10 @@ class VisionModelSaver(Callback):
                     vision_module = self.trainer.game.module.vision_module
                 else:
                     vision_module = self.trainer.game.vision_module
-                    torch.save(
-                        vision_module.encoder.state_dict(),
-                        self.trainer.checkpoint_path / "vision_module_{'shared' if self.shared else 'sender'}.pt"
-                    )
+                torch.save(
+                    vision_module.encoder.state_dict(),
+                    self.trainer.checkpoint_path / "vision_module_{'shared' if self.shared else 'sender'}.pt"
+                )
                 if not self.shared:
                     torch.save(
                         vision_module.encoder_recv.state_dict(),

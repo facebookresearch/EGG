@@ -34,20 +34,8 @@ def get_opts(params):
     parser.add_argument(
         "--num_workers",
         type=int,
-        default=8,
+        default=4,
         help="Workers used in the dataloader"
-    )
-    parser.add_argument(
-        "--val_batch_size",
-        type=int,
-        default=32,
-        help="Batch size used in the evaluataion loop"
-    )
-    parser.add_argument(
-        "--val_dataset_dir",
-        type=str,
-        default=None,
-        help="Validation data location. Currently this will look for ImageNet validatoin data only",
     )
 
     # Vision module opts
@@ -185,12 +173,6 @@ def get_opts(params):
         action="store_true",
         default=False,
         help="Run the game with pdb enabled"
-    )
-    parser.add_argument(
-        "--do_evaluation",
-        action="store_true",
-        default=False,
-        help="Performa an evaluation loop on Imagenet validation data"
     )
 
     opts = core.init(arg_parser=parser, params=params)

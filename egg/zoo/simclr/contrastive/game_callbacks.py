@@ -79,10 +79,10 @@ class VisionModelSaver(Callback):
                     vision_module = self.trainer.game.module.vision_module
                 else:
                     vision_module = self.trainer.game.vision_module
-                    torch.save(
-                        vision_module.encoder.state_dict(),
-                        self.trainer.checkpoint_path / "vision_module.pt"
-                    )
+                torch.save(
+                    vision_module.encoder.state_dict(),
+                    self.trainer.checkpoint_path / "vision_module.pt"
+                )
 
 
 class DistributedSamplerEpochSetter(Callback):
