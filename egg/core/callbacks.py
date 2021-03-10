@@ -10,7 +10,7 @@ import re
 import sys
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, List, NamedTuple, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 import torch
 from rich.columns import Columns
@@ -147,6 +147,7 @@ class Checkpoint(NamedTuple):
     epoch: int
     model_state_dict: Dict[str, Any]
     optimizer_state_dict: Dict[str, Any]
+    optimizer_scheduler_state_dict: Optional[Dict[str, Any]]
 
 
 class CheckpointSaver(Callback):
@@ -191,10 +192,14 @@ class CheckpointSaver(Callback):
         torch.save(self.get_checkpoint(), path)
 
     def get_checkpoint(self):
+        optimizer_schedule_state_dict = None
+        if self.trainer.optimizer_scheduler:
+            optimizer_schedule_state_dict = self.trainer.optimizer_scheduler.state_dict()
         return Checkpoint(
             epoch=self.epoch_counter,
             model_state_dict=self.trainer.game.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
+            optimizer_scheduler_state_dict=optimizer_schedule_state_dict
         )
 
     def get_checkpoint_files(self):
