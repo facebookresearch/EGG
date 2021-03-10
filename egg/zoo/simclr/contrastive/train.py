@@ -36,7 +36,7 @@ def main(params):
             breakpoint()
 
     train_loader = get_dataloader(
-        train_dataset_dir=opts.train_dataset_dir,
+        dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
         batch_size=batch_size,  # effective batch size is batch_size * world_size
         num_workers=opts.num_workers,
@@ -57,7 +57,7 @@ def main(params):
         lr=opts.lr,
         momentum=0.9,
     )
-    #  optimizer = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
@@ -72,6 +72,7 @@ def main(params):
     trainer = core.Trainer(
         game=simclr_game,
         optimizer=optimizer,
+        optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
         callbacks=callbacks
     )

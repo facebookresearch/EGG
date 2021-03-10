@@ -17,10 +17,7 @@ class BestStatsTracker(Callback):
         # TRAIN
         self.best_train_acc, self.best_train_loss, self.best_train_epoch = -float("inf"), float("inf"), -1
         self.last_train_acc, self.last_train_loss, self.last_train_epoch = 0., 0., 0
-        # VAL
-        self.best_val_acc, self.best_val_loss, self.best_val_epoch = -float("inf"), float("inf"), -1
-        self.last_val_acc, self.last_val_loss, self.last_val_epoch = 0., 0., 0
-        # last_{train, val}_epoch useful for runs that end before the final epoch
+        # last_val_epoch useful for runs that end before the final epoch
 
     def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
         if logs.aux["acc"].mean().item() > self.best_train_acc:
@@ -32,16 +29,6 @@ class BestStatsTracker(Callback):
         self.last_train_epoch = epoch
         self.last_train_loss = _loss
 
-    def on_test_end(self, _loss, logs: Interaction, epoch: int):
-        if logs.aux["acc"].mean().item() > self.best_val_acc:
-            self.best_val_acc = logs.aux["acc"].mean().item()
-            self.best_val_epoch = epoch
-            self.best_val_loss = _loss
-
-        self.last_val_acc = logs.aux["acc"].mean().item()
-        self.last_val_epoch = epoch
-        self.last_val_loss = _loss
-
     def on_train_end(self):
         is_distributed = self.trainer.distributed_context.is_distributed
         rank = self.trainer.distributed_context.local_rank
@@ -51,11 +38,6 @@ class BestStatsTracker(Callback):
                 epoch=self.best_train_epoch, acc=self.best_train_acc, loss=self.best_train_loss
             )
             print(json.dumps(train_stats), flush=True)
-            val_stats = dict(
-                mode="train",
-                epoch=self.best_val_epoch, acc=self.best_val_acc, loss=self.best_val_loss
-            )
-            print(json.dumps(val_stats), flush=True)
 
 
 class VisionModelSaver(Callback):

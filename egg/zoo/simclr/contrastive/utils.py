@@ -28,9 +28,9 @@ def get_opts(params):
 
     # Data opts
     parser.add_argument(
-        "--train_dataset_dir",
+        "--dataset_dir",
         type=str,
-        default="./data",
+        default="/datasets01/imagenet_full_size/061417/train",
         help="Dataset location",
     )
     parser.add_argument(

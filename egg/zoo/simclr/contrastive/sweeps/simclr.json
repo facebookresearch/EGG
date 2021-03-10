@@ -1,9 +1,7 @@
 {
     "n_epoch": [100],
     "batch_size": [256],
-    "lr": [0.0001],
+    "lr": [0.01],
     "random_seed": [111],
-    "train_dataset_dir": ["/datasets01/imagenet_full_size/061417/train"],
-    "early_stopping_thr": [0.99],
     "fp16": [true]
 }

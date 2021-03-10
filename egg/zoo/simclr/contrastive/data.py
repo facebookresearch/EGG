@@ -12,7 +12,7 @@ from torchvision import datasets, transforms
 
 
 def get_dataloader(
-    train_dataset_dir: str,
+    dataset_dir: str,
     image_size: int = 32,
     batch_size: int = 32,
     num_workers: int = 4,
@@ -21,7 +21,7 @@ def get_dataloader(
 ):
     transformations = TransformsAugment(image_size)
     train_dataset = datasets.ImageFolder(
-        train_dataset_dir,
+        dataset_dir,
         transform=transformations
     )
 

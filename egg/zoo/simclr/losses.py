@@ -52,8 +52,11 @@ class Loss:
 
         labels = torch.zeros(N).to(positive_samples.device).long()
         logits = torch.cat((positive_samples, negative_samples), dim=1)
+
         loss_ij = F.cross_entropy(logits[:self.batch_size], labels[:self.batch_size], reduction="none")
         loss_ji = F.cross_entropy(logits[self.batch_size:], labels[self.batch_size:], reduction="none")
+
         loss = (loss_ij + loss_ji) / 2
+
         acc = (torch.argmax(logits, dim=1) == labels).float()
         return loss, {"acc": acc}
