@@ -20,7 +20,7 @@ def get_opts(params):
         help="Dataset name",
     )
     parser.add_argument(
-        "--train_dataset_dir",
+        "--dataset_dir",
         type=str,
         default="./data",
         help="Dataset location",
@@ -83,7 +83,7 @@ def get_opts(params):
 
     # Arch opts
     parser.add_argument(
-        "--vision_projection_dim",
+        "--projection_dim",
         type=int,
         default=64,
         help="Projection head's dimension for image features. If <= 0 image features won't be linearly projected"

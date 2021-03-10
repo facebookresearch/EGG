@@ -36,7 +36,7 @@ def main(params):
 
     train_loader = get_dataloader(
         dataset_name=opts.dataset_name,
-        train_dataset_dir=opts.train_dataset_dir,
+        dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
         batch_size=batch_size,  # effective batch size is batch_size * world_size
         num_workers=opts.num_workers,

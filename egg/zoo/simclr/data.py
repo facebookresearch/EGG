@@ -12,7 +12,7 @@ from torchvision import datasets, transforms
 
 def get_dataloader(
     dataset_name: str,
-    train_dataset_dir: str,
+    dataset_dir: str,
     image_size: int = 32,
     batch_size: int = 32,
     num_workers: int = 4,
@@ -27,21 +27,21 @@ def get_dataloader(
 
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
-            train_dataset_dir,
+            dataset_dir,
             train=True,
             download=True,
             transform=transformations
         )
     elif dataset_name == "cifar100":
         train_dataset = datasets.CIFAR100(
-            train_dataset_dir,
+            dataset_dir,
             train=True,
             download=True,
             transform=transformations
         )
     elif dataset_name == "imagenet":
         train_dataset = datasets.ImageFolder(
-            train_dataset_dir,
+            dataset_dir,
             transform=transformations
         )
     else:

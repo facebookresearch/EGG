@@ -63,7 +63,7 @@ class VisionModule(nn.Module):
 
         self.encoder = sender_vision_module
 
-        self.shared = receiver_vision_module is not None
+        self.shared = receiver_vision_module is None
         if self.shared:
             self.encoder_recv = receiver_vision_module
 

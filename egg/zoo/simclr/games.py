@@ -33,7 +33,7 @@ def build_game(opts):
         pretrain_vision=opts.pretrain_vision
     )
     vision_encoder = VisionModule(
-        seneder_vision_module=sender_vision_module,
+        sender_vision_module=sender_vision_module,
         receiver_vision_module=receiver_vision_module
     )
 
