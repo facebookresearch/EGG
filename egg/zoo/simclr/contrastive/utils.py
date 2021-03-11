@@ -34,6 +34,13 @@ def get_opts(params):
         help="Dataset location",
     )
     parser.add_argument(
+        "--dataset_name",
+        type=str,
+        default="imagenet",
+        choices=["cifar10", "imagenet"],
+        help="Dataset used for training",
+    )
+    parser.add_argument(
         "--image_size",
         type=int,
         default=224,
