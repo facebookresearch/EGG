@@ -65,10 +65,10 @@ def get_opts(params):
 
     # Arch opts
     parser.add_argument(
-        "--receiver_output_size",
+        "--output_size",
         type=int,
         default=128,
-        help="Receiver output size"
+        help="Sender/Receiver output size"
     )
 
     # Misc opts
@@ -86,7 +86,7 @@ def get_opts(params):
     parser.add_argument(
         "--early_stopping_thr",
         type=float, default=0.99,
-        help="Early stopping threshold on accuracy (defautl: 0.99)"
+        help="Early stopping threshold on accuracy (default: 0.99)"
     )
     parser.add_argument(
         "--pdb",

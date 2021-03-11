@@ -19,26 +19,20 @@ from egg.zoo.simclr.contrastive.utils import add_weight_decay, get_opts
 
 def main(params):
     opts = get_opts(params=params)
-    batch_size = opts.batch_size // opts.distributed_context.world_size
-    assert (not batch_size % 2), (
-        f"Batch size must be multiple of 2. Effective train_bsz is {opts.batch_size} split in "
-        f"opts.distributed_{opts.distributed_context.world_size} yielding {batch_size} samples per process"
+    print(opts)
+    print(
+        f"Running a distruted training is set to: {opts.distributed_context.is_distributed}. "
+        f"World size is {opts.distributed_context.world_size}\n"
+        f"Using imagenet with image size: {opts.image_size}. "
+        f"Using batch of size {opts.batch_size} on {opts.distributed_context.world_size} device(s)"
     )
-    if (not opts.distributed_context.is_distributed) or opts.distributed_context.local_rank == 0:
-        print(opts)
-        print(
-            f"Running a distruted training is set to: {opts.distributed_context.is_distributed}. "
-            f"World size is {opts.distributed_context.world_size}\n"
-            f"Using imagenet with image size: {opts.image_size}. "
-            f"Using batch of size {opts.batch_size} partioned on {opts.distributed_context.world_size} device(s)"
-        )
-        if opts.pdb:
-            breakpoint()
+    if not opts.distributed_context.is_distributed and opts.pdb:
+        breakpoint()
 
     train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
-        batch_size=batch_size,  # effective batch size is batch_size * world_size
+        batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         is_distributed=opts.distributed_context.is_distributed,
         seed=opts.random_seed

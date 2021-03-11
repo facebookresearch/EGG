@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import torch.nn as nn
 
 from egg.core.continous_communication import (
     SenderReceiverContinuousCommunication
@@ -12,6 +11,7 @@ from egg.core.continous_communication import (
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.contrastive.archs import (
     get_vision_module,
+    Sender,
     Receiver,
     VisionGameWrapper,
     VisionModule
@@ -24,18 +24,19 @@ def build_game(opts):
     vision_encoder = VisionModule(vision_module=vision_module)
 
     train_logging_strategy = LoggingStrategy.minimal()
-    batch_size = opts.batch_size // opts.distributed_context.world_size
-    assert not batch_size % 2, (
-        f"Batch size must be multiple of 2. Effective bsz is {opts.batch_size} split "
-        f"in opts.distributed_{opts.distributed_context.world_size} yielding {batch_size} samples per process"
+    assert not opts.batch_size % 2, (
+        f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
     )
 
-    loss = Loss(batch_size, opts.ntxent_tau, torch.device("cuda" if opts.cuda else "cpu"))
+    loss = Loss(opts.batch_size, opts.ntxent_tau)
 
-    sender = nn.Identity()
+    sender = Sender(
+        visual_features_dim=visual_features_dim,
+        output_dim=opts.output_size
+    )
     receiver = Receiver(
         visual_features_dim=visual_features_dim,
-        output_dim=opts.receiver_output_size
+        output_dim=opts.output_size
     )
 
     game = SenderReceiverContinuousCommunication(
@@ -46,4 +47,7 @@ def build_game(opts):
     )
 
     game = VisionGameWrapper(game, vision_encoder)
+    if opts.distributed_context.is_distributed:
+        game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
+
     return game

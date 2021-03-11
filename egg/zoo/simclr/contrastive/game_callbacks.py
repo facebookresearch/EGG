@@ -45,7 +45,7 @@ class VisionModelSaver(Callback):
     def __init__(self):
         super().__init__()
 
-    def on_train_end(self):
+    def save_vision_model(self, epoch=""):
         is_distributed = self.trainer.distributed_context.is_distributed
         rank = self.trainer.distributed_context.local_rank
         if hasattr(self.trainer, "checkpoint_path"):
@@ -56,15 +56,21 @@ class VisionModelSaver(Callback):
             ):
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
                 if is_distributed:
-                    # if distributed training the model is an instance of the DistributedDataParallel class
-                    # and we need to unpack it from it.
+                    # if distributed training the model is an instance of
+                    # DistributedDataParallel and we need to unpack it from it.
                     vision_module = self.trainer.game.module.vision_module
                 else:
                     vision_module = self.trainer.game.vision_module
                 torch.save(
                     vision_module.encoder.state_dict(),
-                    self.trainer.checkpoint_path / "vision_module.pt"
+                    self.trainer.checkpoint_path / f"vision_module{epoch if epoch else '_final'}.pt"
                 )
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.save_vision_model(epoch=epoch)
+
+    def on_train_end(self):
+        self.save_vision_model()
 
 
 class DistributedSamplerEpochSetter(Callback):

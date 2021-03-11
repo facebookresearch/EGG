@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 
 def get_dataloader(
     dataset_dir: str,
-    image_size: int = 32,
+    image_size: int = 224,
     batch_size: int = 32,
     num_workers: int = 4,
     is_distributed: bool = False,
