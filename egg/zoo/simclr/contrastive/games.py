@@ -19,24 +19,30 @@ from egg.zoo.simclr.contrastive.archs import (
 from egg.zoo.simclr.contrastive.losses import Loss
 
 
-def build_game(opts):
-    vision_module, visual_features_dim = get_vision_module(encoder_arch=opts.model_name)
+def build_game(
+    batch_size: int = 32,
+    loss_temperature: float = 0.1,
+    vision_encoder_name: str = "resnet50",
+    output_size: int = 128,
+    is_distributed: bool = False
+):
+    vision_module, visual_features_dim = get_vision_module(encoder_arch=vision_encoder_name)
     vision_encoder = VisionModule(vision_module=vision_module)
 
     train_logging_strategy = LoggingStrategy.minimal()
-    assert not opts.batch_size % 2, (
-        f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
+    assert not batch_size % 2, (
+        f"Batch size must be multiple of 2. Found {batch_size} instead"
     )
 
-    loss = Loss(opts.batch_size, opts.ntxent_tau)
+    loss = Loss(batch_size, loss_temperature)
 
     sender = Sender(
         visual_features_dim=visual_features_dim,
-        output_dim=opts.output_size
+        output_dim=output_size
     )
     receiver = Receiver(
         visual_features_dim=visual_features_dim,
-        output_dim=opts.output_size
+        output_dim=output_size
     )
 
     game = SenderReceiverContinuousCommunication(
@@ -47,7 +53,7 @@ def build_game(opts):
     )
 
     game = VisionGameWrapper(game, vision_encoder)
-    if opts.distributed_context.is_distributed:
+    if is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
 
     return game

@@ -38,7 +38,13 @@ def main(params):
         seed=opts.random_seed
     )
 
-    simclr_game = build_game(opts)
+    simclr_game = build_game(
+        batch_size=opts.batch_size,
+        loss_temperature=opts.ntxent_tau,
+        vision_encoder_name=opts.model_name,
+        output_size=opts.output_size,
+        is_distributed=opts.distributed_context.is_distributed
+    )
 
     model_parameters = add_weight_decay(
         simclr_game,
