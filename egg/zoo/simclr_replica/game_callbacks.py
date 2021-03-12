@@ -32,7 +32,7 @@ class BestStatsTracker(Callback):
     def on_train_end(self):
         is_distributed = self.trainer.distributed_context.is_distributed
         is_leader = self.trainer.distributed_context.is_leader
-        if (not is_distributed) or (is_distributed and is_leader)
+        if (not is_distributed) or (is_distributed and is_leader):
             train_stats = dict(
                 mode="train",
                 epoch=self.best_train_epoch, acc=self.best_train_acc, loss=self.best_train_loss
