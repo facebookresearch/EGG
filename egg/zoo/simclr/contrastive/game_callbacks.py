@@ -31,8 +31,8 @@ class BestStatsTracker(Callback):
 
     def on_train_end(self):
         is_distributed = self.trainer.distributed_context.is_distributed
-        rank = self.trainer.distributed_context.local_rank
-        if (not is_distributed) or (is_distributed and rank == 0):
+        is_leader = self.trainer.distributed_context.is_leader
+        if (not is_distributed) or (is_distributed and is_leader)
             train_stats = dict(
                 mode="train",
                 epoch=self.best_train_epoch, acc=self.best_train_acc, loss=self.best_train_loss
@@ -47,11 +47,11 @@ class VisionModelSaver(Callback):
 
     def save_vision_model(self, epoch=""):
         is_distributed = self.trainer.distributed_context.is_distributed
-        rank = self.trainer.distributed_context.local_rank
+        is_leader = self.trainer.distributed_context.is_leader
         if hasattr(self.trainer, "checkpoint_path"):
             if (
                 self.trainer.checkpoint_path and (
-                    (not is_distributed) or (is_distributed and rank == 0)
+                    (not is_distributed) or (is_distributed and is_leader)
                 )
             ):
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
