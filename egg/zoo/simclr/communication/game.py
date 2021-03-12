@@ -9,7 +9,7 @@ import torchvision.models as models
 
 import egg.core as core
 from egg.core.interaction import LoggingStrategy
-from egg.zoo.rl.losses import discriminative_loss
+from egg.zoo.simclr.communication.losses import discriminative_loss
 
 
 def build_vision_module(model_name: str = "resnet50", vision_hidden_dim: int = 1000):

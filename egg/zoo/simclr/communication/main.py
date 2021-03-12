@@ -8,9 +8,9 @@ import torch
 import wandb
 
 import egg.core as core
-from egg.zoo.rl.dataloaders import get_loader
-from egg.zoo.rl.game import build_game
-from egg.zoo.rl.utils import get_opts
+from egg.zoo.simclr.communication.dataloaders import get_loader
+from egg.zoo.simclr.communication.game import build_game
+from egg.zoo.simclr.communication.utils import get_opts
 
 
 def main(params):
