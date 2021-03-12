@@ -66,7 +66,7 @@ class Callback:
 
 
 class ConsoleLogger(Callback):
-    def __init__(self, print_train_loss: bool = False, as_json: bool = False):
+    def __init__(self, print_train_loss=False, as_json=False):
         self.print_train_loss = print_train_loss
         self.as_json = as_json
 
