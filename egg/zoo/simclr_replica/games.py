@@ -9,14 +9,14 @@ from egg.core.continous_communication import (
     SenderReceiverContinuousCommunication
 )
 from egg.core.interaction import LoggingStrategy
-from egg.zoo.simclr.contrastive.archs import (
+from egg.zoo.simclr_replica.archs import (
     get_vision_module,
     Sender,
     Receiver,
     VisionGameWrapper,
     VisionModule
 )
-from egg.zoo.simclr.contrastive.losses import Loss
+from egg.zoo.simclr_replica.losses import Loss
 
 
 def build_game(

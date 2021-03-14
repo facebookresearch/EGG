@@ -4,17 +4,18 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
+from apex.parallel.LARC import LARC
 
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
-from egg.zoo.simclr.contrastive.data import get_dataloader
-from egg.zoo.simclr.contrastive.games import build_game
-from egg.zoo.simclr.contrastive.game_callbacks import (
+from egg.zoo.simclr_replica.data import get_dataloader
+from egg.zoo.simclr_replica.games import build_game
+from egg.zoo.simclr_replica.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
     VisionModelSaver
 )
-from egg.zoo.simclr.contrastive.utils import add_weight_decay, get_opts
+from egg.zoo.simclr_replica.utils import add_weight_decay, get_opts
 
 
 def main(params):
@@ -53,12 +54,13 @@ def main(params):
         skip_name='bn'
     )
 
-    optimizer = torch.optim.SGD(
+    optimizer_original = torch.optim.SGD(
         model_parameters,
         lr=opts.lr,
         momentum=0.9,
     )
-    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
+    optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_original, T_max=opts.n_epochs)
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
