@@ -1,7 +1,7 @@
 {
     "n_epoch": [100],
-    "batch_size": [256],
-    "lr": [4.8],
+    "batch_size": [128],
+    "lr": [2.4],
     "random_seed": [111],
     "fp16": [true]
 }
