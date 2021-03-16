@@ -6,7 +6,6 @@
 import torch
 
 import egg.core as core
-from egg.core import EarlyStopperAccuracy
 from egg.zoo.simclr.data import get_dataloader
 from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import (
@@ -14,6 +13,7 @@ from egg.zoo.simclr.game_callbacks import (
     DistributedSamplerEpochSetter,
     VisionModelSaver
 )
+from egg.zoo.simclr.LARC import LARC
 from egg.zoo.simclr.utils import add_weight_decay, get_opts
 
 
@@ -58,21 +58,11 @@ def main(params):
         lr=opts.lr,
         momentum=0.9,
     )
-    try:
-        from apex.parallel.LARC import LARC
-        optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
-    except ImportError:
-        print(
-            "Please install apex following the instructions at https://github.com/NVIDIA/apex#quick-start. "
-            f"Falling back to plain SGD with learning rate {opts.lr}, this might not be suitable for large batches. "
-            f"Consider installing apex or adjusting it accordingly."
-        )
-
+    optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
     optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_original, T_max=opts.n_epochs)
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
-        EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
         VisionModelSaver()
     ]
