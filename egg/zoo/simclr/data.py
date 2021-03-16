@@ -15,15 +15,16 @@ def get_dataloader(
     dataset_dir: str,
     image_size: int = 32,
     batch_size: int = 32,
+    validation_dataset_dir: str = None,
     num_workers: int = 4,
     use_augmentations: bool = True,
+    imagenet_normalization: bool = True,
     is_distributed: bool = False,
     seed: int = 111
 ):
-    imagent_normalization = dataset_name.lower() == "imagenet"
-    transformations = TransformsIdentity(image_size, imagent_normalization)
+    transformations = TransformsIdentity(image_size, imagenet_normalization)
     if use_augmentations:
-        transformations = TransformsAugment(image_size, imagent_normalization)
+        transformations = TransformsAugment(image_size, imagenet_normalization)
 
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
@@ -32,18 +33,24 @@ def get_dataloader(
             download=True,
             transform=transformations
         )
-    elif dataset_name == "cifar100":
-        train_dataset = datasets.CIFAR100(
-            dataset_dir,
-            train=True,
-            download=True,
-            transform=transformations
-        )
+        if validation_dataset_dir:
+            validation_dataset = datasets.CIFAR10(
+                validation_dataset_dir,
+                train=False,
+                download=True,
+                transform=transformations
+            )
+
     elif dataset_name == "imagenet":
         train_dataset = datasets.ImageFolder(
             dataset_dir,
             transform=transformations
         )
+        if validation_dataset_dir:
+            validation_dataset = datasets.ImageFolder(
+                validation_dataset_dir,
+                transform=transformations
+            )
     else:
         raise NotImplementedError(f"{dataset_name} is currently not supported.")
 
@@ -65,11 +72,32 @@ def get_dataloader(
         pin_memory=True,
         drop_last=True,
     )
-    return train_loader
+    validation_loader = None
+    if validation_dataset_dir:
+        validation_sampler = None
+        if is_distributed:
+            validation_sampler = torch.utils.data.distributed.DistributedSampler(
+                validation_dataset,
+                shuffle=False,
+                drop_last=True,
+                seed=seed
+            )
+
+        validation_loader = torch.utils.data.DataLoader(
+            validation_dataset,
+            batch_size=batch_size,
+            shuffle=(validation_sampler is None),
+            sampler=validation_sampler,
+            num_workers=num_workers,
+            pin_memory=True,
+            drop_last=True,
+        )
+
+    return train_loader, validation_loader
 
 
 class GaussianBlur:
-    """Gaussian blur augmentation in SimCLR https://arxiv.org/abs/2002.05709"""
+    """Gaussian blur augmentation as in SimCLR https://arxiv.org/abs/2002.05709"""
 
     def __init__(self, sigma=[.1, 2.]):
         self.sigma = sigma

@@ -5,19 +5,13 @@
 
 from typing import Optional
 
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torchvision
-
-from egg.core.rnn import RnnEncoder
 
 
 def get_resnet(name, pretrained=False):
     """Loads ResNet encoder from torchvision along with features number"""
     resnets = {
-        "resnet18": torchvision.models.resnet18(pretrained=pretrained),
-        "resnet34": torchvision.models.resnet34(pretrained=pretrained),
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
@@ -64,7 +58,7 @@ class VisionModule(nn.Module):
         self.encoder = sender_vision_module
 
         self.shared = receiver_vision_module is None
-        if self.shared:
+        if not self.shared:
             self.encoder_recv = receiver_vision_module
 
     def forward(self, x_i, x_j):
@@ -111,6 +105,7 @@ class Sender(nn.Module):
         if projection_dim != -1:
             self.fwd = nn.Sequential(
                 nn.Linear(visual_features_dim, projection_dim, bias=False),
+                nn.BatchNorm1d(projection_dim),
                 nn.ReLU(),
             )
 
@@ -121,33 +116,49 @@ class Sender(nn.Module):
 class Receiver(nn.Module):
     def __init__(
         self,
-        msg_input_dim: int,
-        img_feats_input_dim: int,
+        visual_features_dim: int,
         output_dim: int
     ):
         super(Receiver, self).__init__()
-        self.fc_message = nn.Linear(msg_input_dim, output_dim)
-        self.fc_img_feats = nn.Linear(img_feats_input_dim, output_dim)
+        self.fwd = nn.Sequential(
+            nn.Linear(visual_features_dim, output_dim, bias=False),
+            nn.BatchNorm1d(output_dim),
+            nn.ReLU(),
+        )
 
-    def forward(self, x, _input):
-        msg = self.fc_message(F.leaky_relu(x))
-        img = self.fc_img_feats(F.leaky_relu(_input))
-        return torch.cat((msg, img), dim=0)
+    def forward(self, _x, input):
+        return self.fwd(input)
 
 
-class RnnReceiverDeterministicContrastive(nn.Module):
+class SenderGS(nn.Module):
     def __init__(
-        self, agent, vocab_size, embed_dim, hidden_size, cell="rnn", num_layers=1
+        self,
+        visual_features_dim: int,
+        vocab_size: int
     ):
-        super(RnnReceiverDeterministicContrastive, self).__init__()
-        self.agent = agent
-        self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
+        super(SenderGS, self).__init__()
+        self.fwd = nn.Sequential(
+            nn.Linear(visual_features_dim, vocab_size, bias=False),
+            nn.BatchNorm1d(vocab_size),
+            nn.ReLU(),
+        )
 
-    def forward(self, message, input=None, lengths=None):
-        encoded = self.encoder(message, lengths)
-        agent_output = self.agent(encoded, input)
+    def forward(self, x):
+        return self.fwd(x)
 
-        logits = torch.zeros(agent_output.size(0) // 2).to(agent_output.device)
-        entropy = logits
 
-        return agent_output, logits, entropy
+class ReceiverGS(nn.Module):
+    def __init__(
+        self,
+        visual_features_dim: int,
+        output_dim: int
+    ):
+        super(ReceiverGS, self).__init__()
+        self.fwd = nn.Sequential(
+            nn.Linear(visual_features_dim, output_dim, bias=False),
+            nn.BatchNorm1d(output_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, _x, input):
+        return self.fwd(input)

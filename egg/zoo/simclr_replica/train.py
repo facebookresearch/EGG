@@ -7,7 +7,6 @@ import torch
 from apex.parallel.LARC import LARC
 
 import egg.core as core
-from egg.core import EarlyStopperAccuracy
 from egg.zoo.simclr_replica.data import get_dataloader
 from egg.zoo.simclr_replica.games import build_game
 from egg.zoo.simclr_replica.game_callbacks import (
@@ -64,7 +63,6 @@ def main(params):
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
-        EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
         VisionModelSaver()
     ]
