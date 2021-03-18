@@ -8,7 +8,6 @@ import os
 import pathlib
 import re
 import sys
-import time
 from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
@@ -188,9 +187,13 @@ class CheckpointSaver(Callback):
         optimizer_schedule_state_dict = None
         if self.trainer.optimizer_scheduler:
             optimizer_schedule_state_dict = self.trainer.optimizer_scheduler.state_dict()
+        if self.trainer.distributed_context.is_distributed:
+            game = self.trainer.game.module
+        else:
+            game = self.trainer.game
         return Checkpoint(
             epoch=self.epoch_counter,
-            model_state_dict=self.trainer.game.state_dict(),
+            model_state_dict=game.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
             optimizer_scheduler_state_dict=optimizer_schedule_state_dict
         )
@@ -222,9 +225,9 @@ class CheckpointSaver(Callback):
 class InteractionSaver(Callback):
     def __init__(
         self,
-        train_epochs: List = None,
-        test_epochs: List = None,
-        folder_path: str = "./interactions",
+        train_epochs: Optional[List[int]] = None,
+        test_epochs: Optional[List[int]] = None,
+        folder_path: str = "",
     ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
@@ -237,9 +240,7 @@ class InteractionSaver(Callback):
         else:
             self.test_epochs = []
 
-        self.folder_path = (
-            pathlib.Path(folder_path) / time.strftime("%Y_%m_%d_%H_%M_%S")
-        ).expanduser()
+        self.folder_path = folder_path
 
     @staticmethod
     def dump_interactions(
@@ -251,11 +252,25 @@ class InteractionSaver(Callback):
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
-            self.dump_interactions(logs, "validation", epoch, self.folder_path)
+            if self.folder_path:
+                path = pathlib.Path(self.folder_path)
+            if not self.folder_path:
+                if hasattr(self.trainer, "checkpoint_path"):
+                    path = self.trainer.checkpoint_path / "interactions"
+                else:
+                    path = pathlib.Path("./interactions")
+            self.dump_interactions(logs, "validation", epoch, path)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.train_epochs:
-            self.dump_interactions(logs, "train", epoch, self.folder_path)
+            if self.folder_path:
+                path = pathlib.Path(self.folder_path)
+            else:
+                if hasattr(self.trainer, "checkpoint_path"):
+                    path = self.trainer.checkpoint_path / "interactions"
+                else:
+                    path = pathlib.Path("./interactions")
+            self.dump_interactions(logs, "train", epoch, path)
 
 
 class CustomProgress(Progress):
