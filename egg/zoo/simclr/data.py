@@ -29,7 +29,7 @@ def get_dataloader(
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
             dataset_dir,
-            train=True,
+            train=False,
             download=True,
             transform=transformations
         )

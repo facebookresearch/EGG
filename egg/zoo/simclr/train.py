@@ -3,8 +3,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import torch
+
 import egg.core as core
-from egg.core import EarlyStopperAccuracy
+from egg.core import EarlyStopperAccuracy, InteractionSaver
 from egg.zoo.simclr.data import get_dataloader
 from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import (
@@ -12,7 +14,8 @@ from egg.zoo.simclr.game_callbacks import (
     DistributedSamplerEpochSetter,
     VisionModelSaver
 )
-from egg.zoo.simclr.utils import get_common_opts
+from egg.zoo.simclr.LARC import LARC
+from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
@@ -46,19 +49,31 @@ def main(params):
 
     simclr_game = build_game(opts)
 
-    optimizer = core.build_optimizer(simclr_game.parameters())
+    model_parameters = add_weight_decay(
+        simclr_game,
+        opts.weight_decay,
+        skip_name='bn'
+    )
+
+    optimizer_original = torch.optim.SGD(
+        model_parameters,
+        lr=opts.lr,
+        momentum=0.9,
+    )
+    optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_original, T_max=opts.n_epochs)
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
         EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
-        VisionModelSaver(opts.shared_vision)
+        VisionModelSaver(opts.shared_vision),
+        InteractionSaver(train_epochs=[x + 1 for x in range(opts.n_epochs)])
     ]
 
     if opts.distributed_context.is_distributed:
         callbacks.append(DistributedSamplerEpochSetter())
 
-    optimizer_scheduler = None
     trainer = core.Trainer(
         game=simclr_game,
         optimizer=optimizer,
@@ -71,5 +86,6 @@ def main(params):
 
 
 if __name__ == "__main__":
+    torch.autograd.set_detect_anomaly(True)
     import sys
     main(sys.argv[1:])

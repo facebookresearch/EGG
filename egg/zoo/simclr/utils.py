@@ -13,26 +13,26 @@ def get_data_opts(parser):
     group.add_argument(
         "--dataset_name",
         type=str,
-        default="cifar10",
+        default="imagenet",
         choices=["cifar10", "imagenet"],
         help="Dataset name",
     )
     group.add_argument(
         "--dataset_dir",
         type=str,
-        default="./data",
+        default="/datasets01/imagenet_full_size/061417/train",
         help="Dataset location",
     )
     group.add_argument(
         "--validation_dataset_dir",
         type=str,
-        default="./val_data",
+        default="",
         help="Dataset location",
     )
     group.add_argument(
         "--image_size",
         type=int,
-        default=32,
+        default=224,
         help="Image size"
     )
     group.add_argument(
@@ -43,71 +43,24 @@ def get_data_opts(parser):
     )
 
 
-def get_rf_opts(parser):
-    group = parser.add_argument_group("reinforce")
-    # sender opts
-    group.add_argument(
-        "--recurrent_cell",
-        type=str,
-        default="rnn",
-        choices=["rnn", "lstm", "gru"],
-        help="Type of the cell used for Sender and Receiver {rnn, gru, lstm} (default: rnn)"
-    )
-    group.add_argument(
-        "--sender_entropy_coeff",
-        type=float,
-        default=0.1,
-        help="Entropy regularisation coeff for Sender (default: 0.1)"
-    )
-    group.add_argument(
-        "--sender_embedding",
-        type=int,
-        default=10,
-        help="Dimensionality of the embedding hidden layer for Sender (default: 10)"
-    )
-    group.add_argument(
-        "--sender_rnn_num_layers",
-        type=int,
-        default=1,
-        help="Number hidden layers of sender. Only in reinforce (default: 1)"
-    )
-    # receiver opts
-    group.add_argument(
-        "--receiver_embedding",
-        type=int,
-        default=10,
-        help="Dimensionality of the embedding hidden layer for Receiver (default: 10)"
-    )
-    group.add_argument(
-        "--receiver_rnn_hidden",
-        type=int,
-        default=10,
-        help="Size of the hidden layer of Receiver (default: 10)"
-    )
-    group.add_argument(
-        "--receiver_rnn_num_layers",
-        type=int,
-        default=1,
-        help="Number hidden layers of receiver. Only in reinforce (default: 1)"
-    )
-
-
 def get_gs_opts(parser):
-    pass
-
-
-def get_continuous_opts(parser):
-    group = parser.add_argument_group("continuous")
+    group = parser.add_argument_group("gumbel softmax")
     group.add_argument(
-        "--sender_output_size",
-        type=int,
-        default=128,
-        help="Sender output size and message dimension in continuous communication"
+        "--gs_temperature",
+        type=float,
+        default=0.3,
+        help="gs temperature used in the relaxation layer"
+    )
+    group.add_argument(
+        "--train_gs_temperature",
+        default=False,
+        action="store_true",
+        help="train gs temperature used in the relaxation layer"
     )
 
 
 def get_vision_module_opts(parser):
-    group = parser.add_argument_group("vision_module")
+    group = parser.add_argument_group("vision module")
     group.add_argument(
         "--model_name",
         type=str,
@@ -135,38 +88,51 @@ def get_vision_module_opts(parser):
 
 
 def get_game_arch_opts(parser):
-    group = parser.add_argument_group("game_arch")
+    group = parser.add_argument_group("game architecture")
     group.add_argument(
-        "--projection_dim",
+        "--projection_hidden_dim",
         type=int,
-        default=64,
-        help="Projection head's dimension for image features. If <= 0 image features won't be linearly projected"
+        default=2048,
+        help="Projection head's hidden dimension for image features."
     )
     group.add_argument(
-        "--receiver_output_size",
+        "--projection_output_dim",
         type=int,
-        default=256,
-        help="Receiver output size"
+        default=2048,
+        help="Projection head's output dimension for image features."
+    )
+
+
+def get_loss_opts(parser):
+    group = parser.add_argument_group("loss")
+    group.add_argument(
+        "--loss_temperature",
+        type=float,
+        default=0.1,
+        help="Temperature for (NT)XEnt loss",
+    )
+    group.add_argument(
+        "--use_ntxent",
+        default=True,
+        action="store_true",
+        help="Temperature for (NT)XEnt loss",
+    )
+    group.add_argument(
+        "--similarity",
+        type=str,
+        default="cosine",
+        help="Similarity used in  (NT)XEnt loss",
     )
 
 
 def get_common_opts(params):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--ntxent_tau",
+        "--weight_decay",
         type=float,
-        default=0.1,
-        help="Temperature for NT XEnt loss",
+        default=10e-6,
+        help="Weight decay used for SGD",
     )
-
-    parser.add_argument(
-        "--communication_channel",
-        type=str,
-        default="continuous",
-        choices=["continuous", "rf", "gs"],
-        help="Type of channel used by the sender (default: continous)",
-    )
-
     parser.add_argument(
         "--early_stopping_thr",
         type=float, default=0.9999,
@@ -180,11 +146,25 @@ def get_common_opts(params):
     )
 
     get_data_opts(parser)
-    get_rf_opts(parser)
     get_gs_opts(parser)
-    get_continuous_opts(parser)
     get_vision_module_opts(parser)
+    get_loss_opts(parser)
     get_game_arch_opts(parser)
 
     opts = core.init(arg_parser=parser, params=params)
     return opts
+
+
+def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
+    decay = []
+    no_decay = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if len(param.shape) == 1 or skip_name in name:
+            no_decay.append(param)
+        else:
+            decay.append(param)
+    return [
+        {'params': no_decay, 'weight_decay': 0.},
+        {'params': decay, 'weight_decay': weight_decay}]

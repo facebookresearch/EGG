@@ -85,6 +85,7 @@ class VisionModelSaver(Callback):
                     (not is_distributed) or (is_distributed and rank == 0)
                 )
             ):
+                self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
                 if is_distributed:
                     # if distributed training the model is an instance of the DistributedDataParallel class
                     # and we need to unpack it from it.
@@ -92,7 +93,7 @@ class VisionModelSaver(Callback):
                 else:
                     vision_module = self.trainer.game.vision_module
 
-                model_name = f"vision_module_{'shared' if self.shared else 'sender'}_{epoch if epoch else '_final'}.pt"
+                model_name = f"vision_module_{'shared' if self.shared else 'sender'}_{epoch if epoch else 'final'}.pt"
                 torch.save(
                     vision_module.encoder.state_dict(),
                     self.trainer.checkpoint_path / model_name

@@ -94,20 +94,17 @@ class VisionGameWrapper(nn.Module):
 class Sender(nn.Module):
     def __init__(
         self,
-        visual_features_dim: int,
-        projection_dim: int
+        input_dim: int,
+        hidden_dim: int = 2048,
+        output_dim: int = 128
     ):
         super(Sender, self).__init__()
-        self.fwd = nn.Identity()
-
-        # if projection_dim == -1 we do not apply any nonlinear transformation
-        # and simply leave the visual featrues as is
-        if projection_dim != -1:
-            self.fwd = nn.Sequential(
-                nn.Linear(visual_features_dim, projection_dim, bias=False),
-                nn.BatchNorm1d(projection_dim),
-                nn.ReLU(),
-            )
+        self.fwd = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.BatchNorm1d(output_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim, bias=False),
+        )
 
     def forward(self, x):
         return self.fwd(x)
@@ -116,48 +113,16 @@ class Sender(nn.Module):
 class Receiver(nn.Module):
     def __init__(
         self,
-        visual_features_dim: int,
-        output_dim: int
+        input_dim: int,
+        hidden_dim: int = 2048,
+        output_dim: int = 128
     ):
         super(Receiver, self).__init__()
         self.fwd = nn.Sequential(
-            nn.Linear(visual_features_dim, output_dim, bias=False),
+            nn.Linear(input_dim, hidden_dim),
             nn.BatchNorm1d(output_dim),
             nn.ReLU(),
-        )
-
-    def forward(self, _x, input):
-        return self.fwd(input)
-
-
-class SenderGS(nn.Module):
-    def __init__(
-        self,
-        visual_features_dim: int,
-        vocab_size: int
-    ):
-        super(SenderGS, self).__init__()
-        self.fwd = nn.Sequential(
-            nn.Linear(visual_features_dim, vocab_size, bias=False),
-            nn.BatchNorm1d(vocab_size),
-            nn.ReLU(),
-        )
-
-    def forward(self, x):
-        return self.fwd(x)
-
-
-class ReceiverGS(nn.Module):
-    def __init__(
-        self,
-        visual_features_dim: int,
-        output_dim: int
-    ):
-        super(ReceiverGS, self).__init__()
-        self.fwd = nn.Sequential(
-            nn.Linear(visual_features_dim, output_dim, bias=False),
-            nn.BatchNorm1d(output_dim),
-            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim, bias=False),
         )
 
     def forward(self, _x, input):

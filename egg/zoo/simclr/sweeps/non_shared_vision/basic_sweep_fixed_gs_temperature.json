@@ -4,5 +4,6 @@
     "lr": [2.4],
     "random_seed": [111],
     "fp16": [true],
-    "load_from_checkpoint": ["/private/home/rdessi/larc_replicate_simclr/37334141_0/final.tar"]
+    "use_augmentations": [true],
+    "use_ntxent": [true]
 }
