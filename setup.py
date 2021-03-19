@@ -8,6 +8,8 @@ from setuptools import find_packages, setup
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
+tests_require = ["requests", ]
+
 setup(
     name="EGG",
     version="0.1.0",
@@ -17,4 +19,5 @@ setup(
     description="Emergence of lanGuage in Games (EGG): A toolbox for language games research",
     packages=find_packages(),
     install_requires=requirements,
+    tests_requires=tests_require,
 )
