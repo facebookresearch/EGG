@@ -26,7 +26,7 @@ def main(params):
     )
     print(
         f"Running a distruted training is set to: {opts.distributed_context.is_distributed}. "
-        f"World size is {opts.distributed_context.world_size} "
+        f"World size is {opts.distributed_context.world_size}. "
         f"Using batch of size {opts.batch_size} on {opts.distributed_context.world_size} device(s)\n"
         f"Using dataset {opts.dataset_name} with image size: {opts.image_size}. "
         f"Applying augmentations: {opts.use_augmentations}\n"
@@ -55,13 +55,15 @@ def main(params):
         skip_name='bn'
     )
 
-    optimizer_original = torch.optim.SGD(
+    optimizer = torch.optim.SGD(
         model_parameters,
         lr=opts.lr,
         momentum=0.9,
     )
-    optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
-    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_original, T_max=opts.n_epochs)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
+
+    if opts.distributed_context.is_distributed and opts.distributed_context.world_size > 2:
+        optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
