@@ -147,6 +147,7 @@ class Trainer:
                 output_device=device_id,
                 find_unused_parameters=True
             )
+            self.optimizer.state = move_to(self.optimizer.state, device_id)
 
         else:
             self.game.to(self.device)
