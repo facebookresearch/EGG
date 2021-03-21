@@ -251,6 +251,8 @@ class InteractionSaver(Callback):
         torch.save(logs, dump_dir / f"interactions_epoch{epoch}")
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        if not self.trainer.distributed_context.is_leader:
+            return
         if epoch in self.test_epochs:
             if self.folder_path:
                 path = pathlib.Path(self.folder_path)
@@ -262,6 +264,8 @@ class InteractionSaver(Callback):
             self.dump_interactions(logs, "validation", epoch, path)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if not self.trainer.distributed_context.is_leader:
+            return
         if epoch in self.train_epochs:
             if self.folder_path:
                 path = pathlib.Path(self.folder_path)

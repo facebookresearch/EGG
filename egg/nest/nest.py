@@ -77,6 +77,9 @@ if __name__ == "__main__":
         help="Disable preemption from other processes on SLURM",
     )
     parser.add_argument(
+        "--mem_gb", type=int, default=64, help="CPU memory (in GB) required per task"
+    )
+    parser.add_argument(
         "--comment", type=str, help="Comment on the list of jobs to launch"
     )
 
@@ -132,6 +135,7 @@ if __name__ == "__main__":
         slurm_comment=args.comment,
         nodes=args.nodes,
         tasks_per_node=args.tasks,
+        mem_gb=args.mem_gb,
     )
 
     if args.array:

@@ -50,7 +50,7 @@ def build_game(opts):
         nt_xent=opts.use_ntxent
     )
 
-    train_logging_strategy = LoggingStrategy(False, False, False, True, True, True)
+    train_logging_strategy = LoggingStrategy(False, False, True, True, True, True)
     test_logging_strategy = LoggingStrategy.minimal()
 
     sender = Sender(

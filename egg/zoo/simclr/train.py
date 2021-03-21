@@ -70,7 +70,10 @@ def main(params):
         EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
         VisionModelSaver(opts.shared_vision),
-        InteractionSaver(train_epochs=[x + 1 for x in range(opts.n_epochs)])
+        InteractionSaver(
+            train_epochs=[x + 1 for x in range(opts.n_epochs)],
+            test_epochs=[opts.n_epochs]
+        )
     ]
 
     if opts.distributed_context.is_distributed:
