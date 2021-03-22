@@ -6,5 +6,8 @@
     "fp16": [true],
     "shared_vision": [true],
     "use_augmentations": [true],
-    "gs_temperature": [1.0]
+    "use_ntxent": [true],
+    "gs_temperature": [100.0],
+    "wandb": [true],
+    "validatoin_freq": [5]
 }

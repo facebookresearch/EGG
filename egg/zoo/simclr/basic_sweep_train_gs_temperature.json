@@ -1,10 +1,12 @@
 {
-    "n_epoch": [100],
+    "n_epoch": [2],
     "batch_size": [128],
     "lr": [2.4],
     "random_seed": [111],
     "fp16": [true],
     "shared_vision": [true],
     "use_augmentations": [true],
-    "train_gs_temperature": [true]
+    "use_ntxent": [true],
+    "wandb": [true],
+    "gs_temperature": [5.0]
 }
