@@ -78,7 +78,7 @@ def get_dataloader(
         if is_distributed:
             validation_sampler = torch.utils.data.distributed.DistributedSampler(
                 validation_dataset,
-                shuffle=False,
+                shuffle=True,
                 drop_last=True,
                 seed=seed
             )

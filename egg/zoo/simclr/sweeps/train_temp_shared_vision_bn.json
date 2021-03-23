@@ -1,0 +1,19 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [2.4],
+    "random_seed": [111],
+    "fp16": [true],
+    "shared_vision": [true],
+    "use_augmentations": [true],
+    "use_ntxent": [true],
+    "wandb": [true],
+    "gs_temperature": [1.0],
+    "gs_temperature_decay": [1.0],
+    "train_gs_temperature": [true],
+    "straight_through": [false],
+    "minimum_gs_temperature": [1.0],
+    "update_gs_temp_frequency": [1],
+    "validation_dataset_dir": ["/datasets01/imagenet_full_size/061417/val"],
+    "validation_freq": [5]
+}

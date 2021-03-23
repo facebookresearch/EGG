@@ -45,7 +45,6 @@ class Loss:
 
 class XEntLoss(Loss):
     def xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
-        message = F.normalize(message, dim=-1)
         receiver_output = F.normalize(receiver_output, dim=-1)
         model_guess = self.get_similarity_matrix(message, receiver_output)
 
@@ -63,8 +62,8 @@ class NTXentLoss(Loss):
     def nt_xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
         batch_size = message.shape[0]
 
+        receiver_output = F.normalize(receiver_output, dim=-1)
         input = torch.cat((message, receiver_output), dim=0)
-        input = F.normalize(input, dim=-1)
 
         similarity_matrix = self.get_similarity_matrix(input, input)
         sim_msg_img = torch.diag(similarity_matrix, batch_size).reshape(batch_size, 1)

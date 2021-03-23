@@ -4,23 +4,24 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
+import wandb
 
 import egg.core as core
-from egg.core import EarlyStopperAccuracy, InteractionSaver
 from egg.zoo.simclr.data import get_dataloader
 from egg.zoo.simclr.games import build_game
-from egg.zoo.simclr.game_callbacks import (
-    BestStatsTracker,
-    DistributedSamplerEpochSetter,
-    VisionModelSaver
-)
+from egg.zoo.simclr.game_callbacks import get_callbacks
 from egg.zoo.simclr.LARC import LARC
 from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
+    wandb_uuid = wandb.util.generate_id()
     opts = get_common_opts(params=params)
     print(opts)
+    if opts.wandb:
+        group = "distributed_" + wandb_uuid if opts.distributed_context.is_distributed else wandb_uuid
+        wandb.init(project="language-as-rl", group=group)
+        wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
     )
@@ -48,6 +49,8 @@ def main(params):
     )
 
     simclr_game = build_game(opts)
+    if opts.wandb:
+        wandb.watch(simclr_game, log="all")
 
     model_parameters = add_weight_decay(
         simclr_game,
@@ -65,19 +68,11 @@ def main(params):
     if opts.distributed_context.is_distributed and opts.distributed_context.world_size > 2:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
-    callbacks = [
-        core.ConsoleLogger(as_json=True, print_train_loss=True),
-        EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
-        BestStatsTracker(),
-        VisionModelSaver(opts.shared_vision),
-        InteractionSaver(
-            train_epochs=[x + 1 for x in range(opts.n_epochs)],
-            test_epochs=[opts.n_epochs]
-        )
-    ]
-
-    if opts.distributed_context.is_distributed:
-        callbacks.append(DistributedSamplerEpochSetter())
+    callbacks = get_callbacks(
+        opts=opts,
+        agent=simclr_game.game.sender.gs_layer,
+        temperature=simclr_game.game.sender.gs_layer.temperature
+    )
 
     trainer = core.Trainer(
         game=simclr_game,
@@ -85,7 +80,8 @@ def main(params):
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
         validation_data=validation_loader,
-        callbacks=callbacks
+        callbacks=callbacks,
+        aggregate_interaction_logs=False
     )
     trainer.train(n_epochs=opts.n_epochs)
 

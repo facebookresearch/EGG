@@ -6,8 +6,16 @@
 import json
 
 import torch
+import wandb
 
-from egg.core import Callback, Interaction
+from egg.core import (
+    Callback,
+    ConsoleLogger,
+    EarlyStopperAccuracy,
+    Interaction,
+    InteractionSaver,
+    TemperatureUpdater
+)
 
 
 class BestStatsTracker(Callback):
@@ -78,11 +86,11 @@ class VisionModelSaver(Callback):
 
     def save_vision_model(self, epoch=""):
         is_distributed = self.trainer.distributed_context.is_distributed
-        rank = self.trainer.distributed_context.local_rank
+        is_leader = self.trainer.distributed_context.is_leader
         if hasattr(self.trainer, "checkpoint_path"):
             if (
                 self.trainer.checkpoint_path and (
-                    (not is_distributed) or (is_distributed and rank == 0)
+                    (not is_distributed) or (is_distributed and is_leader)
                 )
             ):
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
@@ -125,3 +133,63 @@ class DistributedSamplerEpochSetter(Callback):
     def on_test_begin(self, epoch: int):
         if self.trainer.distributed_context.is_distributed:
             self.trainer.validation_data.sampler.set_epoch(epoch)
+
+
+class WandbLogger(Callback):
+    def __init__(self, gs_temperature):
+        super().__init__()
+        self.gs_temperature = gs_temperature
+
+    def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
+        if is_training and self.trainer.distributed_context.is_leader:
+            wandb.log({"batch_loss": loss})
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.trainer.distributed_context.is_leader:
+            wandb.log({
+                "train_loss": loss,
+                "train_accuracy": logs.aux['acc'].mean().item(),
+                "gs_temperature": self.gs_temperature,
+                "epoch": epoch
+            })
+
+    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.trainer.distributed_context.is_leader:
+            wandb.log({
+                "test_loss": loss,
+                "test_accuracy": logs.aux['acc'].mean().item(),
+                "epoch": epoch
+            })
+
+
+def get_callbacks(opts, agent, temperature):
+    callbacks = [
+        ConsoleLogger(as_json=True, print_train_loss=True),
+        EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
+        BestStatsTracker(),
+        VisionModelSaver(opts.shared_vision),
+        InteractionSaver(
+            test_epochs=[opts.n_epochs - 1, opts.n_epochs],
+            checkpoint_dir=opts.checkpoint_dir
+        ),
+    ]
+
+    if not opts.train_gs_temperature:
+        callbacks.append(
+            TemperatureUpdater(
+                agent,
+                minimum=opts.minimum_gs_temperature,
+                update_frequency=opts.update_gs_temp_frequency,
+                decay=opts.gs_temperature_decay
+            )
+        )
+    if opts.wandb:
+        callbacks.append(
+            WandbLogger(
+                gs_temperature=temperature
+            )
+        )
+    if opts.distributed_context.is_distributed:
+        callbacks.append(DistributedSamplerEpochSetter())
+
+    return callbacks

@@ -5,15 +5,12 @@
 
 import torch
 
-from egg.core.gs_wrappers import (
-    GumbelSoftmaxWrapper,
-    SymbolGameGS,
-)
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.archs import (
     get_vision_modules,
     Receiver,
     Sender,
+    SymbolGameGS,
     VisionGameWrapper,
     VisionModule
 )
@@ -50,13 +47,16 @@ def build_game(opts):
         nt_xent=opts.use_ntxent
     )
 
-    train_logging_strategy = LoggingStrategy(False, False, True, True, True, True)
-    test_logging_strategy = LoggingStrategy.minimal()
+    train_logging_strategy = LoggingStrategy.minimal()
+    test_logging_strategy = LoggingStrategy(True, True, True, True, True, True)
 
     sender = Sender(
         input_dim=visual_features_dim,
         hidden_dim=opts.projection_hidden_dim,
-        output_dim=opts.projection_output_dim
+        output_dim=opts.projection_output_dim,
+        temperature=opts.gs_temperature,
+        trainable_temperature=opts.train_gs_temperature,
+        straight_through=opts.straight_through,
     )
     receiver = Receiver(
         input_dim=visual_features_dim,
@@ -64,12 +64,6 @@ def build_game(opts):
         output_dim=opts.projection_output_dim
     )
 
-    sender = GumbelSoftmaxWrapper(
-        sender,
-        temperature=opts.gs_temperature,
-        trainable_temperature=opts.train_gs_temperature,
-        straight_through=False,
-    )
     game = SymbolGameGS(
         sender,
         receiver,

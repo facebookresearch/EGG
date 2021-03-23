@@ -48,14 +48,38 @@ def get_gs_opts(parser):
     group.add_argument(
         "--gs_temperature",
         type=float,
-        default=0.3,
+        default=1.0,
         help="gs temperature used in the relaxation layer"
+    )
+    group.add_argument(
+        "--gs_temperature_decay",
+        type=float,
+        default=1.0,
+        help="gs temperature update_factor (default: 1.0)"
     )
     group.add_argument(
         "--train_gs_temperature",
         default=False,
         action="store_true",
         help="train gs temperature used in the relaxation layer"
+    )
+    group.add_argument(
+        "--straight_through",
+        default=False,
+        action="store_true",
+        help="use straight through gumbel softmax estimator"
+    )
+    group.add_argument(
+        "--update_gs_temp_frequency",
+        default=1,
+        type=int,
+        help="update gs temperature frequency (default: 1)",
+    )
+    group.add_argument(
+        "--minimum_gs_temperature",
+        default=1.0,
+        type=float,
+        help="minimum gs temperature when frequency update (default: 1.0)",
     )
 
 
@@ -137,6 +161,12 @@ def get_common_opts(params):
         "--early_stopping_thr",
         type=float, default=0.9999,
         help="Early stopping threshold on accuracy (defautl: 0.9999)"
+    )
+    parser.add_argument(
+        "--wandb",
+        action="store_true",
+        default=False,
+        help="Run the game logging to wandb"
     )
     parser.add_argument(
         "--pdb",
