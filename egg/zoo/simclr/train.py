@@ -18,8 +18,11 @@ def main(params):
     opts = get_common_opts(params=params)
     print(opts)
     if opts.wandb and opts.distributed_context.is_leader:
-        import uuid
-        id = str(uuid.uuid4())
+        if opts.checkpoint_dir:
+            id = opts.checkpoint_dir.split("/")[-1]
+        else:
+            import uuid
+            id = str(uuid.uuid4())
         wandb.init(project="language-as-rl", id=id)
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
