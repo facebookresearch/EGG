@@ -47,8 +47,8 @@ def build_game(opts):
         nt_xent=opts.use_ntxent
     )
 
-    train_logging_strategy = LoggingStrategy.minimal()
-    test_logging_strategy = LoggingStrategy(True, True, True, True, True, True)
+    train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
+    test_logging_strategy = LoggingStrategy(True, True, True, True, True, False)
 
     sender = Sender(
         input_dim=visual_features_dim,
