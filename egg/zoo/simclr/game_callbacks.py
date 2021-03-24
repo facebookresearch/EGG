@@ -176,7 +176,7 @@ def get_callbacks(opts, agent, temperature):
         BestStatsTracker(),
         VisionModelSaver(opts.shared_vision),
         InteractionSaver(
-            test_epochs=[opts.n_epochs - 1, opts.n_epochs],
+            test_epochs=[opts.n_epochs],
             checkpoint_dir=opts.checkpoint_dir
         ),
     ]
