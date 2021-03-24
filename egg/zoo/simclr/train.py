@@ -15,12 +15,12 @@ from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
-    wandb_uuid = wandb.util.generate_id()
     opts = get_common_opts(params=params)
     print(opts)
-    if opts.wandb:
-        group = "distributed_" + wandb_uuid if opts.distributed_context.is_distributed else wandb_uuid
-        wandb.init(project="language-as-rl", group=group)
+    if opts.wandb and opts.distributed_context.is_leader:
+        import uuid
+        id = str(uuid.uuid4())
+        wandb.init(project="language-as-rl", id=id)
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -49,7 +49,7 @@ def main(params):
     )
 
     simclr_game = build_game(opts)
-    if opts.wandb:
+    if opts.wandb and opts.distributed_context.is_leader:
         wandb.watch(simclr_game, log="all")
 
     model_parameters = add_weight_decay(

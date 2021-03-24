@@ -227,7 +227,7 @@ class InteractionSaver(Callback):
         self,
         train_epochs: Optional[List[int]] = None,
         test_epochs: Optional[List[int]] = None,
-        folder_path: str = "",
+        checkpoint_dir: str = "",
     ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
@@ -240,41 +240,28 @@ class InteractionSaver(Callback):
         else:
             self.test_epochs = []
 
-        self.folder_path = folder_path
+        if checkpoint_dir:
+            self.checkpoint_dir = pathlib.Path(checkpoint_dir) / "interactions"
+        else:
+            self.checkpoint_dir = pathlib.Path("./interactions")
 
     @staticmethod
     def dump_interactions(
-        logs: Interaction, mode: str, epoch: int, dump_dir: str = "./interactions"
+        logs: Interaction, mode: str, epoch: int, rank: int, dump_dir: str = "./interactions"
     ):
-        dump_dir = pathlib.Path(dump_dir) / mode
+        dump_dir = pathlib.Path(dump_dir) / mode / f"epoch_{epoch}"
         dump_dir.mkdir(exist_ok=True, parents=True)
-        torch.save(logs, dump_dir / f"interactions_epoch{epoch}")
+        torch.save(logs, dump_dir / f"interaction_gpu{rank}")
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        if not self.trainer.distributed_context.is_leader:
-            return
         if epoch in self.test_epochs:
-            if self.folder_path:
-                path = pathlib.Path(self.folder_path)
-            if not self.folder_path:
-                if hasattr(self.trainer, "checkpoint_path"):
-                    path = self.trainer.checkpoint_path / "interactions"
-                else:
-                    path = pathlib.Path("./interactions")
-            self.dump_interactions(logs, "validation", epoch, path)
+            rank = self.trainer.distributed_context.rank
+            self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if not self.trainer.distributed_context.is_leader:
-            return
         if epoch in self.train_epochs:
-            if self.folder_path:
-                path = pathlib.Path(self.folder_path)
-            else:
-                if hasattr(self.trainer, "checkpoint_path"):
-                    path = self.trainer.checkpoint_path / "interactions"
-                else:
-                    path = pathlib.Path("./interactions")
-            self.dump_interactions(logs, "train", epoch, path)
+            rank = self.trainer.distributed_context.rank
+            self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
 
 
 class CustomProgress(Progress):

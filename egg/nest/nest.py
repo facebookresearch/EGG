@@ -80,6 +80,9 @@ if __name__ == "__main__":
         "--mem_gb", type=int, default=64, help="CPU memory (in GB) required per task"
     )
     parser.add_argument(
+        "--constraint", type=str, help="Constraint (e.g. volta32gb) on the list of jobs to launch"
+    )
+    parser.add_argument(
         "--comment", type=str, help="Comment on the list of jobs to launch"
     )
 
@@ -133,6 +136,7 @@ if __name__ == "__main__":
         gpus_per_node=args.tasks,
         name=args.name,
         slurm_comment=args.comment,
+        slurm_constraint=args.constraint,
         nodes=args.nodes,
         tasks_per_node=args.tasks,
         mem_gb=args.mem_gb,

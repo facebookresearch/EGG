@@ -142,14 +142,21 @@ class WandbLogger(Callback):
 
     def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
         if is_training and self.trainer.distributed_context.is_leader:
-            wandb.log({"batch_loss": loss})
+            wandb.log({
+                "batch_loss": loss,
+                "batch_accuracy": logs.aux['acc'].mean().item(),
+            })
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.trainer.distributed_context.is_leader:
+            if isinstance(self.gs_temperature, torch.nn.Parameter):
+                temperature = self.gs_temperature.item()
+            else:
+                temperature = self.gs_temperature
             wandb.log({
                 "train_loss": loss,
                 "train_accuracy": logs.aux['acc'].mean().item(),
-                "gs_temperature": self.gs_temperature,
+                "gs_temperature": temperature,
                 "epoch": epoch
             })
 
@@ -183,7 +190,7 @@ def get_callbacks(opts, agent, temperature):
                 decay=opts.gs_temperature_decay
             )
         )
-    if opts.wandb:
+    if opts.wandb and opts.distributed_context.is_leader:
         callbacks.append(
             WandbLogger(
                 gs_temperature=temperature
