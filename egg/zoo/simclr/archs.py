@@ -210,6 +210,12 @@ class SymbolGameGS(nn.Module):
         )
 
         aux_info["gs_sample"] = gs_sample.detach()
+        if isinstance(self.sender.gs_layer.temperature, torch.nn.Parameter):
+            temperature = self.sender.gs_layer.temperature.detach()
+        else:
+            temperature = torch.Tensor([self.sender.gs_layer.temperature])
+        aux_info["temperature"] = temperature
+
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
         )

@@ -136,9 +136,9 @@ class DistributedSamplerEpochSetter(Callback):
 
 
 class WandbLogger(Callback):
-    def __init__(self, gs_temperature):
+    def __init__(self, agent):
         super().__init__()
-        self.gs_temperature = gs_temperature
+        self.agent = agent
 
     def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
         if is_training and self.trainer.distributed_context.is_leader:
@@ -147,12 +147,20 @@ class WandbLogger(Callback):
                 "batch_accuracy": logs.aux['acc'].mean().item(),
             })
 
+    def on_epoch_begin(self, epoch: int):
+        if self.trainer.distributed_context.is_leader:
+            if isinstance(self.agent.temperature, torch.nn.Parameter):
+                temperature = self.agent.temperature.item()
+            else:
+                temperature = self.agent.temperature
+            wandb.log({"gs_temperature": temperature}, commit=False)
+
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.trainer.distributed_context.is_leader:
-            if isinstance(self.gs_temperature, torch.nn.Parameter):
-                temperature = self.gs_temperature.item()
+            if isinstance(self.agent.temperature, torch.nn.Parameter):
+                temperature = self.agent.temperature.item()
             else:
-                temperature = self.gs_temperature
+                temperature = self.agent.temperature
             wandb.log({
                 "train_loss": loss,
                 "train_accuracy": logs.aux['acc'].mean().item(),
@@ -169,7 +177,7 @@ class WandbLogger(Callback):
             })
 
 
-def get_callbacks(opts, agent, temperature):
+def get_callbacks(opts, agent):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
@@ -191,11 +199,8 @@ def get_callbacks(opts, agent, temperature):
             )
         )
     if opts.wandb and opts.distributed_context.is_leader:
-        callbacks.append(
-            WandbLogger(
-                gs_temperature=temperature
-            )
-        )
+        callbacks.append(WandbLogger(agent=agent))
+
     if opts.distributed_context.is_distributed:
         callbacks.append(DistributedSamplerEpochSetter())
 

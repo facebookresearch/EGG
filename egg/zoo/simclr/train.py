@@ -71,7 +71,6 @@ def main(params):
     callbacks = get_callbacks(
         opts=opts,
         agent=simclr_game.game.sender.gs_layer,
-        temperature=simclr_game.game.sender.gs_layer.temperature
     )
 
     trainer = core.Trainer(
