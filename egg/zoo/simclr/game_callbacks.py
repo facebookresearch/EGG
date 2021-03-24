@@ -11,7 +11,6 @@ import wandb
 from egg.core import (
     Callback,
     ConsoleLogger,
-    EarlyStopperAccuracy,
     Interaction,
     InteractionSaver,
     TemperatureUpdater
@@ -180,7 +179,6 @@ class WandbLogger(Callback):
 def get_callbacks(opts, agent):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
-        EarlyStopperAccuracy(opts.early_stopping_thr, validation=False),
         BestStatsTracker(),
         VisionModelSaver(opts.shared_vision),
         InteractionSaver(

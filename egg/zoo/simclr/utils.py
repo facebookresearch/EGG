@@ -158,11 +158,6 @@ def get_common_opts(params):
         help="Weight decay used for SGD",
     )
     parser.add_argument(
-        "--early_stopping_thr",
-        type=float, default=0.9999,
-        help="Early stopping threshold on accuracy (defautl: 0.9999)"
-    )
-    parser.add_argument(
         "--wandb",
         action="store_true",
         default=False,
