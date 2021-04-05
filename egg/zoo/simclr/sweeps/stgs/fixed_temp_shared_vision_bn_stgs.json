@@ -8,12 +8,11 @@
     "use_augmentations": [true],
     "use_ntxent": [true],
     "wandb": [true],
-    "gs_temperature": [1.0],
+    "gs_temperature": [2.0],
     "gs_temperature_decay": [1.0],
-    "train_gs_temperature": [true],
     "straight_through": [true],
     "minimum_gs_temperature": [1.0],
-    "update_gs_temp_frequency": [1],
+    "update_gs_temp_frequency": [10],
     "validation_dataset_dir": ["/datasets01/imagenet_full_size/061417/val"],
     "validation_freq": [5]
 }
