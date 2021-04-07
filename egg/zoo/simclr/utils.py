@@ -4,8 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+import json
+import pathlib
+
+import torch
 
 import egg.core as core
+from egg.core.interaction import Interaction
+from egg.core.util import move_to
+from egg.zoo.simclr.data import get_random_noise_dataloader
 
 
 def get_data_opts(parser):
@@ -158,6 +165,12 @@ def get_common_opts(params):
         help="Weight decay used for SGD",
     )
     parser.add_argument(
+        "--gaussian_noise_evaluation",
+        action="store_true",
+        default=False,
+        help="Perform and evaluation on gaussian noise at the end of training and store the interaction output"
+    )
+    parser.add_argument(
         "--wandb",
         action="store_true",
         default=False,
@@ -193,3 +206,69 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
     return [
         {'params': no_decay, 'weight_decay': 0.},
         {'params': decay, 'weight_decay': weight_decay}]
+
+
+def noise_eval(
+    game,
+    validation_data,
+    is_distributed,
+    device,
+):
+    mean_loss = 0.0
+    interactions = []
+    n_batches = 0
+    game.eval()
+    with torch.no_grad():
+        for batch in validation_data:
+            batch = move_to(batch, device)
+            optimized_loss, interaction = game(*batch)
+
+            if is_distributed:
+                interaction = Interaction.gather_distributed_interactions(interaction)
+
+            interaction = interaction.to("cpu")
+            mean_loss += optimized_loss
+
+            interactions.append(interaction)
+            n_batches += 1
+
+    mean_loss /= n_batches
+    full_interaction = Interaction.from_iterable(interactions)
+
+    return mean_loss.item(), full_interaction
+
+
+def dump_noise_interaction(logs: Interaction, dump_dir: str):
+    dump_dir = pathlib.Path(dump_dir) / "gaussian_noise"
+    dump_dir.mkdir(exist_ok=True, parents=True)
+    torch.save(logs, dump_dir / "interaction_noise")
+
+
+def perform_gaussian_noise_evaluation(
+    game,
+    batch_size,
+    distributed_context,
+    seed,
+    device,
+    checkpoint_dir
+):
+
+    noise_loader = get_random_noise_dataloader(
+        batch_size=batch_size,
+        is_distributed=distributed_context.is_distributed,
+        seed=seed
+    )
+
+    loss, noise_interaction = noise_eval(
+        game=game,
+        validation_data=noise_loader,
+        is_distributed=distributed_context.is_distributed,
+        device=device
+    )
+
+    if distributed_context.is_leader:
+        dump = dict(val_gaussian_loss=loss, val_gaussian_acc=noise_interaction.aux["acc"].mean().item())
+        output_message = json.dumps(dump)
+        print(output_message, flush=True)
+
+        dump_noise_interaction(noise_interaction, checkpoint_dir)

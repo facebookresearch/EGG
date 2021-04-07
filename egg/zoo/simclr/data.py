@@ -96,6 +96,50 @@ def get_dataloader(
     return train_loader, validation_loader
 
 
+def get_random_noise_dataloader(
+    batch_size: int = 128,
+    is_distributed: bool = False,
+    seed: int = 111
+):
+    validation_dataset = GaussianNoiseDataset(size=49152, image_size=224)
+
+    validation_sampler = None
+    if is_distributed:
+        validation_sampler = torch.utils.data.distributed.DistributedSampler(
+            validation_dataset,
+            shuffle=False,
+            drop_last=True,
+            seed=seed
+        )
+
+    validation_loader = torch.utils.data.DataLoader(
+        validation_dataset,
+        batch_size=batch_size,
+        shuffle=(validation_sampler is None),
+        sampler=validation_sampler,
+        num_workers=2,
+        pin_memory=True,
+        drop_last=True,
+    )
+    return validation_loader
+
+
+class GaussianNoiseDataset(torch.utils.data.Dataset):
+    def __init__(
+            self,
+            size: int = 49152,
+            image_size: int = 224
+    ):
+        self.data = [torch.randn(3, image_size, image_size) for _ in range(size)]
+        self.transformation = TransformsAugmentNoise(image_size)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return self.transformation(self.data[index]), torch.Tensor([1])
+
+
 class GaussianBlur:
     """Gaussian blur augmentation as in SimCLR https://arxiv.org/abs/2002.05709"""
 
@@ -154,6 +198,35 @@ class TransformsAugment:
             )
         self.transform = transforms.Compose(transformations)
 
+        original_image_transformations = [
+            transforms.Resize(size=(size, size)),
+            transforms.ToTensor()
+        ]
+
+        self.resize_original_image = transforms.Compose(original_image_transformations)
+
+    def __call__(self, x):
+        x_i = self.transform(x)
+        x_j = self.transform(x)
+        original_image = self.resize_original_image(x)
+        return x_i, x_j, original_image
+
+
+class TransformsAugmentNoise:
+    def __init__(self, size):
+        s = 1
+        color_jitter = transforms.ColorJitter(
+            0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s
+        )
+        transformations = [
+            transforms.RandomApply([color_jitter], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.RandomHorizontalFlip(),  # with 0.5 probability
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ]
+
+        self.transform = transforms.Compose(transformations)
+
     def __call__(self, x):
         x_i, x_j = self.transform(x), self.transform(x)
-        return x_i, x_j
+        return x_i, x_j, x_i

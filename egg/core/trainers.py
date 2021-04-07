@@ -168,7 +168,16 @@ class Trainer:
         self.game.eval()
         with torch.no_grad():
             for batch in self.validation_data:
+                # we do not want to move to GPU the last element of the sender input
+                # which is the original, non-augmented input image
+                original_image = None
+                if len(batch[0]) == 3:
+                    original_image = batch[0][-1]
+                    batch[0] = batch[0][:-1]
                 batch = move_to(batch, self.device)
+                if original_image is not None:
+                    batch[0].append(original_image)
+
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed
@@ -203,7 +212,15 @@ class Trainer:
         self.optimizer.zero_grad()
 
         for batch_id, batch in enumerate(self.train_data):
+            # we do not want to move to GPU the last element of the sender input
+            # which is the original, non-augmented input image
+            original_image = None
+            if len(batch[0]) == 3:
+                original_image = batch[0][-1]
+                batch[0] = batch[0][:-1]
             batch = move_to(batch, self.device)
+            if original_image is not None:
+                batch[0].append(original_image)
 
             context = autocast() if self.scaler else nullcontext()
             with context:

@@ -11,7 +11,7 @@ from egg.zoo.simclr.data import get_dataloader
 from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import get_callbacks
 from egg.zoo.simclr.LARC import LARC
-from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
+from egg.zoo.simclr.utils import add_weight_decay, get_common_opts, perform_gaussian_noise_evaluation
 
 
 def main(params):
@@ -86,6 +86,16 @@ def main(params):
         aggregate_interaction_logs=False
     )
     trainer.train(n_epochs=opts.n_epochs)
+
+    if opts.gaussian_noise_evaluation:
+        perform_gaussian_noise_evaluation(
+            game=simclr_game,
+            batch_size=opts.batch_size,
+            distributed_context=opts.distributed_context,
+            seed=opts.random_seed,
+            device=opts.device,
+            checkpoint_dir=opts.checkpoint_dir
+        )
 
 
 if __name__ == "__main__":
