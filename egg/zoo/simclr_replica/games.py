@@ -29,7 +29,7 @@ def build_game(
     vision_encoder = VisionModule(vision_module=vision_module)
 
     train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
-    test_logging_strategy = LoggingStrategy(True, True, True, True, True, False)
+    test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
     assert not batch_size % 2, (
         f"Batch size must be multiple of 2. Found {batch_size} instead"
     )

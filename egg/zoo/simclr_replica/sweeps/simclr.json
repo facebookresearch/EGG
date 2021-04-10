@@ -5,7 +5,7 @@
     "random_seed": [111],
     "output_size": [2048],
     "fp16": [true],
-    "validation_freq": [5],
+    "validation_freq": [1],
     "validation_dataset_dir": ["/datasets01/imagenet_full_size/061417/val"],
     "wandb": [true]
 }

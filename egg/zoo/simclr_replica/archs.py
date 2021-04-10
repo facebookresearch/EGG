@@ -71,7 +71,7 @@ class SenderReceiverContinuousCommunication(nn.Module):
         )
 
     def forward(self, sender_input, labels, receiver_input=None, original_image=None):
-        message, first_projection, first_projection_bn_relu, resnet_output = self.sender(sender_input)
+        message = self.sender(sender_input)
         receiver_output = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(
@@ -82,16 +82,14 @@ class SenderReceiverContinuousCommunication(nn.Module):
             self.train_logging_strategy if self.training else self.test_logging_strategy
         )
 
+        """
         if (not self.training) and original_image is not None:
             aux_info['original_image'] = original_image
-            aux_info["first_projection"] = first_projection.detach()
             aux_info["resnet_output"] = resnet_output.detach()
-            aux_info["first_projection_bn_relu"] = first_projection_bn_relu.detach()
         else:
             del original_image
-            del first_projection
             del resnet_output
-            del first_projection_bn_relu
+        """
 
         interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
@@ -123,14 +121,13 @@ class VisionGameWrapper(nn.Module):
         self.vision_module = vision_module
 
     def forward(self, sender_input, labels, receiver_input=None):
-        x_i, x_j, original_image = sender_input
+        x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
         return self.game(
             sender_input=sender_encoded_input,
             labels=labels,
             receiver_input=receiver_encoded_input,
-            original_image=original_image
         )
 
 
@@ -153,7 +150,7 @@ class Sender(nn.Module):
         first_projection = self.fc(x)
         first_projection_with_bn_and_relu = self.bn_relu(first_projection)
         out = self.fc_out(first_projection_with_bn_and_relu)
-        return out, first_projection.detach(), first_projection_with_bn_and_relu.detach(), x
+        return out, first_projection
 
 
 class Receiver(nn.Module):
