@@ -6,7 +6,7 @@
 import torch
 
 from egg.core.interaction import LoggingStrategy
-from egg.zoo.simclr.archs import (
+from egg.zoo.emcom_as_ssl.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
     get_vision_modules,
@@ -15,7 +15,7 @@ from egg.zoo.simclr.archs import (
     VisionGameWrapper,
     VisionModule
 )
-from egg.zoo.simclr.losses import get_loss
+from egg.zoo.emcom_as_ssl.losses import get_loss
 
 
 def build_vision_encoder(

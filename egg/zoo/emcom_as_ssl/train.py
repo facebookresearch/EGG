@@ -7,23 +7,25 @@ import torch
 import wandb
 
 import egg.core as core
-from egg.zoo.simclr.data import get_dataloader
-from egg.zoo.simclr.games import build_game
-from egg.zoo.simclr.game_callbacks import get_callbacks
-from egg.zoo.simclr.LARC import LARC
-from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
+from egg.zoo.emcom_as_ssl.data import get_dataloader
+from egg.zoo.emcom_as_ssl.games import build_game
+from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
+from egg.zoo.emcom_as_ssl.LARC import LARC
+from egg.zoo.emcom_as_ssl.post_hoc_evaluations import post_hoc_evaluations
+from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
     opts = get_common_opts(params=params)
     print(opts)
     if opts.wandb and opts.distributed_context.is_leader:
-        if opts.checkpoint_dir:
-            id = opts.checkpoint_dir.split("/")[-1]
-        else:
-            import uuid
-            id = str(uuid.uuid4())
-        wandb.init(project="emcom_as_ssl", id=id)
+        # if opts.checkpoint_dir:
+        #    id = opts.checkpoint_dir.split("/")[-1]
+        # else:
+        import uuid
+        id = str(uuid.uuid4())
+        # wandb.init(project="emcom_as_ssl", id=id)
+        wandb.init(project="temp_emcom_as_ssl", id=id)
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -89,6 +91,19 @@ def main(params):
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
+
+    post_hoc_evaluations(
+        game=simclr_game,
+        device=opts.device,
+        log_dir=opts.checkpoint_dir,
+        image_size=opts.image_size,
+        batch_size=opts.batch_size,
+        num_workers=opts.num_workers,
+        use_augmentations=opts.use_augmentations,
+        gaussian_noise_dataset_size=len(validation_loader),
+        is_distributed=opts.distributed_context.is_distributed,
+        seed=opts.random_seed
+    )
 
 
 if __name__ == "__main__":

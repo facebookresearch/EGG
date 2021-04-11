@@ -19,7 +19,7 @@ def get_data_opts(parser):
     group.add_argument(
         "--validation_dataset_dir",
         type=str,
-        default="",
+        default="/datasets01/imagenet_full_size/061417/val",
         help="Dataset location",
     )
     group.add_argument(
