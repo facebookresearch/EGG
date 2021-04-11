@@ -254,12 +254,14 @@ class InteractionSaver(Callback):
         torch.save(logs, dump_dir / f"interaction_gpu{rank}")
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        if epoch in self.test_epochs:
+        # we are aggregating interaction across gpus, thus only leader process is storing them
+        if epoch in self.test_epochs and self.trainer.distributed_context.is_leader:
             rank = self.trainer.distributed_context.rank
             self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if epoch in self.train_epochs:
+        # we are aggregating interaction across gpus, thus only leader process is storing them
+        if epoch in self.train_epochs and self.trainer.distributed_context.is_leader:
             rank = self.trainer.distributed_context.rank
             self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
 

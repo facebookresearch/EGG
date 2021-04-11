@@ -11,7 +11,7 @@ from egg.zoo.simclr.data import get_dataloader
 from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import get_callbacks
 from egg.zoo.simclr.LARC import LARC
-from egg.zoo.simclr.utils import add_weight_decay, get_common_opts, perform_gaussian_noise_evaluation
+from egg.zoo.simclr.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
@@ -23,7 +23,7 @@ def main(params):
         else:
             import uuid
             id = str(uuid.uuid4())
-        wandb.init(project="language-as-rl", id=id)
+        wandb.init(project="emcom_as_ssl", id=id)
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -32,21 +32,18 @@ def main(params):
         f"Running a distruted training is set to: {opts.distributed_context.is_distributed}. "
         f"World size is {opts.distributed_context.world_size}. "
         f"Using batch of size {opts.batch_size} on {opts.distributed_context.world_size} device(s)\n"
-        f"Using dataset {opts.dataset_name} with image size: {opts.image_size}. "
-        f"Applying augmentations: {opts.use_augmentations}\n"
+        f"Applying augmentations: {opts.use_augmentations} with image size: {opts.image_size}.\n"
     )
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
 
     train_loader, validation_loader = get_dataloader(
-        dataset_name=opts.dataset_name,
         dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
         batch_size=opts.batch_size,
         validation_dataset_dir=opts.validation_dataset_dir,
         num_workers=opts.num_workers,
         use_augmentations=opts.use_augmentations,
-        imagenet_normalization=opts.dataset_name.lower() == "imagenet" or opts.pretrain_vision,
         is_distributed=opts.distributed_context.is_distributed,
         seed=opts.random_seed
     )
@@ -72,8 +69,15 @@ def main(params):
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
     callbacks = get_callbacks(
-        opts=opts,
-        agent=simclr_game.game.sender.gs_layer,
+        shared_vision=opts.shared_vision,
+        n_epochs=opts.n_epochs,
+        checkpoint_dir=opts.checkpoint_dir,
+        sender=simclr_game.game.sender,
+        train_gs_temperature=opts.train_gs_temperature,
+        minimum_gs_temperature=opts.minimum_gs_temperature,
+        update_gs_temp_frequency=opts.update_gs_temp_frequency,
+        gs_temperature_decay=opts.gs_temperature_decay,
+        wandb=opts.wandb
     )
 
     trainer = core.Trainer(
@@ -83,19 +87,8 @@ def main(params):
         train_data=train_loader,
         validation_data=validation_loader,
         callbacks=callbacks,
-        aggregate_interaction_logs=False
     )
     trainer.train(n_epochs=opts.n_epochs)
-
-    if opts.gaussian_noise_evaluation:
-        perform_gaussian_noise_evaluation(
-            game=simclr_game,
-            batch_size=opts.batch_size,
-            distributed_context=opts.distributed_context,
-            seed=opts.random_seed,
-            device=opts.device,
-            checkpoint_dir=opts.checkpoint_dir
-        )
 
 
 if __name__ == "__main__":

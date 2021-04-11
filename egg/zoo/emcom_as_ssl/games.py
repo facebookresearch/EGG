@@ -7,10 +7,11 @@ import torch
 
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.archs import (
+    EmComSSLSymbolGame,
+    EmSSLSender,
     get_vision_modules,
     Receiver,
-    Sender,
-    SymbolGameGS,
+    SimCLRSender,
     VisionGameWrapper,
     VisionModule
 )
@@ -48,23 +49,30 @@ def build_game(opts):
     )
 
     train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
-    test_logging_strategy = LoggingStrategy(True, True, True, True, True, False)
+    test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
 
-    sender = Sender(
-        input_dim=visual_features_dim,
-        hidden_dim=opts.projection_hidden_dim,
-        output_dim=opts.projection_output_dim,
-        temperature=opts.gs_temperature,
-        trainable_temperature=opts.train_gs_temperature,
-        straight_through=opts.straight_through,
-    )
+    if opts.simclr_sender:
+        sender = SimCLRSender(
+            input_dim=visual_features_dim,
+            hidden_dim=opts.projection_hidden_dim,
+            output_dim=opts.projection_output_dim,
+        )
+    else:
+        sender = EmSSLSender(
+            input_dim=visual_features_dim,
+            hidden_dim=opts.projection_hidden_dim,
+            output_dim=opts.projection_output_dim,
+            temperature=opts.gs_temperature,
+            trainable_temperature=opts.train_gs_temperature,
+            straight_through=opts.straight_through,
+        )
     receiver = Receiver(
         input_dim=visual_features_dim,
         hidden_dim=opts.projection_hidden_dim,
         output_dim=opts.projection_output_dim
     )
 
-    game = SymbolGameGS(
+    game = EmComSSLSymbolGame(
         sender,
         receiver,
         loss,

@@ -4,26 +4,12 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
-import json
-import pathlib
-
-import torch
 
 import egg.core as core
-from egg.core.interaction import Interaction
-from egg.core.util import move_to
-from egg.zoo.simclr.data import get_random_noise_dataloader
 
 
 def get_data_opts(parser):
     group = parser.add_argument_group("data")
-    group.add_argument(
-        "--dataset_name",
-        type=str,
-        default="imagenet",
-        choices=["cifar10", "imagenet"],
-        help="Dataset name",
-    )
     group.add_argument(
         "--dataset_dir",
         type=str,
@@ -124,35 +110,43 @@ def get_game_arch_opts(parser):
         "--projection_hidden_dim",
         type=int,
         default=2048,
-        help="Projection head's hidden dimension for image features."
+        help="Projection head's hidden dimension for image features"
     )
     group.add_argument(
         "--projection_output_dim",
         type=int,
         default=2048,
-        help="Projection head's output dimension for image features."
+        help="Projection head's output dimension for image features"
+    )
+    group.add_argument(
+        "--simclr_sender",
+        default=False,
+        action="store_true",
+        help="Use a simclr-like sender (no discreteness)"
     )
 
 
 def get_loss_opts(parser):
     group = parser.add_argument_group("loss")
     group.add_argument(
+        "--loss_type",
+        type=str,
+        default="comm_ntxent",
+        choices=["xent", "comm_ntxent", "ntxent"],
+        help="Model name for loss function",
+    )
+    group.add_argument(
         "--loss_temperature",
         type=float,
         default=0.1,
-        help="Temperature for (NT)XEnt loss",
-    )
-    group.add_argument(
-        "--use_ntxent",
-        default=True,
-        action="store_true",
-        help="Temperature for (NT)XEnt loss",
+        help="Temperature for similarity computation in the loss fn. Ignored when similarity is 'dot'",
     )
     group.add_argument(
         "--similarity",
         type=str,
         default="cosine",
-        help="Similarity used in  (NT)XEnt loss",
+        choices=["cosine", "dot"],
+        help="Similarity function used in loss",
     )
 
 
@@ -163,12 +157,6 @@ def get_common_opts(params):
         type=float,
         default=10e-6,
         help="Weight decay used for SGD",
-    )
-    parser.add_argument(
-        "--gaussian_noise_evaluation",
-        action="store_true",
-        default=False,
-        help="Perform and evaluation on gaussian noise at the end of training and store the interaction output"
     )
     parser.add_argument(
         "--wandb",
@@ -206,69 +194,3 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
     return [
         {'params': no_decay, 'weight_decay': 0.},
         {'params': decay, 'weight_decay': weight_decay}]
-
-
-def noise_eval(
-    game,
-    validation_data,
-    is_distributed,
-    device,
-):
-    mean_loss = 0.0
-    interactions = []
-    n_batches = 0
-    game.eval()
-    with torch.no_grad():
-        for batch in validation_data:
-            batch = move_to(batch, device)
-            optimized_loss, interaction = game(*batch)
-
-            if is_distributed:
-                interaction = Interaction.gather_distributed_interactions(interaction)
-
-            interaction = interaction.to("cpu")
-            mean_loss += optimized_loss
-
-            interactions.append(interaction)
-            n_batches += 1
-
-    mean_loss /= n_batches
-    full_interaction = Interaction.from_iterable(interactions)
-
-    return mean_loss.item(), full_interaction
-
-
-def dump_noise_interaction(logs: Interaction, dump_dir: str):
-    dump_dir = pathlib.Path(dump_dir) / "gaussian_noise"
-    dump_dir.mkdir(exist_ok=True, parents=True)
-    torch.save(logs, dump_dir / "interaction_noise")
-
-
-def perform_gaussian_noise_evaluation(
-    game,
-    batch_size,
-    distributed_context,
-    seed,
-    device,
-    checkpoint_dir
-):
-
-    noise_loader = get_random_noise_dataloader(
-        batch_size=batch_size,
-        is_distributed=distributed_context.is_distributed,
-        seed=seed
-    )
-
-    loss, noise_interaction = noise_eval(
-        game=game,
-        validation_data=noise_loader,
-        is_distributed=distributed_context.is_distributed,
-        device=device
-    )
-
-    if distributed_context.is_leader:
-        dump = dict(val_gaussian_loss=loss, val_gaussian_acc=noise_interaction.aux["acc"].mean().item())
-        output_message = json.dumps(dump)
-        print(output_message, flush=True)
-
-        dump_noise_interaction(noise_interaction, checkpoint_dir)

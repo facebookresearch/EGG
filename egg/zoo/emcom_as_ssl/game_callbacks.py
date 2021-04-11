@@ -6,6 +6,7 @@
 import json
 
 import torch
+import torch.nn as nn
 import wandb
 
 from egg.core import (
@@ -80,38 +81,25 @@ class VisionModelSaver(Callback):
         shared: bool,
     ):
         super().__init__()
-
         self.shared = shared
 
     def save_vision_model(self, epoch=""):
-        is_distributed = self.trainer.distributed_context.is_distributed
-        is_leader = self.trainer.distributed_context.is_leader
         if hasattr(self.trainer, "checkpoint_path"):
-            if (
-                self.trainer.checkpoint_path and (
-                    (not is_distributed) or (is_distributed and is_leader)
-                )
-            ):
+            if self.trainer.checkpoint_path and self.trainer.distributed_context.is_leader:
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
-                if is_distributed:
-                    # if distributed training the model is an instance of the DistributedDataParallel class
-                    # and we need to unpack it from it.
+                if self.trainer.distributed_context.is_distributed:
+                    # if distributed training the model is an instance of
+                    # DistributedDataParallel and we need to unpack it from it.
                     vision_module = self.trainer.game.module.vision_module
                 else:
                     vision_module = self.trainer.game.vision_module
 
                 model_name = f"vision_module_{'shared' if self.shared else 'sender'}_{epoch if epoch else 'final'}.pt"
-                torch.save(
-                    vision_module.encoder.state_dict(),
-                    self.trainer.checkpoint_path / model_name
-                )
+                torch.save(vision_module.encoder.state_dict(), self.trainer.checkpoint_path / model_name)
 
                 if not self.shared:
                     model_name = f"vision_module_recv_{epoch if epoch else '_final'}.pt"
-                    torch.save(
-                        vision_module.encoder_recv.state_dict(),
-                        self.trainer.checkpoint_path / model_name
-                    )
+                    torch.save(vision_module.encoder_recv.state_dict(), self.trainer.checkpoint_path / model_name)
 
     def on_train_end(self):
         self.save_vision_model()
@@ -135,9 +123,9 @@ class DistributedSamplerEpochSetter(Callback):
 
 
 class WandbLogger(Callback):
-    def __init__(self, agent):
+    def __init__(self, sender=None):
         super().__init__()
-        self.agent = agent
+        self.sender = sender
 
     def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
         if is_training and self.trainer.distributed_context.is_leader:
@@ -147,25 +135,23 @@ class WandbLogger(Callback):
             })
 
     def on_epoch_begin(self, epoch: int):
-        if self.trainer.distributed_context.is_leader:
-            if isinstance(self.agent.temperature, torch.nn.Parameter):
-                temperature = self.agent.temperature.item()
+        if self.trainer.distributed_context.is_leader and self.sender:
+            if isinstance(self.sender.temperature, torch.nn.Parameter):
+                temperature = self.sender.temperature.item()
             else:
-                temperature = self.agent.temperature
+                temperature = self.sender.temperature
             wandb.log({"gs_temperature": temperature}, commit=False)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if self.trainer.distributed_context.is_leader:
-            if isinstance(self.agent.temperature, torch.nn.Parameter):
-                temperature = self.agent.temperature.item()
-            else:
-                temperature = self.agent.temperature
-            wandb.log({
-                "train_loss": loss,
-                "train_accuracy": logs.aux['acc'].mean().item(),
-                "gs_temperature": temperature,
-                "epoch": epoch
-            })
+            wandb.log(
+                {
+                    "train_loss": loss,
+                    "train_accuracy": logs.aux['acc'].mean().item(),
+                    "epoch": epoch
+                },
+                commit=False
+            )
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
         if self.trainer.distributed_context.is_leader:
@@ -176,31 +162,39 @@ class WandbLogger(Callback):
             })
 
 
-def get_callbacks(opts, agent):
+def get_callbacks(
+    shared_vision: bool,
+    n_epochs: int,
+    checkpoint_dir: str,
+    sender: nn.Module,
+    train_gs_temperature: bool = False,
+    minimum_gs_temperature: float = 0.1,
+    update_gs_temp_frequency: int = 1,
+    gs_temperature_decay: float = 0.9,
+    wandb: bool = False
+):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
-        VisionModelSaver(opts.shared_vision),
+        VisionModelSaver(shared_vision),
         InteractionSaver(
-            train_epochs=[1] + [v for v in range(20, opts.n_epochs, 20)] + [opts.n_epochs],
-            test_epochs=[1] + [v for v in range(20, opts.n_epochs, 20)] + [opts.n_epochs],
-            checkpoint_dir=opts.checkpoint_dir
+            train_epochs=[1] + [v for v in range(20, n_epochs, 20)] + [n_epochs],
+            test_epochs=[1] + [v for v in range(20, n_epochs, 20)] + [n_epochs],
+            checkpoint_dir=checkpoint_dir
         ),
     ]
 
-    if not opts.train_gs_temperature:
+    if hasattr(sender, "temperature") and (not train_gs_temperature):
         callbacks.append(
             TemperatureUpdater(
-                agent,
-                minimum=opts.minimum_gs_temperature,
-                update_frequency=opts.update_gs_temp_frequency,
-                decay=opts.gs_temperature_decay
+                sender,
+                minimum=minimum_gs_temperature,
+                update_frequency=update_gs_temp_frequency,
+                decay=gs_temperature_decay
             )
         )
-    if opts.wandb and opts.distributed_context.is_leader:
-        callbacks.append(WandbLogger(agent=agent))
-
-    if opts.distributed_context.is_distributed:
-        callbacks.append(DistributedSamplerEpochSetter())
+    if wandb:
+        sender = sender if hasattr(sender, "temperature") else None
+        callbacks.append(WandbLogger(sender=sender))
 
     return callbacks
