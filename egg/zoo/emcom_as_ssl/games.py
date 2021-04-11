@@ -45,7 +45,7 @@ def build_game(opts):
     loss = get_loss(
         temperature=opts.loss_temperature,
         similarity=opts.similarity,
-        nt_xent=opts.use_ntxent
+        loss_type=opts.loss_type
     )
 
     train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)

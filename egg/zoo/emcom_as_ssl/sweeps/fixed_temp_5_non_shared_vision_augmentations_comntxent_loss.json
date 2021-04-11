@@ -1,5 +1,5 @@
 {
-    "n_epoch": [100],
+    "n_epoch": [2],
     "batch_size": [128],
     "lr": [2.4],
     "random_seed": [111],

@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 
-from typing import Callable, NoneType, Union
+from typing import Callable, Optional
 
 import torch
 from torchvision import transforms
@@ -49,7 +49,7 @@ class GaussianNoiseDataset(torch.utils.data.Dataset):
             self,
             size: int = 49152,
             image_size: int = 224,
-            transformations: Union[Callable, NoneType] = None
+            transformations: Optional[Callable] = None
     ):
         self.data = [torch.randn(3, image_size, image_size) for _ in range(size)]
         self.transformations = transformations
