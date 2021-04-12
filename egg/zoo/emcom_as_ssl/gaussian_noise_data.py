@@ -20,7 +20,7 @@ def get_random_noise_dataloader(
     seed: int = 111
 ):
 
-    transformations = TransformsGaussianNoise(augmentation=use_augmentations)
+    transformations = TransformsGaussianNoise(augmentations=use_augmentations)
     dataset = GaussianNoiseDataset(size=dataset_size, image_size=image_size, transformations=transformations)
 
     sampler = None
@@ -83,4 +83,4 @@ class TransformsGaussianNoise:
 
     def __call__(self, x):
         x_i, x_j = self.transform(x), self.transform(x)
-        return x_i, x_j, x_i
+        return x_i, x_j

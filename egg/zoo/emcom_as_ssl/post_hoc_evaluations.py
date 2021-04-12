@@ -5,9 +5,11 @@
 
 
 import json
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import wandb
 
 from egg.core.callbacks import InteractionSaver
 from egg.core.interaction import Interaction
@@ -16,7 +18,7 @@ from egg.zoo.emcom_as_ssl.data import get_dataloader
 from egg.zoo.emcom_as_ssl.gaussian_noise_data import get_random_noise_dataloader
 
 
-def aggregate_print(loss: float, logs: Interaction, mode: str, epoch: int):
+def aggregate_print(loss: float, logs: Interaction, mode: str):
     dump = dict(loss=loss)
     aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
 
@@ -34,6 +36,7 @@ def eval_print_result_and_store_interactions(
     is_distributed: bool,
     mode: str,
     log_dir: str,
+    use_wandb: bool = False,
 ):
     mean_loss = 0.0
     interactions = []
@@ -67,6 +70,12 @@ def eval_print_result_and_store_interactions(
         logs=full_interaction,
         mode=mode
     )
+    if use_wandb:
+        wandb.log({
+            f"post_hoc_{mode}_loss": mean_loss.item(),
+            f"post_hoc_{mode}_accuracy": full_interaction.aux['acc'].mean().item(),
+            f"post_hoc_{mode}_game_accuracy": full_interaction.aux['game_acc'].mean().item(),
+        })
 
 
 def post_hoc_evaluations(
@@ -79,6 +88,7 @@ def post_hoc_evaluations(
     use_augmentations: bool = False,
     gaussian_noise_dataset_size: int = 49152,
     is_distributed: bool = False,
+    use_wandb: bool = False,
     seed: int = 111,
 ):
     o_test_path = (
@@ -86,7 +96,7 @@ def post_hoc_evaluations(
         "generalizaton_set_construction/100_generalization_data_set"
     )
 
-    o_test_loader = get_dataloader(
+    o_test_loader, _ = get_dataloader(
         dataset_dir=o_test_path,
         image_size=image_size,
         batch_size=batch_size,
@@ -103,6 +113,7 @@ def post_hoc_evaluations(
         is_distributed=is_distributed,
         mode="o_test",
         log_dir=log_dir,
+        use_wandb=use_wandb
     )
 
     gaussian_noise_data = get_random_noise_dataloader(
@@ -121,4 +132,5 @@ def post_hoc_evaluations(
         is_distributed=is_distributed,
         mode="gaussian_noise",
         log_dir=log_dir,
+        use_wandb=use_wandb
     )

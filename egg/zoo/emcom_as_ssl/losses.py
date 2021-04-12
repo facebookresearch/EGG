@@ -55,7 +55,7 @@ class XEntLoss(Loss):
         labels = torch.eye(receiver_output.shape[0])
         acc = (model_guesses.argmax(dim=1) == labels).detach().float()
         loss = F.cross_entropy(model_guesses, labels, reduction="none")
-        return loss, {'acc': acc}
+        return loss, {"acc": acc, "game_acc": torch.Tensor([0])}
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."
@@ -74,7 +74,7 @@ class CommNTXentLoss(Loss):
         logits_msg_img = similarity_matrix[:batch_size, batch_size:]
         logits_img_msg = similarity_matrix[batch_size:, :batch_size]
 
-        labels = torch.eye(batch_size, device=input.device).long()
+        labels = torch.arange(batch_size, device=input.device)
 
         loss_msg_img = F.cross_entropy(logits_msg_img, labels, reduction="none")
         loss_img_msg = F.cross_entropy(logits_img_msg, labels, reduction="none")

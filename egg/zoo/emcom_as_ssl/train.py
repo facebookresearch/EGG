@@ -17,7 +17,7 @@ from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 
 def main(params):
     opts = get_common_opts(params=params)
-    print(opts)
+    print(f"{opts}\n")
     if opts.wandb and opts.distributed_context.is_leader:
         # if opts.checkpoint_dir:
         #    id = opts.checkpoint_dir.split("/")[-1]
@@ -100,8 +100,9 @@ def main(params):
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         use_augmentations=opts.use_augmentations,
-        gaussian_noise_dataset_size=len(validation_loader),
+        gaussian_noise_dataset_size=49152,  # size of imagenet validation set
         is_distributed=opts.distributed_context.is_distributed,
+        use_wandb=opts.wandb,
         seed=opts.random_seed
     )
 
