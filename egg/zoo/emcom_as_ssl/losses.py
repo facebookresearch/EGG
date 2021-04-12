@@ -70,57 +70,26 @@ class CommNTXentLoss(Loss):
         input = torch.cat((message, receiver_output), dim=0)
 
         similarity_matrix = self.get_similarity_matrix(input, input)
-        sim_msg_img = torch.diag(similarity_matrix, batch_size).reshape(batch_size, 1)
-        sim_img_msg = torch.diag(similarity_matrix, -batch_size).reshape(batch_size, 1)
 
-        negative_samples = similarity_matrix
+        logits_msg_img = similarity_matrix[:batch_size, batch_size:]
+        logits_img_msg = similarity_matrix[batch_size:, :batch_size]
 
-        negative_samples_msgs = negative_samples[:batch_size, batch_size:]
-        negative_samples_imgs = negative_samples[batch_size:, :batch_size]
+        labels = torch.eye(batch_size, device=input.device).long()
 
-        labels_msg = torch.zeros(
-            batch_size
-        ).to(
-            sim_msg_img.device
-        ).long()
-        labels_img = torch.zeros_like(labels_msg)
-
-        logits_msg_img = torch.cat(
-            (
-                sim_msg_img,
-                negative_samples_msgs
-            ),
-            dim=1
-        )
-        logits_img_msg = torch.cat(
-            (
-                sim_img_msg,
-                negative_samples_imgs
-            ),
-            dim=1
-        )
-
-        loss_msg_img = F.cross_entropy(logits_msg_img, labels_msg, reduction="none")
-        loss_img_msg = F.cross_entropy(logits_img_msg, labels_img, reduction="none")
+        loss_msg_img = F.cross_entropy(logits_msg_img, labels, reduction="none")
+        loss_img_msg = F.cross_entropy(logits_img_msg, labels, reduction="none")
         loss = (loss_msg_img + loss_img_msg) / 2
 
         model_guesses = torch.argmax(
             torch.cat((logits_msg_img, logits_img_msg), dim=0),
             dim=1
         )
-        ground_truth = torch.cat((labels_msg, labels_img), dim=0)
+        ground_truth = torch.cat((labels, labels), dim=0)
+
         acc = (model_guesses == ground_truth).float().detach()  # this is soft_acc
+        game_acc = (torch.argmax(logits_msg_img, dim=1) == labels).float().detach()
 
-        hard_acc_tnsr = torch.cat((acc[:batch_size].unsqueeze(1), acc[batch_size:].unsqueeze(1)), dim=1)
-        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().detach()
-
-        acc_of_msg_with_each_img = (torch.argmax(logits_msg_img, dim=1) == labels_msg).float().detach()
-
-        return loss, {
-            "acc": acc.mean(),
-            "hard_acc": hard_acc.mean(),
-            "acc_of_msg_with_each_img": acc_of_msg_with_each_img.mean()
-        }
+        return loss, {"acc": acc, "game_acc": game_acc}
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."
@@ -157,12 +126,16 @@ class NTXentLoss(Loss):
         logits = torch.cat((positive_samples, negative_samples), dim=1)
 
         loss = F.cross_entropy(logits, labels, reduction="none") / 2
-        acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()
 
-        hard_acc_tnsr = torch.cat((acc[:batch_size].unsqueeze(1), acc[batch_size:].unsqueeze(1)), dim=1)
-        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().detach()
+        acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()  # this is soft_acc
 
-        return loss, {"acc": acc.mean(), "hard_acc": hard_acc.mean()}
+        sim_msg_img = sim_i_j
+        logits_msg_img_for_game_acc = torch.cat((sim_msg_img, negative_samples[:batch_size, batch_size:]), dim=1)
+        labels_msg_for_game_acc = torch.zeros(batch_size).to(sim_msg_img.device).long()
+
+        game_acc = (torch.argmax(logits_msg_img_for_game_acc, dim=1) == labels_msg_for_game_acc).float().detach()
+
+        return loss, {"acc": acc, "game_acc": game_acc}
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         self.ntxent_loss(message, receiver_output)

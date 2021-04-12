@@ -29,7 +29,7 @@ def aggregate_print(loss: float, logs: Interaction, mode: str, epoch: int):
 
 def eval_print_result_and_store_interactions(
     game: nn.Module,
-    validation_data: DataLoader,
+    data: DataLoader,
     device: torch.device,
     is_distributed: bool,
     mode: str,
@@ -40,7 +40,7 @@ def eval_print_result_and_store_interactions(
     n_batches = 0
     game.eval()
     with torch.no_grad():
-        for batch in validation_data:
+        for batch in data:
             batch = move_to(batch, device)
             optimized_loss, interaction = game(*batch)
 
@@ -79,7 +79,7 @@ def post_hoc_evaluations(
     use_augmentations: bool = False,
     gaussian_noise_dataset_size: int = 49152,
     is_distributed: bool = False,
-    random_seed: int = 111,
+    seed: int = 111,
 ):
     o_test_path = (
         "/private/home/mbaroni/agentini/representation_learning/"
@@ -93,7 +93,7 @@ def post_hoc_evaluations(
         num_workers=num_workers,
         use_augmentations=use_augmentations,
         is_distributed=is_distributed,
-        seed=random_seed
+        seed=seed
     )
 
     eval_print_result_and_store_interactions(
@@ -112,7 +112,7 @@ def post_hoc_evaluations(
         num_workers=num_workers,
         use_augmentations=use_augmentations,
         is_distributed=is_distributed,
-        seed=random_seed
+        seed=seed
     )
     eval_print_result_and_store_interactions(
         game=game,

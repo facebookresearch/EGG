@@ -159,8 +159,8 @@ class Receiver(nn.Module):
             nn.Linear(hidden_dim, output_dim, bias=False),
         )
 
-    def forward(self, _x, input):
-        return self.fc(input)
+    def forward(self, _x, resnet_output):
+        return self.fc(resnet_output.detach()), resnet_output.detach()
 
 
 class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
@@ -168,8 +168,8 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
 
     def forward(self, sender_input, labels, receiver_input=None):
-        message, message_like, resnet_output = self.sender(sender_input)
-        receiver_output = self.receiver(message, receiver_input)
+        message, message_like, resnet_output_sender = self.sender(sender_input)
+        receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(
             sender_input, message, receiver_input, receiver_output, labels
@@ -184,7 +184,8 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
 
         if not self.training:
             aux_info["message_like"] = message_like
-            aux_info["resnet_output"] = resnet_output
+            aux_info["resnet_output_sender"] = resnet_output_sender
+            aux_info["resnet_output_recv"] = resnet_output_recv
 
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
