@@ -109,14 +109,18 @@ class CommNTXentLoss(Loss):
             dim=1
         )
         ground_truth = torch.cat((labels_msg, labels_img), dim=0)
-        acc = (model_guesses == ground_truth).float().mean().detach()  # this is soft_acc
+        acc = (model_guesses == ground_truth).float().detach()  # this is soft_acc
 
         hard_acc_tnsr = torch.cat((acc[:batch_size].unsqueeze(1), acc[batch_size:].unsqueeze(1)), dim=1)
-        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().mean().detach()
+        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().detach()
 
-        acc_of_msg_with_each_img = (torch.argmax(logits_msg_img, dim=1) == labels_msg).float().mean().detach()
+        acc_of_msg_with_each_img = (torch.argmax(logits_msg_img, dim=1) == labels_msg).float().detach()
 
-        return loss, {"acc": acc, "acc_hard": hard_acc, "acc_of_msg_with_each_img": acc_of_msg_with_each_img}
+        return loss, {
+            "acc": acc.mean(),
+            "hard_acc": hard_acc.mean(),
+            "acc_of_msg_with_each_img": acc_of_msg_with_each_img.mean()
+        }
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."
@@ -153,12 +157,12 @@ class NTXentLoss(Loss):
         logits = torch.cat((positive_samples, negative_samples), dim=1)
 
         loss = F.cross_entropy(logits, labels, reduction="none") / 2
-        acc = (torch.argmax(logits.detach(), dim=1) == labels).float()
+        acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()
 
         hard_acc_tnsr = torch.cat((acc[:batch_size].unsqueeze(1), acc[batch_size:].unsqueeze(1)), dim=1)
-        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().mean()
+        hard_acc = (torch.sum(hard_acc_tnsr, 1) == 2).float().detach()
 
-        return loss, {"acc": acc, "acc_hard": hard_acc}
+        return loss, {"acc": acc.mean(), "hard_acc": hard_acc.mean()}
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         self.ntxent_loss(message, receiver_output)
