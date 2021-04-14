@@ -3,6 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import uuid
+
 import torch
 import wandb
 
@@ -19,11 +21,8 @@ def main(params):
     opts = get_common_opts(params=params)
     print(f"{opts}\n")
     if opts.wandb and opts.distributed_context.is_leader:
-        # if opts.checkpoint_dir:
-        #    id = opts.checkpoint_dir.split("/")[-1]
-        # else:
-        import uuid
-        id = str(uuid.uuid4())
+        run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else ""
+        id = f"{run_name}_{str(uuid.uuid4())}"
         # wandb.init(project="emcom_as_ssl", id=id)
         wandb.init(project="temp_emcom_as_ssl", id=id)
         wandb.config.update(opts)

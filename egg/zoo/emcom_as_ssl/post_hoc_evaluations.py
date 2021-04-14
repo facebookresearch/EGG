@@ -73,7 +73,7 @@ def eval_print_result_and_store_interactions(
     if use_wandb:
         wandb.log({
             f"post_hoc_{mode}_loss": mean_loss.item(),
-            f"post_hoc_{mode}_accuracy": full_interaction.aux['acc'].mean().item(),
+            f"post_hoc_{mode}_soft_accuracy": full_interaction.aux['acc'].mean().item(),
             f"post_hoc_{mode}_game_accuracy": full_interaction.aux['game_acc'].mean().item(),
         })
 

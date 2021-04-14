@@ -131,7 +131,7 @@ class WandbLogger(Callback):
         if is_training and self.trainer.distributed_context.is_leader:
             wandb.log({
                 "batch_loss": loss,
-                "batch_accuracy": logs.aux["acc"].mean().item(),
+                "batch_soft_accuracy": logs.aux["acc"].mean().item(),
                 "batch_game_accuracy": logs.aux["game_acc"].mean().item(),
             })
 
@@ -148,7 +148,7 @@ class WandbLogger(Callback):
             wandb.log(
                 {
                     "train_loss": loss,
-                    "train_accuracy": logs.aux["acc"].mean().item(),
+                    "train_soft_accuracy": logs.aux["acc"].mean().item(),
                     "train_game_accuracy": logs.aux["game_acc"].mean().item(),
                     "epoch": epoch
                 },
@@ -159,7 +159,7 @@ class WandbLogger(Callback):
         if self.trainer.distributed_context.is_leader:
             wandb.log({
                 "test_loss": loss,
-                "test_accuracy": logs.aux["acc"].mean().item(),
+                "test_soft_accuracy": logs.aux["acc"].mean().item(),
                 "test_game_accuracy": logs.aux["game_acc"].mean().item(),
                 "epoch": epoch
             })
