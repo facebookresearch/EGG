@@ -140,7 +140,7 @@ class EmSSLSender(nn.Module):
     def forward(self, resnet_output):
         first_projection = self.fc(resnet_output)
         message = gumbel_softmax_sample(first_projection, self.temperature, self.training, self.straight_through)
-        out = self.fc(message)
+        out = self.fc_out(message)
         return out, message.detach(), resnet_output.detach()
 
 
