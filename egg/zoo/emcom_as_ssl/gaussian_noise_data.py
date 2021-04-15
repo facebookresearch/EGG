@@ -11,7 +11,7 @@ from torchvision import transforms
 
 
 def get_random_noise_dataloader(
-    dataset_size: int = 49152,
+    dataset_size: int = 3072,
     batch_size: int = 128,
     image_size: int = 32,
     num_workers: int = 4,
@@ -23,21 +23,18 @@ def get_random_noise_dataloader(
     transformations = TransformsGaussianNoise(augmentations=use_augmentations)
     dataset = GaussianNoiseDataset(size=dataset_size, image_size=image_size, transformations=transformations)
 
-    sampler = None
-    if is_distributed:
-        sampler = torch.utils.data.distributed.DistributedSampler(
-            dataset,
-            shuffle=False,
-            drop_last=True,
-            seed=seed
-        )
+    def set_worker_seed(worker_id):
+        torch.manual_seed(torch.initial_seed() + torch.distributed.get_rank() + worker_id)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(torch.initial_seed() + torch.distributed.get_rank() + worker_id)
+
+    worker_init_fn = set_worker_seed if is_distributed else None
 
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=False,
-        sampler=sampler,
         num_workers=num_workers,
+        worker_init_fn=worker_init_fn,
         pin_memory=True,
         drop_last=True,
     )
@@ -47,21 +44,22 @@ def get_random_noise_dataloader(
 class GaussianNoiseDataset(torch.utils.data.Dataset):
     def __init__(
             self,
-            size: int = 49152,
+            size: int = 3072,
             image_size: int = 224,
             transformations: Optional[Callable] = None
     ):
-        self.data = [torch.randn(3, image_size, image_size) for _ in range(size)]
         self.transformations = transformations
+        self.image_size = image_size
+        self.size = size
 
     def __len__(self):
-        return len(self.data)
+        return self.size
 
     def __getitem__(self, index):
-        sample = self.data[index]
+        sample = torch.randn(3, self.image_size, self.image_size)
         if self.transformations:
             sample = self.transformations(sample)
-        return sample, torch.Tensor([1])
+        return sample, torch.zeros(1)
 
 
 class TransformsGaussianNoise:

@@ -23,8 +23,7 @@ def main(params):
     if opts.wandb and opts.distributed_context.is_leader:
         run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else ""
         id = f"{run_name}_{str(uuid.uuid4())}"
-        # wandb.init(project="emcom_as_ssl", id=id)
-        wandb.init(project="temp_emcom_as_ssl", id=id)
+        wandb.init(project="neurips_emcomm", id=id)
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -99,7 +98,7 @@ def main(params):
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         use_augmentations=opts.use_augmentations,
-        gaussian_noise_dataset_size=49152,  # size of imagenet validation set
+        gaussian_noise_dataset_size=(49152 // opts.distributed_context.world_size),  # size of imagenet validation set
         is_distributed=opts.distributed_context.is_distributed,
         use_wandb=opts.wandb,
         seed=opts.random_seed
