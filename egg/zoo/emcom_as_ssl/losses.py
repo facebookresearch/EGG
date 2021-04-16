@@ -66,7 +66,6 @@ class CommNTXentLoss(Loss):
     def comm_nt_xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
         batch_size = message.shape[0]
 
-        receiver_output = F.normalize(receiver_output, dim=-1)
         input = torch.cat((message, receiver_output), dim=0)
 
         similarity_matrix = self.get_similarity_matrix(input, input)
