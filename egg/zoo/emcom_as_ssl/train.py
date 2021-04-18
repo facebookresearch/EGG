@@ -13,7 +13,7 @@ from egg.zoo.emcom_as_ssl.data import get_dataloader
 from egg.zoo.emcom_as_ssl.games import build_game
 from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
 from egg.zoo.emcom_as_ssl.LARC import LARC
-from egg.zoo.emcom_as_ssl.post_hoc_evaluations import post_hoc_evaluations
+# from egg.zoo.emcom_as_ssl.post_hoc_evaluations import post_hoc_evaluations
 from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 
 
@@ -90,6 +90,7 @@ def main(params):
     )
     trainer.train(n_epochs=opts.n_epochs)
 
+    """
     post_hoc_evaluations(
         game=simclr_game,
         device=opts.device,
@@ -103,6 +104,8 @@ def main(params):
         use_wandb=opts.wandb,
         seed=opts.random_seed
     )
+    """
+    print("| FINISHED JOB")
 
 
 if __name__ == "__main__":

@@ -67,7 +67,10 @@ class VisionModule(nn.Module):
 
     def forward(self, x_i, x_j):
         encoded_input_sender = self.encoder(x_i)
-        encoded_input_recv = self.encoder(x_j) if self.shared else self.encoder_recv(x_j)
+        if self.shared:
+            encoded_input_recv = self.encoder(x_j)
+        else:
+            encoded_input_recv = self.encoder_recv(x_j)
         return encoded_input_sender, encoded_input_recv
 
 
@@ -88,7 +91,7 @@ class VisionGameWrapper(nn.Module):
         return self.game(
             sender_input=sender_encoded_input,
             labels=labels,
-            receiver_input=receiver_encoded_input,
+            receiver_input=receiver_encoded_input
         )
 
 

@@ -128,7 +128,7 @@ class NTXentLoss(Loss):
 
         acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()  # this is soft_acc
 
-        logits_msg_img = negative_samples[:batch_size, batch_size:]
+        logits_msg_img = similarity_matrix[:batch_size, batch_size:]
         labels_msg_img = torch.arange(batch_size, device=message.device)
         game_acc = (torch.argmax(logits_msg_img, dim=1) == labels_msg_img).float().detach()
 
