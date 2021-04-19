@@ -5,8 +5,9 @@
     "random_seed": [111],
     "fp16": [true],
     "use_augmentations": [true],
+    "shared_vision": [true],
     "loss_type": ["ntxent"],
     "simclr_sender": [true],
-    "validation_freq": [5],
-    "wandb": [true]
+    "validation_freq": [1],
+    "load_from_checkpoint": ["/private/home/rdessi/neurips_exp/simclr_augmentations_shared_vision_ntxent/40167012_0/99.tar"]
 }

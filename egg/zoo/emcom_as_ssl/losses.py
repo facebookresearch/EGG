@@ -50,12 +50,16 @@ class Loss:
 
 class XEntLoss(Loss):
     def xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
+        batch_size = receiver_output.shape[0]
         model_guesses = self.get_similarity_matrix(message, receiver_output)
 
-        labels = torch.arange(receiver_output.shape[0], device=message.device)
+        if self.similariy == "cosine":
+            model_guesses = model_guesses[batch_size:, :batch_size]
+
+        labels = torch.arange(batch_size, device=message.device)
         acc = (model_guesses.argmax(dim=1) == labels).detach().float()
         loss = F.cross_entropy(model_guesses, labels, reduction="none")
-        return loss, {"acc": acc, "game_acc": torch.Tensor([0])}
+        return loss, {"acc": acc, "game_acc": acc}
 
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."

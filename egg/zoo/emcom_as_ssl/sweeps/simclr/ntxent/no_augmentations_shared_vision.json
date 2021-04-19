@@ -5,7 +5,6 @@
     "random_seed": [111],
     "fp16": [true],
     "shared_vision": [true],
-    "gs_temperature": [5.0],
     "loss_type": ["ntxent"],
     "simclr_sender": [true],
     "validation_freq": [5],
