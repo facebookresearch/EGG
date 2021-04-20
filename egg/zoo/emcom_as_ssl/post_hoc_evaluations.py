@@ -94,7 +94,7 @@ def post_hoc_evaluations(
     assert rank >= -1
     o_test_path = (
         "/private/home/mbaroni/agentini/representation_learning/"
-        "generalizaton_set_construction/100_generalization_data_set"
+        "generalizaton_set_construction/80_generalization_data_set/"
     )
 
     o_test_loader, _ = get_dataloader(
