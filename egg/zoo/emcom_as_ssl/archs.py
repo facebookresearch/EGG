@@ -163,7 +163,7 @@ class Receiver(nn.Module):
         )
 
     def forward(self, _x, resnet_output):
-        return self.fc(resnet_output.detach()), resnet_output.detach()
+        return self.fc(resnet_output), resnet_output.detach()
 
 
 class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
