@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 
+import pathlib
 import json
 
 import torch
@@ -11,11 +12,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import wandb
 
-from egg.core.callbacks import InteractionSaver
 from egg.core.interaction import Interaction
 from egg.core.util import move_to
 from egg.zoo.emcom_as_ssl.data import get_dataloader
-# from egg.zoo.emcom_as_ssl.gaussian_noise_data import get_random_noise_dataloader
+from egg.zoo.emcom_as_ssl.gaussian_noise_data import get_random_noise_dataloader
 
 
 def aggregate_print(loss: float, logs: Interaction, mode: str):
@@ -36,6 +36,7 @@ def eval_print_result_and_store_interactions(
     is_distributed: bool,
     mode: str,
     log_dir: str,
+    rank: int,
     use_wandb: bool = False,
 ):
     mean_loss = 0.0
@@ -58,13 +59,11 @@ def eval_print_result_and_store_interactions(
     mean_loss /= n_batches
     full_interaction = Interaction.from_iterable(interactions)
 
-    InteractionSaver.dump_interactions(
-        logs=full_interaction,
-        mode=mode,
-        epoch=0,
-        rank=0,
-        dump_dir=log_dir
-    )
+    if rank == 0:
+        dump_dir = pathlib.Path(log_dir) / mode
+        dump_dir.mkdir(exist_ok=True, parents=True)
+        torch.save(full_interaction, dump_dir / "interactions.pt")
+
     aggregate_print(
         loss=mean_loss.item(),
         logs=full_interaction,
@@ -88,9 +87,11 @@ def post_hoc_evaluations(
     use_augmentations: bool = False,
     gaussian_noise_dataset_size: int = 3072,
     is_distributed: bool = False,
+    rank: int = -1,
     use_wandb: bool = False,
     seed: int = 111,
 ):
+    assert rank >= -1
     o_test_path = (
         "/private/home/mbaroni/agentini/representation_learning/"
         "generalizaton_set_construction/100_generalization_data_set"
@@ -113,10 +114,10 @@ def post_hoc_evaluations(
         is_distributed=is_distributed,
         mode="o_test",
         log_dir=log_dir,
+        rank=rank,
         use_wandb=use_wandb
     )
 
-    """
     gaussian_noise_data = get_random_noise_dataloader(
         dataset_size=gaussian_noise_dataset_size,
         batch_size=batch_size,
@@ -133,6 +134,6 @@ def post_hoc_evaluations(
         is_distributed=is_distributed,
         mode="gaussian_noise",
         log_dir=log_dir,
+        rank=rank,
         use_wandb=use_wandb
     )
-    """
