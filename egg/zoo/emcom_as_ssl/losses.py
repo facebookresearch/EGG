@@ -53,9 +53,6 @@ class XEntLoss(Loss):
         batch_size = receiver_output.shape[0]
         model_guesses = self.get_similarity_matrix(message, receiver_output)
 
-        if self.similariy == "cosine":
-            model_guesses = model_guesses[batch_size:, :batch_size]
-
         labels = torch.arange(batch_size, device=message.device)
         acc = (model_guesses.argmax(dim=1) == labels).detach().float()
         loss = F.cross_entropy(model_guesses, labels, reduction="none")
@@ -105,7 +102,6 @@ class NTXentLoss(Loss):
     def ntxent_loss(self, message, receiver_output):
         batch_size = message.shape[0]
 
-        receiver_output = F.normalize(receiver_output, dim=-1)
         input = torch.cat((message, receiver_output), dim=0)
 
         similarity_matrix = self.get_similarity_matrix(input, input)
