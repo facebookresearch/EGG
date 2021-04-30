@@ -1,0 +1,209 @@
+# copyright (c) facebook, inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# NOTE: This script only works with a single gpu
+
+import argparse
+
+from sklearn.cluster import KMeans
+import torch
+import torch.nn as nn
+
+from egg.core.interaction import Interaction, LoggingStrategy
+from egg.core.util import move_to
+from egg.zoo.emcom_as_ssl.scripts.utils import (
+    add_common_cli_args,
+    evaluate,
+    get_game,
+    get_params,
+    save_interaction
+)
+from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import get_dataloader
+
+
+def assign_kmeans_labels(interaction: Interaction):
+    resnet_output_sender = interaction.aux["resnet_output_sender"][:10000].cpu().numpy()
+    # resnet_output_recv = interaction["resnet_output_recv"]
+    k_means = KMeans(n_clusters=1000, random_state=0).fit(resnet_output_sender)
+    return k_means
+
+
+def evaluate_test_set(
+    game: nn.Module,
+    data: torch.utils.data.DataLoader,
+    k_means_clusters: KMeans,
+    overwrite_labels_only: bool = True
+):
+    if torch.cuda.is_available():
+        game.cuda()
+    game.eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    logging_strategy = LoggingStrategy(False, False, True, True, True, False)
+
+    mean_loss = 0.0
+    interactions = []
+    n_batches = 0
+    soft_accuracy, game_accuracy = 0.0, 0.0
+    for batch in data:
+        batch = move_to(batch, device)
+        (x_i, x_j), labels = batch
+        if torch.cuda.is_available():
+            x_i = x_i.cuda()
+            x_j = x_j.cuda()
+
+        with torch.no_grad():
+            sender_encoded_input, receiver_encoded_input = game.vision_module(x_i, x_j)
+            messages_generated, message_like, resnet_output_sender = game.game.sender(sender_encoded_input)
+
+            resnet_output_sender_to_predict = resnet_output_sender.cpu().numpy()
+            k_means_labels = torch.from_numpy(
+                k_means_clusters.predict(resnet_output_sender_to_predict)
+            ).to(device=message_like.device, dtype=torch.int64)
+
+            message_size = message_like.size()
+            one_hot_k_means_labels = torch.zeros_like(message_like).view(-1, message_size[-1])
+            one_hot_k_means_labels.scatter_(1, k_means_labels.view(-1, 1), 1)
+            one_hot_k_means_labels = one_hot_k_means_labels.view(*message_size)
+
+            if overwrite_labels_only:
+                message = messages_generated
+            else:
+                message = game.game.sender.fc_out(one_hot_k_means_labels)
+
+            receiver_output, resnet_output_recv = game.game.receiver(message, receiver_encoded_input)
+
+            loss, aux_info = game.game.loss(
+                sender_encoded_input, one_hot_k_means_labels, receiver_encoded_input, receiver_output, labels
+            )
+
+            if hasattr(game.game.sender, "temperature"):
+                if isinstance(game.game.sender.temperature, torch.nn.Parameter):
+                    temperature = game.game.sender.temperature.detach()
+                else:
+                    temperature = torch.Tensor([game.game.sender.temperature])
+                aux_info["temperature"] = temperature
+
+            aux_info["old_message_like"] = message_like
+            aux_info["message_like"] = one_hot_k_means_labels
+            aux_info["resnet_output_sender"] = resnet_output_sender
+            aux_info["resnet_output_recv"] = resnet_output_recv
+
+            interaction = logging_strategy.filtered_interaction(
+                sender_input=sender_encoded_input,
+                receiver_input=receiver_encoded_input,
+                labels=labels,
+                receiver_output=receiver_output.detach(),
+                message=message,
+                message_length=torch.ones(message_size[0]),
+                aux=aux_info,
+            )
+
+            interaction = interaction.to("cpu")
+            interactions.append(interaction)
+
+            mean_loss += loss.mean()
+            soft_accuracy += interaction.aux['acc'].mean().item()
+            game_accuracy += interaction.aux['game_acc'].mean().item()
+            n_batches += 1
+            if n_batches % 10 == 0:
+                print(f"finished batch {n_batches}")
+
+    print(f"processed {n_batches} in total")
+    mean_loss /= n_batches
+    soft_accuracy /= n_batches
+    game_accuracy /= n_batches
+    full_interaction = Interaction.from_iterable(interactions)
+
+    return mean_loss, soft_accuracy, game_accuracy, full_interaction
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--overwrite_labels_only",
+        default=False,
+        action="store_true",
+        help="Don't play the game with kmeans-assiged labels, just store them instead of messages in the interaction"
+    )
+    add_common_cli_args(parser)
+    cli_args = parser.parse_args()
+
+    opts = get_params(
+        simclr_sender=cli_args.simclr_sender,
+        shared_vision=cli_args.shared_vision,
+        loss_type=cli_args.loss_type
+    )
+
+    if cli_args.pdb:
+        breakpoint()
+
+    o_test_path = (
+        "/private/home/mbaroni/agentini/representation_learning/"
+        "generalizaton_set_construction/80_generalization_data_set/"
+    )
+    i_test_path = "/datasets01/imagenet_full_size/061417/val"
+    if cli_args.test_set == "o_test":
+        test_dataset_dir = o_test_path
+    elif cli_args.test_set == "i_test":
+        test_dataset_dir = i_test_path
+    else:
+        raise NotImplementedError(f"Cannot recognize {cli_args.test_set} test_set")
+
+    train_dataset_dir = "/datasets01/imagenet_full_size/061417/train"
+    print(f"| Fetching train data from {train_dataset_dir}...")
+    train_dataloader = get_dataloader(
+        dataset_dir=train_dataset_dir,
+        use_augmentations=cli_args.evaluate_with_augmentations
+    )
+    print("| Fetched train data.")
+
+    print(f"| Fetching test data of {cli_args.test_set} test set from {test_dataset_dir}...")
+    test_dataloader = get_dataloader(
+        dataset_dir=test_dataset_dir,
+        use_augmentations=cli_args.evaluate_with_augmentations
+    )
+    print("| Fetched test data")
+
+    print(f"| Loading model from {cli_args.checkpoint_path} ...")
+    game = get_game(opts, cli_args.checkpoint_path)
+    print("| Model loaded.")
+
+    print("| Starting evaluation ...")
+    _, _, _, interaction = evaluate(
+        game=game,
+        data=train_dataloader
+    )
+    print("| Finished processing train_data")
+
+    print("| Clustering resnet outputs ...")
+    k_means_clusters = assign_kmeans_labels(interaction)
+    print("| Done clustering resnet outputs")
+
+    print(f"| Running evaluation on {cli_args.test_set} test set ...")
+    loss, soft_acc, game_acc, interaction = evaluate_test_set(
+        game=game,
+        data=test_dataloader,
+        k_means_clusters=k_means_clusters,
+        overwrite_labels_only=cli_args.overwrite_labels_only
+    )
+    print("| Done evaluation on {cli_args.test_set} test set")
+
+    print(f"| Loss: {loss}, soft_accuracy (out of 100): {soft_acc * 100}, game_accuracy (out of 100): {game_acc * 100}")
+
+    if cli_args.dump_interaction_folder:
+        print("| Saving interaction ...")
+        save_interaction(
+            interaction=interaction,
+            log_dir=cli_args.dump_interaction_folder,
+            test_set=cli_args.test_set
+        )
+        print(f"| Interaction saved at {cli_args.dump_interaction_folder}")
+
+    print("Finished evaluation.")
+
+
+if __name__ == "__main__":
+    main()

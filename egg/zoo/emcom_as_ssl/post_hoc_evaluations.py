@@ -15,7 +15,6 @@ import wandb
 from egg.core.interaction import Interaction
 from egg.core.util import move_to
 from egg.zoo.emcom_as_ssl.data import get_dataloader
-from egg.zoo.emcom_as_ssl.gaussian_noise_data import get_random_noise_dataloader
 
 
 def aggregate_print(loss: float, logs: Interaction, mode: str):
@@ -113,26 +112,6 @@ def post_hoc_evaluations(
         device=device,
         is_distributed=is_distributed,
         mode="o_test",
-        log_dir=log_dir,
-        rank=rank,
-        use_wandb=use_wandb
-    )
-
-    gaussian_noise_data = get_random_noise_dataloader(
-        dataset_size=gaussian_noise_dataset_size,
-        batch_size=batch_size,
-        image_size=image_size,
-        num_workers=num_workers,
-        use_augmentations=use_augmentations,
-        is_distributed=is_distributed,
-        seed=seed
-    )
-    eval_print_result_and_store_interactions(
-        game=game,
-        data=gaussian_noise_data,
-        device=device,
-        is_distributed=is_distributed,
-        mode="gaussian_noise",
         log_dir=log_dir,
         rank=rank,
         use_wandb=use_wandb
