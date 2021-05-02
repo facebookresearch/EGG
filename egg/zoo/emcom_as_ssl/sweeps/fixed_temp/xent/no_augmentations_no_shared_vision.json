@@ -6,7 +6,6 @@
     "fp16": [true],
     "gs_temperature": [5.0],
     "loss_type": ["xent"],
-    "simclr_sender": [true],
-    "validation_freq": [5],
+    "validation_freq": [0],
     "wandb": [true]
 }

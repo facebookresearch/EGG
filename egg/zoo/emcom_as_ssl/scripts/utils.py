@@ -151,6 +151,11 @@ def evaluate(
             n_batches += 1
             if n_batches % 10 == 0:
                 print(f"finished batch {n_batches}")
+            # when running kmeans, we first feed the train data.
+            # given we're clustering only a subset of 100_000 elements from the
+            # training data we can stop after 128 (bsz) X 800 (batches) = 102_400 samples
+            if n_batches == 800:
+                break
 
     print(f"processed {n_batches} batches in total")
     mean_loss /= n_batches

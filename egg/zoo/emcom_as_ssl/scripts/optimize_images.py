@@ -5,51 +5,93 @@
 
 
 import argparse
+from typing import List, Tuple
 
 import torch
 import torch.nn as nn
 
-from egg.core.interaction import Interaction
-from egg.core.util import move_to
 from egg.zoo.emcom_as_ssl.scripts.utils import add_common_cli_args
-from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import get_dataloader, save_interaction
+from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import (
+    get_dataloader,
+    get_params,
+    get_game
+)
 
 
-def evaluate(
+def generate_token_histogram(
     game: nn.Module,
     data: torch.utils.data.DataLoader,
 ):
     if torch.cuda.is_available():
         game.cuda()
     game.eval()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    mean_loss = 0.0
-    interactions = []
     n_batches = 0
-    soft_accuracy, game_accuracy = 0.0, 0.0
+    token_histogram = []
     with torch.no_grad():
-        for batch in data:
-            batch = move_to(batch, device)
-            optimized_loss, interaction = game(*batch)
+        for (x_i, x_j), labels in data:
+            if torch.cuda.is_available():
+                x_i = x_i.cuda()
+                x_j = x_j.cuda()
 
-            interaction = interaction.to("cpu")
-            interactions.append(interaction)
+            sender_encoded_input, receiver_encoded_input = game.vision_module(x_i, x_j)
+            *rest, pre_gs = game.game.sender(sender_encoded_input)
 
-            mean_loss += optimized_loss
-            soft_accuracy += interaction.aux['acc'].mean().item()
-            game_accuracy += interaction.aux['game_acc'].mean().item()
+            tokens = pre_gs.argmax(dim=-1).cpu().tolist()
+            token_histogram.extend(tokens)
+
             n_batches += 1
+
             if n_batches % 10 == 0:
                 print(f"finished batch {n_batches}")
 
-    print(f"processed {n_batches} in total")
-    mean_loss /= n_batches
-    soft_accuracy /= n_batches
-    game_accuracy /= n_batches
-    full_interaction = Interaction.from_iterable(interactions)
+            if len(token_histogram) > 50_000:
+                break
 
-    return mean_loss, soft_accuracy, game_accuracy, full_interaction
+    print(f"processed {n_batches} in total")
+
+    return token_histogram
+
+
+def optimize_image(
+    game: nn.Module,
+    token_histogram: List[Tuple[int, int]],
+    dim_to_optimize: int
+):
+
+    histogram = {}
+    for token in token_histogram:
+        histogram[token] = 1 + histogram.get(token, 0)
+
+    histogram = [(token, frq) for token, frq in histogram.items()]
+    histogram.sort(key=lambda x: x[1], reverse=True)
+
+    for p in game.parameters():
+        p.requires_grad_(False)
+
+    game.game.sender.gs_layer.train()
+
+    random_image = torch.rand(3, 224, 224)
+    random_image.uniform_().div_(100).unsqueeze_(0)
+    random_image.requires_grad_(True)
+
+    optimizer = torch.optim.SGD((random_image, ), lr=0.1)
+
+    for i in range(1000):
+        optimizer.zero_grad()
+        sender_encoded_input, _ = game.vision_module(random_image, random_image)
+
+        # TO CHANGE
+        *rest, message, pre_gs = game.game.sender(sender_encoded_input)
+
+        loss = -pre_gs[0, dim_to_optimize]  # (-2 * pre_gs[0, 1755] + pre_gs.sum())
+
+        loss.backward()
+        optimizer.step()
+        if i > 0 and i % 100 == 0:
+            print(loss.detach().item())
+
+    return loss, random_image
 
 
 def main():
@@ -69,6 +111,11 @@ def main():
     )
     add_common_cli_args(parser)
     cli_args = parser.parse_args()
+    opts = get_params(
+        simclr_sender=cli_args.simclr_sender,
+        shared_vision=cli_args.shared_vision,
+        loss_type=cli_args.loss_type
+    )
 
     if cli_args.pdb:
         breakpoint()
@@ -92,12 +139,19 @@ def main():
     )
     print("| Data fetched.")
 
-    save_interaction(
-        interaction=interaction,
-        log_dir=cli_args.dump_interaction_folder,
-        interaction_name=cli_args.interaction_name
-    )
-    print(f"| Interaction saved at {cli_args.dump_interaction_folder}")
+    print(f"| Loading model from {cli_args.checkpoint_path} ...")
+    game = get_game(opts, cli_args.checkpoint_path)
+    print("| Model loaded.")
+
+    token_histogram = generate_token_histogram(game, dataloader)
+
+    dim_to_optimize = 1
+    loss, random_image = optimize_image(game, token_histogram, dim_to_optimize)
+
+    loss, optimized_image = random_image.detach().squeeze().cpu().transpose(2, 0)
+    torch.save(optimized_image, f"/private/home/rdessi/optimized_images/optimized_img_dim_{dim_to_optimize}")
+
+    print(f"| Loss {loss}")
 
     print("Finished evaluation.")
 

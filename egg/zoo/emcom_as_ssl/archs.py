@@ -112,6 +112,19 @@ class SimCLRSender(nn.Module):
 
     def forward(self, resnet_output):
         first_projection = self.fc(resnet_output)
+
+        # make argmaxing at test time optional with a parameter
+        # print("before onehot")
+        if False:  # not self.training:
+            print("after onehot")
+            logits = first_projection
+            size = logits.size()
+            indexes = logits.argmax(dim=-1)
+            one_hot = torch.zeros_like(logits).view(-1, size[-1])
+            one_hot.scatter_(1, indexes.view(-1, 1), 1)
+            one_hot = one_hot.view(*size)
+            first_projection = one_hot
+
         out = self.fc_out(first_projection)
         return out, first_projection.detach(), resnet_output.detach()
 

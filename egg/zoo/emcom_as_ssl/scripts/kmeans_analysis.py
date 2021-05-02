@@ -24,7 +24,7 @@ from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import get_datalo
 
 
 def assign_kmeans_labels(interaction: Interaction):
-    resnet_output_sender = interaction.aux["resnet_output_sender"][:10000].cpu().numpy()
+    resnet_output_sender = interaction.aux["resnet_output_sender"][:100000].cpu().numpy()
     # resnet_output_recv = interaction["resnet_output_recv"]
     k_means = KMeans(n_clusters=1000, random_state=0).fit(resnet_output_sender)
     return k_means
@@ -34,7 +34,6 @@ def evaluate_test_set(
     game: nn.Module,
     data: torch.utils.data.DataLoader,
     k_means_clusters: KMeans,
-    overwrite_labels_only: bool = True
 ):
     if torch.cuda.is_available():
         game.cuda()
@@ -56,27 +55,20 @@ def evaluate_test_set(
 
         with torch.no_grad():
             sender_encoded_input, receiver_encoded_input = game.vision_module(x_i, x_j)
-            messages_generated, message_like, resnet_output_sender = game.game.sender(sender_encoded_input)
+            message, message_like, resnet_output_sender = game.game.sender(sender_encoded_input)
 
             resnet_output_sender_to_predict = resnet_output_sender.cpu().numpy()
             k_means_labels = torch.from_numpy(
                 k_means_clusters.predict(resnet_output_sender_to_predict)
             ).to(device=message_like.device, dtype=torch.int64)
 
-            message_size = message_like.size()
-            one_hot_k_means_labels = torch.zeros_like(message_like).view(-1, message_size[-1])
+            one_hot_k_means_labels = torch.zeros((message_like.shape[0], 1000), device=message_like.device)
             one_hot_k_means_labels.scatter_(1, k_means_labels.view(-1, 1), 1)
-            one_hot_k_means_labels = one_hot_k_means_labels.view(*message_size)
-
-            if overwrite_labels_only:
-                message = messages_generated
-            else:
-                message = game.game.sender.fc_out(one_hot_k_means_labels)
 
             receiver_output, resnet_output_recv = game.game.receiver(message, receiver_encoded_input)
 
             loss, aux_info = game.game.loss(
-                sender_encoded_input, one_hot_k_means_labels, receiver_encoded_input, receiver_output, labels
+                sender_encoded_input, message, receiver_encoded_input, receiver_output, labels
             )
 
             if hasattr(game.game.sender, "temperature"):
@@ -86,8 +78,8 @@ def evaluate_test_set(
                     temperature = torch.Tensor([game.game.sender.temperature])
                 aux_info["temperature"] = temperature
 
-            aux_info["old_message_like"] = message_like
-            aux_info["message_like"] = one_hot_k_means_labels
+            aux_info["message_like"] = message_like
+            aux_info["kmeans"] = one_hot_k_means_labels
             aux_info["resnet_output_sender"] = resnet_output_sender
             aux_info["resnet_output_recv"] = resnet_output_recv
 
@@ -97,7 +89,7 @@ def evaluate_test_set(
                 labels=labels,
                 receiver_output=receiver_output.detach(),
                 message=message,
-                message_length=torch.ones(message_size[0]),
+                message_length=torch.ones(message_like.shape[0]),
                 aux=aux_info,
             )
 
@@ -122,12 +114,6 @@ def evaluate_test_set(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--overwrite_labels_only",
-        default=False,
-        action="store_true",
-        help="Don't play the game with kmeans-assiged labels, just store them instead of messages in the interaction"
-    )
     add_common_cli_args(parser)
     cli_args = parser.parse_args()
 
@@ -187,9 +173,8 @@ def main():
         game=game,
         data=test_dataloader,
         k_means_clusters=k_means_clusters,
-        overwrite_labels_only=cli_args.overwrite_labels_only
     )
-    print("| Done evaluation on {cli_args.test_set} test set")
+    print(f"| Done evaluation on {cli_args.test_set} test set")
 
     print(f"| Loss: {loss}, soft_accuracy (out of 100): {soft_acc * 100}, game_accuracy (out of 100): {game_acc * 100}")
 
