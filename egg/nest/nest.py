@@ -61,7 +61,7 @@ if __name__ == "__main__":
         "--nodes", type=int, default=1, help="Number of nodes required per task"
     )
     parser.add_argument(
-        "--partition", type=str, default="dev", help="Partition requested"
+        "--partition", type=str, default="devlab", help="Partition requested"
     )
     parser.add_argument("--time", type=int, default=4320, help="Job timeout")
     parser.add_argument(
