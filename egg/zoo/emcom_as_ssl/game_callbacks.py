@@ -181,8 +181,7 @@ def get_callbacks(
         BestStatsTracker(),
         VisionModelSaver(shared_vision),
         InteractionSaver(
-            train_epochs=[1] + [v for v in range(20, n_epochs, 20)] + [n_epochs],
-            test_epochs=[1] + [v for v in range(20, n_epochs, 20)] + [n_epochs],
+            train_epochs=[n_epochs],
             checkpoint_dir=checkpoint_dir
         ),
     ]
