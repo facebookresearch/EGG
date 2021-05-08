@@ -5,7 +5,6 @@
 
 
 import argparse
-from typing import List, Tuple
 
 import torch
 import torch.nn as nn
@@ -29,66 +28,61 @@ def generate_token_histogram(
     n_batches = 0
     token_histogram = []
     with torch.no_grad():
-        for (x_i, x_j), labels in data:
+        for (x_i, x_j, _), labels in data:
             if torch.cuda.is_available():
                 x_i = x_i.cuda()
                 x_j = x_j.cuda()
 
-            sender_encoded_input, receiver_encoded_input = game.vision_module(x_i, x_j)
-            *rest, pre_gs = game.game.sender(sender_encoded_input)
+            sender_encoded_input, _ = game.vision_module(x_i, x_j)
+            _, message_like, _ = game.game.sender(sender_encoded_input)
 
-            tokens = pre_gs.argmax(dim=-1).cpu().tolist()
+            tokens = message_like.argmax(dim=-1).cpu().tolist()
             token_histogram.extend(tokens)
 
             n_batches += 1
-
             if n_batches % 10 == 0:
                 print(f"finished batch {n_batches}")
 
-            if len(token_histogram) > 50_000:
+            if len(token_histogram) > 60_000:
                 break
 
     print(f"processed {n_batches} in total")
-
     return token_histogram
 
 
 def optimize_image(
     game: nn.Module,
-    token_histogram: List[Tuple[int, int]],
-    dim_to_optimize: int
+    dim_to_optimize: int,
+    optimization_steps: int = 1_000
 ):
 
-    histogram = {}
-    for token in token_histogram:
-        histogram[token] = 1 + histogram.get(token, 0)
-
-    histogram = [(token, frq) for token, frq in histogram.items()]
-    histogram.sort(key=lambda x: x[1], reverse=True)
-
+    game.eval()
+    # game.game.sender.train()
+    game.to("cpu")
     for p in game.parameters():
         p.requires_grad_(False)
 
-    game.game.sender.gs_layer.train()
-
-    random_image = torch.rand(3, 224, 224)
+    first_img = torch.rand(3, 224, 224)
+    random_image = first_img.clone()
     random_image.uniform_().div_(100).unsqueeze_(0)
     random_image.requires_grad_(True)
 
+    # if torch.cuda.is_available():
+    #    random_image = random_image.cuda()
     optimizer = torch.optim.SGD((random_image, ), lr=0.1)
 
-    for i in range(1000):
+    for i in range(optimization_steps):
         optimizer.zero_grad()
         sender_encoded_input, _ = game.vision_module(random_image, random_image)
 
-        # TO CHANGE
-        *rest, message, pre_gs = game.game.sender(sender_encoded_input)
+        _, message_like, _ = game.game.sender(sender_encoded_input)
 
-        loss = -pre_gs[0, dim_to_optimize]  # (-2 * pre_gs[0, 1755] + pre_gs.sum())
+        loss = -message_like[0, dim_to_optimize]  # (-2 * message_like[0, 1755] + message_like.sum())
 
         loss.backward()
         optimizer.step()
-        if i > 0 and i % 100 == 0:
+
+        if i > 0 and i % 10 == 0:
             print(loss.detach().item())
 
     return loss, random_image
@@ -96,20 +90,16 @@ def optimize_image(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--test_set",
-        type=str,
-        choices=["o_test", "i_test"],
-        default="i_test",
-        help="Choose which imagenet validation test to use, choices [i_test, o_test] (default: o_test)"
-    )
-    parser.add_argument(
-        "--dump_interaction_folder",
-        type=str,
-        required=True,
-        help="Path where the newly generated interaction will be saved"
-    )
     add_common_cli_args(parser)
+    parser.add_argument(
+        "--dim_to_optimize",
+        type=int
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=0.1
+    )
     cli_args = parser.parse_args()
     opts = get_params(
         simclr_sender=cli_args.simclr_sender,
@@ -133,27 +123,49 @@ def main():
         raise NotImplementedError(f"Cannot recognize {cli_args.test_set} test_set")
     print(f"| Fetching data from {cli_args.test_set} test set from {dataset_dir}...")
 
-    dataloader = get_dataloader(
-        dataset_dir=dataset_dir,
-        use_augmentations=cli_args.evaluate_with_augmentations
+    if cli_args.dim_to_optimize:
+        dim_to_optimize = cli_args.to_optimize
+    else:
+        dataloader = get_dataloader(
+            dataset_dir=dataset_dir,
+            use_augmentations=cli_args.evaluate_with_augmentations
+        )
+        print("| Data fetched.")
+
+        print(f"| Loading model from {cli_args.checkpoint_path} ...")
+        game = get_game(opts, cli_args.checkpoint_path)
+        print("| Model loaded.")
+
+        print("| Generating most frequent messages")
+        token_histogram = generate_token_histogram(game, dataloader)
+        print("Done")
+
+        histogram = {}
+        for token in token_histogram:
+            histogram[token] = 1 + histogram.get(token, 0)
+
+        histogram = [(token, frq) for token, frq in histogram.items()]
+        histogram.sort(key=lambda x: x[1], reverse=True)
+
+        dim_to_optimize = histogram[0][0]
+
+    breakpoint()
+    print("| Optimizing image ...")
+    loss, optimized_image = optimize_image(
+        game,
+        dim_to_optimize,
+        cli_args.lr
     )
-    print("| Data fetched.")
+    print(f"| Done. Final loss is {loss}")
 
-    print(f"| Loading model from {cli_args.checkpoint_path} ...")
-    game = get_game(opts, cli_args.checkpoint_path)
-    print("| Model loaded.")
-
-    token_histogram = generate_token_histogram(game, dataloader)
-
-    dim_to_optimize = 1
-    loss, random_image = optimize_image(game, token_histogram, dim_to_optimize)
-
-    loss, optimized_image = random_image.detach().squeeze().cpu().transpose(2, 0)
-    torch.save(optimized_image, f"/private/home/rdessi/optimized_images/optimized_img_dim_{dim_to_optimize}")
-
-    print(f"| Loss {loss}")
-
-    print("Finished evaluation.")
+    optimized_image = optimized_image.detach().squeeze().cpu().transpose(2, 0)
+    store_image_path = f"/private/home/rdessi/optimized_images/optimized_img_dim_{dim_to_optimize}"
+    print(f"| Saving optimized image in {store_image_path}")
+    optimized_image -= optimized_image.mean()
+    optimized_image /= optimized_image.std()
+    optimized_image *= 255
+    torch.save(optimized_image, store_image_path)
+    print("| Done")
 
 
 if __name__ == "__main__":

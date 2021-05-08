@@ -23,10 +23,10 @@ from egg.zoo.emcom_as_ssl.scripts.utils import (
 from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import get_dataloader
 
 
-def assign_kmeans_labels(interaction: Interaction):
+def assign_kmeans_labels(interaction: Interaction, num_clusters=1000):
     resnet_output_sender = interaction.aux["resnet_output_sender"][:100000].cpu().numpy()
     # resnet_output_recv = interaction["resnet_output_recv"]
-    k_means = KMeans(n_clusters=1000, random_state=0).fit(resnet_output_sender)
+    k_means = KMeans(n_clusters=num_clusters, random_state=0).fit(resnet_output_sender)
     return k_means
 
 
@@ -62,7 +62,7 @@ def evaluate_test_set(
                 k_means_clusters.predict(resnet_output_sender_to_predict)
             ).to(device=message_like.device, dtype=torch.int64)
 
-            one_hot_k_means_labels = torch.zeros((message_like.shape[0], 1000), device=message_like.device)
+            one_hot_k_means_labels = torch.zeros((message_like.size()[0], 1000), device=message_like.device)
             one_hot_k_means_labels.scatter_(1, k_means_labels.view(-1, 1), 1)
 
             receiver_output, resnet_output_recv = game.game.receiver(message, receiver_encoded_input)

@@ -33,6 +33,7 @@ def add_common_cli_args(parser):
     parser.add_argument(
         "--loss_type",
         type=str,
+        default="xent",
         choices=["xent", "ntxent", "comm_ntxent"],
         help="Specify loss used to train the model"
     )
