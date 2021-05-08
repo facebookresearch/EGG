@@ -69,7 +69,8 @@ def build_game(opts):
     receiver = Receiver(
         input_dim=visual_features_dim,
         hidden_dim=opts.projection_hidden_dim,
-        output_dim=opts.projection_output_dim
+        output_dim=opts.projection_output_dim,
+        discrete_evaluation=opts.discrete_evaluation_simclr
     )
 
     game = EmComSSLSymbolGame(

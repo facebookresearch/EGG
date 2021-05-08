@@ -100,7 +100,8 @@ class SimCLRSender(nn.Module):
         self,
         input_dim: int,
         hidden_dim: int = 2048,
-        output_dim: int = 2048
+        output_dim: int = 2048,
+        discrete_evaluation: bool = False
     ):
         super(SimCLRSender, self).__init__()
         self.fc = nn.Sequential(
@@ -110,13 +111,12 @@ class SimCLRSender(nn.Module):
         )
         self.fc_out = nn.Linear(hidden_dim, output_dim, bias=False)
 
+        self.discrete_evaluation = discrete_evaluation
+
     def forward(self, resnet_output):
         first_projection = self.fc(resnet_output)
 
-        # make argmaxing at test time optional with a parameter
-        # print("before onehot")
-        if False:  # not self.training:
-            print("after onehot")
+        if self.discrete_evaluation and (not self.training):
             logits = first_projection
             size = logits.size()
             indexes = logits.argmax(dim=-1)

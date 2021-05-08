@@ -22,7 +22,8 @@ def main(params):
     if opts.wandb and opts.distributed_context.is_leader:
         run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else ""
         id = f"{run_name}_{str(uuid.uuid4())}"
-        wandb.init(project="neurips_emcomm", id=id)
+        wandb.init(project=opts.wandb_project, id=id)
+        opts.wandb_id = id
         wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -44,6 +45,7 @@ def main(params):
         num_workers=opts.num_workers,
         use_augmentations=opts.use_augmentations,
         is_distributed=opts.distributed_context.is_distributed,
+        return_original_image=opts.return_original_image,
         seed=opts.random_seed
     )
 
@@ -64,7 +66,7 @@ def main(params):
     )
     optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
 
-    if opts.distributed_context.is_distributed and opts.distributed_context.world_size > 2:
+    if opts.distributed_context.is_distributed and opts.distributed_context.world_size > 2 and opts.use_larc:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
     callbacks = get_callbacks(

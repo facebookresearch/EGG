@@ -34,6 +34,12 @@ def get_data_opts(parser):
         default=4,
         help="Workers used in the dataloader"
     )
+    parser.add_argument(
+        "--return_original_image",
+        action="store_true",
+        default=False,
+        help="Dataloader will yield also the non-augmented version of the input images"
+    )
 
 
 def get_gs_opts(parser):
@@ -124,6 +130,12 @@ def get_game_arch_opts(parser):
         action="store_true",
         help="Use a simclr-like sender (no discreteness)"
     )
+    group.add_argument(
+        "--discrete_evaluation_simclr",
+        default=False,
+        action="store_true",
+        help="Use a simclr-like sender argmaxing the message_like layer at test time"
+    )
 
 
 def get_loss_opts(parser):
@@ -159,10 +171,21 @@ def get_common_opts(params):
         help="Weight decay used for SGD",
     )
     parser.add_argument(
+        "--use_larc",
+        action="store_true",
+        default=False,
+        help="Use LARC optimizer"
+    )
+    parser.add_argument(
         "--wandb",
         action="store_true",
         default=False,
         help="Run the game logging to wandb"
+    )
+    parser.add_argument(
+        "--wandb_project",
+        default="playground",
+        help="wandb project where run will be stored"
     )
     parser.add_argument(
         "--pdb",

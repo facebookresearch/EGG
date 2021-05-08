@@ -18,9 +18,10 @@ def get_dataloader(
     num_workers: int = 4,
     use_augmentations: bool = True,
     is_distributed: bool = False,
+    return_original_image: bool = False,
     seed: int = 111
 ):
-    transformations = ImageTransformation(image_size, use_augmentations)
+    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
 
     train_dataset = datasets.ImageFolder(
         dataset_dir,
@@ -94,7 +95,7 @@ class ImageTransformation:
     denoted x ̃i and x ̃j, which we consider as a positive pair.
     """
 
-    def __init__(self, size, augmentation=False):
+    def __init__(self, size: int, augmentation: bool = False, return_original_image: bool = False):
         if augmentation:
             s = 1
             color_jitter = transforms.ColorJitter(
@@ -117,7 +118,16 @@ class ImageTransformation:
 
         self.transform = transforms.Compose(transformations)
 
+        self.return_original_image = return_original_image
+        if self.return_original_image:
+            self.original_image_transform = transforms.Compose([
+                transforms.Resize(size=(size, size)),
+                transforms.ToTensor()
+            ])
+
     def __call__(self, x):
         x_i = self.transform(x)
         x_j = self.transform(x)
+        if self.return_original_image:
+            return x_i, x_j, self.original_image_transform(x)
         return x_i, x_j
