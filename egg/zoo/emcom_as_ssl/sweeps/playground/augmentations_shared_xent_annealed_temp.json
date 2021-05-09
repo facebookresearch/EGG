@@ -1,0 +1,14 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [2.4],
+    "random_seed": [111],
+    "use_augmentations": [true],
+    "shared_vision": [true],
+    "loss_type": ["xent"],
+    "gs_temperature": [75.0],
+    "gs_temperature_decay": [0.9],
+    "update_gs_temp_frequency": [2],
+    "minimum_gs_temperature": [0.1],
+    "wandb": [true]
+}

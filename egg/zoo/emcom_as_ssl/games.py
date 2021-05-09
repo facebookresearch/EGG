@@ -56,6 +56,7 @@ def build_game(opts):
             input_dim=visual_features_dim,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
+            discrete_evaluation=opts.discrete_evaluation_simclr
         )
     else:
         sender = EmSSLSender(
@@ -70,7 +71,6 @@ def build_game(opts):
         input_dim=visual_features_dim,
         hidden_dim=opts.projection_hidden_dim,
         output_dim=opts.projection_output_dim,
-        discrete_evaluation=opts.discrete_evaluation_simclr
     )
 
     game = EmComSSLSymbolGame(

@@ -1,0 +1,10 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [0.05],
+    "random_seed": [111],
+    "use_augmentations": [true],
+    "shared_vision": [true],
+    "loss_type": ["xent"],
+    "wandb": [true]
+}

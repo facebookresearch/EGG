@@ -37,7 +37,7 @@ def main(params):
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
 
-    train_loader, validation_loader = get_dataloader(
+    train_loader, _ = get_dataloader(
         dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
         batch_size=opts.batch_size,
@@ -86,7 +86,6 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        validation_data=validation_loader,
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
