@@ -78,6 +78,7 @@ def main(params):
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
         gs_temperature_decay=opts.gs_temperature_decay,
+        is_distributed=opts.distributed_context.is_distributed,
         wandb=opts.wandb
     )
 

@@ -13,7 +13,6 @@ from egg.core import (
     Callback,
     ConsoleLogger,
     Interaction,
-    InteractionSaver,
     TemperatureUpdater
 )
 
@@ -173,18 +172,18 @@ def get_callbacks(
     train_gs_temperature: bool = False,
     minimum_gs_temperature: float = 0.1,
     update_gs_temp_frequency: int = 1,
-    gs_temperature_decay: float = 0.9,
+    gs_temperature_decay: float = 1.0,
+    is_distributed: bool = False,
     wandb: bool = False
 ):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
         VisionModelSaver(shared_vision),
-        InteractionSaver(
-            train_epochs=[n_epochs],
-            checkpoint_dir=checkpoint_dir
-        ),
     ]
+
+    if is_distributed:
+        callbacks.append(DistributedSamplerEpochSetter())
 
     if hasattr(sender, "temperature") and (not train_gs_temperature):
         callbacks.append(
