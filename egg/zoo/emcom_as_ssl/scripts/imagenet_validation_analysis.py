@@ -25,9 +25,10 @@ def get_dataloader(
     image_size: int = 224,
     batch_size: int = 128,
     num_workers: int = 4,
+    return_original_image: bool = True,
     use_augmentations: bool = True,
 ):
-    transformations = ImageTransformation(image_size, use_augmentations)
+    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
 
     dataset = datasets.ImageFolder(
         dataset_dir,
@@ -52,7 +53,8 @@ def main():
     opts = get_params(
         simclr_sender=cli_args.simclr_sender,
         shared_vision=cli_args.shared_vision,
-        loss_type=cli_args.loss_type
+        loss_type=cli_args.loss_type,
+        discrete_evaluation_simclr=cli_args.discrete_evaluation_simclr
     )
 
     if cli_args.pdb:
@@ -77,7 +79,8 @@ def main():
     print(f"| Fetching data for {cli_args.test_set} test set from {dataset_dir}...")
     dataloader = get_dataloader(
         dataset_dir=dataset_dir,
-        use_augmentations=cli_args.evaluate_with_augmentations
+        use_augmentations=cli_args.evaluate_with_augmentations,
+        return_original_image=cli_args.return_original_image
     )
     print("| Test data fetched.")
 

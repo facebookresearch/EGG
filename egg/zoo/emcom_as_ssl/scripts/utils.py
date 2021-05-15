@@ -25,6 +25,12 @@ def add_common_cli_args(parser):
         help="Running gaussian evaluation loading a SimCLR model"
     )
     parser.add_argument(
+        "--discrete_evaluation_simclr",
+        default=False,
+        action="store_true",
+        help="Evaluate SimCLR playing the game discretizing the message_like layer"
+    )
+    parser.add_argument(
         "--shared_vision",
         default=False,
         action="store_true",
@@ -47,6 +53,12 @@ def add_common_cli_args(parser):
         default=False,
         action="store_true",
         help="Running gaussian evaluation with data augmentation"
+    )
+    parser.add_argument(
+        "--return_original_image",
+        default=False,
+        action="store_true",
+        help="Return original untrasnformed image in the dataloader"
     )
     parser.add_argument(
         "--test_set",
@@ -72,12 +84,14 @@ def add_common_cli_args(parser):
 def get_params(
     simclr_sender: bool,
     shared_vision: bool,
+    discrete_evaluation_simclr: bool,
     loss_type: str
 ):
     params = dict(
         simclr_sender=simclr_sender,
         loss_type=loss_type,
         shared_vision=shared_vision,
+        discrete_evaluation_simclr=discrete_evaluation_simclr
     )
 
     distributed_context = argparse.Namespace(is_distributed=False)

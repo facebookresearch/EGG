@@ -89,7 +89,8 @@ def main():
     opts = get_params(
         simclr_sender=cli_args.simclr_sender,
         shared_vision=cli_args.shared_vision,
-        loss_type=cli_args.loss_type
+        loss_type=cli_args.loss_type,
+        discrete_evaluation_simclr=cli_args.discrete_evaluation_simclr
     )
 
     if cli_args.pdb:
