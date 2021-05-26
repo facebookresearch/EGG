@@ -113,10 +113,10 @@ class SimCLRSender(nn.Module):
 
         self.discrete_evaluation = discrete_evaluation
 
-    def forward(self, resnet_output):
+    def forward(self, resnet_output, sender=False):
         first_projection = self.fc(resnet_output)
 
-        if self.discrete_evaluation and (not self.training):
+        if self.discrete_evaluation and (not self.training) and sender:
             logits = first_projection
             size = logits.size()
             indexes = logits.argmax(dim=-1)
@@ -184,10 +184,11 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
 
     def forward(self, sender_input, labels, receiver_input=None):
-        message, message_like, resnet_output_sender = self.sender(sender_input)
-        if isinstance(self.receiver, EmSSLSender):
-            receiver_output, _, resnet_output_recv = self.receiver(message, receiver_input)
+        if isinstance(self.sender, SimCLRSender):
+            message, message_like, resnet_output_sender = self.sender(sender_input, sender=True)
+            receiver_output, _, resnet_output_recv = self.receiver(receiver_input)
         else:
+            message, message_like, resnet_output_sender = self.sender(sender_input)
             receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(
