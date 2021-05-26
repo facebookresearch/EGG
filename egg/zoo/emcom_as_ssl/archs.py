@@ -185,7 +185,10 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
 
     def forward(self, sender_input, labels, receiver_input=None):
         message, message_like, resnet_output_sender = self.sender(sender_input)
-        receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
+        if isinstance(self.receiver, EmSSLSender):
+            receiver_output, _, resnet_output_recv = self.receiver(message, receiver_input)
+        else:
+            receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(
             sender_input, message, receiver_input, receiver_output, labels

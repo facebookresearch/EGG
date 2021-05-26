@@ -58,6 +58,7 @@ def build_game(opts):
             output_dim=opts.projection_output_dim,
             discrete_evaluation=opts.discrete_evaluation_simclr
         )
+        receiver = sender
     else:
         sender = EmSSLSender(
             input_dim=visual_features_dim,
@@ -67,11 +68,11 @@ def build_game(opts):
             trainable_temperature=opts.train_gs_temperature,
             straight_through=opts.straight_through,
         )
-    receiver = Receiver(
-        input_dim=visual_features_dim,
-        hidden_dim=opts.projection_hidden_dim,
-        output_dim=opts.projection_output_dim,
-    )
+        receiver = Receiver(
+            input_dim=visual_features_dim,
+            hidden_dim=opts.projection_hidden_dim,
+            output_dim=opts.projection_output_dim,
+        )
 
     game = EmComSSLSymbolGame(
         sender,
