@@ -1,0 +1,14 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [2.4],
+    "random_seed": [222],
+    "fp16": [true],
+    "use_augmentations": [true],
+    "shared_vision": [true],
+    "loss_type": ["ntxent"],
+    "simclr_sender": [true],
+    "simclr_recv": [true],
+    "wandb_project": ["correct_simclr"],
+    "wandb": [true]
+}
