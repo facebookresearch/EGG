@@ -4,9 +4,8 @@
 # LICENSE file in the root directory of this source tree.
 
 # python -m egg.zoo.emcom_as_ssl.scripts.gaussian_noise_analysis \
-#    --loss_type="comm_ntxent" \
-#    --checkpoint_path="<path_to_checkpoint_folder>/40329422_0/final.tar" \
-#    --evaluate_with_augmentations
+#    --loss_type="xent" \
+#    --checkpoint_path="<path_to_checkpoint_folder>/final.tar" \
 
 
 import argparse

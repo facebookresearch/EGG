@@ -7,43 +7,14 @@
 
 import argparse
 
-import torch
-from torchvision import datasets
-
-from egg.zoo.emcom_as_ssl.data import ImageTransformation
 from egg.zoo.emcom_as_ssl.scripts.utils import (
     add_common_cli_args,
     evaluate,
+    get_dataloader,
     get_game,
     get_params,
     save_interaction
 )
-
-
-def get_dataloader(
-    dataset_dir: str,
-    image_size: int = 224,
-    batch_size: int = 128,
-    num_workers: int = 4,
-    return_original_image: bool = True,
-    use_augmentations: bool = True,
-):
-    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
-
-    dataset = datasets.ImageFolder(
-        dataset_dir,
-        transform=transformations
-    )
-
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=True,
-    )
-    return dataloader
 
 
 def main():

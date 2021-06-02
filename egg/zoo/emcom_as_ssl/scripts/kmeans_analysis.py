@@ -16,16 +16,16 @@ from egg.core.util import move_to
 from egg.zoo.emcom_as_ssl.scripts.utils import (
     add_common_cli_args,
     evaluate,
+    get_dataloader,
     get_game,
     get_params,
     save_interaction
 )
-from egg.zoo.emcom_as_ssl.scripts.imagenet_validation_analysis import get_dataloader
 
 
 def assign_kmeans_labels(interaction: Interaction, num_clusters=1000):
     resnet_output_sender = interaction.aux["resnet_output_sender"][:100000].cpu().numpy()
-    # resnet_output_recv = interaction["resnet_output_recv"]
+    print(f"assigning {num_clusters} clusters")
     k_means = KMeans(n_clusters=num_clusters, random_state=0).fit(resnet_output_sender)
     return k_means
 
@@ -34,6 +34,7 @@ def evaluate_test_set(
     game: nn.Module,
     data: torch.utils.data.DataLoader,
     k_means_clusters: KMeans,
+    num_clusters: int
 ):
     if torch.cuda.is_available():
         game.cuda()
@@ -55,14 +56,14 @@ def evaluate_test_set(
 
         with torch.no_grad():
             sender_encoded_input, receiver_encoded_input = game.vision_module(x_i, x_j)
-            message, message_like, resnet_output_sender = game.game.sender(sender_encoded_input)
+            message, message_like, resnet_output_sender = game.game.sender(sender_encoded_input, sender=True)
 
             resnet_output_sender_to_predict = resnet_output_sender.cpu().numpy()
             k_means_labels = torch.from_numpy(
                 k_means_clusters.predict(resnet_output_sender_to_predict)
             ).to(device=message_like.device, dtype=torch.int64)
 
-            one_hot_k_means_labels = torch.zeros((message_like.size()[0], 1000), device=message_like.device)
+            one_hot_k_means_labels = torch.zeros((message_like.size()[0], num_clusters), device=message_like.device)
             one_hot_k_means_labels.scatter_(1, k_means_labels.view(-1, 1), 1)
 
             receiver_output, resnet_output_recv = game.game.receiver(message, receiver_encoded_input)
@@ -114,13 +115,15 @@ def evaluate_test_set(
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--num_clusters", type=int, default=1000)
     add_common_cli_args(parser)
     cli_args = parser.parse_args()
 
     opts = get_params(
         simclr_sender=cli_args.simclr_sender,
         shared_vision=cli_args.shared_vision,
-        loss_type=cli_args.loss_type
+        loss_type=cli_args.loss_type,
+        discrete_evaluation_simclr=cli_args.discrete_evaluation_simclr
     )
 
     if cli_args.pdb:
@@ -142,14 +145,16 @@ def main():
     print(f"| Fetching train data from {train_dataset_dir}...")
     train_dataloader = get_dataloader(
         dataset_dir=train_dataset_dir,
-        use_augmentations=cli_args.evaluate_with_augmentations
+        use_augmentations=cli_args.evaluate_with_augmentations,
+        return_original_image=False
     )
     print("| Fetched train data.")
 
     print(f"| Fetching test data of {cli_args.test_set} test set from {test_dataset_dir}...")
     test_dataloader = get_dataloader(
         dataset_dir=test_dataset_dir,
-        use_augmentations=cli_args.evaluate_with_augmentations
+        use_augmentations=cli_args.evaluate_with_augmentations,
+        return_original_image=False
     )
     print("| Fetched test data")
 
@@ -165,7 +170,7 @@ def main():
     print("| Finished processing train_data")
 
     print("| Clustering resnet outputs ...")
-    k_means_clusters = assign_kmeans_labels(interaction)
+    k_means_clusters = assign_kmeans_labels(interaction, cli_args.num_clusters)
     print("| Done clustering resnet outputs")
 
     print(f"| Running evaluation on {cli_args.test_set} test set ...")
@@ -173,6 +178,7 @@ def main():
         game=game,
         data=test_dataloader,
         k_means_clusters=k_means_clusters,
+        num_clusters=cli_args.num_clusters
     )
     print(f"| Done evaluation on {cli_args.test_set} test set")
 

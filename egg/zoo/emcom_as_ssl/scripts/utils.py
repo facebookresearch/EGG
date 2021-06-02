@@ -11,10 +11,12 @@ from typing import Union
 import numpy as np
 import torch
 import torch.nn as nn
+from torchvision import datasets
 
-from egg.core.util import move_to
-from egg.zoo.emcom_as_ssl.games import build_game
 from egg.core.interaction import Interaction
+from egg.core.util import move_to
+from egg.zoo.emcom_as_ssl.data import ImageTransformation
+from egg.zoo.emcom_as_ssl.games import build_game
 
 
 def add_common_cli_args(parser):
@@ -137,6 +139,32 @@ def save_interaction(
     dump_dir = pathlib.Path(log_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
     torch.save(interaction, dump_dir / f"interactions_{test_set}.pt")
+
+
+def get_dataloader(
+    dataset_dir: str,
+    image_size: int = 224,
+    batch_size: int = 128,
+    num_workers: int = 4,
+    return_original_image: bool = False,
+    use_augmentations: bool = False,
+):
+    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
+
+    dataset = datasets.ImageFolder(
+        dataset_dir,
+        transform=transformations
+    )
+
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=True,
+        drop_last=True,
+    )
+    return dataloader
 
 
 def evaluate(

@@ -14,7 +14,6 @@ def get_dataloader(
     dataset_dir: str,
     image_size: int = 32,
     batch_size: int = 32,
-    validation_dataset_dir: str = None,
     num_workers: int = 4,
     use_augmentations: bool = True,
     is_distributed: bool = False,
@@ -27,12 +26,6 @@ def get_dataloader(
         dataset_dir,
         transform=transformations
     )
-    if validation_dataset_dir:
-        validation_dataset = datasets.ImageFolder(
-            validation_dataset_dir,
-            transform=transformations
-        )
-
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -52,28 +45,7 @@ def get_dataloader(
         drop_last=True,
     )
 
-    validation_loader = None
-    if validation_dataset_dir:
-        validation_sampler = None
-        if is_distributed:
-            validation_sampler = torch.utils.data.distributed.DistributedSampler(
-                validation_dataset,
-                shuffle=True,
-                drop_last=True,
-                seed=seed
-            )
-
-        validation_loader = torch.utils.data.DataLoader(
-            validation_dataset,
-            batch_size=batch_size,
-            shuffle=(validation_sampler is None),
-            sampler=validation_sampler,
-            num_workers=num_workers,
-            pin_memory=True,
-            drop_last=True,
-        )
-
-    return train_loader, validation_loader
+    return train_loader
 
 
 class GaussianBlur:
