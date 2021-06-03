@@ -7,7 +7,11 @@
 
 import argparse
 
-from sklearn.cluster import KMeans
+try:
+    from sklearn.cluster import KMeans
+except ImportError:
+    print("Please install scikit-learn to perform k-means clustering. Exiting...")
+    exit(1)
 import torch
 import torch.nn as nn
 
@@ -159,14 +163,14 @@ def main():
     k_means_clusters = assign_kmeans_labels(interaction, cli_args.num_clusters)
     print("| Done clustering resnet outputs")
 
-    print(f"| Running evaluation on the test set ...")
+    print("| Running evaluation on the test set ...")
     loss, soft_acc, game_acc, interaction = evaluate_test_set(
         game=game,
         data=test_dataloader,
         k_means_clusters=k_means_clusters,
         num_clusters=cli_args.num_clusters
     )
-    print(f"| Done evaluation on the test set")
+    print("| Done evaluation on the test set")
 
     print(f"| Loss: {loss}, soft_accuracy (out of 100): {soft_acc * 100}, game_accuracy (out of 100): {game_acc * 100}")
 
