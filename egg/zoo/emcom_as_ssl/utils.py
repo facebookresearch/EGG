@@ -171,17 +171,6 @@ def get_common_opts(params):
         help="Use LARC optimizer"
     )
     parser.add_argument(
-        "--wandb",
-        action="store_true",
-        default=False,
-        help="Run the game logging to wandb"
-    )
-    parser.add_argument(
-        "--wandb_project",
-        default="playground",
-        help="wandb project where run will be stored"
-    )
-    parser.add_argument(
         "--pdb",
         action="store_true",
         default=False,
