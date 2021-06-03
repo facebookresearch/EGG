@@ -10,8 +10,7 @@ import argparse
 try:
     from sklearn.cluster import KMeans
 except ImportError:
-    print("Please install scikit-learn to perform k-means clustering. Exiting...")
-    exit(1)
+    print("Please install scikit-learn to perform k-means clustering.")
 import torch
 import torch.nn as nn
 
