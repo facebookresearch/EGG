@@ -7,7 +7,6 @@ import json
 
 import torch
 import torch.nn as nn
-import wandb
 
 from egg.core import (
     Callback,
@@ -121,49 +120,6 @@ class DistributedSamplerEpochSetter(Callback):
             self.trainer.validation_data.sampler.set_epoch(epoch)
 
 
-class WandbLogger(Callback):
-    def __init__(self, sender=None):
-        super().__init__()
-        self.sender = sender
-
-    def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
-        if is_training and self.trainer.distributed_context.is_leader:
-            wandb.log({
-                "batch_loss": loss,
-                "batch_soft_accuracy": logs.aux["acc"].mean().item(),
-                "batch_game_accuracy": logs.aux["game_acc"].mean().item(),
-            })
-
-    def on_epoch_begin(self, epoch: int):
-        if self.trainer.distributed_context.is_leader and self.sender:
-            if isinstance(self.sender.temperature, torch.nn.Parameter):
-                temperature = self.sender.temperature.item()
-            else:
-                temperature = self.sender.temperature
-            wandb.log({"gs_temperature": temperature}, commit=False)
-
-    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.trainer.distributed_context.is_leader:
-            wandb.log(
-                {
-                    "train_loss": loss,
-                    "train_soft_accuracy": logs.aux["acc"].mean().item(),
-                    "train_game_accuracy": logs.aux["game_acc"].mean().item(),
-                    "epoch": epoch
-                },
-                commit=False
-            )
-
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        if self.trainer.distributed_context.is_leader:
-            wandb.log({
-                "test_loss": loss,
-                "test_soft_accuracy": logs.aux["acc"].mean().item(),
-                "test_game_accuracy": logs.aux["game_acc"].mean().item(),
-                "epoch": epoch
-            })
-
-
 def get_callbacks(
     shared_vision: bool,
     n_epochs: int,
@@ -174,7 +130,6 @@ def get_callbacks(
     update_gs_temp_frequency: int = 1,
     gs_temperature_decay: float = 1.0,
     is_distributed: bool = False,
-    wandb: bool = False
 ):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
@@ -194,8 +149,5 @@ def get_callbacks(
                 decay=gs_temperature_decay
             )
         )
-    if wandb:
-        sender = sender if hasattr(sender, "temperature") else None
-        callbacks.append(WandbLogger(sender=sender))
 
     return callbacks

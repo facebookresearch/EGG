@@ -3,10 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import uuid
-
 import torch
-import wandb
 
 import egg.core as core
 from egg.zoo.emcom_as_ssl.data import get_dataloader
@@ -19,12 +16,6 @@ from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 def main(params):
     opts = get_common_opts(params=params)
     print(f"{opts}\n")
-    if opts.wandb and opts.distributed_context.is_leader:
-        run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else "playground"
-        id = f"{run_name}_{str(uuid.uuid4())}"
-        wandb.init(project=opts.wandb_project, id=id)
-        opts.wandb_id = id
-        wandb.config.update(opts)
     assert not opts.batch_size % 2, (
         f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
     )
@@ -50,8 +41,6 @@ def main(params):
     )
 
     game = build_game(opts)
-    if opts.wandb and opts.distributed_context.is_leader:
-        wandb.watch(game, log="all")
 
     model_parameters = add_weight_decay(
         game,
@@ -78,8 +67,7 @@ def main(params):
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
         gs_temperature_decay=opts.gs_temperature_decay,
-        is_distributed=opts.distributed_context.is_distributed,
-        wandb=opts.wandb
+        is_distributed=opts.distributed_context.is_distributed
     )
 
     trainer = core.Trainer(
