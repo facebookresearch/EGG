@@ -19,13 +19,6 @@ from egg.zoo.emcom_as_ssl.data import ImageTransformation
 from egg.zoo.emcom_as_ssl.games import build_game
 
 
-O_TEST_PATH = (
-    "/private/home/mbaroni/agentini/representation_learning/"
-    "generalizaton_set_construction/80_generalization_data_set/"
-)
-I_TEST_PATH = "/datasets01/imagenet_full_size/061417/val"
-
-
 def add_common_cli_args(parser):
     parser.add_argument(
         "--simclr_sender",
@@ -49,8 +42,13 @@ def add_common_cli_args(parser):
         "--loss_type",
         type=str,
         default="xent",
-        choices=["xent", "ntxent", "comm_ntxent"],
+        choices=["xent", "ntxent"],
         help="Specify loss used to train the model"
+    )
+    parser.add_argument(
+        "--test_dataset_dir",
+        type=str,
+        help="Path to tes set to use for evaluation"
     )
     parser.add_argument(
         "--checkpoint_path",
@@ -62,19 +60,6 @@ def add_common_cli_args(parser):
         default=False,
         action="store_true",
         help="Running gaussian evaluation with data augmentation"
-    )
-    parser.add_argument(
-        "--return_original_image",
-        default=False,
-        action="store_true",
-        help="Return original untrasnformed image in the dataloader"
-    )
-    parser.add_argument(
-        "--test_set",
-        type=str,
-        choices=["o_test", "i_test"],
-        default="i_test",
-        help="Choose which imagenet validation test to use, choices [i_test, o_test] (default: o_test)"
     )
     parser.add_argument(
         "--dump_interaction_folder",
@@ -140,12 +125,11 @@ def get_game(params: argparse.Namespace, checkpoint_path: str):
 
 def save_interaction(
     interaction: Interaction,
-    log_dir: Union[pathlib.Path, str],
-    test_set: str
+    log_dir: Union[pathlib.Path, str]
 ):
     dump_dir = pathlib.Path(log_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
-    torch.save(interaction, dump_dir / f"interactions_{test_set}.pt")
+    torch.save(interaction, dump_dir / f"interactions_test_set.pt")
 
 
 def get_dataloader(
@@ -153,10 +137,9 @@ def get_dataloader(
     image_size: int = 224,
     batch_size: int = 128,
     num_workers: int = 4,
-    return_original_image: bool = False,
     use_augmentations: bool = False,
 ):
-    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
+    transformations = ImageTransformation(image_size, use_augmentations, False)
 
     dataset = datasets.ImageFolder(
         dataset_dir,

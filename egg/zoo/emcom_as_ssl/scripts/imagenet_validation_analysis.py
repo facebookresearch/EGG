@@ -1,3 +1,8 @@
+# copyright (c) facebook, inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 # NOTE: This script only works with a single gpu
 
 import argparse
@@ -8,8 +13,6 @@ from egg.zoo.emcom_as_ssl.scripts.utils import (
     get_dataloader,
     get_game,
     get_params,
-    I_TEST_PATH,
-    O_TEST_PATH,
     save_interaction
 )
 
@@ -32,18 +35,10 @@ def main():
     game = get_game(opts, cli_args.checkpoint_path)
     print("| Model loaded.")
 
-    if cli_args.test_set == "o_test":
-        dataset_dir = O_TEST_PATH
-    elif cli_args.test_set == "i_test":
-        dataset_dir = I_TEST_PATH
-    else:
-        raise NotImplementedError(f"Cannot recognize {cli_args.test_set} test_set")
-
-    print(f"| Fetching data for {cli_args.test_set} test set from {dataset_dir}...")
+    print(f"| Fetching data from {cli_args.test_dataset_dir}...")
     dataloader = get_dataloader(
-        dataset_dir=dataset_dir,
+        dataset_dir=cli_args.test_dataset_dir,
         use_augmentations=cli_args.evaluate_with_augmentations,
-        return_original_image=cli_args.return_original_image
     )
     print("| Test data fetched.")
 
@@ -54,8 +49,7 @@ def main():
     if cli_args.dump_interaction_folder:
         save_interaction(
             interaction=full_interaction,
-            log_dir=cli_args.dump_interaction_folder,
-            test_set=cli_args.test_set
+            log_dir=cli_args.dump_interaction_folder
         )
         print(f"| Interaction saved at {cli_args.dump_interaction_folder}")
 

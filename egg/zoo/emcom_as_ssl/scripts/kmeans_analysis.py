@@ -19,8 +19,6 @@ from egg.zoo.emcom_as_ssl.scripts.utils import (
     get_dataloader,
     get_game,
     get_params,
-    I_TEST_PATH,
-    O_TEST_PATH,
     save_interaction
 )
 
@@ -118,6 +116,7 @@ def evaluate_test_set(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_clusters", type=int, default=1000)
+    parser.add_argument("--train_dataset_dir", required=True)
     add_common_cli_args(parser)
     cli_args = parser.parse_args()
 
@@ -131,27 +130,17 @@ def main():
     if cli_args.pdb:
         breakpoint()
 
-    if cli_args.test_set == "o_test":
-        test_dataset_dir = O_TEST_PATH
-    elif cli_args.test_set == "i_test":
-        test_dataset_dir = I_TEST_PATH
-    else:
-        raise NotImplementedError(f"Cannot recognize {cli_args.test_set} test_set")
-
-    train_dataset_dir = "/datasets01/imagenet_full_size/061417/train"
-    print(f"| Fetching train data from {train_dataset_dir}...")
+    print(f"| Fetching train data from {cli_args.train_dataset_dir} to learn clusters...")
     train_dataloader = get_dataloader(
-        dataset_dir=train_dataset_dir,
+        dataset_dir=cli_args.train_dataset_dir,
         use_augmentations=cli_args.evaluate_with_augmentations,
-        return_original_image=False
     )
     print("| Fetched train data.")
 
-    print(f"| Fetching test data of {cli_args.test_set} test set from {test_dataset_dir}...")
+    print(f"| Fetching test data from {cli_args.test_dataset_dir}...")
     test_dataloader = get_dataloader(
-        dataset_dir=test_dataset_dir,
+        dataset_dir=cli_args.test_dataset_dir,
         use_augmentations=cli_args.evaluate_with_augmentations,
-        return_original_image=False
     )
     print("| Fetched test data")
 
@@ -170,14 +159,14 @@ def main():
     k_means_clusters = assign_kmeans_labels(interaction, cli_args.num_clusters)
     print("| Done clustering resnet outputs")
 
-    print(f"| Running evaluation on {cli_args.test_set} test set ...")
+    print(f"| Running evaluation on the test set ...")
     loss, soft_acc, game_acc, interaction = evaluate_test_set(
         game=game,
         data=test_dataloader,
         k_means_clusters=k_means_clusters,
         num_clusters=cli_args.num_clusters
     )
-    print(f"| Done evaluation on {cli_args.test_set} test set")
+    print(f"| Done evaluation on the test set")
 
     print(f"| Loss: {loss}, soft_accuracy (out of 100): {soft_acc * 100}, game_accuracy (out of 100): {game_acc * 100}")
 
@@ -185,8 +174,7 @@ def main():
         print("| Saving interaction ...")
         save_interaction(
             interaction=interaction,
-            log_dir=cli_args.dump_interaction_folder,
-            test_set=cli_args.test_set
+            log_dir=cli_args.dump_interaction_folder
         )
         print(f"| Interaction saved at {cli_args.dump_interaction_folder}")
 

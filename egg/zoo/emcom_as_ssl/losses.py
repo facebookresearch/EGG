@@ -11,12 +11,10 @@ import torch.nn.functional as F
 def get_loss(
     temperature: float = 1.0,
     similarity: str = "cosine",
-    loss_type: str = "comm_ntxent"
+    loss_type: str = "xent"
 ):
     if loss_type.lower() == "xent":
         return XEntLoss(temperature=temperature, similarity=similarity)
-    elif loss_type.lower() == "comm_ntxent":
-        return CommNTXentLoss(temperature=temperature, similarity=similarity)
     elif loss_type.lower() == "ntxent":
         return NTXentLoss(temperature=temperature, similarity=similarity)
     else:
@@ -61,41 +59,6 @@ class XEntLoss(Loss):
     def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
         assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."
         return self.xent_loss(message, receiver_output)
-
-
-class CommNTXentLoss(Loss):
-    def comm_nt_xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
-        batch_size = message.shape[0]
-
-        input = torch.cat((message, receiver_output), dim=0)
-
-        similarity_matrix = self.get_similarity_matrix(input, input)
-
-        logits_msg_img = similarity_matrix[:batch_size, batch_size:]
-        logits_img_msg = similarity_matrix[batch_size:, :batch_size]
-
-        labels = torch.arange(batch_size, device=input.device)
-
-        loss_msg_img = F.cross_entropy(logits_msg_img, labels, reduction="none")
-        loss_img_msg = F.cross_entropy(logits_img_msg, labels, reduction="none")
-        loss = (loss_msg_img + loss_img_msg) / 2
-
-        model_guesses = torch.argmax(
-            torch.cat((logits_msg_img, logits_img_msg), dim=0),
-            dim=1
-        )
-        ground_truth = torch.cat((labels, labels), dim=0)
-
-        acc = (model_guesses == ground_truth).float().detach()  # this is soft_acc
-        game_acc = (torch.argmax(logits_msg_img, dim=1) == labels).float().detach()
-
-        return loss, {"acc": acc, "game_acc": game_acc}
-
-    def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
-        assert message.shape == receiver_output.shape, "Message and receiver output must be of the same size."
-
-        assert not (message.shape[0] % 2), f"batch must be multiple of 2, found {message.shape[0]} instead"
-        return self.comm_nt_xent_loss(message, receiver_output)
 
 
 class NTXentLoss(Loss):

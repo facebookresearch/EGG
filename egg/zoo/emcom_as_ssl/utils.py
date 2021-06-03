@@ -13,7 +13,7 @@ def get_data_opts(parser):
     group.add_argument(
         "--dataset_dir",
         type=str,
-        default="/datasets01/imagenet_full_size/061417/train",
+        default="./data",
         help="Dataset location",
     )
     group.add_argument(
@@ -137,8 +137,8 @@ def get_loss_opts(parser):
     group.add_argument(
         "--loss_type",
         type=str,
-        default="comm_ntxent",
-        choices=["xent", "comm_ntxent", "ntxent"],
+        default="xent",
+        choices=["xent", "ntxent"],
         help="Model name for loss function",
     )
     group.add_argument(

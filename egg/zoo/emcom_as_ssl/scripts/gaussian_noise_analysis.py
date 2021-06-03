@@ -3,11 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-# python -m egg.zoo.emcom_as_ssl.scripts.gaussian_noise_analysis \
-#    --loss_type="xent" \
-#    --checkpoint_path="<path_to_checkpoint_folder>/final.tar" \
-
-
 import argparse
 from typing import Callable, Optional
 

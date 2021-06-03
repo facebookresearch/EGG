@@ -20,7 +20,7 @@ def main(params):
     opts = get_common_opts(params=params)
     print(f"{opts}\n")
     if opts.wandb and opts.distributed_context.is_leader:
-        run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else ""
+        run_name = opts.checkpoint_dir.split("/")[-1] if opts.checkpoint_dir else "playground"
         id = f"{run_name}_{str(uuid.uuid4())}"
         wandb.init(project=opts.wandb_project, id=id)
         opts.wandb_id = id
@@ -37,7 +37,7 @@ def main(params):
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
 
-    train_loader, _ = get_dataloader(
+    train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
         image_size=opts.image_size,
         batch_size=opts.batch_size,
@@ -49,12 +49,12 @@ def main(params):
         seed=opts.random_seed
     )
 
-    simclr_game = build_game(opts)
+    game = build_game(opts)
     if opts.wandb and opts.distributed_context.is_leader:
-        wandb.watch(simclr_game, log="all")
+        wandb.watch(game, log="all")
 
     model_parameters = add_weight_decay(
-        simclr_game,
+        game,
         opts.weight_decay,
         skip_name='bn'
     )
@@ -73,7 +73,7 @@ def main(params):
         shared_vision=opts.shared_vision,
         n_epochs=opts.n_epochs,
         checkpoint_dir=opts.checkpoint_dir,
-        sender=simclr_game.game.sender,
+        sender=game.game.sender,
         train_gs_temperature=opts.train_gs_temperature,
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
@@ -83,7 +83,7 @@ def main(params):
     )
 
     trainer = core.Trainer(
-        game=simclr_game,
+        game=game,
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
