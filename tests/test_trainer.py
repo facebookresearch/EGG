@@ -141,7 +141,7 @@ def test_max_snapshoting():
     del trainer
     trainer = core.Trainer(game, optimizer, train_data=data)  # Re-instantiate trainer
     trainer.load_from_latest(CHECKPOINT_PATH)
-    assert trainer.start_epoch == 6
+    assert trainer.start_epoch == 5
     trainer.train(3)
     shutil.rmtree(CHECKPOINT_PATH)  # Clean-up
 
