@@ -320,7 +320,7 @@ class Trainer:
         latest_file, latest_time = None, None
 
         for file in path.glob("*.tar"):
-            creation_time = os.stat(file).st_ctime
+            creation_time = os.stat(file).st_ctime_ns
             if latest_time is None or creation_time > latest_time:
                 latest_file, latest_time = file, creation_time
 
