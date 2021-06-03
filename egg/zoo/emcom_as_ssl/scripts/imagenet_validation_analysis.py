@@ -1,8 +1,3 @@
-# copyright (c) facebook, inc. and its affiliates.
-
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-
 # NOTE: This script only works with a single gpu
 
 import argparse
@@ -13,6 +8,8 @@ from egg.zoo.emcom_as_ssl.scripts.utils import (
     get_dataloader,
     get_game,
     get_params,
+    I_TEST_PATH,
+    O_TEST_PATH,
     save_interaction
 )
 
@@ -35,15 +32,10 @@ def main():
     game = get_game(opts, cli_args.checkpoint_path)
     print("| Model loaded.")
 
-    o_test_path = (
-        "/private/home/mbaroni/agentini/representation_learning/"
-        "generalizaton_set_construction/80_generalization_data_set/"
-    )
-    i_test_path = "/datasets01/imagenet_full_size/061417/val"
     if cli_args.test_set == "o_test":
-        dataset_dir = o_test_path
+        dataset_dir = O_TEST_PATH
     elif cli_args.test_set == "i_test":
-        dataset_dir = i_test_path
+        dataset_dir = I_TEST_PATH
     else:
         raise NotImplementedError(f"Cannot recognize {cli_args.test_set} test_set")
 

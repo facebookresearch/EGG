@@ -19,6 +19,13 @@ from egg.zoo.emcom_as_ssl.data import ImageTransformation
 from egg.zoo.emcom_as_ssl.games import build_game
 
 
+O_TEST_PATH = (
+    "/private/home/mbaroni/agentini/representation_learning/"
+    "generalizaton_set_construction/80_generalization_data_set/"
+)
+I_TEST_PATH = "/datasets01/imagenet_full_size/061417/val"
+
+
 def add_common_cli_args(parser):
     parser.add_argument(
         "--simclr_sender",
