@@ -134,8 +134,6 @@ def test_max_snapshoting():
         ],
     )
     trainer.train(n_epochs=6)
-    import os
-    print("first", os.listdir(CHECKPOINT_PATH))
     assert (CHECKPOINT_PATH / Path("5.tar")).exists()
     assert (CHECKPOINT_PATH / Path("6.tar")).exists()
     assert (CHECKPOINT_PATH / Path("final.tar")).exists()

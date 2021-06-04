@@ -324,6 +324,5 @@ class Trainer:
             if latest_time is None or creation_time > latest_time:
                 latest_file, latest_time = file, creation_time
 
-        print("latest_file", latest_file, latest_time)
         if latest_file is not None:
             self.load_from_checkpoint(latest_file)
