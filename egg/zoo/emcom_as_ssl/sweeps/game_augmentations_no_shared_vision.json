@@ -1,0 +1,12 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [2.4],
+    "random_seed": [111],
+    "fp16": [true],
+    "use_augmentations": [true],
+    "gs_temperature": [5.0],
+    "loss_type": ["xent"],
+    "validation_freq": [5],
+    "wandb": [true]
+}
