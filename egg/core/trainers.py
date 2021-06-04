@@ -45,6 +45,7 @@ class Trainer:
         game: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         train_data: DataLoader,
+        optimizer_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         validation_data: Optional[DataLoader] = None,
         device: torch.device = None,
         callbacks: Optional[List[Callback]] = None,
@@ -56,6 +57,7 @@ class Trainer:
             where loss is differentiable loss to be minimized and d is a dictionary (potentially empty) with auxiliary
             metrics that would be aggregated and reported
         :param optimizer: An instance of torch.optim.Optimizer
+        :param optimizer_scheduler: An optimizer scheduler to adjust lr throughout training
         :param train_data: A DataLoader for the training set
         :param validation_data: A DataLoader for the validation set (can be None)
         :param device: A torch.device on which to tensors should be stored
@@ -63,6 +65,7 @@ class Trainer:
         """
         self.game = game
         self.optimizer = optimizer
+        self.optimizer_scheduler = optimizer_scheduler
         self.train_data = train_data
         self.validation_data = validation_data
         common_opts = get_opts()
@@ -139,8 +142,12 @@ class Trainer:
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
 
             self.game = torch.nn.parallel.DistributedDataParallel(
-                self.game, device_ids=[device_id], output_device=device_id
+                self.game,
+                device_ids=[device_id],
+                output_device=device_id,
+                find_unused_parameters=True
             )
+            self.optimizer.state = move_to(self.optimizer.state, device_id)
 
         else:
             self.game.to(self.device)
@@ -242,6 +249,9 @@ class Trainer:
 
             interactions.append(interaction)
 
+        if self.optimizer_scheduler:
+            self.optimizer_scheduler.step()
+
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
         return mean_loss.item(), full_interaction
@@ -293,6 +303,8 @@ class Trainer:
     def load(self, checkpoint: Checkpoint):
         self.game.load_state_dict(checkpoint.model_state_dict)
         self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+        if checkpoint.optimizer_scheduler_state_dict:
+            self.optimizer_scheduler.load_state_dict(checkpoint.optimizer_scheduler_state_dict)
         self.start_epoch = checkpoint.epoch
 
     def load_from_checkpoint(self, path):

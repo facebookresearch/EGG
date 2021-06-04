@@ -61,7 +61,7 @@ if __name__ == "__main__":
         "--nodes", type=int, default=1, help="Number of nodes required per task"
     )
     parser.add_argument(
-        "--partition", type=str, default="dev", help="Partition requested"
+        "--partition", type=str, default="devlab", help="Partition requested"
     )
     parser.add_argument("--time", type=int, default=4320, help="Job timeout")
     parser.add_argument(
@@ -75,6 +75,12 @@ if __name__ == "__main__":
         "--no_preemption",
         action="store_true",
         help="Disable preemption from other processes on SLURM",
+    )
+    parser.add_argument(
+        "--mem_gb", type=int, default=64, help="CPU memory (in GB) required per task"
+    )
+    parser.add_argument(
+        "--constraint", type=str, help="Constraint (e.g. volta32gb) on the list of jobs to launch"
     )
     parser.add_argument(
         "--comment", type=str, help="Comment on the list of jobs to launch"
@@ -130,8 +136,10 @@ if __name__ == "__main__":
         gpus_per_node=args.tasks,
         name=args.name,
         slurm_comment=args.comment,
+        slurm_constraint=args.constraint,
         nodes=args.nodes,
         tasks_per_node=args.tasks,
+        mem_gb=args.mem_gb,
     )
 
     if args.array:
