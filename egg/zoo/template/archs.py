@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, List, Tuple, Union
+from typing import Any, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -15,7 +15,7 @@ class Sender(nn.Module):
     def __init__(self):
         super(Sender, self).__init__()
 
-    def forward(self, sender_input: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor, Any]]:
+    def forward(self, sender_input: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 
 
@@ -27,7 +27,7 @@ class Receiver(nn.Module):
         self,
         message: torch.Tensor,
         receiver_input: torch.Tensor = None
-    ) -> Union[torch.Tensor, List[torch.Tensor, Any]]:
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 
 
