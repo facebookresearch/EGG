@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Any, Tuple, Union
+from typing import Any, Callable, Dict, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -32,7 +32,12 @@ class Receiver(nn.Module):
 
 
 class Game(nn.Module):
-    def __init__(self):
+    def __init__(
+        self,
+        sender: nn.Module,
+        receiver: nn.Module,
+        loss: Callable[[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], Tuple[torch.Tensor, Dict[str, Any]]]
+    ):
         super(Game, self).__init__()
 
     def forward(
