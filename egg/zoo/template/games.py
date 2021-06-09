@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -17,17 +17,14 @@ from egg.zoo.emcom_as_ssl.archs import (
 from egg.zoo.emcom_as_ssl.losses import get_loss
 
 
-def get_optimizer_and_scheduler(
+def bla_optimizer(
     game: nn.Module,
     lr: float
-) -> Tuple[
-    torch.optim.Optimizer,
-    Optional[torch.optim.lr_scheduler._LRSchedule]
-]:
+) -> Tuple[torch.optim.Optimizer, Optional[Any]]:
     pass
 
 
-def get_game(opts: argparse.Namespace) -> nn.Module:
+def bla_game(opts: argparse.Namespace) -> nn.Module:
     loss = get_loss()
 
     sender = Sender()

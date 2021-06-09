@@ -10,7 +10,8 @@ import torch
 
 import egg.core as core
 from egg.zoo.emcom_as_ssl.data import get_dataloader
-from egg.zoo.emcom_as_ssl.games import get_game, get_optimizer_and_scheduler
+breakpoint()
+from egg.zoo.emcom_as_ssl.games import bla_game, bla_optimizer
 from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
 from egg.zoo.emcom_as_ssl.utils import get_opts
 
@@ -26,9 +27,9 @@ def main(params: List[str]) -> None:
 
     train_loader = get_dataloader()
 
-    game = get_game(opts)
+    game = build_game(opts)
 
-    optimizer, optimizer_scheduler = get_optimizer_and_scheduler(game, opts.lr)
+    optimizer, optimizer_scheduler = build_optimizer_and_scheduler(game, opts.lr)
 
     callbacks = get_callbacks()
 
