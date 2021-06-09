@@ -9,11 +9,10 @@ from typing import List
 import torch
 
 import egg.core as core
-from egg.zoo.emcom_as_ssl.data import get_dataloader
-breakpoint()
-from egg.zoo.emcom_as_ssl.games import bla_game, bla_optimizer
-from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
-from egg.zoo.emcom_as_ssl.utils import get_opts
+from egg.zoo.template.data import get_dataloader
+from egg.zoo.template.games import build_game, build_optimizer_and_scheduler
+from egg.zoo.template.game_callbacks import get_callbacks
+from egg.zoo.template.utils import get_opts
 
 
 def main(params: List[str]) -> None:

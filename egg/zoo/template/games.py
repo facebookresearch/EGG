@@ -9,22 +9,22 @@ from typing import Any, Optional, Tuple
 import torch
 import torch.nn as nn
 
-from egg.zoo.emcom_as_ssl.archs import (
+from egg.zoo.template.archs import (
     Game,
     Receiver,
     Sender,
 )
-from egg.zoo.emcom_as_ssl.losses import get_loss
+from egg.zoo.template.losses import get_loss
 
 
-def bla_optimizer(
+def build_optimizer_and_scheduler(
     game: nn.Module,
     lr: float
-) -> Tuple[torch.optim.Optimizer, Optional[Any]]:
+) -> Tuple[torch.optim.Optimizer, Optional[Any]]:  # some pytorch schedulers are child classes of object
     pass
 
 
-def bla_game(opts: argparse.Namespace) -> nn.Module:
+def build_game(opts: argparse.Namespace) -> nn.Module:
     loss = get_loss()
 
     sender = Sender()
