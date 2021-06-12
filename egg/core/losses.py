@@ -3,8 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Any, Dict, Tuple
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 
@@ -53,30 +54,48 @@ class ReconstructionLoss:
 
 
 class NTXentLoss:
-    """NTXentLoss used in https://arxiv.org/abs/2002.05709."""
+    """NTXentLoss as originally described in https://arxiv.org/abs/2002.05709.
+
+    This loss used in self-supervised learning setups requires the two views of the input datapoint
+    to be returned distinctly by Sender and Receiver.
+
+    >>> x_i = torch.eye(128)
+    >>> x_j = torch.eye(128)
+    >>> loss_fn = NTXentLoss(batch_size=128)
+    >>> loss, acc_dict = loss(None, a, None, b, None)
+    """
 
     def __init__(
             self,
-            batch_size: int,
-            temperature: float,
+            temperature: float = 1.0,
             similarity: str = "cosine",
     ):
         self.temperature = temperature
-        self.batch_size = batch_size
 
         similarities = {"cosine", "dot"}
         assert similarity.lower() in similarities, f"Cannot recognize similarity function {similarity}"
         self.similarity = similarity
 
-    def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
-        batch_size = message.shape[0]
+    @staticmethod
+    def ntxent_loss(
+        sender_output: torch.Tensor,
+        receiver_output: torch.Tensor,
+        temperature: float = 1.0,
+        similarity: str = "cosine"
+    ) -> Tuple[torch.Tensor, Dict[str, Any]]:
 
-        input = torch.cat((message, receiver_output), dim=0)
+        assert sender_output.shape[0] == receiver_output.shape[0]
+        batch_size = sender_output.shape[0]
 
-        if self.similarity == "cosine":
-            similarity_f = nn.CosineSimilarity(dim=2)
-            similarity_matrix = similarity_f(input.unsqueeze(1), input.unsqueeze(0)) / self.temperature
-        elif self.similarity == "dot":
+        input = torch.cat((receiver_output, receiver_output), dim=0)
+
+        if similarity == "cosine":
+            similarity_matrix = torch.nn.functional.cosine_similarity(
+                input.unsqueeze(1),
+                input.unsqueeze(0),
+                dim=2
+            ) / temperature
+        elif similarity == "dot":
             similarity_matrix = input @ input.t()
 
         sim_i_j = torch.diag(similarity_matrix, batch_size)
@@ -101,3 +120,11 @@ class NTXentLoss:
 
         acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()
         return loss, {"acc": acc}
+
+    def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
+        return self.ntxent_loss(
+            message,
+            receiver_output,
+            temperature=self.temperature,
+            similarity=self.similarity
+        )
