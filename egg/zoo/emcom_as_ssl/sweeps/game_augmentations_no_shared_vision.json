@@ -6,7 +6,5 @@
     "fp16": [true],
     "use_augmentations": [true],
     "gs_temperature": [5.0],
-    "loss_type": ["xent"],
-    "validation_freq": [5],
-    "wandb": [true]
+    "loss_type": ["xent"]
 }
