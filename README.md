@@ -14,7 +14,8 @@ communication between agents, (b) a diverse set of pre-implemented games, (c) an
 communication protocols.
 
 Key features:
- * Primitives for implementing a single-symbol or variable-length communication (with vanilla RNNs, GRUs, LSTMs or Transformers);
+ * Primitives for implementing a single-symbol or variable-length, discrete or continuous communication (with vanilla FFNs, RNNs, GRUs, LSTMs or Transformers);
+ * Support for a single pair as well as a population of interacting agents;
  * Training with optimization of the communication channel with REINFORCE or Gumbel-Softmax relaxation via a common interface;
  * Simplified configuration of the general components, such as checkpointing, optimization, tensorboard support, etc;
  * Provides a simple CUDA-aware command-line tool for grid-search over parameters of the games.
@@ -105,6 +106,8 @@ The repo is organised as follows:
 * Another good starting point to implement a Sender/Receiver game is the MNIST autoencoder
 game, [MNIST auto-encoder game](/egg/zoo/mnist_autoenc). The game features both Gumbel-Softmax 
 and Reinforce-based implementations.
+* A template for a game is provided in [`egg/zoo/template`](/egg/zoo/template).
+* EGG can be used for autoencoder-based experiments or even self-supervised learning. An implementation of SimCLR introduce in Chen et al. 2020 can be found in [`egg/zoo/simclr`](/egg/zoo/simclr).
 * EGG provides some utility boilerplate around commonly used command line parameters. Documentation about using it can be found
 [here](docs/CL.md).
 * A brief how-to for tensorboard is [here](docs/tensorboard.md).
