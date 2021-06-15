@@ -21,7 +21,7 @@ from egg.zoo.emcom_as_ssl.losses import get_loss
 def build_vision_encoder(
     model_name: str = "resnet50",
     shared_vision: bool = False,
-    pretrain_vision: bool = False
+    pretrain_vision: bool = True
 ):
     sender_vision_module, receiver_vision_module, visual_features_dim = get_vision_modules(
         encoder_arch=model_name,

@@ -10,57 +10,28 @@ from PIL import ImageFilter
 from torchvision import datasets, transforms
 
 def get_dataloader(
+    dataset_dir: str,
+    dataset_name: str,
     batch_size: int = 32,
     num_workers: int = 4,
     is_distributed: bool = False,
     use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
-    image_size: int = 32
+    image_size: int = 32,
 ):
 
     transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
 
-    trainset = datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transformations)
-
-    train_sampler = None
-    if is_distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(
-            trainset,
-            shuffle=True,
-            drop_last=True,
-            seed=seed
+    if dataset_name == "cifar10":
+        train_dataset = datasets.CIFAR10(root='./data', train=True,
+                                    download=True, transform=transformations)
+    else:
+        train_dataset = datasets.ImageFolder(
+            dataset_dir,
+            transform=transformations
         )
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=(train_sampler is None),
-        sampler=train_sampler,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=True,)
-
-    return trainloader
-
-
-
-
-"""
-def get_dataloader(
-    dataset_dir: str,
-    image_size: int = 32,
-    batch_size: int = 32,
-    num_workers: int = 4,
-    use_augmentations: bool = True,
-    is_distributed: bool = False,
-    return_original_image: bool = False,
-    seed: int = 111
-):
-    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
-
-    train_dataset = datasets.ImageFolder(
-        dataset_dir,
-        transform=transformations
-    )
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -70,18 +41,14 @@ def get_dataloader(
             seed=seed
         )
 
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=(train_sampler is None),
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=(train_sampler is None),
         sampler=train_sampler,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True,
-    )
+        drop_last=True,)
 
     return train_loader
-"""
+
 
 class GaussianBlur:
     """Gaussian blur augmentation as in SimCLR https://arxiv.org/abs/2002.05709"""

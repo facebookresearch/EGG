@@ -82,7 +82,7 @@ def get_vision_module_opts(parser):
         "--model_name",
         type=str,
         default="resnet50",
-        choices=["resnet50", "resnet101", "resnet152"],
+        choices=["resnet50", "resnet101", "resnet152", "vgg16", "densenet", "inception"],
         help="Model name for the encoder",
     )
     group.add_argument(
