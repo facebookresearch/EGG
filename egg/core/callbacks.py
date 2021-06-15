@@ -228,6 +228,7 @@ class InteractionSaver(Callback):
         train_epochs: Optional[List[int]] = None,
         test_epochs: Optional[List[int]] = None,
         checkpoint_dir: str = "",
+        aggregated_interaction: bool = True,
     ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
@@ -245,25 +246,31 @@ class InteractionSaver(Callback):
         else:
             self.checkpoint_dir = pathlib.Path("./interactions")
 
+        self.aggregated_interaction = aggregated_interaction
+
     @staticmethod
     def dump_interactions(
-        logs: Interaction, mode: str, epoch: int, rank: int, dump_dir: str = "./interactions"
+        logs: Interaction,
+        mode: str,
+        epoch: int,
+        rank: int,
+        dump_dir: str = "./interactions"
     ):
         dump_dir = pathlib.Path(dump_dir) / mode / f"epoch_{epoch}"
         dump_dir.mkdir(exist_ok=True, parents=True)
         torch.save(logs, dump_dir / f"interaction_gpu{rank}")
 
     def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        # we are aggregating interaction across gpus, thus only leader process is storing them
-        if epoch in self.test_epochs and self.trainer.distributed_context.is_leader:
-            rank = self.trainer.distributed_context.rank
-            self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
+        if epoch in self.test_epochs:
+            if not self.aggregated_interaction or self.trainer.distributed_context.is_leader:
+                rank = self.trainer.distributed_context.rank
+                self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        # we are aggregating interaction across gpus, thus only leader process is storing them
-        if epoch in self.train_epochs and self.trainer.distributed_context.is_leader:
-            rank = self.trainer.distributed_context.rank
-            self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
+        if epoch in self.test_epochs:
+            if not self.aggregated_interaction or self.trainer.distributed_context.is_leader:
+                rank = self.trainer.distributed_context.rank
+                self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
 
 
 class CustomProgress(Progress):
