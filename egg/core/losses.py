@@ -56,13 +56,31 @@ class ReconstructionLoss:
 class NTXentLoss:
     """NTXentLoss as originally described in https://arxiv.org/abs/2002.05709.
 
-    This loss used in self-supervised learning setups requires the two views of the input datapoint
+    This loss is used in self-supervised learning setups and requires the two views of the input datapoint
     to be returned distinctly by Sender and Receiver.
+    Note that this loss considers in-batch negatives and and negatives samples are taken within each agent
+    datapoints i.e. each non-target element in sender_input and in receiver_input is considered a negative sample.
 
     >>> x_i = torch.eye(128)
     >>> x_j = torch.eye(128)
-    >>> loss_fn = NTXentLoss(batch_size=128)
-    >>> loss, acc_dict = loss(None, a, None, b, None)
+    >>> loss_fn = NTXentLoss()
+    >>> loss, aux = loss_fn(None, x_i, None, x_j, None)
+    >>> aux["acc"].mean().item()
+    1.0
+    >>> aux["acc"].shape
+    torch.Size([256])
+    >>> x_i = torch.eye(256)
+    >>> x_j = torch.eye(128)
+    >>> loss, aux = NTXentLoss.ntxent_loss(x_i, x_j)
+    Traceback (most recent call last):
+        ...
+    RuntimeError: sender_output and receiver_output must be of the same shape, found ... instead
+    >>> _ = torch.manual_seed(111)
+    >>> x_i = torch.rand(128, 128)
+    >>> x_j = torch.rand(128, 128)
+    >>> loss, aux = NTXentLoss.ntxent_loss(x_i, x_j)
+    >>> aux['acc'].mean().item() * 100  # chance level with a batch size of 128, 1/128 * 100 = 0.78125
+    0.78125
     """
 
     def __init__(
@@ -84,17 +102,18 @@ class NTXentLoss:
         similarity: str = "cosine"
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
 
-        assert sender_output.shape[0] == receiver_output.shape[0]
+        if sender_output.shape != receiver_output.shape:
+            raise RuntimeError(
+                f"sender_output and receiver_output must be of the same shape, "
+                f"found {sender_output.shape} and {receiver_output.shape} instead"
+            )
         batch_size = sender_output.shape[0]
 
-        input = torch.cat((receiver_output, receiver_output), dim=0)
+        input = torch.cat((sender_output, receiver_output), dim=0)
 
         if similarity == "cosine":
-            similarity_matrix = torch.nn.functional.cosine_similarity(
-                input.unsqueeze(1),
-                input.unsqueeze(0),
-                dim=2
-            ) / temperature
+            similarity_f = torch.nn.CosineSimilarity(dim=2)
+            similarity_matrix = similarity_f(input.unsqueeze(1), input.unsqueeze(0)) / temperature
         elif similarity == "dot":
             similarity_matrix = input @ input.t()
 
