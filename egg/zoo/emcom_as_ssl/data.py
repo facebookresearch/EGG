@@ -13,16 +13,16 @@ def get_dataloader(
     batch_size: int = 32,
     num_workers: int = 4,
     is_distributed: bool = False,
+    use_augmentations: bool = True,
+    return_original_image: bool = False,
     seed: int = 111,
     image_size: int = 32
 ):
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Resize(size=(image_size, image_size)),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
 
     trainset = datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
+                                            download=True, transform=transformations)
 
     train_sampler = None
     if is_distributed:
@@ -33,33 +33,13 @@ def get_dataloader(
             seed=seed
         )
 
-
-
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=(train_sampler is None),
         sampler=train_sampler,
         num_workers=num_workers,
         pin_memory=True,
         drop_last=True,)
 
-    testset = datasets.CIFAR10(root='./data', train=False,
-                                           download=True, transform=transform)
-
-    test_sampler = None
-    if is_distributed:
-        test_sampler = torch.utils.data.distributed.DistributedSampler(
-            testset,
-            shuffle=True,
-            drop_last=True,
-            seed=seed
-        )
-
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=(test_sampler is None),
-        sampler=train_sampler,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=True)
-
-    return trainloader, testloader
+    return trainloader
 
 
 

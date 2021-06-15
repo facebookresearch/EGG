@@ -28,7 +28,7 @@ def main(params):
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
 
-    train_loader, test_loader = get_dataloader(
+    train_loader = get_dataloader(
         image_size=opts.image_size,
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,

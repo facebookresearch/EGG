@@ -14,7 +14,7 @@ from egg.core.gs_wrappers import gumbel_softmax_sample
 
 
 def get_resnet(name: str = "resnet50", pretrained: bool = True):
-    print(pretrained)
+    print("Pretrained?", pretrained)
     """Loads ResNet encoder from torchvision along with features number"""
     resnets = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
