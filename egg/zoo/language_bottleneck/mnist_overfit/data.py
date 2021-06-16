@@ -9,7 +9,9 @@ import torch
 
 def corrupt_labels_(dataset, p_corrupt, seed):
     random_state = np.random.RandomState(seed)
-    original_labels = dataset.targets if hasattr(dataset, 'targets') else dataset.train_labels
+    original_labels = (
+        dataset.targets if hasattr(dataset, "targets") else dataset.train_labels
+    )
 
     mask = random_state.binomial(n=1, size=original_labels.size(), p=p_corrupt)
     mask = torch.from_numpy(mask)
@@ -20,15 +22,14 @@ def corrupt_labels_(dataset, p_corrupt, seed):
 
     new_labels = original_labels * (1 - mask) + mask * random_labels
 
-    if hasattr(dataset, 'targets'):
+    if hasattr(dataset, "targets"):
         dataset.targets = new_labels
     else:
         dataset.train_labels = new_labels
 
-    if hasattr(dataset, 'targets'):
+    if hasattr(dataset, "targets"):
         dataset.targets = new_labels
     else:
         dataset.train_labels = new_labels
 
     return dataset
-

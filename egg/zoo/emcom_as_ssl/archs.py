@@ -36,12 +36,12 @@ def get_resnet(name: str = "resnet50", pretrained: bool = False):
 
 
 def get_vision_modules(
-    encoder_arch: str,
-    shared: bool = False,
-    pretrain_vision: bool = False
+    encoder_arch: str, shared: bool = False, pretrain_vision: bool = False
 ):
     if pretrain_vision:
-        assert shared, "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
+        assert (
+            shared
+        ), "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
 
     encoder, features_dim = get_resnet(encoder_arch, pretrain_vision)
     encoder_recv = None
@@ -55,7 +55,7 @@ class VisionModule(nn.Module):
     def __init__(
         self,
         sender_vision_module: nn.Module,
-        receiver_vision_module: Optional[nn.Module] = None
+        receiver_vision_module: Optional[nn.Module] = None,
     ):
         super(VisionModule, self).__init__()
 
@@ -91,7 +91,7 @@ class VisionGameWrapper(nn.Module):
         return self.game(
             sender_input=sender_encoded_input,
             labels=labels,
-            receiver_input=receiver_encoded_input
+            receiver_input=receiver_encoded_input,
         )
 
 
@@ -101,7 +101,7 @@ class SimCLRSender(nn.Module):
         input_dim: int,
         hidden_dim: int = 2048,
         output_dim: int = 2048,
-        discrete_evaluation: bool = False
+        discrete_evaluation: bool = False,
     ):
         super(SimCLRSender, self).__init__()
         self.fc = nn.Sequential(
@@ -148,25 +148,24 @@ class EmSSLSender(nn.Module):
         if not trainable_temperature:
             self.temperature = temperature
         else:
-            self.temperature = torch.nn.Parameter(torch.tensor([temperature]), requires_grad=True)
+            self.temperature = torch.nn.Parameter(
+                torch.tensor([temperature]), requires_grad=True
+            )
         self.straight_through = straight_through
 
         self.fc_out = nn.Linear(hidden_dim, output_dim, bias=False)
 
     def forward(self, resnet_output):
         first_projection = self.fc(resnet_output)
-        message = gumbel_softmax_sample(first_projection, self.temperature, self.training, self.straight_through)
+        message = gumbel_softmax_sample(
+            first_projection, self.temperature, self.training, self.straight_through
+        )
         out = self.fc_out(message)
         return out, message.detach(), resnet_output.detach()
 
 
 class Receiver(nn.Module):
-    def __init__(
-        self,
-        input_dim: int,
-        hidden_dim: int = 2048,
-        output_dim: int = 2048
-    ):
+    def __init__(self, input_dim: int, hidden_dim: int = 2048, output_dim: int = 2048):
         super(Receiver, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
@@ -185,7 +184,9 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
 
     def forward(self, sender_input, labels, receiver_input=None):
         if isinstance(self.sender, SimCLRSender):
-            message, message_like, resnet_output_sender = self.sender(sender_input, sender=True)
+            message, message_like, resnet_output_sender = self.sender(
+                sender_input, sender=True
+            )
             receiver_output, _, resnet_output_recv = self.receiver(receiver_input)
         else:
             message, message_like, resnet_output_sender = self.sender(sender_input)

@@ -1,4 +1,4 @@
-# copyright (c) facebook, inc. and its affiliates.
+# Copyright (c) Facebook, Inc. and its affiliates.
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -24,54 +24,45 @@ def add_common_cli_args(parser):
         "--simclr_sender",
         default=False,
         action="store_true",
-        help="Running gaussian evaluation loading a SimCLR model"
+        help="Running gaussian evaluation loading a SimCLR model",
     )
     parser.add_argument(
         "--discrete_evaluation_simclr",
         default=False,
         action="store_true",
-        help="Evaluate SimCLR playing the game discretizing the message_like layer"
+        help="Evaluate SimCLR playing the game discretizing the message_like layer",
     )
     parser.add_argument(
         "--shared_vision",
         default=False,
         action="store_true",
-        help="Load a model with shared vision module"
+        help="Load a model with shared vision module",
     )
     parser.add_argument(
         "--loss_type",
         type=str,
         default="xent",
         choices=["xent", "ntxent"],
-        help="Specify loss used to train the model"
+        help="Specify loss used to train the model",
     )
     parser.add_argument(
-        "--test_dataset_dir",
-        type=str,
-        help="Path to tes set to use for evaluation"
+        "--test_dataset_dir", type=str, help="Path to tes set to use for evaluation"
     )
-    parser.add_argument(
-        "--checkpoint_path",
-        type=str,
-        help="Path to model checkpoint"
-    )
+    parser.add_argument("--checkpoint_path", type=str, help="Path to model checkpoint")
     parser.add_argument(
         "--evaluate_with_augmentations",
         default=False,
         action="store_true",
-        help="Running gaussian evaluation with data augmentation"
+        help="Running gaussian evaluation with data augmentation",
     )
     parser.add_argument(
         "--dump_interaction_folder",
         type=str,
         default=None,
-        help="Path where interaction will be saved. If None or empty string interaction won't be saved"
+        help="Path where interaction will be saved. If None or empty string interaction won't be saved",
     )
     parser.add_argument(
-        "--pdb",
-        default=False,
-        action="store_true",
-        help="Run with pdb"
+        "--pdb", default=False, action="store_true", help="Run with pdb"
     )
 
 
@@ -79,13 +70,13 @@ def get_params(
     simclr_sender: bool,
     shared_vision: bool,
     discrete_evaluation_simclr: bool,
-    loss_type: str
+    loss_type: str,
 ):
     params = dict(
         simclr_sender=simclr_sender,
         loss_type=loss_type,
         shared_vision=shared_vision,
-        discrete_evaluation_simclr=discrete_evaluation_simclr
+        discrete_evaluation_simclr=discrete_evaluation_simclr,
     )
 
     distributed_context = argparse.Namespace(is_distributed=False)
@@ -123,13 +114,10 @@ def get_game(params: argparse.Namespace, checkpoint_path: str):
     return game
 
 
-def save_interaction(
-    interaction: Interaction,
-    log_dir: Union[pathlib.Path, str]
-):
+def save_interaction(interaction: Interaction, log_dir: Union[pathlib.Path, str]):
     dump_dir = pathlib.Path(log_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
-    torch.save(interaction, dump_dir / f"interactions_test_set.pt")
+    torch.save(interaction, dump_dir / "interactions_test_set.pt")
 
 
 def get_dataloader(
@@ -141,10 +129,7 @@ def get_dataloader(
 ):
     transformations = ImageTransformation(image_size, use_augmentations, False)
 
-    dataset = datasets.ImageFolder(
-        dataset_dir,
-        transform=transformations
-    )
+    dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
@@ -179,8 +164,8 @@ def evaluate(
             interactions.append(interaction)
 
             mean_loss += optimized_loss
-            soft_accuracy += interaction.aux['acc'].mean().item()
-            game_accuracy += interaction.aux['game_acc'].mean().item()
+            soft_accuracy += interaction.aux["acc"].mean().item()
+            game_accuracy += interaction.aux["game_acc"].mean().item()
             n_batches += 1
             if n_batches % 10 == 0:
                 print(f"finished batch {n_batches}")

@@ -15,7 +15,6 @@ class DoubleMnist:
         return _DoubleIterator(self.loader, self.label_mapping)
 
 
-
 class _DoubleIterator:
     def __init__(self, loader, label_mapping):
         self.iter = loader.__iter__()
@@ -25,8 +24,8 @@ class _DoubleIterator:
         batch, labels = list(self.iter.__next__())
         bsz = batch.size(0)
 
-        half1, half2 = batch[:bsz // 2, ...], batch[bsz // 2:, ...]
-        half_label1, half_label2 = labels[:bsz // 2], labels[bsz // 2:]
+        half1, half2 = batch[: bsz // 2, ...], batch[bsz // 2 :, ...]
+        half_label1, half_label2 = labels[: bsz // 2], labels[bsz // 2 :]
 
         new_half1 = torch.cat([half1, half2], dim=-1)
         new_half1_labels = half_label1 * 10 + half_label2
@@ -44,7 +43,7 @@ class _DoubleIterator:
 
 class _DoubleMNIST:
     def __init__(self, dataset):
-        self.dataset = dataset 
+        self.dataset = dataset
 
     def __len__(self):
         return len(self.dataset)
@@ -53,15 +52,14 @@ class _DoubleMNIST:
         batch, labels = self.dataset[k]
         bsz = batch.size(0)
 
-        half1, half2 = batch[:bsz // 2], batch[bsz // 2:]
-        half_label1, half_label2 = labels[:bsz // 2], labels[bsz // 2:]
+        half1, half2 = batch[: bsz // 2], batch[bsz // 2 :]
+        half_label1, half_label2 = labels[: bsz // 2], labels[bsz // 2 :]
 
         new_half1 = torch.cat([half1, half2], dim=-1)
         new_half1_labels = half_label1 * 10 + half_label2
 
         new_half2 = torch.cat([half2, half1], dim=-1)
         new_half2_labels = half_label2 * 10 + half_label1
-
 
         new_batch = torch.cat([new_half1, new_half2], dim=0)
         new_labels = torch.cat([new_half1_labels, new_half2_labels], dim=0)
@@ -103,12 +101,11 @@ class _SplitIterator:
         d = batch[0].size(2)
 
         if self.receiver_bottom:
-            input_sender[:, :, self.rows_sender:, :] = 0.0
-            input_receiver[:, :, :d-self.rows_receiver, :] = 0.0
+            input_sender[:, :, self.rows_sender :, :] = 0.0
+            input_receiver[:, :, : d - self.rows_receiver, :] = 0.0
         else:
-            input_sender[:, :, :d-self.rows_sender, :] = 0.0
-            input_receiver[:, :, self.rows_receiver:, :] = 0.0
-
+            input_sender[:, :, : d - self.rows_sender, :] = 0.0
+            input_receiver[:, :, self.rows_receiver :, :] = 0.0
 
         labels = batch[1]
 
@@ -116,7 +113,9 @@ class _SplitIterator:
 
 
 class SplitImages:
-    def __init__(self, loader, rows_sender, rows_receiver, binarize=False, receiver_bottom=True):
+    def __init__(
+        self, loader, rows_sender, rows_receiver, binarize=False, receiver_bottom=True
+    ):
         self.loader = loader
         self.rows_sender = rows_sender
         self.rows_receiver = rows_receiver
@@ -124,4 +123,10 @@ class SplitImages:
         self.receiver_bottom = receiver_bottom
 
     def __iter__(self):
-        return _SplitIterator(self.loader, self.rows_sender, self.rows_receiver, self.binarize, receiver_bottom=self.receiver_bottom)
+        return _SplitIterator(
+            self.loader,
+            self.rows_sender,
+            self.rows_receiver,
+            self.binarize,
+            receiver_bottom=self.receiver_bottom,
+        )

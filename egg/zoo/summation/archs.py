@@ -22,12 +22,27 @@ class Encoder(nn.Module):
 
         self.encoder_cell = None
         cell = cell.lower()
-        if cell == 'rnn':
-            self.cell = nn.RNN(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
-        elif cell == 'gru':
-            self.cell = nn.GRU(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
-        elif cell == 'lstm':
-            self.cell = nn.LSTM(input_size=embed_dim, batch_first=True, hidden_size=n_hidden, num_layers=1)
+        if cell == "rnn":
+            self.cell = nn.RNN(
+                input_size=embed_dim,
+                batch_first=True,
+                hidden_size=n_hidden,
+                num_layers=1,
+            )
+        elif cell == "gru":
+            self.cell = nn.GRU(
+                input_size=embed_dim,
+                batch_first=True,
+                hidden_size=n_hidden,
+                num_layers=1,
+            )
+        elif cell == "lstm":
+            self.cell = nn.LSTM(
+                input_size=embed_dim,
+                batch_first=True,
+                hidden_size=n_hidden,
+                num_layers=1,
+            )
         else:
             raise ValueError(f"Unknown RNN Cell: {cell}")
 
@@ -43,6 +58,3 @@ class Encoder(nn.Module):
             rnn_hidden = rnn_hidden[0]
         hidden = rnn_hidden.squeeze(0)
         return hidden
-
-
-

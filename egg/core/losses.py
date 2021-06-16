@@ -10,14 +10,16 @@ import torch.nn.functional as F
 
 
 class DiscriminationLoss:
-    def __call__(self, sender_input, _message, _receiver_input, receiver_output, labels):
+    def __call__(
+        self, sender_input, _message, _receiver_input, receiver_output, labels
+    ):
         return self.discrimination_loss(receiver_output, labels)
 
     @staticmethod
     def discrimination_loss(receiver_output, labels):
         acc = (receiver_output.argmax(dim=1) == labels).detach().float()
         loss = F.cross_entropy(receiver_output, labels, reduction="none")
-        return loss, {'acc': acc}
+        return loss, {"acc": acc}
 
 
 class ReconstructionLoss:
@@ -26,31 +28,29 @@ class ReconstructionLoss:
         self.n_values = n_values
         self.batch_size = batch_size
 
-    def __call__(self, sender_input, _message, _receiver_input, receiver_output, labels):
+    def __call__(
+        self, sender_input, _message, _receiver_input, receiver_output, labels
+    ):
         return self.reconstruction_loss(
-            receiver_output,
-            labels,
-            self.batch_size,
-            self.n_attributes,
-            self.n_values
+            receiver_output, labels, self.batch_size, self.n_attributes, self.n_values
         )
 
     @staticmethod
     def reconstruction_loss(
-        receiver_output,
-        labels,
-        batch_size,
-        n_attributes,
-        n_values
+        receiver_output, labels, batch_size, n_attributes, n_values
     ):
         receiver_output = receiver_output.view(batch_size * n_attributes, n_values)
         receiver_guesses = receiver_output.argmax(dim=1)
-        correct_samples = (receiver_guesses == labels.view(-1)).view(batch_size, n_attributes).detach()
+        correct_samples = (
+            (receiver_guesses == labels.view(-1))
+            .view(batch_size, n_attributes)
+            .detach()
+        )
         acc = (torch.sum(correct_samples, dim=-1) == n_attributes).float()
         labels = labels.view(batch_size * n_attributes)
         loss = F.cross_entropy(receiver_output, labels, reduction="none")
         loss = loss.view(batch_size, -1).mean(dim=1)
-        return loss, {'acc': acc}
+        return loss, {"acc": acc}
 
 
 class NTXentLoss:
@@ -84,14 +84,16 @@ class NTXentLoss:
     """
 
     def __init__(
-            self,
-            temperature: float = 1.0,
-            similarity: str = "cosine",
+        self,
+        temperature: float = 1.0,
+        similarity: str = "cosine",
     ):
         self.temperature = temperature
 
         similarities = {"cosine", "dot"}
-        assert similarity.lower() in similarities, f"Cannot recognize similarity function {similarity}"
+        assert (
+            similarity.lower() in similarities
+        ), f"Cannot recognize similarity function {similarity}"
         self.similarity = similarity
 
     @staticmethod
@@ -99,7 +101,7 @@ class NTXentLoss:
         sender_output: torch.Tensor,
         receiver_output: torch.Tensor,
         temperature: float = 1.0,
-        similarity: str = "cosine"
+        similarity: str = "cosine",
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
 
         if sender_output.shape != receiver_output.shape:
@@ -113,22 +115,22 @@ class NTXentLoss:
 
         if similarity == "cosine":
             similarity_f = torch.nn.CosineSimilarity(dim=2)
-            similarity_matrix = similarity_f(input.unsqueeze(1), input.unsqueeze(0)) / temperature
+            similarity_matrix = (
+                similarity_f(input.unsqueeze(1), input.unsqueeze(0)) / temperature
+            )
         elif similarity == "dot":
             similarity_matrix = input @ input.t()
 
         sim_i_j = torch.diag(similarity_matrix, batch_size)
         sim_j_i = torch.diag(similarity_matrix, -batch_size)
 
-        positive_samples = torch.cat(
-            (sim_i_j, sim_j_i),
-            dim=0
-        ).reshape(batch_size * 2, 1)
+        positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(
+            batch_size * 2, 1
+        )
 
-        mask = torch.ones(
-            (batch_size * 2, batch_size * 2),
-            dtype=bool
-        ).fill_diagonal_(0)
+        mask = torch.ones((batch_size * 2, batch_size * 2), dtype=bool).fill_diagonal_(
+            0
+        )
 
         negative_samples = similarity_matrix[mask].reshape(batch_size * 2, -1)
 
@@ -140,10 +142,12 @@ class NTXentLoss:
         acc = (torch.argmax(logits.detach(), dim=1) == labels).float().detach()
         return loss, {"acc": acc}
 
-    def __call__(self, _sender_input, message, _receiver_input, receiver_output, _labels):
+    def __call__(
+        self, _sender_input, message, _receiver_input, receiver_output, _labels
+    ):
         return self.ntxent_loss(
             message,
             receiver_output,
             temperature=self.temperature,
-            similarity=self.similarity
+            similarity=self.similarity,
         )

@@ -17,6 +17,8 @@ class AlwaysRelaxedWrapper(nn.Module):
         logits = self.agent(*args, **kwargs)
 
         if self.training:
-            return RelaxedOneHotCategorical(logits=logits, temperature=self.temperature).rsample()
+            return RelaxedOneHotCategorical(
+                logits=logits, temperature=self.temperature
+            ).rsample()
         else:
             return (logits / self.temperature).softmax(dim=1)

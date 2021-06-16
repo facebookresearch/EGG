@@ -9,7 +9,8 @@ import torch
 
 
 def get_loss() -> Callable[
-    [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], Tuple[torch.Tensor, Dict[str, Any]]
+    [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+    Tuple[torch.Tensor, Dict[str, Any]],
 ]:
     return Loss()
 
@@ -21,9 +22,10 @@ class Loss:
     def __call__(
         self,
         sender_input: torch.Tensor,
-        message, receiver_input: torch.Tensor,
+        message,
+        receiver_input: torch.Tensor,
         receiver_output: torch.Tensor,
-        labels: torch.Tensor
+        labels: torch.Tensor,
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
         loss, acc = None, None
         return loss, {"acc": acc}

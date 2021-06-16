@@ -31,9 +31,9 @@ def compute_binomial(n, k):
 def compute_baseline_accuracy(num_dist, symbols, *dims):
     final = []
     for num_dim in dims:
-        result  = 0
-        for j in range(num_dist+1):
-            probability = 1 / (j+1)
+        result = 0
+        for j in range(num_dist + 1):
+            probability = 1 / (j + 1)
             number_of_equal_dist = compute_binomial(num_dist, j)
             equal_dist = (1 / num_dim) ** (symbols * j)
             diff_dist = ((num_dim - 1) / num_dim) ** (symbols * (num_dist - j))
@@ -99,20 +99,25 @@ def compute_mi_input_msgs(sender_inputs, messages):
     result = []
     for i, _ in enumerate(each_dim):
         for vector in sender_inputs:
-            each_dim[i].append(vector[i]) # only works for 1-D sender inputs
+            each_dim[i].append(vector[i])  # only works for 1-D sender inputs
 
     for i, dim_list in enumerate(each_dim):
-        result.append(round(mutual_info(messages,  dim_list), 4))
+        result.append(round(mutual_info(messages, dim_list), 4))
 
-    print(f'| Entropy for each dimension of the input vectors = {[entropy(elem) for elem in each_dim]}')
-    print(f'| H(msg) = {entropy(messages)}')
-    print(f'| MI = {result}')
+    print(
+        f"| Entropy for each dimension of the input vectors = {[entropy(elem) for elem in each_dim]}"
+    )
+    print(f"| H(msg) = {entropy(messages)}")
+    print(f"| MI = {result}")
 
 
-def dump_sender_receiver(game: torch.nn.Module,
-                         dataset: 'torch.utils.data.DataLoader',
-                         gs: bool, variable_length: bool,
-                         device: Optional[torch.device] = None):
+def dump_sender_receiver(
+    game: torch.nn.Module,
+    dataset: "torch.utils.data.DataLoader",
+    gs: bool,
+    variable_length: bool,
+    device: Optional[torch.device] = None,
+):
     """
     A tool to dump the interaction between Sender and Receiver
     :param game: A Game instance
@@ -140,10 +145,12 @@ def dump_sender_receiver(game: torch.nn.Module,
 
             # Under GS, the only output is a message; under Reinforce, two additional tensors are returned.
             # We don't need them.
-            if not gs: message = message[0]
+            if not gs:
+                message = message[0]
 
             output = game.receiver(message, receiver_input)
-            if not gs: output = output[0]
+            if not gs:
+                output = output[0]
 
             if batch[1] is not None:
                 labels.extend(batch[1])
@@ -156,7 +163,10 @@ def dump_sender_receiver(game: torch.nn.Module,
             if receiver_input is not None:
                 receiver_inputs.extend(receiver_input)
 
-            if gs: message = message.argmax(dim=-1)  # actual symbols instead of one-hot encoded
+            if gs:
+                message = message.argmax(
+                    dim=-1
+                )  # actual symbols instead of one-hot encoded
 
             if not variable_length:
                 messages.extend(message)
@@ -168,12 +178,14 @@ def dump_sender_receiver(game: torch.nn.Module,
 
                 for i in range(message.size(0)):
                     eos_positions = (message[i, :] == 0).nonzero()
-                    message_end = eos_positions[0].item() if eos_positions.size(0) > 0 else -1
+                    message_end = (
+                        eos_positions[0].item() if eos_positions.size(0) > 0 else -1
+                    )
                     assert message_end == -1 or message[i, message_end] == 0
                     if message_end < 0:
                         messages.append(message[i, :])
                     else:
-                        messages.append(message[i, :message_end + 1])
+                        messages.append(message[i, : message_end + 1])
 
                     if gs:
                         receiver_outputs.append(output[i, message_end, ...])

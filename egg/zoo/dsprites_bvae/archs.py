@@ -15,6 +15,7 @@ class View(nn.Module):
     def forward(self, tensor):
         return tensor.view(self.size)
 
+
 def kaiming_init(m):
     if isinstance(m, (nn.Linear, nn.Conv2d)):
         init.kaiming_normal(m.weight)
@@ -35,6 +36,7 @@ def normal_init(m, mean, std):
         m.weight.data.fill_(1)
         if m.bias.data is not None:
             m.bias.data.zero_()
+
 
 # CNN sender
 class VisualSender(nn.Module):
@@ -65,22 +67,23 @@ class VisualSender(nn.Module):
             for m in self._modules[block]:
                 kaiming_init(m)
 
+
 # CNN receiver
 class VisualReceiver(nn.Module):
     def __init__(self, z_dim=10, channels=1):
         super(VisualReceiver, self).__init__()
 
         self.decoder = nn.Sequential(
-            nn.Linear(z_dim, 256),               # B, 256
-            View((-1, 256, 1, 1)),               # B, 256,  1,  1
+            nn.Linear(z_dim, 256),  # B, 256
+            View((-1, 256, 1, 1)),  # B, 256,  1,  1
             nn.ReLU(True),
-            nn.ConvTranspose2d(256, 64, 4),      # B,  64,  4,  4
+            nn.ConvTranspose2d(256, 64, 4),  # B,  64,  4,  4
             nn.ReLU(True),
-            nn.ConvTranspose2d(64, 64, 4, 2, 1), # B,  64,  8,  8
+            nn.ConvTranspose2d(64, 64, 4, 2, 1),  # B,  64,  8,  8
             nn.ReLU(True),
-            nn.ConvTranspose2d(64, 32, 4, 2, 1), # B,  32, 16, 16
+            nn.ConvTranspose2d(64, 32, 4, 2, 1),  # B,  32, 16, 16
             nn.ReLU(True),
-            nn.ConvTranspose2d(32, 32, 4, 2, 1), # B,  32, 32, 32
+            nn.ConvTranspose2d(32, 32, 4, 2, 1),  # B,  32, 32, 32
             nn.ReLU(True),
             nn.ConvTranspose2d(32, channels, 4, 2, 1),  # B, nc, 64, 64
         )
@@ -91,7 +94,5 @@ class VisualReceiver(nn.Module):
             for m in self._modules[block]:
                 kaiming_init(m)
 
-
     def forward(self, x):
         return self.decoder(x)
-

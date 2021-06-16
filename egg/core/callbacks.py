@@ -26,8 +26,8 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 
+from egg.core.interaction import Interaction
 from egg.core.util import get_summary_writer
-from .interaction import Interaction
 
 
 class Callback:
@@ -122,7 +122,7 @@ class WandbLogger(Callback):
         opts: Union[argparse.ArgumentParser, Dict, str, None] = None,
         project: Optional[str] = None,
         run_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         # This callback logs to wandb the interaction as they are stored from the leader process.
         # When interactions are not aggregated in a multigpu ruh, each process will store
@@ -141,7 +141,9 @@ class WandbLogger(Callback):
         self.trainer = trainer_instance
         wandb.watch(self.trainer.game, log="all")
 
-    def on_batch_end(self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True):
+    def on_batch_end(
+        self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True
+    ):
         if is_training and self.trainer.distributed_context.is_leader:
             self.log_to_wandb({"batch_loss": loss}, commit=True)
 
@@ -225,7 +227,9 @@ class CheckpointSaver(Callback):
     def get_checkpoint(self):
         optimizer_schedule_state_dict = None
         if self.trainer.optimizer_scheduler:
-            optimizer_schedule_state_dict = self.trainer.optimizer_scheduler.state_dict()
+            optimizer_schedule_state_dict = (
+                self.trainer.optimizer_scheduler.state_dict()
+            )
         if self.trainer.distributed_context.is_distributed:
             game = self.trainer.game.module
         else:
@@ -234,7 +238,7 @@ class CheckpointSaver(Callback):
             epoch=self.epoch_counter,
             model_state_dict=game.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
-            optimizer_scheduler_state_dict=optimizer_schedule_state_dict
+            optimizer_scheduler_state_dict=optimizer_schedule_state_dict,
         )
 
     def get_checkpoint_files(self):
@@ -293,7 +297,7 @@ class InteractionSaver(Callback):
         mode: str,
         epoch: int,
         rank: int,
-        dump_dir: str = "./interactions"
+        dump_dir: str = "./interactions",
     ):
         dump_dir = pathlib.Path(dump_dir) / mode / f"epoch_{epoch}"
         dump_dir.mkdir(exist_ok=True, parents=True)
@@ -301,13 +305,21 @@ class InteractionSaver(Callback):
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
-            if not self.aggregated_interaction or self.trainer.distributed_context.is_leader:
+            if (
+                not self.aggregated_interaction
+                or self.trainer.distributed_context.is_leader
+            ):
                 rank = self.trainer.distributed_context.rank
-                self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
+                self.dump_interactions(
+                    logs, "validation", epoch, rank, self.checkpoint_dir
+                )
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
-            if not self.aggregated_interaction or self.trainer.distributed_context.is_leader:
+            if (
+                not self.aggregated_interaction
+                or self.trainer.distributed_context.is_leader
+            ):
                 rank = self.trainer.distributed_context.rank
                 self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
 

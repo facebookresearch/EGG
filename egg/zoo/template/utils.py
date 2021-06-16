@@ -10,12 +10,7 @@ import egg.core as core
 
 def get_other_opts(parser):
     group = parser.add_argument_group("other")
-    group.add_argument(
-        "--dummy",
-        type=float,
-        default=1.0,
-        help="dumy option"
-    )
+    group.add_argument("--dummy", type=float, default=1.0, help="dumy option")
 
 
 def get_opts(params):
@@ -24,7 +19,7 @@ def get_opts(params):
         "--pdb",
         action="store_true",
         default=False,
-        help="Run the game with pdb enabled"
+        help="Run the game with pdb enabled",
     )
 
     get_other_opts(parser)

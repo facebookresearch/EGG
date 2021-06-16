@@ -19,12 +19,17 @@ class ContinuousLinearSender(nn.Module):
         encoder_input_size: int,
         encoder_hidden_size: int = 64,
         num_layers: int = 1,
-        activation: str = "relu"
+        activation: str = "relu",
     ):
         super(ContinuousLinearSender, self).__init__()
 
         self.agent = agent
-        activations = {"relu": F.relu, "tanh": F.tanh, "leaky_relu": F.leaky_relu, "identity": nn.Identity()}
+        activations = {
+            "relu": F.relu,
+            "tanh": F.tanh,
+            "leaky_relu": F.leaky_relu,
+            "identity": nn.Identity(),
+        }
         self.activation = activations[activation.lower()]
 
         encoder_hidden_sizes = [encoder_hidden_size] * num_layers

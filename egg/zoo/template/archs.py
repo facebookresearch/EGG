@@ -15,7 +15,9 @@ class Sender(nn.Module):
     def __init__(self):
         super(Sender, self).__init__()
 
-    def forward(self, sender_input: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
+    def forward(
+        self, sender_input: torch.Tensor
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 
 
@@ -24,9 +26,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
 
     def forward(
-        self,
-        message: torch.Tensor,
-        receiver_input: torch.Tensor = None
+        self, message: torch.Tensor, receiver_input: torch.Tensor = None
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 
@@ -36,7 +36,10 @@ class Game(nn.Module):
         self,
         sender: nn.Module,
         receiver: nn.Module,
-        loss: Callable[[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], Tuple[torch.Tensor, Dict[str, Any]]]
+        loss: Callable[
+            [torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+            Tuple[torch.Tensor, Dict[str, Any]],
+        ],
     ):
         super(Game, self).__init__()
 
@@ -44,6 +47,6 @@ class Game(nn.Module):
         self,
         sender_input: torch.Tensor,
         labels: torch.Tensor,
-        receiver_input: torch.Tensor = None
+        receiver_input: torch.Tensor = None,
     ) -> Tuple[torch.Tensor, Interaction]:
         pass

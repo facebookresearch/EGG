@@ -5,16 +5,14 @@
 
 import torch
 
-from egg.core.continous_communication import (
-    SenderReceiverContinuousCommunication
-)
+from egg.core.continous_communication import SenderReceiverContinuousCommunication
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.archs import (
-    get_vision_module,
-    Sender,
     Receiver,
+    Sender,
     VisionGameWrapper,
-    VisionModule
+    VisionModule,
+    get_vision_module,
 )
 from egg.zoo.simclr.losses import Loss
 
@@ -24,32 +22,25 @@ def build_game(
     loss_temperature: float = 0.1,
     vision_encoder_name: str = "resnet50",
     output_size: int = 128,
-    is_distributed: bool = False
+    is_distributed: bool = False,
 ):
-    vision_module, visual_features_dim = get_vision_module(encoder_arch=vision_encoder_name)
+    vision_module, visual_features_dim = get_vision_module(
+        encoder_arch=vision_encoder_name
+    )
     vision_encoder = VisionModule(vision_module=vision_module)
 
     train_logging_strategy = LoggingStrategy.minimal()
-    assert not batch_size % 2, (
-        f"Batch size must be multiple of 2. Found {batch_size} instead"
-    )
+    assert (
+        not batch_size % 2
+    ), f"Batch size must be multiple of 2. Found {batch_size} instead"
 
     loss = Loss(batch_size, loss_temperature)
 
-    sender = Sender(
-        visual_features_dim=visual_features_dim,
-        output_dim=output_size
-    )
-    receiver = Receiver(
-        visual_features_dim=visual_features_dim,
-        output_dim=output_size
-    )
+    sender = Sender(visual_features_dim=visual_features_dim, output_dim=output_size)
+    receiver = Receiver(visual_features_dim=visual_features_dim, output_dim=output_size)
 
     game = SenderReceiverContinuousCommunication(
-        sender,
-        receiver,
-        loss,
-        train_logging_strategy
+        sender, receiver, loss, train_logging_strategy
     )
 
     game = VisionGameWrapper(game, vision_encoder)
