@@ -14,9 +14,10 @@ from egg.zoo.template.losses import get_loss
 
 
 def build_optimizer_and_scheduler(
-    game: nn.Module,
-    lr: float
-) -> Tuple[torch.optim.Optimizer, Optional[Any]]:  # some pytorch schedulers are child classes of object
+    game: nn.Module, lr: float
+) -> Tuple[
+    torch.optim.Optimizer, Optional[Any]
+]:  # some pytorch schedulers are child classes of object
     pass
 
 

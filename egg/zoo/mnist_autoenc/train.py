@@ -37,10 +37,10 @@ class Receiver(nn.Module):
         self.fc = nn.Linear(400, 784)
 
     def forward(self, x, _input):
-        # Under GS-based optimization, the embedding layer of SymbolReceiverWrapper would be 
+        # Under GS-based optimization, the embedding layer of SymbolReceiverWrapper would be
         # essentially a linear layer. Since there is no point in having two linear layers
         # sequentially, we put a non-linearity
-        x = F.leaky_relu(x)  
+        x = F.leaky_relu(x)
         x = self.fc(x)
         return torch.sigmoid(x)
 
@@ -49,7 +49,9 @@ def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
     """
     The autoencoder's loss function; cross-entropy between the original and restored images.
     """
-    loss = F.binary_cross_entropy(receiver_output, sender_input.view(-1, 784), reduction='none').mean(dim=1)
+    loss = F.binary_cross_entropy(
+        receiver_output, sender_input.view(-1, 784), reduction="none"
+    ).mean(dim=1)
     return loss, {}
 
 
@@ -60,36 +62,54 @@ def main(params):
     # See egg/core/util.py for a list
 
     # prepare the dataset
-    kwargs = {'num_workers': 1, 'pin_memory': True} if opts.cuda else {}
+    kwargs = {"num_workers": 1, "pin_memory": True} if opts.cuda else {}
     transform = transforms.ToTensor()
 
     train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data', train=True, download=True,
-           transform=transform),
-           batch_size=opts.batch_size, shuffle=True, **kwargs)
+        datasets.MNIST("./data", train=True, download=True, transform=transform),
+        batch_size=opts.batch_size,
+        shuffle=True,
+        **kwargs
+    )
     test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data', train=False, transform=transform),
-           batch_size=opts.batch_size, shuffle=True, **kwargs)
+        datasets.MNIST("./data", train=False, transform=transform),
+        batch_size=opts.batch_size,
+        shuffle=True,
+        **kwargs
+    )
 
     # initialize the agents and the game
     sender = Sender(opts.vocab_size)  # the "data" transform part of an agent
-    sender = core.GumbelSoftmaxWrapper(sender, temperature=1.0)  # wrapping into a GS interface
+    sender = core.GumbelSoftmaxWrapper(
+        sender, temperature=1.0
+    )  # wrapping into a GS interface
 
     receiver = Receiver()
-    receiver = core.SymbolReceiverWrapper(receiver, vocab_size=opts.vocab_size,
-                                          agent_input_size=400)
+    receiver = core.SymbolReceiverWrapper(
+        receiver, vocab_size=opts.vocab_size, agent_input_size=400
+    )
     # setting up as a standard Sender/Receiver game with 1 symbol communication
     game = core.SymbolGameGS(sender, receiver, loss)
     # This callback would be called at the end of each epoch by the Trainer; it reduces the sampling
     # temperature used by the GS
-    temperature_updater = core.TemperatureUpdater(agent=sender, decay=0.75, minimum=0.01)
+    temperature_updater = core.TemperatureUpdater(
+        agent=sender, decay=0.75, minimum=0.01
+    )
     # get an optimizer that is set up by common command line parameters,
     # defaults to Adam
     optimizer = core.build_optimizer(game.parameters())
 
     # initialize and launch the trainer
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
-                           callbacks=[temperature_updater, core.ConsoleLogger(as_json=True, print_train_loss=True)])
+    trainer = core.Trainer(
+        game=game,
+        optimizer=optimizer,
+        train_data=train_loader,
+        validation_data=test_loader,
+        callbacks=[
+            temperature_updater,
+            core.ConsoleLogger(as_json=True, print_train_loss=True),
+        ],
+    )
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
@@ -97,5 +117,5 @@ def main(params):
 
 if __name__ == "__main__":
     import sys
-    main(sys.argv[1:])
 
+    main(sys.argv[1:])

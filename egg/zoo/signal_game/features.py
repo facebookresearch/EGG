@@ -44,13 +44,13 @@ class _BatchIterator:
                 c = concepts[0]
                 ims = loader.dataset.obj2id[c]["ims"]
                 idxs_sender = self.random_state.choice(
-                    ims, opt.game_size, replace=False)
+                    ims, opt.game_size, replace=False
+                )
                 images_indexes_sender[b, :] = idxs_sender
             else:
                 idxs_sender = []
                 # randomly sample k concepts
-                concepts = self.random_state.choice(
-                    C, opt.game_size, replace=False)
+                concepts = self.random_state.choice(C, opt.game_size, replace=False)
                 for i, c in enumerate(concepts):
                     ims = loader.dataset.obj2id[c]["ims"]
                     idx = self.random_state.choice(ims, 2, replace=False)
@@ -71,17 +71,16 @@ class _BatchIterator:
         for i in range(opt.batch_size):
             permutation = torch.randperm(opt.game_size)
 
-            images_vectors_receiver[:, i,
-                                    :] = images_vectors_sender[permutation, i, :]
+            images_vectors_receiver[:, i, :] = images_vectors_sender[permutation, i, :]
             y[i] = permutation.argmin()
         return images_vectors_sender, y, images_vectors_receiver
 
 
 class ImagenetLoader(torch.utils.data.DataLoader):
     def __init__(self, *args, **kwargs):
-        self.opt = kwargs.pop('opt')
-        self.seed = kwargs.pop('seed')
-        self.batches_per_epoch = kwargs.pop('batches_per_epoch')
+        self.opt = kwargs.pop("opt")
+        self.seed = kwargs.pop("seed")
+        self.batches_per_epoch = kwargs.pop("batches_per_epoch")
 
         super(ImagenetLoader, self).__init__(*args, **kwargs)
 
@@ -101,9 +100,9 @@ class ImageNetFeat(data.Dataset):
         self.train = train  # training set or test set
 
         # FC features
-        fc_file = os.path.join(root, 'ours_images_single_sm0.h5')
+        fc_file = os.path.join(root, "ours_images_single_sm0.h5")
 
-        fc = h5py.File(fc_file, 'r')
+        fc = h5py.File(fc_file, "r")
         # There should be only 1 key
         key = list(fc.keys())[0]
         # Get the data
@@ -113,12 +112,10 @@ class ImageNetFeat(data.Dataset):
         img_norm = torch.norm(data, p=2, dim=1, keepdim=True)
         normed_data = data / img_norm
 
-        objects_file = os.path.join(root,
-                                    'ours_images_single_sm0.objects')
+        objects_file = os.path.join(root, "ours_images_single_sm0.objects")
         with open(objects_file, "rb") as f:
             labels = pickle.load(f)
-        objects_file = os.path.join(root,
-                                    'ours_images_paths_sm0.objects')
+        objects_file = os.path.join(root, "ours_images_paths_sm0.objects")
         with open(objects_file, "rb") as f:
             paths = pickle.load(f)
 
@@ -142,6 +139,6 @@ class ImageNetFeat(data.Dataset):
                 idx_label += 1
                 keys[labels[i]] = idx_label
                 self.obj2id[idx_label] = {}
-                self.obj2id[idx_label]['labels'] = labels[i]
-                self.obj2id[idx_label]['ims'] = []
-            self.obj2id[idx_label]['ims'].append(i)
+                self.obj2id[idx_label]["labels"] = labels[i]
+                self.obj2id[idx_label]["ims"] = []
+            self.obj2id[idx_label]["ims"].append(i)

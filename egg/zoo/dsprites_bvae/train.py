@@ -22,13 +22,15 @@ from egg.zoo.dsprites_bvae.data_loaders.data_loaders import get_dsprites_dataloa
 from .archs import VisualReceiver, VisualSender
 
 
-def reconstruction_loss(x, x_recon, distribution='bernoulli'):
+def reconstruction_loss(x, x_recon, distribution="bernoulli"):
     batch_size = x.size(0)
     assert batch_size != 0
 
-    if distribution == 'bernoulli':
-        recon_loss = F.binary_cross_entropy_with_logits(x_recon, x, size_average=False).div(batch_size)
-    elif distribution == 'gaussian':
+    if distribution == "bernoulli":
+        recon_loss = F.binary_cross_entropy_with_logits(
+            x_recon, x, size_average=False
+        ).div(batch_size)
+    elif distribution == "gaussian":
         x_recon = F.sigmoid(x_recon)
         recon_loss = F.mse_loss(x_recon, x, size_average=False).div(batch_size)
     else:
@@ -77,8 +79,8 @@ class betaVAE_Game(nn.Module):
         label = batch[2]
 
         distributions = self.sender(sender_input)
-        mu = distributions[:, :self.z_dim]
-        logvar = distributions[:, self.z_dim:]
+        mu = distributions[:, : self.z_dim]
+        logvar = distributions[:, self.z_dim :]
 
         if self.train:
             message = reparametrize(mu, logvar)
@@ -99,7 +101,7 @@ class betaVAE_Game(nn.Module):
             message=message.detach(),
             labels=None,
             message_length=torch.ones(message.size(0)),
-            aux={}
+            aux={},
         )
 
         return beta_vae_loss.mean(), log
@@ -112,7 +114,7 @@ class ImageDumpCallback(core.Callback):
         self.image_shape = image_shape
 
     def on_epoch_end(self, loss, logs, epoch):
-        dump_dir = pathlib.Path.cwd() / 'dump' / str(epoch)
+        dump_dir = pathlib.Path.cwd() / "dump" / str(epoch)
         dump_dir.mkdir(exist_ok=True, parents=True)
 
         state = self.trainer.game.train
@@ -124,9 +126,13 @@ class ImageDumpCallback(core.Callback):
             example_id = np.random.randint(0, len_dataset)
             example = self.eval_dataset[example_id]
 
-            example = (example[0].unsqueeze(0), example[1].unsqueeze(0), example[2].unsqueeze(0))
+            example = (
+                example[0].unsqueeze(0),
+                example[1].unsqueeze(0),
+                example[2].unsqueeze(0),
+            )
 
-            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
             example = core.move_to(example, device)
             _, interaction = self.trainer.game(*example)
@@ -136,7 +142,7 @@ class ImageDumpCallback(core.Callback):
             output = interaction.receiver_output.view(*self.image_shape)
             image = image.view(*self.image_shape)
             utils.save_image(
-                torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png')
+                torch.cat([image, output], dim=1), dump_dir / (str(i) + ".png")
             )
         self.trainer.game.train(state)
 
@@ -144,17 +150,28 @@ class ImageDumpCallback(core.Callback):
 def main(params):
     opts = core.init(params=params)
 
-    root = os.path.join('data', 'dsprites-dataset', 'dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz')
+    root = os.path.join(
+        "data", "dsprites-dataset", "dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz"
+    )
     if not os.path.exists(root):
         import subprocess
-        print('Now download dsprites-dataset')
-        subprocess.call([os.path.join('egg', 'zoo', 'dsprites_bvae', 'data_loaders', 'download_dsprites.sh')])
-        print('Finished')
+
+        print("Now download dsprites-dataset")
+        subprocess.call(
+            [
+                os.path.join(
+                    "egg",
+                    "zoo",
+                    "dsprites_bvae",
+                    "data_loaders",
+                    "download_dsprites.sh",
+                )
+            ]
+        )
+        print("Finished")
 
     train_loader, test_loader = get_dsprites_dataloader(
-        path_to_data=root,
-        batch_size=opts.batch_size,
-        image=True
+        path_to_data=root, batch_size=opts.batch_size, image=True
     )
     image_shape = (64, 64)
 
@@ -174,10 +191,12 @@ def main(params):
             core.ConsoleLogger(as_json=True, print_train_loss=True),
             ImageDumpCallback(test_loader.dataset, image_shape=image_shape),
             TopographicSimilarity(
-                sender_input_distance_fn='euclidean', message_distance_fn='euclidean', is_gumbel=False
+                sender_input_distance_fn="euclidean",
+                message_distance_fn="euclidean",
+                is_gumbel=False,
             ),
-            Disent(is_gumbel=False)
-        ]
+            Disent(is_gumbel=False),
+        ],
     )
     trainer.train(n_epochs=opts.n_epochs)
 

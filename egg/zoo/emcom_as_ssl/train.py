@@ -16,9 +16,9 @@ from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 def main(params):
     opts = get_common_opts(params=params)
     print(f"{opts}\n")
-    assert not opts.batch_size % 2, (
-        f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
-    )
+    assert (
+        not opts.batch_size % 2
+    ), f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
     print(
         f"Running a distruted training is set to: {opts.distributed_context.is_distributed}. "
         f"World size is {opts.distributed_context.world_size}. "
@@ -36,25 +36,27 @@ def main(params):
         use_augmentations=opts.use_augmentations,
         is_distributed=opts.distributed_context.is_distributed,
         return_original_image=opts.return_original_image,
-        seed=opts.random_seed
+        seed=opts.random_seed,
     )
 
     game = build_game(opts)
 
-    model_parameters = add_weight_decay(
-        game,
-        opts.weight_decay,
-        skip_name='bn'
-    )
+    model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")
 
     optimizer = torch.optim.SGD(
         model_parameters,
         lr=opts.lr,
         momentum=0.9,
     )
-    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opts.n_epochs)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=opts.n_epochs
+    )
 
-    if opts.distributed_context.is_distributed and opts.distributed_context.world_size > 2 and opts.use_larc:
+    if (
+        opts.distributed_context.is_distributed
+        and opts.distributed_context.world_size > 2
+        and opts.use_larc
+    ):
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
     callbacks = get_callbacks(
@@ -66,7 +68,7 @@ def main(params):
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
         gs_temperature_decay=opts.gs_temperature_decay,
-        is_distributed=opts.distributed_context.is_distributed
+        is_distributed=opts.distributed_context.is_distributed,
     )
 
     trainer = core.Trainer(
@@ -84,4 +86,5 @@ def main(params):
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
     import sys
+
     main(sys.argv[1:])

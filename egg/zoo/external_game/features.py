@@ -10,8 +10,8 @@ from torch.utils.data import Dataset
 
 class CSVDataset(Dataset):
     def __init__(self, path):
-        datatypes = [('sender_input', 'S10'), ('label', 'S10')]
-        frame = np.loadtxt(path, dtype=datatypes, delimiter=';')
+        datatypes = [("sender_input", "S10"), ("label", "S10")]
+        frame = np.loadtxt(path, dtype=datatypes, delimiter=";")
         self.frame = []
 
         for row in frame:
@@ -35,4 +35,3 @@ class CSVDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.frame[idx]
-

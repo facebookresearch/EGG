@@ -65,8 +65,7 @@ class VAE_Game(nn.Module):
 
         receiver_output = self.receiver(message)
 
-        BCE = F.binary_cross_entropy(
-            receiver_output, sender_input, reduction='sum')
+        BCE = F.binary_cross_entropy(receiver_output, sender_input, reduction="sum")
 
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss = BCE + KLD
@@ -78,7 +77,7 @@ class VAE_Game(nn.Module):
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),
-            aux={}
+            aux={},
         )
 
         return loss.mean(), log
@@ -91,7 +90,7 @@ class ImageDumpCallback(core.Callback):
         self.device = device
 
     def on_epoch_end(self, loss, logs, epoch):
-        dump_dir = pathlib.Path.cwd() / 'dump' / str(epoch)
+        dump_dir = pathlib.Path.cwd() / "dump" / str(epoch)
         dump_dir.mkdir(exist_ok=True, parents=True)
 
         state = self.trainer.game.train
@@ -107,22 +106,28 @@ class ImageDumpCallback(core.Callback):
             output = interaction.receiver_output.view(28, 28)
             image = image.view(28, 28)
             utils.save_image(
-                torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png'))
+                torch.cat([image, output], dim=1), dump_dir / (str(i) + ".png")
+            )
         self.trainer.game.train(state)
 
 
 def main(params):
     opts = core.init(params=params)
-    kwargs = {'num_workers': 1, 'pin_memory': True} if opts.cuda else {}
+    kwargs = {"num_workers": 1, "pin_memory": True} if opts.cuda else {}
     transform = transforms.ToTensor()
 
     train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data', train=True, download=True,
-                       transform=transform),
-        batch_size=opts.batch_size, shuffle=True, **kwargs)
+        datasets.MNIST("./data", train=True, download=True, transform=transform),
+        batch_size=opts.batch_size,
+        shuffle=True,
+        **kwargs
+    )
     test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('./data', train=False, transform=transform),
-        batch_size=opts.batch_size, shuffle=True, **kwargs)
+        datasets.MNIST("./data", train=False, transform=transform),
+        batch_size=opts.batch_size,
+        shuffle=True,
+        **kwargs
+    )
 
     sender = Sender(opts.vocab_size)
     receiver = Receiver(opts.vocab_size)
@@ -137,8 +142,8 @@ def main(params):
         validation_data=test_loader,
         callbacks=[
             core.ConsoleLogger(as_json=True, print_train_loss=True),
-            ImageDumpCallback(test_loader.dataset, opts.device)
-        ]
+            ImageDumpCallback(test_loader.dataset, opts.device),
+        ],
     )
     trainer.train(n_epochs=opts.n_epochs)
 
@@ -147,4 +152,5 @@ def main(params):
 
 if __name__ == "__main__":
     import sys
+
     main(sys.argv[1:])

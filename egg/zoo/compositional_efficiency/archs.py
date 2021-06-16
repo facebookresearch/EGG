@@ -63,8 +63,7 @@ class RotatedSender(nn.Module):
 
         if x.size(1) == 2:
             message[:, 0] = (x[:, 0] + x[:, 1]).fmod(self.n_values)
-            message[:, 1] = (self.n_values + x[:, 0] -
-                             x[:, 1]).fmod(self.n_values)
+            message[:, 1] = (self.n_values + x[:, 0] - x[:, 1]).fmod(self.n_values)
         else:
             assert False
 
@@ -81,7 +80,8 @@ class Lenses(nn.Module):
         sin_theta = math.sin(theta)
 
         self.rotation_matrix = torch.tensor(
-            [[cos_theta, -sin_theta], [sin_theta, cos_theta]], requires_grad=False)
+            [[cos_theta, -sin_theta], [sin_theta, cos_theta]], requires_grad=False
+        )
         self.rotation_matrix = nn.Parameter(self.rotation_matrix)
 
     def __call__(self, examples):

@@ -15,7 +15,7 @@ class LeNet(nn.Module):
         super(LeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
-        self.fc1 = nn.Linear(4*11*50, 400)
+        self.fc1 = nn.Linear(4 * 11 * 50, 400)
 
     def forward(self, x):
         x = F.leaky_relu(self.conv1(x))
@@ -25,7 +25,6 @@ class LeNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.leaky_relu(self.fc1(x))
         return x
-
 
 
 class Sender(nn.Module):

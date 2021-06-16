@@ -18,21 +18,17 @@ def get_dataloader(
     use_augmentations: bool = True,
     is_distributed: bool = False,
     return_original_image: bool = False,
-    seed: int = 111
+    seed: int = 111,
 ):
-    transformations = ImageTransformation(image_size, use_augmentations, return_original_image)
-
-    train_dataset = datasets.ImageFolder(
-        dataset_dir,
-        transform=transformations
+    transformations = ImageTransformation(
+        image_size, use_augmentations, return_original_image
     )
+
+    train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
-            train_dataset,
-            shuffle=True,
-            drop_last=True,
-            seed=seed
+            train_dataset, shuffle=True, drop_last=True, seed=seed
         )
 
     train_loader = torch.utils.data.DataLoader(
@@ -51,7 +47,7 @@ def get_dataloader(
 class GaussianBlur:
     """Gaussian blur augmentation as in SimCLR https://arxiv.org/abs/2002.05709"""
 
-    def __init__(self, sigma=[.1, 2.]):
+    def __init__(self, sigma=[0.1, 2.0]):
         self.sigma = sigma
 
     def __call__(self, x):
@@ -67,35 +63,38 @@ class ImageTransformation:
     denoted x ̃i and x ̃j, which we consider as a positive pair.
     """
 
-    def __init__(self, size: int, augmentation: bool = False, return_original_image: bool = False):
+    def __init__(
+        self, size: int, augmentation: bool = False, return_original_image: bool = False
+    ):
         if augmentation:
             s = 1
-            color_jitter = transforms.ColorJitter(
-                0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s
-            )
+            color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
             transformations = [
                 transforms.RandomResizedCrop(size=size),
                 transforms.RandomApply([color_jitter], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
-                transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
+                transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
         else:
             transformations = [transforms.Resize(size=(size, size))]
 
-        transformations.extend([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        transformations.extend(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
         self.transform = transforms.Compose(transformations)
 
         self.return_original_image = return_original_image
         if self.return_original_image:
-            self.original_image_transform = transforms.Compose([
-                transforms.Resize(size=(size, size)),
-                transforms.ToTensor()
-            ])
+            self.original_image_transform = transforms.Compose(
+                [transforms.Resize(size=(size, size)), transforms.ToTensor()]
+            )
 
     def __call__(self, x):
         x_i = self.transform(x)

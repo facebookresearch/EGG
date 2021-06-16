@@ -25,7 +25,9 @@ def select_subset_V1(data, n_subset, n_attributes, n_values, random_seed=7):
     chosen_val = []
     for attribute in range(n_attributes):
         chosen_val.append(
-            [0]+list(random_state.choice(range(1, n_values), n_subset-1, replace=False)))
+            [0]
+            + list(random_state.choice(range(1, n_values), n_subset - 1, replace=False))
+        )
 
     sampled_data = []
     for sample in data:
@@ -45,17 +47,16 @@ def select_subset_V2(data, n_subset, n_attributes, n_values, random_seed=7):
     sampled_data = []
     # Sample the diagonal (minus (0,0)) to impose having each attribute is present at least once in the dataset
     start = 0
-    while start < (n_values**n_attributes):
+    while start < (n_values ** n_attributes):
         if start > 0:
             sampled_data.append(data[start])
-        start += n_values+1
+        start += n_values + 1
     # Sample remaining
-    to_sample = (n_subset**n_attributes) - len(sampled_data)
+    to_sample = (n_subset ** n_attributes) - len(sampled_data)
     tobesampled = copy.deepcopy(data)
     for sample in sampled_data:
         tobesampled.remove(sample)
-    tmp = list(random_state.choice(
-        range(len(tobesampled)), to_sample, replace=False))
+    tmp = list(random_state.choice(range(len(tobesampled)), to_sample, replace=False))
 
     for i in tmp:
         sampled_data += [tobesampled[i]]
@@ -120,7 +121,7 @@ class ScaledDataset:
         return self.examples[k], torch.zeros(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dataset = enumerate_attribute_value(n_attributes=2, n_values=10)
     train, holdout = split_holdout(dataset)
     print(len(train), len(holdout), len(dataset))
