@@ -28,7 +28,7 @@ class EarlyStopper(Callback):
         self.train_stats.append((loss, logs))
         self.trainer.should_stop = self.should_stop()
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int) -> None:
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int) -> None:
         if not self.validation:
             return
         self.validation_stats.append((loss, logs))

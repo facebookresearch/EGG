@@ -130,8 +130,16 @@ def main(params):
     optimizer = core.build_optimizer(game.parameters())
 
     # initialize and launch the trainer
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
-                           callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True), ImageDumpCallback(test_loader.dataset, opts.device)])
+    trainer = core.Trainer(
+        game=game,
+        optimizer=optimizer,
+        train_data=train_loader,
+        validation_data=test_loader,
+        callbacks=[
+            core.ConsoleLogger(as_json=True, print_train_loss=True),
+            ImageDumpCallback(test_loader.dataset, opts.device)
+        ]
+    )
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()

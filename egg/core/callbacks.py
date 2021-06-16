@@ -46,10 +46,10 @@ class Callback:
     ):
         pass
 
-    def on_test_begin(self, epoch: int):
+    def on_validation_begin(self, epoch: int):
         pass
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
     def on_epoch_begin(self, epoch: int):
@@ -82,7 +82,7 @@ class ConsoleLogger(Callback):
             output_message = f"{mode}: epoch {epoch}, loss {loss}, " + output_message
         print(output_message, flush=True)
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
@@ -97,7 +97,7 @@ class TensorboardLogger(Callback):
         else:
             self.writer = get_summary_writer()
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.writer.add_scalar(tag="test/loss", scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
             self.writer.add_scalar(
@@ -260,7 +260,7 @@ class InteractionSaver(Callback):
         dump_dir.mkdir(exist_ok=True, parents=True)
         torch.save(logs, dump_dir / f"interaction_gpu{rank}")
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if epoch in self.test_epochs:
             if not self.aggregated_interaction or self.trainer.distributed_context.is_leader:
                 rank = self.trainer.distributed_context.rank
@@ -454,7 +454,7 @@ class ProgressBarLogger(Callback):
         od = self.build_od(logs, loss, epoch)
         self.progress.update_info_table(od, "train")
 
-    def on_test_begin(self, epoch: int):
+    def on_validation_begin(self, epoch: int):
         self.progress.reset(
             task_id=self.test_p,
             total=self.test_data_len,
@@ -468,7 +468,7 @@ class ProgressBarLogger(Callback):
         self.progress.start_task(self.test_p)
         self.progress.update(self.test_p, visible=True)
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.progress.stop_task(self.test_p)
         self.progress.update(self.test_p, visible=False)
 

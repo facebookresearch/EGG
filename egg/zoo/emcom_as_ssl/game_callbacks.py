@@ -39,7 +39,7 @@ class BestStatsTracker(Callback):
         self.last_train_epoch = epoch
         self.last_train_loss = loss
 
-    def on_test_end(self, loss, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss, logs: Interaction, epoch: int):
         if logs.aux["acc"].mean().item() > self.best_val_acc:
             self.best_val_acc = logs.aux["acc"].mean().item()
             self.best_val_epoch = epoch
@@ -115,7 +115,7 @@ class DistributedSamplerEpochSetter(Callback):
         if self.trainer.distributed_context.is_distributed:
             self.trainer.train_data.sampler.set_epoch(epoch)
 
-    def on_test_begin(self, epoch: int):
+    def on_validation_begin(self, epoch: int):
         if self.trainer.distributed_context.is_distributed:
             self.trainer.validation_data.sampler.set_epoch(epoch)
 

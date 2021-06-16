@@ -117,7 +117,7 @@ class MessageEntropy(Callback):
         if self.print_train:
             self.print_message_entropy(logs, "train", epoch)
 
-    def on_test_end(self, loss, logs, epoch):
+    def on_validation_end(self, loss, logs, epoch):
         self.print_message_entropy(logs, "test", epoch)
 
 
@@ -159,7 +159,7 @@ class TopographicSimilarity(Callback):
         if self.compute_topsim_train_set:
             self.print_message(logs, "train", epoch)
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if self.compute_topsim_test_set:
             self.print_message(logs, "test", epoch)
 
@@ -303,7 +303,7 @@ class Disent(Callback):
         if self.print_train:
             self.print_message(logs, "train", epoch)
 
-    def on_test_end(self, loss, logs, epoch):
+    def on_validation_end(self, loss, logs, epoch):
         if self.print_test:
             self.print_message(logs, "test", epoch)
 
@@ -330,8 +330,8 @@ class PrintValidationEvents(Callback):
         print("OUTPUTS")
         print([m.tolist() for m in logs.receiver_output], sep="\n")
 
-    # here is where we make sure we are printing the validation set (on_test_end, not on_epoch_end)
-    def on_test_end(self, _loss, logs: Interaction, epoch: int):
+    # here is where we make sure we are printing the validation set (on_validation_end, not on_epoch_end)
+    def on_validation_end(self, _loss, logs: Interaction, epoch: int):
         # here is where we check that we are at the last epoch
         if epoch == self.n_epochs:
             self.print_events(logs)
