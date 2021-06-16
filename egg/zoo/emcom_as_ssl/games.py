@@ -9,11 +9,11 @@ from egg.core.interaction import LoggingStrategy
 from egg.zoo.emcom_as_ssl.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
-    get_vision_modules,
     Receiver,
     SimCLRSender,
     VisionGameWrapper,
-    VisionModule
+    VisionModule,
+    get_vision_modules,
 )
 from egg.zoo.emcom_as_ssl.losses import get_loss
 

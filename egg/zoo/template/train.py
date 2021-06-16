@@ -10,8 +10,8 @@ import torch
 
 import egg.core as core
 from egg.zoo.template.data import get_dataloader
-from egg.zoo.template.games import build_game, build_optimizer_and_scheduler
 from egg.zoo.template.game_callbacks import get_callbacks
+from egg.zoo.template.games import build_game, build_optimizer_and_scheduler
 from egg.zoo.template.utils import get_opts
 
 

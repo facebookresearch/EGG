@@ -17,10 +17,13 @@ import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.archs import Receiver, Sender
 from egg.zoo.objects_game.features import VectorsLoader
-from egg.zoo.objects_game.util import (compute_baseline_accuracy,
-                                       compute_mi_input_msgs,
-                                       dump_sender_receiver, entropy,
-                                       mutual_info)
+from egg.zoo.objects_game.util import (
+    compute_baseline_accuracy,
+    compute_mi_input_msgs,
+    dump_sender_receiver,
+    entropy,
+    mutual_info,
+)
 
 
 def get_params(params):

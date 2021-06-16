@@ -5,16 +5,14 @@
 
 import torch
 
-from egg.core.continous_communication import (
-    SenderReceiverContinuousCommunication
-)
+from egg.core.continous_communication import SenderReceiverContinuousCommunication
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.archs import (
-    get_vision_module,
-    Sender,
     Receiver,
+    Sender,
     VisionGameWrapper,
-    VisionModule
+    VisionModule,
+    get_vision_module,
 )
 from egg.zoo.simclr.losses import Loss
 

@@ -1,4 +1,4 @@
-# copyright (c) facebook, inc. and its affiliates.
+# Copyright (c) Facebook, Inc. and its affiliates.
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -129,7 +129,7 @@ def save_interaction(
 ):
     dump_dir = pathlib.Path(log_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
-    torch.save(interaction, dump_dir / f"interactions_test_set.pt")
+    torch.save(interaction, dump_dir / "interactions_test_set.pt")
 
 
 def get_dataloader(

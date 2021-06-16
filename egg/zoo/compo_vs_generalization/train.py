@@ -13,15 +13,22 @@ from torch.utils.data import DataLoader
 
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
-from egg.zoo.compo_vs_generalization.archs import (Freezer, NonLinearReceiver,
-                                                   PlusOneWrapper, Receiver,
-                                                   Sender)
-from egg.zoo.compo_vs_generalization.data import (ScaledDataset,
-                                                  enumerate_attribute_value,
-                                                  one_hotify, select_subset_V1,
-                                                  select_subset_V2,
-                                                  split_holdout,
-                                                  split_train_test)
+from egg.zoo.compo_vs_generalization.archs import (
+    Freezer,
+    NonLinearReceiver,
+    PlusOneWrapper,
+    Receiver,
+    Sender,
+)
+from egg.zoo.compo_vs_generalization.data import (
+    ScaledDataset,
+    enumerate_attribute_value,
+    one_hotify,
+    select_subset_V1,
+    select_subset_V2,
+    split_holdout,
+    split_train_test,
+)
 from egg.zoo.compo_vs_generalization.intervention import Evaluator, Metrics
 
 

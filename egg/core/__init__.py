@@ -13,8 +13,8 @@ from .callbacks import (
     TensorboardLogger,
 )
 from .continous_communication import (
-    ContinuousLinearSender,
     ContinuousLinearReceiver,
+    ContinuousLinearSender,
     SenderReceiverContinuousCommunication,
 )
 from .early_stopping import EarlyStopperAccuracy
@@ -29,21 +29,13 @@ from .gs_wrappers import (
 )
 from .interaction import Interaction, LoggingStrategy
 from .language_analysis import (
-    MessageEntropy,
     Disent,
+    MessageEntropy,
     PrintValidationEvents,
     TopographicSimilarity,
 )
-from .losses import (
-    DiscriminationLoss,
-    ReconstructionLoss,
-    NTXentLoss
-)
-from .population import (
-    UniformAgentSampler,
-    FullSweepAgentSampler,
-    PopulationGame,
-)
+from .losses import DiscriminationLoss, NTXentLoss, ReconstructionLoss
+from .population import FullSweepAgentSampler, PopulationGame, UniformAgentSampler
 from .reinforce_wrappers import (
     CommunicationRnnReinforce,
     ReinforceDeterministicWrapper,

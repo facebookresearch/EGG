@@ -1,4 +1,4 @@
-# copyright (c) facebook, inc. and its affiliates.
+# Copyright (c) Facebook, Inc. and its affiliates.
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -9,7 +9,12 @@ from typing import Callable, Optional
 import torch
 from torchvision import transforms
 
-from egg.zoo.emcom_as_ssl.scripts.utils import add_common_cli_args, evaluate, get_game, get_params
+from egg.zoo.emcom_as_ssl.scripts.utils import (
+    add_common_cli_args,
+    evaluate,
+    get_game,
+    get_params,
+)
 
 
 def get_random_noise_dataloader(

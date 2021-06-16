@@ -26,8 +26,8 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 
+from egg.core.interaction import Interaction
 from egg.core.util import get_summary_writer
-from .interaction import Interaction
 
 
 class Callback:

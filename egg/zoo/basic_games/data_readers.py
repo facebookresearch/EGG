@@ -3,9 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset
-import numpy as np
 
 # These input-data-processing classes take input data from a text file and convert them to the format
 # appropriate for the recognition and discrimination games, so that they can be read by

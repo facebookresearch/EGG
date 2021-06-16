@@ -14,8 +14,7 @@ from torchvision import datasets, transforms
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
 from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
-from egg.zoo.language_bottleneck.mnist_classification.archs import (Receiver,
-                                                                    Sender)
+from egg.zoo.language_bottleneck.mnist_classification.archs import Receiver, Sender
 from egg.zoo.language_bottleneck.mnist_classification.data import DoubleMnist
 
 

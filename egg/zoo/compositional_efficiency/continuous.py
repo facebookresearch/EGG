@@ -13,8 +13,7 @@ import torch.utils.data
 from torch.utils.data import DataLoader
 
 import egg.core as core
-from egg.zoo.compositional_efficiency.archs import (CircleSender, Lenses,
-                                                    Receiver)
+from egg.zoo.compositional_efficiency.archs import CircleSender, Lenses, Receiver
 from egg.zoo.compositional_efficiency.dataset import SphereData
 
 

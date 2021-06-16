@@ -3,8 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 # In EGG, the game designer must implement the core functionality of the Sender and Receiver agents. These are then
 # embedded in wrappers that are used to train them to play Gumbel-Softmax- or Reinforce-optimized games. The core

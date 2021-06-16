@@ -8,12 +8,7 @@ import json
 import torch
 import torch.nn as nn
 
-from egg.core import (
-    Callback,
-    ConsoleLogger,
-    Interaction,
-    TemperatureUpdater
-)
+from egg.core import Callback, ConsoleLogger, Interaction, TemperatureUpdater
 
 
 class BestStatsTracker(Callback):

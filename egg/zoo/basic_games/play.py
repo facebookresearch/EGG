@@ -5,17 +5,15 @@
 
 import argparse
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 import egg.core as core
 from egg.core import Callback, Interaction, PrintValidationEvents
-
-import numpy as np
-
-from egg.zoo.basic_games.data_readers import AttValRecoDataset, AttValDiscriDataset
-from egg.zoo.basic_games.architectures import RecoReceiver, DiscriReceiver, Sender
+from egg.zoo.basic_games.architectures import DiscriReceiver, RecoReceiver, Sender
+from egg.zoo.basic_games.data_readers import AttValDiscriDataset, AttValRecoDataset
 
 
 # the following section specifies parameters that are specific to our games: we will also inherit the

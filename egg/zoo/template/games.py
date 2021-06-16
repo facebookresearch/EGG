@@ -9,11 +9,7 @@ from typing import Any, Optional, Tuple
 import torch
 import torch.nn as nn
 
-from egg.zoo.template.archs import (
-    Game,
-    Receiver,
-    Sender,
-)
+from egg.zoo.template.archs import Game, Receiver, Sender
 from egg.zoo.template.losses import get_loss
 
 

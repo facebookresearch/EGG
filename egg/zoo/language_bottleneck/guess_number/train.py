@@ -11,11 +11,15 @@ import torch.utils.data
 
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
-from egg.zoo.language_bottleneck.guess_number.archs import (Receiver,
-                                                            ReinforcedReceiver,
-                                                            Sender)
-from egg.zoo.language_bottleneck.guess_number.features import (OneHotLoader,
-                                                               UniformLoader)
+from egg.zoo.language_bottleneck.guess_number.archs import (
+    Receiver,
+    ReinforcedReceiver,
+    Sender,
+)
+from egg.zoo.language_bottleneck.guess_number.features import (
+    OneHotLoader,
+    UniformLoader,
+)
 from egg.zoo.language_bottleneck.intervention import CallbackEvaluator
 
 

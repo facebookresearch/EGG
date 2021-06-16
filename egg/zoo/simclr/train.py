@@ -7,12 +7,12 @@ import torch
 
 import egg.core as core
 from egg.zoo.simclr.data import get_dataloader
-from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
-    VisionModelSaver
+    VisionModelSaver,
 )
+from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.LARC import LARC
 from egg.zoo.simclr.utils import add_weight_decay, get_opts
 
