@@ -20,8 +20,6 @@ except ImportError:
           'It is used for calculating topographic similarity.')
 
 
-
-
 def ask_sender(n_attributes, n_values, dataset, sender, device):
     attributes = []
     strings = []
@@ -87,9 +85,14 @@ def histogram(strings, vocab_size):
     return histogram
 
 
-def information_gap_vocab(n_attributes, n_values,  dataset, sender, device, vocab_size):
+def information_gap_vocab(n_attributes, n_values, dataset, sender, device, vocab_size):
     attributes, strings, _meanings = ask_sender(
-        n_attributes, n_values, dataset, sender, device)
+        n_attributes,
+        n_values,
+        dataset,
+        sender,
+        device
+    )
 
     histograms = histogram(strings, vocab_size)
     return information_gap_representation(attributes, histograms[:, 1:])
@@ -99,7 +102,7 @@ def edit_dist(_list):
     distances = []
     count = 0
     for i, el1 in enumerate(_list[:-1]):
-        for j, el2 in enumerate(_list[i+1:]):
+        for j, el2 in enumerate(_list[i + 1:]):
             count += 1
             # Normalized edit distance (same in our case as length is fixed)
             distances.append(editdistance.eval(el1, el2) / len(el1))
@@ -109,7 +112,7 @@ def edit_dist(_list):
 def cosine_dist(_list):
     distances = []
     for i, el1 in enumerate(_list[:-1]):
-        for j, el2 in enumerate(_list[i+1:]):
+        for j, el2 in enumerate(_list[i + 1:]):
             distances.append(spatial.distance.cosine(el1, el2))
     return distances
 

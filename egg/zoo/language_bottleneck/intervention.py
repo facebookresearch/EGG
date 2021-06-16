@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
-from typing import Any, Dict
 
 import numpy as np
 import torch
@@ -42,7 +41,7 @@ def _hashable_tensor(t):
 
     try:
         t = t.item()
-    except:
+    except ValueError:
         t = tuple(t.view(-1).tolist())
     return t
 
@@ -60,6 +59,7 @@ def mutual_info(xs, ys):
     e_xy = entropy(xys)
 
     return e_x + e_y - e_xy
+
 
 def _find_lengths(messages):
     """
@@ -110,7 +110,8 @@ class CallbackEvaluator(core.Callback):
 
             original_message = game.sender(sender_input)
             # if Reinforce, agents return tuples
-            if not self.is_gs: original_message = original_message[0]
+            if not self.is_gs:
+                original_message = original_message[0]
 
             if receiver_input is not None:
                 bob_inputs.extend(receiver_input)
@@ -120,7 +121,7 @@ class CallbackEvaluator(core.Callback):
             message = torch.index_select(original_message, 0, permutation)
             output = game.receiver(message, receiver_input)
 
-            if not self.is_gs: 
+            if not self.is_gs:
                 output = output[0]
 
             if not self.var_length:
@@ -133,8 +134,8 @@ class CallbackEvaluator(core.Callback):
                 lengths = core.find_lengths(message)
 
                 for i in range(lengths.size(0)):
-                    l = lengths[i]
-                    original_messages.append(message[i, :l])
+                    curr_len = lengths[i]
+                    original_messages.append(message[i, :curr_len])
 
                 _, rest = self.loss(None, None, None, output, labels)
                 mean_acc += rest['acc'].mean().item()
@@ -144,13 +145,12 @@ class CallbackEvaluator(core.Callback):
                 lengths = core.find_lengths(message)
 
                 for i in range(lengths.size(0)):
-                    l = lengths[i]
-                    original_messages.append(message[i, :l])
+                    curr_len = lengths[i]
+                    original_messages.append(message[i, :curr_len])
 
-                    _, rest = self.loss(None, None, None, output[i:i+1, l-1], labels[i:i+1])
+                    _, rest = self.loss(None, None, None, output[i:i + 1, curr_len - 1], labels[i:i + 1])
                     mean_acc += rest['acc'].item()
                     scaler += 1
-
 
             corresponding_labels.extend(labels)
 
@@ -183,20 +183,22 @@ class CallbackEvaluator(core.Callback):
 
             message = game.sender(sender_input)
             # if Reinforce, agents return tuples
-            if not self.is_gs: message = message[0]
+            if not self.is_gs:
+                message = message[0]
 
             permutation = torch.randperm(receiver_input.size(0)).to(message.device)
             receiver_input = torch.index_select(receiver_input, 0, permutation)
             output = game.receiver(message, receiver_input)
 
-            if not self.is_gs: output = output[0]
+            if not self.is_gs:
+                output = output[0]
             if self.is_gs and self.var_length:
                 message = message.argmax(dim=-1)
                 lengths = core.find_lengths(message)
 
                 for i in range(lengths.size(0)):
-                    l = lengths[i]
-                    _, rest = self.loss(None, None, None, output[i:i+1, l-1], labels[i:i+1])
+                    curr_len = lengths[i]
+                    _, rest = self.loss(None, None, None, output[i:i + 1, curr_len - 1], labels[i:i + 1])
                     mean_acc += rest['acc'].item()
                     scaler += 1
             else:
@@ -231,8 +233,13 @@ class CallbackEvaluator(core.Callback):
 
     def validation(self, game):
         interactions = \
-            core.dump_interactions(game, self.dataset, gs=self.is_gs, device=self.device,
-                                      variable_length=self.var_length)
+            core.dump_interactions(
+                game,
+                self.dataset,
+                gs=self.is_gs,
+                device=self.device,
+                variable_length=self.var_length
+            )
 
         messages = [interactions.message[i] for i in range(interactions.size)]
         entropy_messages = entropy(messages)
@@ -244,7 +251,7 @@ class CallbackEvaluator(core.Callback):
             message = _hashable_tensor(message)
             label = _hashable_tensor(label)
 
-            if not message in message_mapping:
+            if message not in message_mapping:
                 message_mapping[message] = {}
 
             message_mapping[message][label] = message_mapping[message].get(label, 0) + 1

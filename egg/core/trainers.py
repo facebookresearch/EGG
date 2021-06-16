@@ -262,36 +262,36 @@ class Trainer:
 
         for epoch in range(self.start_epoch, n_epochs):
             for callback in self.callbacks:
-                callback.on_epoch_begin(epoch + 1)  # noqa: E226
+                callback.on_epoch_begin(epoch + 1)
 
             train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
                 callback.on_epoch_end(
                     train_loss, train_interaction, epoch + 1
-                )  # noqa: E226
+                )
 
             validation_loss = validation_interaction = None
             if (
                 self.validation_data is not None
                 and self.validation_freq > 0
                 and (epoch + 1) % self.validation_freq == 0
-            ):  # noqa: E226, E501
+            ):
                 for callback in self.callbacks:
-                    callback.on_test_begin(epoch + 1)  # noqa: E226
+                    callback.on_validation_begin(epoch + 1)
                 validation_loss, validation_interaction = self.eval()
 
                 for callback in self.callbacks:
-                    callback.on_test_end(
+                    callback.on_validation_end(
                         validation_loss, validation_interaction, epoch + 1
-                    )  # noqa: E226
+                    )
 
             if self.should_stop:
                 for callback in self.callbacks:
                     callback.on_early_stopping(
                         train_loss,
                         train_interaction,
-                        epoch + 1,  # noqa: E226
+                        epoch + 1,
                         validation_loss,
                         validation_interaction,
                     )
