@@ -52,11 +52,11 @@ class FullSweepAgentSampler(nn.Module):
 
     def forward(self):
         try:
-            s, r, l = next(self.iterator)
+            sender_idx, recv_idx, loss_idx = next(self.iterator)
         except StopIteration:
             self.reset_order()
-            s, r, l = next(self.iterator)
-        return self.senders[s], self.receivers[r], self.losses[l]
+            sender_idx, recv_idx, loss_idx = next(self.iterator)
+        return self.senders[sender_idx], self.receivers[recv_idx], self.losses[loss_idx]
 
 
 class PopulationGame(nn.Module):

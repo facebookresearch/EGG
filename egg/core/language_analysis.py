@@ -128,10 +128,12 @@ class TopographicSimilarity(Callback):
     >>> mess = [[ord(c) for c in w] for w in words]
     >>> round(TopographicSimilarity.compute_topsim(mean, mess, 'hamming', 'hamming'), 6)
     1.0
-    >>> round(TopographicSimilarity.compute_topsim(mean,
-    ...                                            mess,
-    ...                                           'hamming',
-    ...                                            lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2)),  6)
+    >>> round(TopographicSimilarity.compute_topsim(
+    ...     mean,
+    ...     mess,
+    ...     'hamming',
+    ...     lambda x, y: editdistance.eval(x, y) / ((len(x) + len(y)) / 2)),  6
+    ... )
     1.0
     """
 
@@ -210,105 +212,73 @@ class TopographicSimilarity(Callback):
         print(output, flush=True)
 
 
-class PosDisent(Callback):
+class Disent(Callback):
     """
-    Positional disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages",
-    Chaabouni et al., ACL 2020.
-    """
+    Callback to compute positional and bago of symbols disentanglement metrics.
 
-    def __init__(
-        self,
-        print_train: bool = False,
-        print_test: bool = True,
-        is_gumbel: bool = False,
-    ):
-        super().__init__()
-        assert (
-            print_train or print_test
-        ), 'At least on of "print_train" and "print_train" must be enabled'
+    Metrics introduced in "Compositionality and Generalization in Emergent Languages", Chaabouni et al., ACL 2020.
 
-        self.print_train = print_train
-        self.print_test = print_test
-        self.is_gumbel = is_gumbel
+    Two-symbol messages representing two-attribute world. One symbol encodes one attribute:
+    in this case, the metric should be maximized:
+    >>> samples = 1_000
+    >>> _ = torch.manual_seed(0)
+    >>> attribute1 = torch.randint(low=0, high=10, size=(samples, 1))
+    >>> attribute2 = torch.randint(low=0, high=10, size=(samples, 1))
+    >>> attributes = torch.cat([attribute1, attribute2], dim=1)
+    >>> messages = attributes
+    >>> round(Disent.posdis(attributes, messages), 6)
+    0.978656
+    >>> messages = torch.cat([messages, torch.zeros_like(messages)], dim=1)
+    >>> round(Disent.posdis(attributes, messages), 6)
+    0.978656
 
-    @staticmethod
-    def posdis(attributes: torch.Tensor, messages: torch.Tensor) -> float:
-        """
-        Two-symbol messages representing two-attribute world. One symbol encodes on attribute:
-        in this case, the metric should be maximized:
-        >>> samples = 1_000
-        >>> _ = torch.manual_seed(0)
-        >>> attribute1 = torch.randint(low=0, high=10, size=(samples, 1))
-        >>> attribute2 = torch.randint(low=0, high=10, size=(samples, 1))
-        >>> attributes = torch.cat([attribute1, attribute2], dim=1)
-        >>> messages = attributes
-        >>> round(PosDisent.posdis(attributes, messages), 6)
-        0.978656
-        >>> messages = torch.cat([messages, torch.zeros_like(messages)], dim=1)
-        >>> round(PosDisent.posdis(attributes, messages), 6)
-        0.978656
-        """
-        return gap_mi_first_second(attributes, messages)
+    Miniature language with perfect (=1) bosdis. Taken from Chaabouni et al. 2020, Appendix section 8.2.
+    >>> attributes = torch.Tensor(
+    ... [[0, 0], [0, 1], [0, 2], [0, 3],
+    ... [1, 0], [1, 1], [1, 2], [1, 3],
+    ... [2, 0], [2, 1], [2, 2], [2, 3],
+    ... [3, 0], [3, 1], [3, 2], [3, 3]]
+    ... )
+    >>> messages = torch.Tensor(
+    ... [[0, 0, 4], [0, 0, 5], [0, 0, 6], [0, 0, 7],
+    ... [1, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1],
+    ... [2, 4, 2], [2, 5, 2], [2, 6, 2], [2, 7, 2],
+    ... [3, 4, 3], [3, 3, 5], [3, 3, 6], [3, 3, 7]]
+    ... )
+    >>> Disent.bosdis(attributes, messages, vocab_size=3)
+    1.0
 
-    def print_message(self, logs: Interaction, tag: str, epoch: int):
-        message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
-
-        posdis = self.posdis(logs.sender_input, message)
-
-        output = json.dumps(dict(posdis=posdis, mode=tag, epoch=epoch))
-        print(output, flush=True)
-
-    def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
-        if self.print_train:
-            self.print_message(logs, "train", epoch)
-
-    def on_test_end(self, loss, logs, epoch):
-        if self.print_test:
-            self.print_message(logs, "test", epoch)
-
-
-class BosDisent(Callback):
-    """
-    Bag-of-symbols disentanglement metric, introduced in "Compositionality and Generalization in Emergent Languages",
-    Chaabouni et al., ACL 2020.
     """
 
     def __init__(
         self,
-        vocab_size: int,
+        is_gumbel: bool,
+        compute_posdis: bool = True,
+        compute_bosdis: bool = False,
+        vocab_size: int = 0,
         print_train: bool = False,
         print_test: bool = True,
-        is_gumbel: bool = False,
     ):
         super().__init__()
-        assert (
-            print_train or print_test
-        ), 'At least on of "print_train" and "print_train" must be enabled'
+        assert print_train or print_test, "At least one of `print_train` and `print_train` must be set"
+        assert compute_posdis or compute_bosdis, "At least one of `compute_posdis` and `compute_bosdis` must be set"
+        assert not compute_bosdis or vocab_size > 0, "To compute a positive vocab_size must be specifed"
 
         self.vocab_size = vocab_size
-        self.print_train = print_train
-        self.print_test = print_test
         self.is_gumbel = is_gumbel
 
-    @staticmethod
-    def bosdis(attributes: torch.Tensor, messages, vocab_size) -> float:
-        """Miniature language with perfect (=1) bosdis. Taken from Chaabouni et al. 2020, Appendix section 8.2.
-        >>> attributes = torch.Tensor(
-        ... [[0, 0], [0, 1], [0, 2], [0, 3],
-        ... [1, 0], [1, 1], [1, 2], [1, 3],
-        ... [2, 0], [2, 1], [2, 2], [2, 3],
-        ... [3, 0], [3, 1], [3, 2], [3, 3]]
-        ... )
-        >>> messages = torch.Tensor(
-        ... [[0, 0, 4], [0, 0, 5], [0, 0, 6], [0, 0, 7],
-        ... [1, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1],
-        ... [2, 4, 2], [2, 5, 2], [2, 6, 2], [2, 7, 2],
-        ... [3, 4, 3], [3, 3, 5], [3, 3, 6], [3, 3, 7]]
-        ... )
-        >>> BosDisent.bosdis(attributes, messages, vocab_size=3)
-        1.0
-        """
+        self.compute_posdis = compute_posdis
+        self.compute_bosdis = compute_bosdis
 
+        self.print_train = print_train
+        self.print_test = print_test
+
+    @staticmethod
+    def bosdis(
+        attributes: torch.Tensor,
+        messages: torch.Tensor,
+        vocab_size: int
+    ) -> float:
         batch_size = messages.size(0)
         histogram = torch.zeros(batch_size, vocab_size, device=messages.device)
         for v in range(vocab_size):
@@ -316,12 +286,17 @@ class BosDisent(Callback):
         histogram = histogram[:, 1:]  # ignoring eos symbol
         return gap_mi_first_second(attributes, histogram)
 
+    @staticmethod
+    def posdis(attributes: torch.Tensor, messages: torch.Tensor) -> float:
+        return gap_mi_first_second(attributes, messages)
+
     def print_message(self, logs: Interaction, tag: str, epoch: int):
         message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
 
-        bosdis = self.bosdis(logs.sender_input, message, self.vocab_size)
+        posdis = self.disent(logs.sender_input, message) if self.compute_posdis else None
+        bosdis = self.disent(logs.sender_input, message, self.vocab_size) if self.compute_bosdis else None
 
-        output = json.dumps(dict(bosdis=bosdis, mode=tag, epoch=epoch))
+        output = json.dumps(dict(posdis=posdis, bosdis=bosdis, mode=tag, epoch=epoch))
         print(output, flush=True)
 
     def on_epoch_end(self, _loss, logs: Interaction, epoch: int):

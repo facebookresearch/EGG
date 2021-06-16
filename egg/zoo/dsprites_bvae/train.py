@@ -13,12 +13,11 @@ import torch.utils.data
 from torch import nn
 from torch.autograd import Variable
 from torch.nn import functional as F
-from torchvision import datasets, transforms, utils
+from torchvision import utils
 
 import egg.core as core
-from egg.core.language_analysis import PosDisent, TopographicSimilarity
-from egg.zoo.dsprites_bvae.data_loaders.data_loaders import \
-    get_dsprites_dataloader
+from egg.core.language_analysis import Disent, TopographicSimilarity
+from egg.zoo.dsprites_bvae.data_loaders.data_loaders import get_dsprites_dataloader
 
 from .archs import VisualReceiver, VisualSender
 
@@ -59,6 +58,7 @@ def reparametrize(mu, logvar):
     eps = Variable(std.data.new(std.size()).normal_())
     return mu + std * eps
 
+
 class betaVAE_Game(nn.Module):
     def __init__(self, sender, receiver, z_dim=10, beta=4):
         """Model proposed in the original beta-VAE paper(Higgins et al, ICLR, 2017)."""
@@ -71,10 +71,9 @@ class betaVAE_Game(nn.Module):
         self.z_dim = z_dim
         self.beta = beta
 
-
     def forward(self, *batch):
         sender_input = batch[0]
-        latent_values = batch[1]
+        _ = batch[1]  # latent_values
         label = batch[2]
 
         distributions = self.sender(sender_input)
@@ -93,7 +92,6 @@ class betaVAE_Game(nn.Module):
 
         beta_vae_loss = recon_loss + self.beta * total_kld
 
-
         log = core.Interaction(
             sender_input=label,
             receiver_input=None,
@@ -108,7 +106,7 @@ class betaVAE_Game(nn.Module):
 
 
 class ImageDumpCallback(core.Callback):
-    def __init__(self, eval_dataset, image_shape=(64,64)):
+    def __init__(self, eval_dataset, image_shape=(64, 64)):
         super().__init__()
         self.eval_dataset = eval_dataset
         self.image_shape = image_shape
@@ -120,10 +118,10 @@ class ImageDumpCallback(core.Callback):
         state = self.trainer.game.train
         self.trainer.game.eval()
 
-        l = len(self.eval_dataset)
+        len_dataset = len(self.eval_dataset)
 
         for i in range(5):
-            example_id = np.random.randint(0, l)
+            example_id = np.random.randint(0, len_dataset)
             example = self.eval_dataset[example_id]
 
             example = (example[0].unsqueeze(0), example[1].unsqueeze(0), example[2].unsqueeze(0))
@@ -138,7 +136,8 @@ class ImageDumpCallback(core.Callback):
             output = interaction.receiver_output.view(*self.image_shape)
             image = image.view(*self.image_shape)
             utils.save_image(
-                torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png'))
+                torch.cat([image, output], dim=1), dump_dir / (str(i) + '.png')
+            )
         self.trainer.game.train(state)
 
 
@@ -152,8 +151,11 @@ def main(params):
         subprocess.call([os.path.join('egg', 'zoo', 'dsprites_bvae', 'data_loaders', 'download_dsprites.sh')])
         print('Finished')
 
-    train_loader, test_loader = get_dsprites_dataloader(path_to_data=root,
-                                                            batch_size=opts.batch_size, image=True)
+    train_loader, test_loader = get_dsprites_dataloader(
+        path_to_data=root,
+        batch_size=opts.batch_size,
+        image=True
+    )
     image_shape = (64, 64)
 
     sender = VisualSender()
@@ -163,10 +165,20 @@ def main(params):
     optimizer = core.build_optimizer(game.parameters())
 
     # initialize and launch the trainer
-    trainer = core.Trainer(game=game, optimizer=optimizer, train_data=train_loader, validation_data=test_loader,
-                           callbacks=[core.ConsoleLogger(as_json=True, print_train_loss=True),
-                                      ImageDumpCallback(test_loader.dataset, image_shape=image_shape),
-                                      TopographicSimilarity(sender_input_distance_fn='euclidean', message_distance_fn='euclidean', is_gumbel=False), PosDisent()])
+    trainer = core.Trainer(
+        game=game,
+        optimizer=optimizer,
+        train_data=train_loader,
+        validation_data=test_loader,
+        callbacks=[
+            core.ConsoleLogger(as_json=True, print_train_loss=True),
+            ImageDumpCallback(test_loader.dataset, image_shape=image_shape),
+            TopographicSimilarity(
+                sender_input_distance_fn='euclidean', message_distance_fn='euclidean', is_gumbel=False
+            ),
+            Disent(is_gumbel=False)
+        ]
+    )
     trainer.train(n_epochs=opts.n_epochs)
 
     core.close()
