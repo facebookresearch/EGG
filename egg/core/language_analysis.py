@@ -260,9 +260,15 @@ class Disent(Callback):
         print_test: bool = True,
     ):
         super().__init__()
-        assert print_train or print_test, "At least one of `print_train` and `print_train` must be set"
-        assert compute_posdis or compute_bosdis, "At least one of `compute_posdis` and `compute_bosdis` must be set"
-        assert not compute_bosdis or vocab_size > 0, "To compute a positive vocab_size must be specifed"
+        assert (
+            print_train or print_test
+        ), "At least one of `print_train` and `print_train` must be set"
+        assert (
+            compute_posdis or compute_bosdis
+        ), "At least one of `compute_posdis` and `compute_bosdis` must be set"
+        assert (
+            not compute_bosdis or vocab_size > 0
+        ), "To compute a positive vocab_size must be specifed"
 
         self.vocab_size = vocab_size
         self.is_gumbel = is_gumbel
@@ -275,9 +281,7 @@ class Disent(Callback):
 
     @staticmethod
     def bosdis(
-        attributes: torch.Tensor,
-        messages: torch.Tensor,
-        vocab_size: int
+        attributes: torch.Tensor, messages: torch.Tensor, vocab_size: int
     ) -> float:
         batch_size = messages.size(0)
         histogram = torch.zeros(batch_size, vocab_size, device=messages.device)
@@ -293,8 +297,14 @@ class Disent(Callback):
     def print_message(self, logs: Interaction, tag: str, epoch: int):
         message = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
 
-        posdis = self.disent(logs.sender_input, message) if self.compute_posdis else None
-        bosdis = self.disent(logs.sender_input, message, self.vocab_size) if self.compute_bosdis else None
+        posdis = (
+            self.disent(logs.sender_input, message) if self.compute_posdis else None
+        )
+        bosdis = (
+            self.disent(logs.sender_input, message, self.vocab_size)
+            if self.compute_bosdis
+            else None
+        )
 
         output = json.dumps(dict(posdis=posdis, bosdis=bosdis, mode=tag, epoch=epoch))
         print(output, flush=True)

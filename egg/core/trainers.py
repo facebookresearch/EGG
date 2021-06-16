@@ -145,7 +145,7 @@ class Trainer:
                 self.game,
                 device_ids=[device_id],
                 output_device=device_id,
-                find_unused_parameters=True
+                find_unused_parameters=True,
             )
             self.optimizer.state = move_to(self.optimizer.state, device_id)
 
@@ -267,9 +267,7 @@ class Trainer:
             train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
-                callback.on_epoch_end(
-                    train_loss, train_interaction, epoch + 1
-                )
+                callback.on_epoch_end(train_loss, train_interaction, epoch + 1)
 
             validation_loss = validation_interaction = None
             if (
@@ -304,7 +302,9 @@ class Trainer:
         self.game.load_state_dict(checkpoint.model_state_dict)
         self.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
         if checkpoint.optimizer_scheduler_state_dict:
-            self.optimizer_scheduler.load_state_dict(checkpoint.optimizer_scheduler_state_dict)
+            self.optimizer_scheduler.load_state_dict(
+                checkpoint.optimizer_scheduler_state_dict
+            )
         self.start_epoch = checkpoint.epoch
 
     def load_from_checkpoint(self, path):
