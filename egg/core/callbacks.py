@@ -124,10 +124,11 @@ class WandbLogger(Callback):
         run_id: Optional[str] = None,
         **kwargs,
     ):
-        # This callback logs to wandb the interaction as they are stored from the leader process.
-        # When interactions are not aggregated in a multigpu ruh, each process will store
-        # its own Interaction object in logs. We leave the user to handle this case by
-        # subclassing the WandbLogger class and implementing a custom logic for now.
+        # This callback logs to wandb the interaction as they are stored in the leader process.
+        # When interactions are not aggregated in a multigpu run, each process will store
+        # its own Interaction object in logs. For now, we leave to the user handling this case by
+        # subclassing WandbLogger and implementing a custom logic since we do not know a priori
+        # what type of data are to be logged.
         self.opts = opts
 
         wandb.init(project=project, id=run_id, **kwargs)
