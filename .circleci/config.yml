@@ -49,6 +49,11 @@ jobs:
             . venv/bin/activate
             tox -e flake8
       - run:
+          name: copyright
+          command: |
+            . venv/bin/activate
+            tox -e check-copyright
+      - run:
           name: pytest
           command: |
             . venv/bin/activate
