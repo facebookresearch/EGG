@@ -106,13 +106,9 @@ def test_language_bottleneck():
 
 def test_emcom_as_ssl_cifar():
     run_game(
-        "egg.zoo.emcom_as_ssl.train", dict(dataset_name='cifar10')
+        "egg.zoo.emcom_as_ssl.train", dict(dataset_name='cifar10', n_epoch=1)
     )
 
-def test_emcom_as_ssl_imagenet():
-    run_game(
-        "egg.zoo.emcom_as_ssl.train", dict(dataset_name='imagenet', dataset_dir='"/datasets01/imagenet_full_size/061417/train"')
-    )
 
 def test_mnist_vae():
     run_game("egg.zoo.mnist_vae.train", dict(n_epochs=1, vocab_size=5))
