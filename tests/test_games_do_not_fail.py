@@ -111,7 +111,7 @@ def test_emcom_as_ssl_cifar():
 
 def test_emcom_as_ssl_imagenet():
     run_game(
-        "egg.zoo.emcom_as_ssl.train", dict(dataset_name='imagenet')
+        "egg.zoo.emcom_as_ssl.train", dict(dataset_name='imagenet', dataset_dir='"/datasets01/imagenet_full_size/061417/train"')
     )
 
 def test_mnist_vae():
