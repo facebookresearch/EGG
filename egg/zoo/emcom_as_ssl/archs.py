@@ -31,9 +31,11 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = True):
 
     if name in ['resnet50', 'resnet101', 'resnet152']:
         n_features = model.fc.in_features
+        print("N features for resnet", n_features)
         model.fc = nn.Identity()
     else:
         n_features = model.classifier[0].in_features
+        print("N features for not resnet", n_features)
         model.fc = nn.Identity()
 
     if pretrained:
