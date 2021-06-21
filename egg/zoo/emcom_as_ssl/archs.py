@@ -25,7 +25,7 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = True):
         "inception": torchvision.models.inception_v3(pretrained=pretrained),
     }
     if name not in modules:
-        raise KeyError(f"{name} is not a valid ResNet architecture")
+        raise KeyError(f"{name} is not currently supported.")
 
     model = modules[name]
     n_features = model.fc.in_features

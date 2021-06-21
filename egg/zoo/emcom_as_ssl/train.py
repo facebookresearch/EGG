@@ -36,6 +36,8 @@ def main(params):
         num_workers=opts.num_workers,
         is_distributed=opts.distributed_context.is_distributed,
         seed=opts.random_seed,
+        use_augmentations=opts.use_augmentations,
+        return_original_image=opts.return_original_image
     )
 
     game = build_game(opts)
