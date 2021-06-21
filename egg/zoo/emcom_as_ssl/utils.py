@@ -16,15 +16,15 @@ def get_data_opts(parser):
         default="./data",
         help="Dataset location",
     )
-    
+
     group.add_argument(
         "--dataset_name",
         choices=["cifar10", "imagenet"],
         help="Dataset used for training a model",
     )
-    
+
     group.add_argument("--image_size", type=int, default=224, help="Image size")
-    
+
     group.add_argument(
         "--num_workers", type=int, default=4, help="Workers used in the dataloader"
     )
@@ -82,7 +82,14 @@ def get_vision_module_opts(parser):
         "--model_name",
         type=str,
         default="resnet50",
-        choices=["resnet50", "resnet101", "resnet152", "vgg16", "densenet", "inception"],
+        choices=[
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "vgg16",
+            "densenet",
+            "inception",
+        ],
         help="Model name for the encoder",
     )
     group.add_argument(

@@ -104,6 +104,7 @@ def test_language_bottleneck():
         "egg.zoo.language_bottleneck.guess_number.train", dict(n_epochs=1, vocab_size=5)
     )
 
+
 def test_mnist_vae():
     run_game("egg.zoo.mnist_vae.train", dict(n_epochs=1, vocab_size=5))
     dump_folder = pathlib.Path.cwd() / "dump"

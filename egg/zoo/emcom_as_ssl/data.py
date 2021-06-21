@@ -9,6 +9,7 @@ import torch
 from PIL import ImageFilter
 from torchvision import datasets, transforms
 
+
 def get_dataloader(
     dataset_dir: str,
     dataset_name: str,
@@ -18,18 +19,19 @@ def get_dataloader(
     use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
-    image_size: int = 32):
+    image_size: int = 32,
+):
 
-    transformations = ImageTransformation(image_size, use_augmentations, return_original_image, dataset_name)
+    transformations = ImageTransformation(
+        image_size, use_augmentations, return_original_image, dataset_name
+    )
 
     if dataset_name == "cifar10":
-        train_dataset = datasets.CIFAR10(root='./data', train=True,
-                                    download=True, transform=transformations)
-    else:
-        train_dataset = datasets.ImageFolder(
-            dataset_dir,
-            transform=transformations
+        train_dataset = datasets.CIFAR10(
+            root="./data", train=True, download=True, transform=transformations
         )
+    else:
+        train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
 
     train_sampler = None
     if is_distributed:
@@ -37,11 +39,15 @@ def get_dataloader(
             train_dataset, shuffle=True, drop_last=True, seed=seed
         )
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=(train_sampler is None),
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=(train_sampler is None),
         sampler=train_sampler,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True,)
+        drop_last=True,
+    )
 
     return train_loader
 
@@ -66,7 +72,11 @@ class ImageTransformation:
     """
 
     def __init__(
-        self, size: int, augmentation: bool = False, return_original_image: bool = False, dataset_name: str = 'imagenet'
+        self,
+        size: int,
+        augmentation: bool = False,
+        return_original_image: bool = False,
+        dataset_name: str = "imagenet",
     ):
         if augmentation:
             s = 1
@@ -80,8 +90,8 @@ class ImageTransformation:
             ]
         else:
             transformations = [transforms.Resize(size=(size, size))]
-            
-        if dataset_name == 'imagenet':
+
+        if dataset_name == "imagenet":
             m = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]
         else:
@@ -91,9 +101,7 @@ class ImageTransformation:
         transformations.extend(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=m, std=std
-                ),
+                transforms.Normalize(mean=m, std=std),
             ]
         )
 

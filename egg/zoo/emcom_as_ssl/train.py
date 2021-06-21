@@ -35,7 +35,7 @@ def main(params):
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         is_distributed=opts.distributed_context.is_distributed,
-        seed=opts.random_seed
+        seed=opts.random_seed,
     )
 
     game = build_game(opts)

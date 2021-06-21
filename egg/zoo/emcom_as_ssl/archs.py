@@ -22,7 +22,7 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = True):
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "vgg": torchvision.models.vgg16(pretrained=pretrained),
         "densenet": torchvision.models.densenet161(pretrained=pretrained),
-        "inception": torchvision.models.inception_v3(pretrained=pretrained)
+        "inception": torchvision.models.inception_v3(pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not a valid ResNet architecture")
