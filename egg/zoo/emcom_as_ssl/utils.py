@@ -86,7 +86,7 @@ def get_vision_module_opts(parser):
             "resnet50",
             "resnet101",
             "resnet152",
-            "vgg16",
+            "vgg",
             "densenet",
             "inception",
         ],
