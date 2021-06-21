@@ -28,8 +28,13 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = True):
         raise KeyError(f"{name} is not currently supported.")
 
     model = modules[name]
-    n_features = model.fc.in_features
-    model.fc = nn.Identity()
+
+    if name in ['resnet50', 'resnet101', 'resnet152']:
+        n_features = model.fc.in_features
+        model.fc = nn.Identity()
+    else:
+        n_features = model.classifier[0].in_features
+        model.fc = nn.Identity()
 
     if pretrained:
         for param in model.parameters():
