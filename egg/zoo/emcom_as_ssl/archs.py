@@ -13,14 +13,14 @@ from egg.core.continous_communication import SenderReceiverContinuousCommunicati
 from egg.core.gs_wrappers import gumbel_softmax_sample
 
 
-def get_pretrained(name: str = "resnet50", pretrained: bool = True):
+def get_vision_module(name: str = "resnet50", pretrained: bool = True):
     print("Pretrained?", pretrained)
     print("Model", name)
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
-        "vgg16": torchvision.models.vgg16(pretrained=pretrained),
+        "vgg": torchvision.models.vgg16(pretrained=pretrained),
         "densenet": torchvision.models.densenet161(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(pretrained=pretrained)
     }
@@ -47,10 +47,10 @@ def get_vision_modules(
             shared
         ), "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
 
-    encoder, features_dim = get_pretrained(encoder_arch, pretrain_vision)
+    encoder, features_dim = get_vision_module(encoder_arch, pretrain_vision)
     encoder_recv = None
     if not shared:
-        encoder_recv, _ = get_pretrained(encoder_arch)
+        encoder_recv, _ = get_vision_module(encoder_arch)
 
     return encoder, encoder_recv, features_dim
 

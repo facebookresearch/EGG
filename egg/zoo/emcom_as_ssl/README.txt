@@ -5,6 +5,9 @@ As a first step, EGG needs to be installed. Following the instructions found at 
 
 $ pip install --editable .
 
+In ordere to use nest, please install its dependencies from the EGG root directory:
+
+$ pip install nest.txt
 
 TRAIN A MODEL
 
