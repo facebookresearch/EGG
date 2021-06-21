@@ -29,6 +29,7 @@ class _OneHotIterator:
     >>> x.sum(dim=1)
     tensor([1., 1., 1., 1.])
     """
+
     def __init__(self, n_features, n_batches_per_epoch, batch_size, seed=None):
         self.n_batches_per_epoch = n_batches_per_epoch
         self.n_features = n_features
@@ -65,6 +66,7 @@ class OneHotLoader(torch.utils.data.DataLoader):
     >>> all_equal.item()
     0
     """
+
     def __init__(self, n_features, batches_per_epoch, batch_size, seed=None):
         self.seed = seed
         self.batches_per_epoch = batches_per_epoch
@@ -77,6 +79,9 @@ class OneHotLoader(torch.utils.data.DataLoader):
         else:
             seed = self.seed
 
-        return _OneHotIterator(n_features=self.n_features, n_batches_per_epoch=self.batches_per_epoch,
-                               batch_size=self.batch_size, seed=seed)
-
+        return _OneHotIterator(
+            n_features=self.n_features,
+            n_batches_per_epoch=self.batches_per_epoch,
+            batch_size=self.batch_size,
+            seed=seed,
+        )

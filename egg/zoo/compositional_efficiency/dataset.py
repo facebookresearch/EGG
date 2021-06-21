@@ -21,9 +21,9 @@ def enumerate_attribute_value(n_attributes, n_values, mode):
 
     if mode is None:
         return data
-    elif mode == 'train':
+    elif mode == "train":
         return [x for x in data if hash(str(x)) % 5 != 0]
-    elif mode == 'test':
+    elif mode == "test":
         return [x for x in data if hash(str(x)) % 5 == 0]
     assert False
 
@@ -40,8 +40,10 @@ def one_hotify(data, n_attributes, n_values):
 
 class AttributeValueData:
     def __init__(self, n_attributes, n_values, one_hot=False, mul=50, mode=None):
-        self.data = [torch.LongTensor(k) for k in enumerate_attribute_value(
-            n_attributes, n_values, mode)] * mul
+        self.data = [
+            torch.LongTensor(k)
+            for k in enumerate_attribute_value(n_attributes, n_values, mode)
+        ] * mul
         if one_hot:
             self.data = one_hotify(self.data, n_attributes, n_values)
 
@@ -58,8 +60,7 @@ class SphereData:
         radii = torch.FloatTensor(n_points, 1).uniform_(0, 1)
         angle = torch.FloatTensor(n_points, 1).uniform_(0, 2 * math.pi)
 
-        data_xy = torch.cat(
-            [torch.cos(angle), torch.sin(angle)], dim=1) * radii
+        data_xy = torch.cat([torch.cos(angle), torch.sin(angle)], dim=1) * radii
         self.data_xy = data_xy
         self.data_ar = torch.cat([angle, radii], dim=1)
 

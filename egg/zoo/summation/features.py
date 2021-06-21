@@ -33,7 +33,7 @@ class _DataIterator:
         for i in range(n_examples):
             n = generated_n[i]
             batch_data[i, :n] = 1
-            batch_data[i, n:2*n] = 2
+            batch_data[i, n : 2 * n] = 2
 
             assert (batch_data[i, :] == 1).sum() == (batch_data[i, :] == 2).sum()
         return torch.from_numpy(batch_data), torch.from_numpy(2 * generated_n + 1)
@@ -50,7 +50,7 @@ class _DataIterator:
                     break
 
             batch_data[i, :n1] = 1
-            batch_data[i, n1:n1 + n2] = 2
+            batch_data[i, n1 : n1 + n2] = 2
             lengths[i] = n1 + n2 + 1
 
             assert (batch_data[i, :] == 1).sum() != (batch_data[i, :] == 2).sum()
@@ -60,13 +60,17 @@ class _DataIterator:
         if self.batches_generated >= self.n_batches_per_epoch:
             raise StopIteration()
 
-        positive_seq, positive_len = self.generate_positive_examples(self.batch_size // 2)
-        negative_seq, negative_len = self.generate_negative_examples(self.batch_size // 2)
+        positive_seq, positive_len = self.generate_positive_examples(
+            self.batch_size // 2
+        )
+        negative_seq, negative_len = self.generate_negative_examples(
+            self.batch_size // 2
+        )
 
         examples = torch.cat([positive_seq, negative_seq], dim=0)
         lengths = torch.cat([positive_len, negative_len])
         labels = torch.zeros_like(lengths)
-        labels[:self.batch_size // 2] = 1
+        labels[: self.batch_size // 2] = 1
 
         _, rearrange = torch.sort(lengths, descending=True)
         examples = torch.index_select(examples, 0, rearrange)
@@ -90,7 +94,9 @@ class SequenceLoader(torch.utils.data.DataLoader):
         else:
             seed = self.seed
 
-        return _DataIterator(max_n=self.max_n,
-                             n_batches_per_epoch=self.batches_per_epoch,
-                             batch_size=self.batch_size, seed=seed)
-
+        return _DataIterator(
+            max_n=self.max_n,
+            n_batches_per_epoch=self.batches_per_epoch,
+            batch_size=self.batch_size,
+            seed=seed,
+        )

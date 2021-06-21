@@ -71,4 +71,3 @@ class Sender(nn.Module):
         message = self.fc(x)
 
         return message
-

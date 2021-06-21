@@ -50,22 +50,18 @@ class VisionGameWrapper(nn.Module):
         return self.game(
             sender_input=sender_encoded_input,
             labels=labels,
-            receiver_input=receiver_encoded_input
+            receiver_input=receiver_encoded_input,
         )
 
 
 class Sender(nn.Module):
-    def __init__(
-        self,
-        visual_features_dim: int,
-        output_dim: int
-    ):
+    def __init__(self, visual_features_dim: int, output_dim: int):
         super(Sender, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(visual_features_dim, visual_features_dim),
             nn.BatchNorm1d(visual_features_dim),
             nn.ReLU(),
-            nn.Linear(visual_features_dim, output_dim, bias=False)
+            nn.Linear(visual_features_dim, output_dim, bias=False),
         )
 
     def forward(self, x):
@@ -73,17 +69,13 @@ class Sender(nn.Module):
 
 
 class Receiver(nn.Module):
-    def __init__(
-        self,
-        visual_features_dim: int,
-        output_dim: int
-    ):
+    def __init__(self, visual_features_dim: int, output_dim: int):
         super(Receiver, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(visual_features_dim, visual_features_dim),
             nn.BatchNorm1d(visual_features_dim),
             nn.ReLU(),
-            nn.Linear(visual_features_dim, output_dim, bias=False)
+            nn.Linear(visual_features_dim, output_dim, bias=False),
         )
 
     def forward(self, x, _input):

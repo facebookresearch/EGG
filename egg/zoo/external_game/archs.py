@@ -43,4 +43,3 @@ class Sender(nn.Module):
     def forward(self, x):
         x = self.fc1(x)
         return x
-

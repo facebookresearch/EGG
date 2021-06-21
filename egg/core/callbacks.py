@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import argparse
 import json
 import os
 import pathlib
@@ -12,6 +13,7 @@ from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 import torch
+import wandb
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.progress import (
@@ -24,9 +26,8 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 
+from egg.core.interaction import Interaction
 from egg.core.util import get_summary_writer
-
-from .interaction import Interaction
 
 
 class Callback:
@@ -46,10 +47,10 @@ class Callback:
     ):
         pass
 
-    def on_test_begin(self, epoch: int):
+    def on_validation_begin(self, epoch: int):
         pass
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         pass
 
     def on_epoch_begin(self, epoch: int):
@@ -82,7 +83,7 @@ class ConsoleLogger(Callback):
             output_message = f"{mode}: epoch {epoch}, loss {loss}, " + output_message
         print(output_message, flush=True)
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.aggregate_print(loss, logs, "test", epoch)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
@@ -97,7 +98,7 @@ class TensorboardLogger(Callback):
         else:
             self.writer = get_summary_writer()
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.writer.add_scalar(tag="test/loss", scalar_value=loss, global_step=epoch)
         for k, v in logs.aux.items():
             self.writer.add_scalar(
@@ -113,6 +114,47 @@ class TensorboardLogger(Callback):
 
     def on_train_end(self):
         self.writer.close()
+
+
+class WandbLogger(Callback):
+    def __init__(
+        self,
+        opts: Union[argparse.ArgumentParser, Dict, str, None] = None,
+        project: Optional[str] = None,
+        run_id: Optional[str] = None,
+        **kwargs,
+    ):
+        # This callback logs to wandb the interaction as they are stored in the leader process.
+        # When interactions are not aggregated in a multigpu run, each process will store
+        # its own Interaction object in logs. For now, we leave to the user handling this case by
+        # subclassing WandbLogger and implementing a custom logic since we do not know a priori
+        # what type of data are to be logged.
+        self.opts = opts
+
+        wandb.init(project=project, id=run_id, **kwargs)
+        wandb.config.update(opts)
+
+    @staticmethod
+    def log_to_wandb(metrics: Dict[str, Any], commit: bool = False, **kwargs):
+        wandb.log(metrics, commit=commit, **kwargs)
+
+    def on_train_begin(self, trainer_instance: "Trainer"):  # noqa: F821
+        self.trainer = trainer_instance
+        wandb.watch(self.trainer.game, log="all")
+
+    def on_batch_end(
+        self, logs: Interaction, loss: float, batch_id: int, is_training: bool = True
+    ):
+        if is_training and self.trainer.distributed_context.is_leader:
+            self.log_to_wandb({"batch_loss": loss}, commit=True)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.trainer.distributed_context.is_leader:
+            self.log_to_wandb({"train_loss": loss, "epoch": epoch}, commit=True)
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.trainer.distributed_context.is_leader:
+            self.log_to_wandb({"validation_loss": loss, "epoch": epoch}, commit=True)
 
 
 class TemperatureUpdater(Callback):
@@ -186,7 +228,9 @@ class CheckpointSaver(Callback):
     def get_checkpoint(self):
         optimizer_schedule_state_dict = None
         if self.trainer.optimizer_scheduler:
-            optimizer_schedule_state_dict = self.trainer.optimizer_scheduler.state_dict()
+            optimizer_schedule_state_dict = (
+                self.trainer.optimizer_scheduler.state_dict()
+            )
         if self.trainer.distributed_context.is_distributed:
             game = self.trainer.game.module
         else:
@@ -195,7 +239,7 @@ class CheckpointSaver(Callback):
             epoch=self.epoch_counter,
             model_state_dict=game.state_dict(),
             optimizer_state_dict=self.trainer.optimizer.state_dict(),
-            optimizer_scheduler_state_dict=optimizer_schedule_state_dict
+            optimizer_scheduler_state_dict=optimizer_schedule_state_dict,
         )
 
     def get_checkpoint_files(self):
@@ -228,6 +272,7 @@ class InteractionSaver(Callback):
         train_epochs: Optional[List[int]] = None,
         test_epochs: Optional[List[int]] = None,
         checkpoint_dir: str = "",
+        aggregated_interaction: bool = True,
     ):
         if isinstance(train_epochs, list):
             assert all(map(lambda x: x > 0, train_epochs))
@@ -245,25 +290,39 @@ class InteractionSaver(Callback):
         else:
             self.checkpoint_dir = pathlib.Path("./interactions")
 
+        self.aggregated_interaction = aggregated_interaction
+
     @staticmethod
     def dump_interactions(
-        logs: Interaction, mode: str, epoch: int, rank: int, dump_dir: str = "./interactions"
+        logs: Interaction,
+        mode: str,
+        epoch: int,
+        rank: int,
+        dump_dir: str = "./interactions",
     ):
         dump_dir = pathlib.Path(dump_dir) / mode / f"epoch_{epoch}"
         dump_dir.mkdir(exist_ok=True, parents=True)
         torch.save(logs, dump_dir / f"interaction_gpu{rank}")
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
-        # we are aggregating interaction across gpus, thus only leader process is storing them
-        if epoch in self.test_epochs and self.trainer.distributed_context.is_leader:
-            rank = self.trainer.distributed_context.rank
-            self.dump_interactions(logs, "validation", epoch, rank, self.checkpoint_dir)
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch in self.test_epochs:
+            if (
+                not self.aggregated_interaction
+                or self.trainer.distributed_context.is_leader
+            ):
+                rank = self.trainer.distributed_context.rank
+                self.dump_interactions(
+                    logs, "validation", epoch, rank, self.checkpoint_dir
+                )
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        # we are aggregating interaction across gpus, thus only leader process is storing them
-        if epoch in self.train_epochs and self.trainer.distributed_context.is_leader:
-            rank = self.trainer.distributed_context.rank
-            self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
+        if epoch in self.test_epochs:
+            if (
+                not self.aggregated_interaction
+                or self.trainer.distributed_context.is_leader
+            ):
+                rank = self.trainer.distributed_context.rank
+                self.dump_interactions(logs, "train", epoch, rank, self.checkpoint_dir)
 
 
 class CustomProgress(Progress):
@@ -447,7 +506,7 @@ class ProgressBarLogger(Callback):
         od = self.build_od(logs, loss, epoch)
         self.progress.update_info_table(od, "train")
 
-    def on_test_begin(self, epoch: int):
+    def on_validation_begin(self, epoch: int):
         self.progress.reset(
             task_id=self.test_p,
             total=self.test_data_len,
@@ -461,7 +520,7 @@ class ProgressBarLogger(Callback):
         self.progress.start_task(self.test_p)
         self.progress.update(self.test_p, visible=True)
 
-    def on_test_end(self, loss: float, logs: Interaction, epoch: int):
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.progress.stop_task(self.test_p)
         self.progress.update(self.test_p, visible=False)
 

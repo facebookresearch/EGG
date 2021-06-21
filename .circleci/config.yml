@@ -34,6 +34,26 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
+          name: black-check
+          command: |
+            . venv/bin/activate
+            tox -e black-check
+      - run:
+          name: isort-check
+          command: |
+            . venv/bin/activate
+            tox -e isort-check
+      - run:
+          name: flake8
+          command: |
+            . venv/bin/activate
+            tox -e flake8
+      - run:
+          name: copyright
+          command: |
+            . venv/bin/activate
+            tox -e check-copyright
+      - run:
           name: pytest
           command: |
             . venv/bin/activate

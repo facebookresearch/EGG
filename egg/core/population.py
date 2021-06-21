@@ -3,10 +3,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch.nn as nn
-import random
-import numpy as np
 import itertools
+import random
+
+import numpy as np
+import torch.nn as nn
 
 
 class UniformAgentSampler(nn.Module):
@@ -52,11 +53,11 @@ class FullSweepAgentSampler(nn.Module):
 
     def forward(self):
         try:
-            s, r, l = next(self.iterator)
+            sender_idx, recv_idx, loss_idx = next(self.iterator)
         except StopIteration:
             self.reset_order()
-            s, r, l = next(self.iterator)
-        return self.senders[s], self.receivers[r], self.losses[l]
+            sender_idx, recv_idx, loss_idx = next(self.iterator)
+        return self.senders[sender_idx], self.receivers[recv_idx], self.losses[loss_idx]
 
 
 class PopulationGame(nn.Module):

@@ -15,8 +15,12 @@ class BestStatsTracker(Callback):
         super().__init__()
 
         # TRAIN
-        self.best_train_acc, self.best_train_loss, self.best_train_epoch = -float("inf"), float("inf"), -1
-        self.last_train_acc, self.last_train_loss, self.last_train_epoch = 0., 0., 0
+        self.best_train_acc, self.best_train_loss, self.best_train_epoch = (
+            -float("inf"),
+            float("inf"),
+            -1,
+        )
+        self.last_train_acc, self.last_train_loss, self.last_train_epoch = 0.0, 0.0, 0
         # last_val_epoch useful for runs that end before the final epoch
 
     def on_epoch_end(self, _loss, logs: Interaction, epoch: int):
@@ -35,13 +39,16 @@ class BestStatsTracker(Callback):
         if (not is_distributed) or (is_distributed and is_leader):
             train_stats = dict(
                 mode="train",
-                epoch=self.best_train_epoch, acc=self.best_train_acc, loss=self.best_train_loss
+                epoch=self.best_train_epoch,
+                acc=self.best_train_acc,
+                loss=self.best_train_loss,
             )
             print(json.dumps(train_stats), flush=True)
 
 
 class VisionModelSaver(Callback):
     """A callback that stores vision module(s) in trainer's checkpoint_dir, if any."""
+
     def __init__(self):
         super().__init__()
 
@@ -49,10 +56,8 @@ class VisionModelSaver(Callback):
         is_distributed = self.trainer.distributed_context.is_distributed
         is_leader = self.trainer.distributed_context.is_leader
         if hasattr(self.trainer, "checkpoint_path"):
-            if (
-                self.trainer.checkpoint_path and (
-                    (not is_distributed) or (is_distributed and is_leader)
-                )
+            if self.trainer.checkpoint_path and (
+                (not is_distributed) or (is_distributed and is_leader)
             ):
                 self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
                 if is_distributed:
@@ -63,7 +68,8 @@ class VisionModelSaver(Callback):
                     vision_module = self.trainer.game.vision_module
                 torch.save(
                     vision_module.encoder.state_dict(),
-                    self.trainer.checkpoint_path / f"vision_module{epoch if epoch else '_final'}.pt"
+                    self.trainer.checkpoint_path
+                    / f"vision_module{epoch if epoch else '_final'}.pt",
                 )
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
@@ -75,6 +81,7 @@ class VisionModelSaver(Callback):
 
 class DistributedSamplerEpochSetter(Callback):
     """A callback that sets the right epoch of a DistributedSampler instance."""
+
     def __init__(self):
         super().__init__()
 

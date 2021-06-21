@@ -7,12 +7,12 @@ import torch
 
 import egg.core as core
 from egg.zoo.simclr.data import get_dataloader
-from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
-    VisionModelSaver
+    VisionModelSaver,
 )
+from egg.zoo.simclr.games import build_game
 from egg.zoo.simclr.LARC import LARC
 from egg.zoo.simclr.utils import add_weight_decay, get_opts
 
@@ -36,7 +36,7 @@ def main(params):
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         is_distributed=opts.distributed_context.is_distributed,
-        seed=opts.random_seed
+        seed=opts.random_seed,
     )
 
     simclr_game = build_game(
@@ -44,14 +44,10 @@ def main(params):
         loss_temperature=opts.ntxent_tau,
         vision_encoder_name=opts.model_name,
         output_size=opts.output_size,
-        is_distributed=opts.distributed_context.is_distributed
+        is_distributed=opts.distributed_context.is_distributed,
     )
 
-    model_parameters = add_weight_decay(
-        simclr_game,
-        opts.weight_decay,
-        skip_name='bn'
-    )
+    model_parameters = add_weight_decay(simclr_game, opts.weight_decay, skip_name="bn")
 
     optimizer_original = torch.optim.SGD(
         model_parameters,
@@ -59,12 +55,14 @@ def main(params):
         momentum=0.9,
     )
     optimizer = LARC(optimizer_original, trust_coefficient=0.001, clip=False, eps=1e-8)
-    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_original, T_max=opts.n_epochs)
+    optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer_original, T_max=opts.n_epochs
+    )
 
     callbacks = [
         core.ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
-        VisionModelSaver()
+        VisionModelSaver(),
     ]
 
     if opts.distributed_context.is_distributed:
@@ -75,11 +73,12 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        callbacks=callbacks
+        callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
 
 
 if __name__ == "__main__":
     import sys
+
     main(sys.argv[1:])

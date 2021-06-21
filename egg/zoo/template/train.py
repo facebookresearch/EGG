@@ -10,13 +10,13 @@ import torch
 
 import egg.core as core
 from egg.zoo.template.data import get_dataloader
-from egg.zoo.template.games import build_game, build_optimizer_and_scheduler
 from egg.zoo.template.game_callbacks import get_callbacks
+from egg.zoo.template.games import build_game, build_optimizer_and_scheduler
 from egg.zoo.template.utils import get_opts
 
 
 def main(params: List[str]) -> None:
-    begin = (datetime.now() + timedelta(hours=9))
+    begin = datetime.now() + timedelta(hours=9)
     print(f"| STARTED JOB at {begin}...")
 
     opts = get_opts(params=params)
@@ -37,11 +37,11 @@ def main(params: List[str]) -> None:
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        callbacks=callbacks
+        callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
 
-    end = (datetime.now() + timedelta(hours=9))  # Using CET timezone
+    end = datetime.now() + timedelta(hours=9)  # Using CET timezone
 
     print(f"| FINISHED JOB at {end}. It took {end - begin}")
 
@@ -49,4 +49,5 @@ def main(params: List[str]) -> None:
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
     import sys
+
     main(sys.argv[1:])

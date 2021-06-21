@@ -19,8 +19,9 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         else:
             decay.append(param)
     return [
-        {'params': no_decay, 'weight_decay': 0.},
-        {'params': decay, 'weight_decay': weight_decay}]
+        {"params": no_decay, "weight_decay": 0.0},
+        {"params": decay, "weight_decay": weight_decay},
+    ]
 
 
 def get_opts(params):
@@ -40,17 +41,9 @@ def get_opts(params):
         choices=["cifar10", "imagenet"],
         help="Dataset used for training",
     )
+    parser.add_argument("--image_size", type=int, default=224, help="Image size")
     parser.add_argument(
-        "--image_size",
-        type=int,
-        default=224,
-        help="Image size"
-    )
-    parser.add_argument(
-        "--num_workers",
-        type=int,
-        default=4,
-        help="Workers used in the dataloader"
+        "--num_workers", type=int, default=4, help="Workers used in the dataloader"
     )
 
     # Vision module opts
@@ -72,10 +65,7 @@ def get_opts(params):
 
     # Arch opts
     parser.add_argument(
-        "--output_size",
-        type=int,
-        default=128,
-        help="Sender/Receiver output size"
+        "--output_size", type=int, default=128, help="Sender/Receiver output size"
     )
 
     # Misc opts
@@ -89,7 +79,7 @@ def get_opts(params):
         "--pdb",
         action="store_true",
         default=False,
-        help="Run the game with pdb enabled"
+        help="Run the game with pdb enabled",
     )
 
     opts = core.init(arg_parser=parser, params=params)

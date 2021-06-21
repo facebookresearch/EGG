@@ -7,8 +7,5 @@
     "use_augmentations": [true],
     "shared_vision": [true],
     "loss_type": ["ntxent"],
-    "simclr_sender": [true],
-    "simclr_recv": [true],
-    "wandb_project": ["correct_simclr"],
-    "wandb": [true]
+    "simclr_sender": [true]
 }
