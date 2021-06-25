@@ -5,7 +5,7 @@
 
 import os
 import pathlib
-from typing import Any, Callable, List, Optional
+from typing import List, Optional
 
 try:
     # requires python >= 3.7
@@ -17,7 +17,7 @@ except ImportError:
 import torch
 from torch.utils.data import DataLoader
 
-from .batch import Batch, generate_batch_from_raw, move_batch_to
+from .batch import Batch
 from .callbacks import (
     Callback,
     Checkpoint,
@@ -52,7 +52,6 @@ class Trainer:
         callbacks: Optional[List[Callback]] = None,
         grad_norm: float = None,
         aggregate_interaction_logs: bool = True,
-        generate_batch_fn: Callable[[Any], Batch] = generate_batch_from_raw,
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -73,7 +72,6 @@ class Trainer:
         common_opts = get_opts()
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
-        self.generate_batch_fn = generate_batch_fn
 
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
@@ -171,8 +169,9 @@ class Trainer:
         self.game.eval()
         with torch.no_grad():
             for batch in self.validation_data:
-                batch = self.generate_batch_fn(batch)
-                batch = move_batch_to(batch, self.device)
+                if not isinstance(batch, Batch):
+                    batch = Batch(*batch)
+                batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed
@@ -207,8 +206,9 @@ class Trainer:
         self.optimizer.zero_grad()
 
         for batch_id, batch in enumerate(self.train_data):
-            batch = self.generate_batch_fn(batch)
-            batch = move_batch_to(batch, self.device)
+            if not isinstance(batch, Batch):
+                batch = Batch(*batch)
+            batch.to(self.device)
 
             context = autocast() if self.scaler else nullcontext()
             with context:
