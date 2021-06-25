@@ -187,11 +187,11 @@ class SymbolGameReinforce(nn.Module):
         policy_loss = (
             (loss.detach() - self.baseline.predict(loss.detach()))
             * (sender_log_prob + receiver_log_prob)
-        ).mean()  # noqa: E502
+        ).mean()
         entropy_loss = -(
             sender_entropy.mean() * self.sender_entropy_coeff
             + receiver_entropy.mean() * self.receiver_entropy_coeff
-        )  # noqa: E502
+        )
 
         if self.training:
             self.baseline.update(loss.detach())

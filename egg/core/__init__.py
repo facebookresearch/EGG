@@ -11,6 +11,7 @@ from .callbacks import (
     ProgressBarLogger,
     TemperatureUpdater,
     TensorboardLogger,
+    WandbLogger,
 )
 from .continous_communication import (
     ContinuousLinearReceiver,
@@ -112,4 +113,5 @@ __all__ = [
     "ContinuousLinearSender",
     "ContinuousLinearReceiver",
     "SenderReceiverContinuousCommunication",
+    "WandbLogger",
 ]

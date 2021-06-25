@@ -10,7 +10,7 @@ import torch
 import torch.distributed as distrib
 
 
-@dataclass
+@dataclass(repr=True, eq=True)
 class LoggingStrategy:
     store_sender_input: bool = True
     store_receiver_input: bool = True
@@ -50,7 +50,7 @@ class LoggingStrategy:
         return cls()
 
 
-@dataclass
+@dataclass(repr=True, unsafe_hash=True)
 class Interaction:
     # incoming data
     sender_input: Optional[torch.Tensor]
@@ -112,7 +112,7 @@ class Interaction:
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
+        Interaction(sender_input=tensor([1., 1.]), ..., receiver_output=tensor([1., 1.]), message_length=None, aux={})
         >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):

@@ -40,7 +40,7 @@ class AttributesValuesDataset:
 
         self.samples = list(
             itertools.product(*(range(1, n_values + 1) for _ in range(n_attributes)))
-        )  # noqa: E226
+        )
 
         seed = seed if seed else np.random.randint(0, 2 ** 31)
         self.seed = seed
@@ -97,10 +97,11 @@ class AttributesValuesIterator:
                 self.random_state.permutation(self.data)
             ).float()
 
-        # fmt: off
-        tnsr = [torch.Tensor(elem) for elem in self.data[self.idx:self.idx+self.batch_size]]  # noqa: E226
-        self.idx += (self.batch_size - 1)
-        # fmt: on
+        tnsr = [
+            torch.Tensor(elem)
+            for elem in self.data[self.idx : self.idx + self.batch_size]
+        ]
+        self.idx += self.batch_size - 1
         batch = torch.stack(tnsr)
         labels = torch.zeros(1)
 
