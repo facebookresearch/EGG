@@ -171,7 +171,7 @@ class Trainer:
             for batch in self.validation_data:
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
-                batch.to(self.device)
+                batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed
