@@ -9,5 +9,6 @@
     "validation_freq": [0],
     "image_size": [32],
     "model_name": ["resnet50"],
-    "dataset_name": ["cifar10"]
+    "dataset_name": ["cifar10"],
+    "use_larc": [true]
 }

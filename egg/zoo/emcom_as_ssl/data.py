@@ -91,19 +91,22 @@ class ImageTransformation:
         else:
             transformations = [transforms.Resize(size=(size, size))]
 
-        if dataset_name == "imagenet":
-            m = [0.485, 0.456, 0.406]
-            std = [0.229, 0.224, 0.225]
-        else:
-            m = [0.5, 0.5, 0.5]
-            std = [0.5, 0.5, 0.5]
+        if dataset_name in ["imagenet", "cifar10"]:
+            if dataset_name == "imagenet":
+                m = [0.485, 0.456, 0.406]
+                std = [0.229, 0.224, 0.225]
+            elif dataset_name == "cifar10":
+                m = [0.5, 0.5, 0.5]
+                std = [0.5, 0.5, 0.5]
 
-        transformations.extend(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(mean=m, std=std),
-            ]
-        )
+            transformations.extend(
+                [
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=m, std=std),
+                ]
+            )
+        else:
+            transformations.extend([transforms.ToTensor()])
 
         self.transform = transforms.Compose(transformations)
 

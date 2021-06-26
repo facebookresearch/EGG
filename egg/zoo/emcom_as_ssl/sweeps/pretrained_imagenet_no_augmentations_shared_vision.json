@@ -11,5 +11,6 @@
     "model_name": ["resnet50"],
     "image_size": [224],
     "dataset_name": ["imagenet"],
-    "dataset_dir": ["/datasets01/imagenet_full_size/061417/train"]
+    "dataset_dir": ["/datasets01/imagenet_full_size/061417/train"],
+    "use_larc": [true]
 }
