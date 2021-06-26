@@ -17,7 +17,7 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = False):
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
-        "resnet152": torchvision.models.resnet152(pretrained=pretrained)
+        "resnet152": torchvision.models.resnet152(pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
