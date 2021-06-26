@@ -9,7 +9,7 @@ import egg.core as core
 from egg.zoo.emcom_as_ssl.data import get_dataloader
 from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
 from egg.zoo.emcom_as_ssl.games import build_game
-from apex.parallel.larc import LARC
+from apex.parallel import LARC
 from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
 
 
