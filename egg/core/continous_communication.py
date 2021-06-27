@@ -44,7 +44,7 @@ class ContinuousLinearSender(nn.Module):
         )
 
     def forward(self, x, aux_input=None):
-        x = self.agent(x)
+        x = self.agent(x, aux_input)
         for hidden_layer in self.encoder_hidden_layers[:-1]:
             x = self.activation(hidden_layer(x))
         sender_output = self.encoder_hidden_layers[-1](x)
@@ -61,7 +61,7 @@ class ContinuousLinearReceiver(nn.Module):
         self.agent = agent
 
     def forward(self, message, input=None, aux_input=None):
-        agent_output = self.agent(message, input)
+        agent_output = self.agent(message, input, aux_input)
         return agent_output
 
 
