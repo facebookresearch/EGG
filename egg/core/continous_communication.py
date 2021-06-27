@@ -43,7 +43,7 @@ class ContinuousLinearSender(nn.Module):
             [nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions]
         )
 
-    def forward(self, x):
+    def forward(self, x, aux_input=None):
         x = self.agent(x)
         for hidden_layer in self.encoder_hidden_layers[:-1]:
             x = self.activation(hidden_layer(x))
@@ -60,7 +60,7 @@ class ContinuousLinearReceiver(nn.Module):
         super(ContinuousLinearReceiver, self).__init__()
         self.agent = agent
 
-    def forward(self, message, input=None):
+    def forward(self, message, input=None, aux_input=None):
         agent_output = self.agent(message, input)
         return agent_output
 
@@ -104,12 +104,12 @@ class SenderReceiverContinuousCommunication(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message = self.sender(sender_input)
-        receiver_output = self.receiver(message, receiver_input)
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        message = self.sender(sender_input, aux_input)
+        receiver_output = self.receiver(message, receiver_input, aux_input)
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
@@ -119,6 +119,7 @@ class SenderReceiverContinuousCommunication(nn.Module):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
+            aux_input=aux_input,
             receiver_output=receiver_output,
             message=message.detach(),
             message_length=torch.ones(message[0].size(0)),
