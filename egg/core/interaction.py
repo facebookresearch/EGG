@@ -15,6 +15,7 @@ class LoggingStrategy:
     store_sender_input: bool = True
     store_receiver_input: bool = True
     store_labels: bool = True
+    store_aux_input: bool = True
     store_message: bool = True
     store_receiver_output: bool = True
     store_message_length: bool = True
@@ -24,6 +25,7 @@ class LoggingStrategy:
         sender_input: Optional[torch.Tensor],
         receiver_input: Optional[torch.Tensor],
         labels: Optional[torch.Tensor],
+        aux_input: Optional[Dict[str, torch.Tensor]],
         message: Optional[torch.Tensor],
         receiver_output: Optional[torch.Tensor],
         message_length: Optional[torch.Tensor],
@@ -34,6 +36,7 @@ class LoggingStrategy:
             sender_input=sender_input if self.store_sender_input else None,
             receiver_input=receiver_input if self.store_receiver_input else None,
             labels=labels if self.store_labels else None,
+            aux_input=aux_input if self.store_aux_input else None,
             message=message if self.store_message else None,
             receiver_output=receiver_output if self.store_receiver_output else None,
             message_length=message_length if self.store_message_length else None,
@@ -42,7 +45,7 @@ class LoggingStrategy:
 
     @classmethod
     def minimal(cls):
-        args = [False] * 5 + [True]
+        args = [False] * 6 + [True]
         return cls(*args)
 
     @classmethod
@@ -56,6 +59,7 @@ class Interaction:
     sender_input: Optional[torch.Tensor]
     receiver_input: Optional[torch.Tensor]
     labels: Optional[torch.Tensor]
+    aux_input: Optional[Dict[str, torch.Tensor]]
 
     # what agents produce
     message: Optional[torch.Tensor]
@@ -96,6 +100,8 @@ class Interaction:
         self.receiver_output = _to(self.receiver_output)
         self.message_length = _to(self.message_length)
 
+        if self.aux_input:
+            self.aux_input = dict((k, _to(v)) for k, v in self.aux_input.items())
         if self.aux:
             self.aux = dict((k, _to(v)) for k, v in self.aux.items())
 
@@ -104,16 +110,16 @@ class Interaction:
     @staticmethod
     def from_iterable(interactions: Iterable["Interaction"]) -> "Interaction":
         """
-        >>> a = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> a = Interaction(torch.ones(1), None, None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> a.size
         1
-        >>> b = Interaction(torch.ones(1), None, None, torch.ones(1), torch.ones(1), None, {})
+        >>> b = Interaction(torch.ones(1), None, None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> c = Interaction.from_iterable((a, b))
         >>> c.size
         2
         >>> c
         Interaction(sender_input=tensor([1., 1.]), ..., receiver_output=tensor([1., 1.]), message_length=None, aux={})
-        >>> d = Interaction(torch.ones(1), torch.ones(1), None, torch.ones(1), torch.ones(1), None, {})
+        >>> d = Interaction(torch.ones(1), torch.ones(1), None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
         ...
@@ -133,7 +139,13 @@ class Interaction:
 
         assert interactions, "list must not be empty"
         assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
+        assert all(
+            len(x.aux_input) == len(interactions[0].aux_input) for x in interactions
+        )
 
+        aux_input = {}
+        for k in interactions[0].aux_input:
+            aux_input[k] = _check_cat([x.aux_input[k] for x in interactions])
         aux = {}
         for k in interactions[0].aux:
             aux[k] = _check_cat([x.aux[k] for x in interactions])
@@ -142,6 +154,7 @@ class Interaction:
             sender_input=_check_cat([x.sender_input for x in interactions]),
             receiver_input=_check_cat([x.receiver_input for x in interactions]),
             labels=_check_cat([x.labels for x in interactions]),
+            aux_input=aux_input,
             message=_check_cat([x.message for x in interactions]),
             message_length=_check_cat([x.message_length for x in interactions]),
             receiver_output=_check_cat([x.receiver_output for x in interactions]),
@@ -150,7 +163,7 @@ class Interaction:
 
     @staticmethod
     def empty() -> "Interaction":
-        return Interaction(None, None, None, None, None, None, {})
+        return Interaction(None, None, None, {}, None, None, None, {})
 
     @staticmethod
     def gather_distributed_interactions(log: "Interaction") -> Optional["Interaction"]:
@@ -190,8 +203,13 @@ class Interaction:
         )
 
         interaction_as_dict = send_collect_dict(interaction_as_dict)
+
+        synced_aux_input = send_collect_dict(log.aux_input)
+        interaction_as_dict["aux_input"] = synced_aux_input
         synced_aux = send_collect_dict(log.aux)
         interaction_as_dict["aux"] = synced_aux
+
         synced_interacton = Interaction(**interaction_as_dict)
+
         assert log.size * world_size == synced_interacton.size
         return synced_interacton
