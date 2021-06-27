@@ -46,7 +46,8 @@ class Batch:
         """Method to move all (nested) tensors of the batch to a specific device.
         This operation doest not change the original batch element and returns a new Batch instance.
         """
-        moved_batch = move_to(
-            [self.sender_input, self.labels, self.receiver_input, self.aux], device
-        )
-        return Batch(*moved_batch)
+        self.sender_input = move_to(self.sender_input, device)
+        self.labels = move_to(self.labels, device)
+        self.receiver_input = move_to(self.receiver_input, device)
+        self.aux_input = move_to(self.aux_input, device)
+        return self

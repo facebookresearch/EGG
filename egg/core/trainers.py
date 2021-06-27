@@ -208,7 +208,7 @@ class Trainer:
         for batch_id, batch in enumerate(self.train_data):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
-            batch.to(self.device)
+            batch = batch.to(self.device)
 
             context = autocast() if self.scaler else nullcontext()
             with context:
