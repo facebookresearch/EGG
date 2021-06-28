@@ -8,7 +8,7 @@ in the .json file of interest, with the path to the folder containing the ImageN
 
 To reproduce the expriments from the paper using 16 GPUs the following command should be launched from the EGG root directory specifying a checkpoint directory, a slurm partition and the specific json:
 
-$ python egg/nest/nest.py --game=egg.zoo.emcom_as_ssl.train --nodes=2 --tasks=8 --partition=<SPECIFY_SLURM_PARTITION> --sweep=egg/zoo/emcom_as_ssl/sweeps/<ADD_JSON_FILE> --checkpoint_dir="<PATH_TO_CHECKPOINTING_DIR>" --checkpoint_freq=5
+$ python egg/nest/nest.py --game=egg.zoo.emcom_as_ssl.train --nodes=2 --tasks=8 --partition=<SPECIFY_SLURM_PARTITION> --sweep=egg/zoo/emcom_as_ssl/paper_sweeps/<ADD_JSON_FILE> --checkpoint_dir="<PATH_TO_CHECKPOINTING_DIR>" --checkpoint_freq=5
 
 
 At the end of training, in the specified checkpoint_dir directory, under a folder named after the job id, a file named "final.tar" will contain
