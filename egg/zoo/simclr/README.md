@@ -9,5 +9,5 @@ python -m torch.distributed.launch --use_env --nproc_per_node=2 egg/zoo/simclr_r
 In `sweeps` there's a configuration that tries to reproduce the setup of the paper with a batch size of 2048 using 16 GPUs
 In can be launched calling nest nest from the root directory of EGG with:
 ```bash
-python egg/nest/nest.py --game egg.zoo.simclr.train --sweep egg/zoo/simclr_replica/extension_sweeps/simclr.json --checkpoint_dir="replicate_simclr" --nodes=2 --tasks=8
+python egg/nest/nest.py --game egg.zoo.simclr.train --sweep egg/zoo/simclr_replica/paper_sweeps/simclr.json --checkpoint_dir="replicate_simclr" --nodes=2 --tasks=8
 ```
