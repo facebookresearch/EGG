@@ -1,10 +1,3 @@
-INSTALLATION
-
-We added all the code for the experiments under EGG/egg/zoo/emcom_as_ssl.
-As a first step, EGG needs to be installed. Following the instructions found at https://github.com/facebookresearch/EGG, from the EGG root directory the following command must be executed:
-
-$ pip install --editable .
-
 TRAIN A MODEL
 
 To conduct the experiments in the paper we used nest, the job launcher provided by EGG. 
