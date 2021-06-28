@@ -30,13 +30,14 @@ def main(params):
 
     train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
+        dataset_name=opts.dataset_name,
         image_size=opts.image_size,
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
-        use_augmentations=opts.use_augmentations,
         is_distributed=opts.distributed_context.is_distributed,
-        return_original_image=opts.return_original_image,
         seed=opts.random_seed,
+        use_augmentations=opts.use_augmentations,
+        return_original_image=opts.return_original_image,
     )
 
     game = build_game(opts)
