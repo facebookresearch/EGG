@@ -33,7 +33,7 @@ class ToyAgent(torch.nn.Module):
         super(ToyAgent, self).__init__()
         self.fc1 = torch.nn.Linear(8, 1, bias=False)
 
-    def forward(self, x):
+    def forward(self, x, aux_input=None):
         x = self.fc1(x)
         return x
 
@@ -45,7 +45,7 @@ class ToyGame(torch.nn.Module):
         self.agent = agent
         self.criterion = torch.nn.MSELoss()
 
-    def forward(self, x, y):
+    def forward(self, x, y, z=None, aux_input=None):
         output = self.agent(x)
         output = output.squeeze(1)
         loss = self.criterion(output, y)
