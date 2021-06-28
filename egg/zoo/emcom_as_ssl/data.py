@@ -12,19 +12,27 @@ from torchvision import datasets, transforms
 
 def get_dataloader(
     dataset_dir: str,
-    image_size: int = 32,
+    dataset_name: str,
     batch_size: int = 32,
     num_workers: int = 4,
-    use_augmentations: bool = True,
     is_distributed: bool = False,
+    use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
+    image_size: int = 32,
 ):
+
     transformations = ImageTransformation(
-        image_size, use_augmentations, return_original_image
+        image_size, use_augmentations, return_original_image, dataset_name
     )
 
-    train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
+    if dataset_name == "cifar10":
+        train_dataset = datasets.CIFAR10(
+            root="./data", train=True, download=True, transform=transformations
+        )
+    else:
+        train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
+
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -64,7 +72,11 @@ class ImageTransformation:
     """
 
     def __init__(
-        self, size: int, augmentation: bool = False, return_original_image: bool = False
+        self,
+        size: int,
+        augmentation: bool = False,
+        return_original_image: bool = False,
+        dataset_name: str = "imagenet",
     ):
         if augmentation:
             s = 1
@@ -79,14 +91,22 @@ class ImageTransformation:
         else:
             transformations = [transforms.Resize(size=(size, size))]
 
-        transformations.extend(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
-            ]
-        )
+        if dataset_name in ["imagenet", "cifar10"]:
+            if dataset_name == "imagenet":
+                m = [0.485, 0.456, 0.406]
+                std = [0.229, 0.224, 0.225]
+            elif dataset_name == "cifar10":
+                m = [0.5, 0.5, 0.5]
+                std = [0.5, 0.5, 0.5]
+
+            transformations.extend(
+                [
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=m, std=std),
+                ]
+            )
+        else:
+            transformations.extend([transforms.ToTensor()])
 
         self.transform = transforms.Compose(transformations)
 

@@ -7,5 +7,6 @@
     "use_augmentations": [true],
     "shared_vision": [true],
     "loss_type": ["ntxent"],
-    "simclr_sender": [true]
+    "simclr_sender": [true],
+    "use_larc": [true]
 }

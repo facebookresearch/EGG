@@ -3,7 +3,9 @@
     "batch_size": [128],
     "lr": [2.4],
     "random_seed": [111],
-    "shared_vision": [true],
+    "fp16": [true],
+    "use_augmentations": [true],
     "gs_temperature": [5.0],
-    "loss_type": ["xent"]
+    "loss_type": ["xent"],
+    "use_larc": [true]
 }
