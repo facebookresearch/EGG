@@ -137,15 +137,24 @@ class Interaction:
                 )
             return torch.cat(lst, dim=0)
 
-        assert interactions, "list must not be empty"
-        assert all(len(x.aux) == len(interactions[0].aux) for x in interactions)
-        assert all(
-            len(x.aux_input) == len(interactions[0].aux_input) for x in interactions
-        )
+        assert interactions, "interaction list must not be empty"
+        has_aux_input = interactions[0].aux_input is not None
+        for x in interactions:
+            assert len(x.aux) == len(interactions[0].aux)
+            if has_aux_input:
+                assert len(x.aux_input) == len(
+                    interactions[0].aux_input
+                ), "found two interactions of different aux_info size"
+            else:
+                assert (
+                    not x.aux_input
+                ), "some aux_info are defined some are not, this should not happen"
 
-        aux_input = {}
-        for k in interactions[0].aux_input:
-            aux_input[k] = _check_cat([x.aux_input[k] for x in interactions])
+        aux_input = None
+        if has_aux_input:
+            aux_input = {}
+            for k in interactions[0].aux_input:
+                aux_input[k] = _check_cat([x.aux_input[k] for x in interactions])
         aux = {}
         for k in interactions[0].aux:
             aux[k] = _check_cat([x.aux[k] for x in interactions])

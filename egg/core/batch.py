@@ -24,6 +24,33 @@ class Batch:
         self.receiver_input = receiver_input
         self.aux_input = aux_input
 
+    def __getitem__(self, idx):
+        """
+        >>> b = Batch(torch.Tensor([1]), torch.Tensor([2]), torch.Tensor([3]), {})
+        >>> b[0]
+        tensor([1.])
+        >>> b[1]
+        tensor([2.])
+        >>> b[2]
+        tensor([3.])
+        >>> b[3]
+        {}
+        >>> b[6]
+        Traceback (most recent call last):
+            ...
+        IndexError: Trying to access a wrong index in the batch
+        """
+        if idx == 0:
+            return self.sender_input
+        elif idx == 1:
+            return self.labels
+        elif idx == 2:
+            return self.receiver_input
+        elif idx == 3:
+            return self.aux_input
+        else:
+            raise IndexError("Trying to access a wrong index in the batch")
+
     def __iter__(self):
         """
         >>> _ = torch.manual_seed(111)

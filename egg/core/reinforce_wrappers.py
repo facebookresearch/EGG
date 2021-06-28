@@ -226,7 +226,13 @@ class RnnSenderReinforce(nn.Module):
     During training, the wrapper samples from the cell, getting the output message. Evaluation-time, the sampling
     is replaced by argmax.
 
-    >>> agent = nn.Linear(10, 3)
+    >>> class Agent(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc = nn.Linear(10, 3)
+    ...     def forward(self, x, _input=None, _aux_input=None):
+    ...         return self.fc(x)
+    >>> agent = Agent()
     >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm')
     >>> input = torch.FloatTensor(16, 10).uniform_(-0.1, 0.1)
     >>> message, logprob, entropy = agent(input)
@@ -377,7 +383,7 @@ class RnnReceiverDeterministic(nn.Module):
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.fc = nn.Linear(5, 3)
-    ...     def forward(self, rnn_output, _input = None):
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
     ...         return self.fc(rnn_output)
     >>> agent = RnnReceiverDeterministic(Agent(), vocab_size=10, embed_dim=10, hidden_size=5)
     >>> message = torch.zeros((16, 10)).long().random_(0, 10)  # batch of 16, 10 symbol length
@@ -418,24 +424,30 @@ class SenderReceiverRnnReinforce(nn.Module):
     `SenderReceiverRnnReinforce` also applies the mean baseline to the loss function to reduce
     the variance of the gradient estimate.
 
-    >>> sender = nn.Linear(3, 10)
+    >>> class Sender(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc = nn.Linear(3, 10)
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
+    ...         return self.fc(rnn_output)
+    >>> sender = Sender()
     >>> sender = RnnSenderReinforce(sender, vocab_size=15, embed_dim=5, hidden_size=10, max_len=10, cell='lstm')
 
     >>> class Receiver(nn.Module):
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.fc = nn.Linear(5, 3)
-    ...     def forward(self, rnn_output, _input = None):
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
     ...         return self.fc(rnn_output)
     >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, embed_dim=10, hidden_size=5)
-    >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+    >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     ...     loss = F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1)
     ...     aux = {'aux': torch.ones(sender_input.size(0))}
     ...     return loss, aux
     >>> game = SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0,
     ...                                   length_cost=1e-2)
     >>> input = torch.zeros((5, 3)).normal_()
-    >>> optimized_loss, interaction = game(input, labels=None)
+    >>> optimized_loss, interaction = game(input, labels=None, aux_input=None)
     >>> sorted(list(interaction.aux.keys()))  # returns debug info such as entropies of the agents, message length etc
     ['aux', 'length', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
