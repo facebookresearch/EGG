@@ -437,7 +437,7 @@ class SenderReceiverRnnGS(nn.Module):
     ...     def forward(self, x, _input=None, aux_input=None):
     ...         return self.fc(x)
     >>> receiver = RnnReceiverGS(Receiver(), vocab_size=2, embed_dim=4, hidden_size=7, cell='rnn')
-    >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels):
+    >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels, aux_input):
     ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {'aux': torch.zeros(sender_input.size(0))}
     >>> game = SenderReceiverRnnGS(sender, receiver, loss)
     >>> loss, interaction = game(torch.ones((3, 10)), None, None)  # batch of 3 10d vectors
@@ -508,6 +508,7 @@ class SenderReceiverRnnGS(nn.Module):
                 receiver_input,
                 receiver_output[:, step, ...],
                 labels,
+                aux_input,
             )
             eos_mask = message[:, step, 0]  # always eos == 0
 

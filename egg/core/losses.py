@@ -76,7 +76,7 @@ class NTXentLoss:
     >>> x_i = torch.eye(128)
     >>> x_j = torch.eye(128)
     >>> loss_fn = NTXentLoss()
-    >>> loss, aux = loss_fn(None, x_i, None, x_j, None)
+    >>> loss, aux = loss_fn(None, x_i, None, x_j, None, None)
     >>> aux["acc"].mean().item()
     1.0
     >>> aux["acc"].shape
