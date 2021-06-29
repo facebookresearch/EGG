@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
-import json
 
 import torch.nn.functional as F
 import torch.utils.data
@@ -120,7 +119,9 @@ def get_params(params):
     return args
 
 
-def diff_loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+def diff_loss(
+    _sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
+):
     acc = ((receiver_output > 0.5).long() == labels).detach().all(dim=1).float()
     loss = F.binary_cross_entropy(
         receiver_output, labels.float(), reduction="none"
@@ -128,7 +129,9 @@ def diff_loss(_sender_input, _message, _receiver_input, receiver_output, labels)
     return loss, {"acc": acc}
 
 
-def non_diff_loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+def non_diff_loss(
+    _sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
+):
     acc = ((receiver_output > 0.5).long() == labels).detach().all(dim=1).float()
     return -acc, {"acc": acc.mean()}
 

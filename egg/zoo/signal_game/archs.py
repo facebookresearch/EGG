@@ -38,7 +38,7 @@ class InformedSender(nn.Module):
         )
         self.lin4 = nn.Linear(embedding_size, vocab_size, bias=False)
 
-    def forward(self, x, return_embeddings=False):
+    def forward(self, x, _aux_input=None):
         emb = self.return_embeddings(x)
 
         # in: h of size (batch_size, 1, game_size, embedding_size)
@@ -92,7 +92,7 @@ class Receiver(nn.Module):
         else:
             self.lin2 = nn.Linear(vocab_size, embedding_size, bias=False)
 
-    def forward(self, signal, x):
+    def forward(self, signal, x, _aux_input=None):
         # embed each image (left or right)
         emb = self.return_embeddings(x)
         # embed the signal

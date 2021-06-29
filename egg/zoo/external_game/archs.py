@@ -12,7 +12,7 @@ class ReinforceReceiver(nn.Module):
         super(ReinforceReceiver, self).__init__()
         self.output = nn.Linear(n_hidden, output_size)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         logits = self.output(x).log_softmax(dim=1)
         distr = Categorical(logits=logits)
         entropy = distr.entropy()
@@ -31,7 +31,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
         self.output = nn.Linear(n_hidden, output_size)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         return self.output(x)
 
 
@@ -40,6 +40,6 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = self.fc1(x)
         return x

@@ -46,7 +46,7 @@ class Sender(nn.Module):
         else:
             self.fc = nn.Linear(400, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = self.vision(x)
         if self.deeper:
             x = self.fc1(x)
@@ -72,7 +72,7 @@ class Receiver(nn.Module):
             self.fc2 = nn.Linear(400, n_classes)
         self.deeper = deeper
 
-    def forward(self, message, _):
+    def forward(self, message, _input, _aux_input):
         x = self.message_inp(message)
         if not self.deeper:
             x = self.fc(x)

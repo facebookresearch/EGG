@@ -22,7 +22,13 @@ class Loss:
         self.similarity = similarity
 
     def __call__(
-        self, _sender_input, message, _receiver_input, receiver_output, _labels
+        self,
+        _sender_input,
+        message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         input = torch.cat((message, receiver_output), dim=0)
 

@@ -52,7 +52,7 @@ def parse_arguments():
     return opt
 
 
-def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+def loss(_sender_input, _message, _receiver_input, receiver_output, labels, _aux_input):
     """
     Accuracy loss - non-differetiable hence cannot be used with GS
     """
@@ -60,7 +60,9 @@ def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
     return -acc, {"acc": acc}
 
 
-def loss_nll(_sender_input, _message, _receiver_input, receiver_output, labels):
+def loss_nll(
+    _sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
+):
     """
     NLL loss - differentiable and can be used with both GS and Reinforce
     """

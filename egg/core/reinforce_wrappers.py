@@ -171,14 +171,14 @@ class SymbolGameReinforce(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message, sender_log_prob, sender_entropy = self.sender(sender_input)
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        message, sender_log_prob, sender_entropy = self.sender(sender_input, aux_input)
         receiver_output, receiver_log_prob, receiver_entropy = self.receiver(
-            message, receiver_input
+            message, receiver_input, aux_input
         )
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
 
         if self.training:
@@ -187,11 +187,11 @@ class SymbolGameReinforce(nn.Module):
         policy_loss = (
             (loss.detach() - self.baseline.predict(loss.detach()))
             * (sender_log_prob + receiver_log_prob)
-        ).mean()  # noqa: E502
+        ).mean()
         entropy_loss = -(
             sender_entropy.mean() * self.sender_entropy_coeff
             + receiver_entropy.mean() * self.receiver_entropy_coeff
-        )  # noqa: E502
+        )
 
         if self.training:
             self.baseline.update(loss.detach())
@@ -209,6 +209,7 @@ class SymbolGameReinforce(nn.Module):
             sender_input=sender_input,
             labels=labels,
             receiver_input=receiver_input,
+            aux_input=aux_input,
             message=message.detach(),
             receiver_output=receiver_output.detach(),
             message_length=torch.ones(message.size(0)),
@@ -225,7 +226,13 @@ class RnnSenderReinforce(nn.Module):
     During training, the wrapper samples from the cell, getting the output message. Evaluation-time, the sampling
     is replaced by argmax.
 
-    >>> agent = nn.Linear(10, 3)
+    >>> class Agent(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc = nn.Linear(10, 3)
+    ...     def forward(self, x, _input=None, _aux_input=None):
+    ...         return self.fc(x)
+    >>> agent = Agent()
     >>> agent = RnnSenderReinforce(agent, vocab_size=5, embed_dim=5, hidden_size=3, max_len=10, cell='lstm')
     >>> input = torch.FloatTensor(16, 10).uniform_(-0.1, 0.1)
     >>> message, logprob, entropy = agent(input)
@@ -288,8 +295,8 @@ class RnnSenderReinforce(nn.Module):
     def reset_parameters(self):
         nn.init.normal_(self.sos_embedding, 0.0, 0.01)
 
-    def forward(self, x):
-        prev_hidden = [self.agent(x)]
+    def forward(self, x, aux_input=None):
+        prev_hidden = [self.agent(x, aux_input)]
         prev_hidden.extend(
             [torch.zeros_like(prev_hidden[0]) for _ in range(self.num_layers - 1)]
         )
@@ -355,9 +362,9 @@ class RnnReceiverReinforce(nn.Module):
         self.agent = agent
         self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
 
-    def forward(self, message, input=None, lengths=None):
+    def forward(self, message, input=None, aux_input=None, lengths=None):
         encoded = self.encoder(message, lengths)
-        sample, logits, entropy = self.agent(encoded, input)
+        sample, logits, entropy = self.agent(encoded, input, aux_input)
 
         return sample, logits, entropy
 
@@ -376,7 +383,7 @@ class RnnReceiverDeterministic(nn.Module):
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.fc = nn.Linear(5, 3)
-    ...     def forward(self, rnn_output, _input = None):
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
     ...         return self.fc(rnn_output)
     >>> agent = RnnReceiverDeterministic(Agent(), vocab_size=10, embed_dim=10, hidden_size=5)
     >>> message = torch.zeros((16, 10)).long().random_(0, 10)  # batch of 16, 10 symbol length
@@ -396,9 +403,9 @@ class RnnReceiverDeterministic(nn.Module):
         self.agent = agent
         self.encoder = RnnEncoder(vocab_size, embed_dim, hidden_size, cell, num_layers)
 
-    def forward(self, message, input=None, lengths=None):
+    def forward(self, message, input=None, aux_input=None, lengths=None):
         encoded = self.encoder(message, lengths)
-        agent_output = self.agent(encoded, input)
+        agent_output = self.agent(encoded, input, aux_input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
         entropy = logits
@@ -417,24 +424,30 @@ class SenderReceiverRnnReinforce(nn.Module):
     `SenderReceiverRnnReinforce` also applies the mean baseline to the loss function to reduce
     the variance of the gradient estimate.
 
-    >>> sender = nn.Linear(3, 10)
+    >>> class Sender(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc = nn.Linear(3, 10)
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
+    ...         return self.fc(rnn_output)
+    >>> sender = Sender()
     >>> sender = RnnSenderReinforce(sender, vocab_size=15, embed_dim=5, hidden_size=10, max_len=10, cell='lstm')
 
     >>> class Receiver(nn.Module):
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.fc = nn.Linear(5, 3)
-    ...     def forward(self, rnn_output, _input = None):
+    ...     def forward(self, rnn_output, _input=None, _aux_input=None):
     ...         return self.fc(rnn_output)
     >>> receiver = RnnReceiverDeterministic(Receiver(), vocab_size=15, embed_dim=10, hidden_size=5)
-    >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+    >>> def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     ...     loss = F.mse_loss(sender_input, receiver_output, reduction='none').mean(dim=1)
     ...     aux = {'aux': torch.ones(sender_input.size(0))}
     ...     return loss, aux
     >>> game = SenderReceiverRnnReinforce(sender, receiver, loss, sender_entropy_coeff=0.0, receiver_entropy_coeff=0.0,
     ...                                   length_cost=1e-2)
     >>> input = torch.zeros((5, 3)).normal_()
-    >>> optimized_loss, interaction = game(input, labels=None)
+    >>> optimized_loss, interaction = game(input, labels=None, aux_input=None)
     >>> sorted(list(interaction.aux.keys()))  # returns debug info such as entropies of the agents, message length etc
     ['aux', 'length', 'receiver_entropy', 'sender_entropy']
     >>> interaction.aux['aux'], interaction.aux['aux'].sum()
@@ -487,9 +500,15 @@ class SenderReceiverRnnReinforce(nn.Module):
             test_logging_strategy,
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
         return self.mechanics(
-            self.sender, self.receiver, self.loss, sender_input, labels, receiver_input
+            self.sender,
+            self.receiver,
+            self.loss,
+            sender_input,
+            labels,
+            receiver_input,
+            aux_input,
         )
 
 
@@ -531,16 +550,23 @@ class CommunicationRnnReinforce(nn.Module):
         )
 
     def forward(
-        self, sender, receiver, loss, sender_input, labels, receiver_input=None
+        self,
+        sender,
+        receiver,
+        loss,
+        sender_input,
+        labels,
+        receiver_input=None,
+        aux_input=None,
     ):
-        message, log_prob_s, entropy_s = sender(sender_input)
+        message, log_prob_s, entropy_s = sender(sender_input, aux_input)
         message_length = find_lengths(message)
         receiver_output, log_prob_r, entropy_r = receiver(
-            message, receiver_input, message_length
+            message, receiver_input, aux_input, message_length
         )
 
         loss, aux_info = loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
 
         # the entropy of the outputs of S before and including the eos symbol - as we don't care about what's after
@@ -592,6 +618,7 @@ class CommunicationRnnReinforce(nn.Module):
             sender_input=sender_input,
             labels=labels,
             receiver_input=receiver_input,
+            aux_input=aux_input,
             message=message.detach(),
             receiver_output=receiver_output.detach(),
             message_length=message_length,
@@ -627,12 +654,12 @@ class TransformerReceiverDeterministic(nn.Module):
             causal=causal,
         )
 
-    def forward(self, message, input=None, lengths=None):
+    def forward(self, message, input=None, aux_input=None, lengths=None):
         if lengths is None:
             lengths = find_lengths(message)
 
         transformed = self.encoder(message, lengths)
-        agent_output = self.agent(transformed, input)
+        agent_output = self.agent(transformed, input, aux_input)
 
         logits = torch.zeros(agent_output.size(0)).to(agent_output.device)
         entropy = logits
@@ -677,7 +704,7 @@ class TransformerSenderReinforce(nn.Module):
         self.generate_style = generate_style
         self.causal = causal
 
-        assert max_len >= 1, "Cannot have a max_len below 1"
+        assert max_len >= 1, "Cannot have max_len below 1"
         self.max_len = max_len
 
         self.transformer = TransformerDecoder(
@@ -789,8 +816,8 @@ class TransformerSenderReinforce(nn.Module):
 
         return sequence, logits, entropy
 
-    def forward(self, x):
-        encoder_state = self.agent(x)
+    def forward(self, x, aux_input=None):
+        encoder_state = self.agent(x, aux_input)
 
         if self.generate_style == "standard":
             sequence, logits, entropy = self.generate_standard(encoder_state)

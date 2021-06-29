@@ -27,7 +27,7 @@ from .gs_wrappers import (
     SymbolGameGS,
     SymbolReceiverWrapper,
 )
-from .interaction import Interaction, LoggingStrategy
+from .interaction import Interaction, LoggingStrategy, dump_interactions
 from .language_analysis import (
     Disent,
     MessageEntropy,
@@ -53,7 +53,6 @@ from .trainers import Trainer
 from .util import (
     build_optimizer,
     close,
-    dump_interactions,
     find_lengths,
     get_opts,
     get_summary_writer,

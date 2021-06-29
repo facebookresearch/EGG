@@ -98,7 +98,13 @@ class DiffLoss(torch.nn.Module):
         self.test_generalization = generalization
 
     def forward(
-        self, sender_input, _message, _receiver_input, receiver_output, _labels
+        self,
+        sender_input,
+        _message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         batch_size = sender_input.size(0)
         sender_input = sender_input.view(batch_size, self.n_attributes, self.n_values)

@@ -16,7 +16,9 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
 
     def forward(
-        self, sender_input: torch.Tensor
+        self,
+        sender_input: torch.Tensor,
+        aux_input: Dict[str, torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 
@@ -26,7 +28,10 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
 
     def forward(
-        self, message: torch.Tensor, receiver_input: torch.Tensor = None
+        self,
+        message: torch.Tensor,
+        receiver_input: torch.Tensor = None,
+        aux_input: Dict[str, torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
         pass
 

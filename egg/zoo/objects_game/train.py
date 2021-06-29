@@ -224,7 +224,9 @@ def check_args(args):
         )
 
 
-def loss(_sender_input, _message, _receiver_input, receiver_output, _labels):
+def loss(
+    _sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input
+):
     acc = (receiver_output.argmax(dim=1) == _labels).detach().float()
     loss = F.cross_entropy(receiver_output, _labels, reduction="none")
     return loss, {"acc": acc}

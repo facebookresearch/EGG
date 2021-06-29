@@ -11,6 +11,7 @@ from scipy import spatial
 from scipy.stats import spearmanr
 
 import egg.core as core
+from egg.core.batch import Batch
 from egg.zoo.language_bottleneck.intervention import entropy, mutual_info
 
 try:
@@ -204,8 +205,9 @@ class Evaluator(core.Callback):
 
             for batch in loader:
                 n_batches += 1
-
-                batch = core.move_to(batch, self.device)
+                if not isinstance(batch, Batch):
+                    batch = Batch(*batch)
+                batch = batch.to(self.device)
                 with torch.no_grad():
                     _, interaction = game(*batch)
                 acc += interaction.aux["acc"].mean().item()

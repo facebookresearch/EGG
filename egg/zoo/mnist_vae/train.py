@@ -74,6 +74,7 @@ class VAE_Game(nn.Module):
             sender_input=sender_input,
             receiver_input=None,
             labels=None,
+            aux_input=None,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),
@@ -93,7 +94,6 @@ class ImageDumpCallback(core.Callback):
         dump_dir = pathlib.Path.cwd() / "dump" / str(epoch)
         dump_dir.mkdir(exist_ok=True, parents=True)
 
-        state = self.trainer.game.train
         self.trainer.game.eval()
 
         for i in range(5):
@@ -108,7 +108,7 @@ class ImageDumpCallback(core.Callback):
             utils.save_image(
                 torch.cat([image, output], dim=1), dump_dir / (str(i) + ".png")
             )
-        self.trainer.game.train(state)
+        self.trainer.game.train()
 
 
 def main(params):

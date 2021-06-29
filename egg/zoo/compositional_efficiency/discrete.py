@@ -67,7 +67,13 @@ class DiffLoss(torch.nn.Module):
         self.coeffs = SMALL_PRIMES
 
     def forward(
-        self, sender_input, _message, _receiver_input, receiver_output, _labels
+        self,
+        sender_input,
+        _message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         batch_size = sender_input.size(0)
         receiver_output = receiver_output.view(

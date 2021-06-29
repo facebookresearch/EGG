@@ -13,17 +13,17 @@ from egg.core.continous_communication import SenderReceiverContinuousCommunicati
 from egg.core.gs_wrappers import gumbel_softmax_sample
 
 
-def get_resnet(name: str = "resnet50", pretrained: bool = False):
-    """Loads ResNet encoder from torchvision along with features number"""
-    resnets = {
+def get_vision_module(name: str = "resnet50", pretrained: bool = False):
+    modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
     }
-    if name not in resnets:
-        raise KeyError(f"{name} is not a valid ResNet architecture")
+    if name not in modules:
+        raise KeyError(f"{name} is not currently supported.")
 
-    model = resnets[name]
+    model = modules[name]
+
     n_features = model.fc.in_features
     model.fc = nn.Identity()
 
@@ -43,10 +43,10 @@ def get_vision_modules(
             shared
         ), "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
 
-    encoder, features_dim = get_resnet(encoder_arch, pretrain_vision)
+    encoder, features_dim = get_vision_module(encoder_arch, pretrain_vision)
     encoder_recv = None
     if not shared:
-        encoder_recv, _ = get_resnet(encoder_arch)
+        encoder_recv, _ = get_vision_module(encoder_arch)
 
     return encoder, encoder_recv, features_dim
 
@@ -84,7 +84,7 @@ class VisionGameWrapper(nn.Module):
         self.game = game
         self.vision_module = vision_module
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
@@ -182,7 +182,7 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
     def __init__(self, *args, **kwargs):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input):
         if isinstance(self.sender, SimCLRSender):
             message, message_like, resnet_output_sender = self.sender(
                 sender_input, sender=True
@@ -215,6 +215,7 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
+            aux_input=None,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),
