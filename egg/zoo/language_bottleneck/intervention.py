@@ -71,7 +71,7 @@ def _find_lengths(messages):
     """
     positions = []
     for i in range(messages.size(0)):
-        zero_pos = (messages[i, :] == 0).nonzero()
+        zero_pos = torch.nonzero(messages[i, :] == 0)
         if zero_pos.size(0) > 0:
             position = zero_pos[0].item() + 1
         else:

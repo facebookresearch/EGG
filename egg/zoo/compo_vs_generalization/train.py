@@ -116,7 +116,7 @@ class DiffLoss(torch.nn.Module):
             acc, acc_or, loss = 0.0, 0.0, 0.0
 
             for attr in range(self.n_attributes):
-                zero_index = sender_input[:, attr, 0].nonzero().squeeze()
+                zero_index = torch.nonzero(sender_input[:, attr, 0]).squeeze()
                 masked_size = zero_index.size(0)
                 masked_input = torch.index_select(sender_input, 0, zero_index)
                 masked_output = torch.index_select(receiver_output, 0, zero_index)
