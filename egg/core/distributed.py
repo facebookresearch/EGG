@@ -11,7 +11,7 @@ from dataclasses import dataclass
 import torch.distributed as dist
 
 
-@dataclass
+@dataclass(frozen=True, repr=True, eq=True, unsafe_hash=True)
 class DistributedContext:
     is_distributed: bool
     rank: int

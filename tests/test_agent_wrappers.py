@@ -28,7 +28,7 @@ class ToyAgent(torch.nn.Module):
         super(ToyAgent, self).__init__()
         self.fc1 = torch.nn.Linear(8, 2, bias=False)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input=None):
         x = self.fc1(x)
         return F.log_softmax(x, dim=1)
 
@@ -37,7 +37,7 @@ class Receiver(torch.nn.Module):
     def __init__(self):
         super(Receiver, self).__init__()
 
-    def forward(self, x, _input):
+    def forward(self, x, _input=None, _aux_input=None):
         return x
 
 
@@ -52,7 +52,7 @@ def test_toy_agent_gs():
 
     agent.train()
     agent.temperature = 10.0
-    output = agent(BATCH_X)
+    output = agent(BATCH_X, {})
     assert output.size() == torch.Size((8, 2))
     assert (output > 0).sum() == 16
 
@@ -62,7 +62,7 @@ def test_toy_agent_gs():
 
     for _ in range(1000):
         optimizer.zero_grad()
-        out = agent(BATCH_X)
+        out = agent(BATCH_X, {})
         loss = F.cross_entropy(out, BATCH_Y)
         loss.backward()
 
@@ -75,7 +75,7 @@ def test_game_gs():
     core.init()
     sender = core.GumbelSoftmaxWrapper(ToyAgent())
     receiver = Receiver()
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
         F.cross_entropy(receiver_output, labels),
         {},
     )
@@ -98,7 +98,7 @@ def test_toy_agent_reinforce():
 
     for _ in range(1000):
         optimizer.zero_grad()
-        output, log_prob, entropy = agent(BATCH_X)
+        output, log_prob, entropy = agent(BATCH_X, {})
         loss = -((output == BATCH_Y).float() * log_prob).mean()
         loss.backward()
 
@@ -112,7 +112,7 @@ def test_game_reinforce():
     sender = core.ReinforceWrapper(ToyAgent())
     receiver = core.ReinforceDeterministicWrapper(Receiver())
 
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
         -(receiver_output == labels).float(),
         {},
     )

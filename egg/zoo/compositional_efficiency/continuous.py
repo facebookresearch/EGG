@@ -45,7 +45,9 @@ def get_params(params):
     return args
 
 
-def diff_loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+def diff_loss(
+    sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input
+):
     loss = F.mse_loss(receiver_output, sender_input, reduction="none").mean(-1)
     return loss, {}
 

@@ -3,15 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import random
-from collections import defaultdict
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions import Bernoulli, Categorical
-
-import egg.core as core
 
 
 class Receiver(nn.Module):
@@ -19,7 +13,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
         self.fc = nn.Linear(n_hidden, n_outputs)
 
-    def forward(self, x, _):
+    def forward(self, x, _input, _aux_input):
         return self.fc(x)
 
 
@@ -28,7 +22,7 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
         self.fc1 = nn.Linear(n_inputs, n_hidden)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = self.fc1(x)
         return x
 
@@ -45,7 +39,7 @@ class NonLinearReceiver(nn.Module):
         self.diagonal_embedding = nn.Embedding(vocab_size, vocab_size)
         nn.init.eye_(self.diagonal_embedding.weight)
 
-    def forward(self, x, *rest):
+    def forward(self, x, _input, _aux_input):
         with torch.no_grad():
             x = self.diagonal_embedding(x).view(x.size(0), -1)
 

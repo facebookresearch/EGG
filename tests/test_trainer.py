@@ -26,7 +26,7 @@ class Receiver(torch.nn.Module):
     def __init__(self):
         super(Receiver, self).__init__()
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         return x
 
 
@@ -35,7 +35,7 @@ class ToyAgent(torch.nn.Module):
         super(ToyAgent, self).__init__()
         self.fc1 = torch.nn.Linear(8, 2, bias=False)
 
-    def forward(self, x):
+    def forward(self, x, aux_input=None):
         x = self.fc1(x)
         return F.log_softmax(x, dim=1)
 
@@ -55,7 +55,7 @@ def test_temperature_updater_callback():
     core.init()
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
         F.cross_entropy(receiver_output, labels),
         {},
     )
@@ -81,7 +81,7 @@ def test_snapshoting():
     core.init()
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
         F.cross_entropy(receiver_output, labels),
         {},
     )
@@ -115,7 +115,7 @@ def test_max_snapshoting():
     core.init()
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
-    loss = lambda sender_input, message, receiver_input, receiver_output, labels: (
+    loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
         F.cross_entropy(receiver_output, labels),
         {},
     )

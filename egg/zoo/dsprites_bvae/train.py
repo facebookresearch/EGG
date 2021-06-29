@@ -17,9 +17,8 @@ from torchvision import utils
 
 import egg.core as core
 from egg.core.language_analysis import Disent, TopographicSimilarity
+from egg.zoo.dsprites_bvae.archs import VisualReceiver, VisualSender
 from egg.zoo.dsprites_bvae.data_loaders.data_loaders import get_dsprites_dataloader
-
-from .archs import VisualReceiver, VisualSender
 
 
 def reconstruction_loss(x, x_recon, distribution="bernoulli"):
@@ -98,6 +97,7 @@ class betaVAE_Game(nn.Module):
             sender_input=label,
             receiver_input=None,
             receiver_output=receiver_output.detach(),
+            aux_input=None,
             message=message.detach(),
             labels=None,
             message_length=torch.ones(message.size(0)),
@@ -117,7 +117,6 @@ class ImageDumpCallback(core.Callback):
         dump_dir = pathlib.Path.cwd() / "dump" / str(epoch)
         dump_dir.mkdir(exist_ok=True, parents=True)
 
-        state = self.trainer.game.train
         self.trainer.game.eval()
 
         len_dataset = len(self.eval_dataset)
@@ -144,7 +143,7 @@ class ImageDumpCallback(core.Callback):
             utils.save_image(
                 torch.cat([image, output], dim=1), dump_dir / (str(i) + ".png")
             )
-        self.trainer.game.train(state)
+        self.trainer.game.train()
 
 
 def main(params):

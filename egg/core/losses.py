@@ -11,7 +11,13 @@ import torch.nn.functional as F
 
 class DiscriminationLoss:
     def __call__(
-        self, sender_input, _message, _receiver_input, receiver_output, labels
+        self,
+        sender_input,
+        _message,
+        _receiver_input,
+        receiver_output,
+        labels,
+        _aux_input,
     ):
         return self.discrimination_loss(receiver_output, labels)
 
@@ -29,7 +35,13 @@ class ReconstructionLoss:
         self.batch_size = batch_size
 
     def __call__(
-        self, sender_input, _message, _receiver_input, receiver_output, labels
+        self,
+        sender_input,
+        _message,
+        _receiver_input,
+        receiver_output,
+        labels,
+        _aux_input,
     ):
         return self.reconstruction_loss(
             receiver_output, labels, self.batch_size, self.n_attributes, self.n_values
@@ -64,7 +76,7 @@ class NTXentLoss:
     >>> x_i = torch.eye(128)
     >>> x_j = torch.eye(128)
     >>> loss_fn = NTXentLoss()
-    >>> loss, aux = loss_fn(None, x_i, None, x_j, None)
+    >>> loss, aux = loss_fn(None, x_i, None, x_j, None, None)
     >>> aux["acc"].mean().item()
     1.0
     >>> aux["acc"].shape
@@ -143,7 +155,13 @@ class NTXentLoss:
         return loss, {"acc": acc}
 
     def __call__(
-        self, _sender_input, message, _receiver_input, receiver_output, _labels
+        self,
+        _sender_input,
+        message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         return self.ntxent_loss(
             message,

@@ -12,7 +12,7 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input=None):
         return self.fc1(x).tanh()
 
 
@@ -21,7 +21,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
         self.fc1 = nn.Linear(n_features, linear_units)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input=None):
         embedded_input = self.fc1(_input).tanh()
         energies = torch.matmul(embedded_input, torch.unsqueeze(x, dim=-1))
         return energies.squeeze()

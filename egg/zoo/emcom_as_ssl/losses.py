@@ -56,7 +56,13 @@ class XEntLoss(Loss):
         return loss, {"acc": acc, "game_acc": acc}
 
     def __call__(
-        self, _sender_input, message, _receiver_input, receiver_output, _labels
+        self,
+        _sender_input,
+        message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         assert (
             message.shape == receiver_output.shape
@@ -103,6 +109,12 @@ class NTXentLoss(Loss):
         return loss, {"acc": acc, "game_acc": game_acc}
 
     def __call__(
-        self, _sender_input, message, _receiver_input, receiver_output, _labels
+        self,
+        _sender_input,
+        message,
+        _receiver_input,
+        receiver_output,
+        _labels,
+        _aux_input,
     ):
         return self.ntxent_loss(message, receiver_output)

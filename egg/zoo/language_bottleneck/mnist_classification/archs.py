@@ -34,7 +34,7 @@ class Sender(nn.Module):
         self.vision = LeNet()
         self.fc = nn.Linear(400, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = self.vision(x)
         x = self.fc(x)
         logits = F.log_softmax(x, dim=1)
@@ -60,7 +60,7 @@ class Receiver(nn.Module):
 
         self.fc = nn.Linear(400, n_classes)
 
-    def forward(self, message, image):
+    def forward(self, message, image, _aux_input):
         x = self.message_inp(message)
         if self.hidden:
             x = self.hidden(x)
