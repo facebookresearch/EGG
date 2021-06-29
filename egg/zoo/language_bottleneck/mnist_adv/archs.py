@@ -36,7 +36,7 @@ class Sender(nn.Module):
         self.linear_channel = linear_channel
         self.softmax_channel = softmax_channel
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = self.vision(x)
         x = self.fc(x)
 
@@ -54,7 +54,7 @@ class Receiver(nn.Module):
         self.message_inp = core.RelaxedEmbedding(vocab_size, 400)
         self.fc = nn.Linear(400, n_classes)
 
-    def forward(self, message, _):
+    def forward(self, message, input, _aux_input):
         x = self.message_inp(message)
         x = self.fc(x)
 
