@@ -26,6 +26,7 @@ class Loss:
         receiver_input: torch.Tensor,
         receiver_output: torch.Tensor,
         labels: torch.Tensor,
+        aux_inpute: Dict[str, torch.Tensor],
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
         loss, acc = None, None
         return loss, {"acc": acc}

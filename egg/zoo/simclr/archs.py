@@ -43,7 +43,7 @@ class VisionGameWrapper(nn.Module):
         self.game = game
         self.vision_module = vision_module
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input=None, _aux_input=None):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 

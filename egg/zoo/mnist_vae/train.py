@@ -74,6 +74,7 @@ class VAE_Game(nn.Module):
             sender_input=sender_input,
             receiver_input=None,
             labels=None,
+            aux_input=None,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),

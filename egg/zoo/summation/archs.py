@@ -12,7 +12,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
         self.output = nn.Linear(n_hidden, 2)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input=None):
         return self.output(x)
 
 
@@ -48,7 +48,7 @@ class Encoder(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input=None):
         messages, lengths = x
         emb = self.embedding(messages)
 

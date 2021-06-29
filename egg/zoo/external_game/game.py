@@ -7,7 +7,6 @@ from __future__ import print_function
 
 import argparse
 import contextlib
-import sys
 
 import torch.nn.functional as F
 import torch.utils.data
@@ -167,7 +166,7 @@ def dump(game, dataset, device, is_gs):
 
 
 def differentiable_loss(
-    _sender_input, _message, _receiver_input, receiver_output, labels
+    _sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
 ):
     labels = labels.squeeze(1)
     acc = (receiver_output.argmax(dim=1) == labels).detach().float()
@@ -176,7 +175,7 @@ def differentiable_loss(
 
 
 def non_differentiable_loss(
-    _sender_input, _message, _receiver_input, receiver_output, labels
+    _sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
 ):
     labels = labels.squeeze(1)
     acc = (receiver_output == labels).detach().float()

@@ -84,7 +84,7 @@ class VisionGameWrapper(nn.Module):
         self.game = game
         self.vision_module = vision_module
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
@@ -182,7 +182,7 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
     def __init__(self, *args, **kwargs):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
 
-    def forward(self, sender_input, labels, receiver_input=None):
+    def forward(self, sender_input, labels, receiver_input):
         if isinstance(self.sender, SimCLRSender):
             message, message_like, resnet_output_sender = self.sender(
                 sender_input, sender=True
@@ -215,6 +215,7 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
+            aux_input=None,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),

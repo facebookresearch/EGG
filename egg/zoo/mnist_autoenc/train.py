@@ -21,7 +21,7 @@ class Sender(nn.Module):
         self.fc1 = nn.Linear(784, 400)
         self.fc2 = nn.Linear(400, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         x = x.view(-1, 784)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
@@ -36,7 +36,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
         self.fc = nn.Linear(400, 784)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         # Under GS-based optimization, the embedding layer of SymbolReceiverWrapper would be
         # essentially a linear layer. Since there is no point in having two linear layers
         # sequentially, we put a non-linearity
@@ -45,7 +45,7 @@ class Receiver(nn.Module):
         return torch.sigmoid(x)
 
 
-def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     """
     The autoencoder's loss function; cross-entropy between the original and restored images.
     """
