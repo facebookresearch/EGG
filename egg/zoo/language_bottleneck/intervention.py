@@ -9,6 +9,7 @@ import numpy as np
 import torch
 
 import egg.core as core
+from egg.core.batch import Batch
 
 
 def entropy_dict(freq_table):
@@ -70,7 +71,7 @@ def _find_lengths(messages):
     """
     positions = []
     for i in range(messages.size(0)):
-        zero_pos = (messages[i, :] == 0).nonzero()
+        zero_pos = torch.nonzero(messages[i, :] == 0)
         if zero_pos.size(0) > 0:
             position = zero_pos[0].item() + 1
         else:
@@ -103,14 +104,12 @@ class CallbackEvaluator(core.Callback):
         alice_inputs = []
 
         for batch in self.dataset:
-            batch = [x.to(self.device) for x in batch]
-            if len(batch) == 3:
-                sender_input, labels, receiver_input = batch
-            else:
-                sender_input, labels = batch
-                receiver_input = None
+            if not isinstance(batch, Batch):
+                batch = Batch(*batch)
+            batch = batch.to(self.device)
+            sender_input, labels, receiver_input, aux_input = batch
 
-            original_message = game.sender(sender_input)
+            original_message = game.sender(sender_input, aux_input)
             # if Reinforce, agents return tuples
             if not self.is_gs:
                 original_message = original_message[0]
@@ -123,13 +122,13 @@ class CallbackEvaluator(core.Callback):
                 original_message.device
             )
             message = torch.index_select(original_message, 0, permutation)
-            output = game.receiver(message, receiver_input)
+            output = game.receiver(message, receiver_input, aux_input)
 
             if not self.is_gs:
                 output = output[0]
 
             if not self.var_length:
-                _, rest = self.loss(None, None, None, output, labels)
+                _, rest = self.loss(None, None, None, output, labels, aux_input)
                 mean_acc += rest["acc"].mean().item()
                 scaler += 1
 
@@ -188,17 +187,19 @@ class CallbackEvaluator(core.Callback):
         scaler = 0.0
 
         for batch in self.dataset:
-            batch = [x.to(self.device) for x in batch]
-            sender_input, labels, receiver_input = batch
+            if not isinstance(batch, Batch):
+                batch = Batch(*batch)
+            batch = batch.to(self.device)
+            sender_input, labels, receiver_input, aux_input = batch
 
-            message = game.sender(sender_input)
+            message = game.sender(sender_input, aux_input)
             # if Reinforce, agents return tuples
             if not self.is_gs:
                 message = message[0]
 
             permutation = torch.randperm(receiver_input.size(0)).to(message.device)
             receiver_input = torch.index_select(receiver_input, 0, permutation)
-            output = game.receiver(message, receiver_input)
+            output = game.receiver(message, receiver_input, aux_input)
 
             if not self.is_gs:
                 output = output[0]
@@ -214,11 +215,12 @@ class CallbackEvaluator(core.Callback):
                         None,
                         output[i : i + 1, curr_len - 1],
                         labels[i : i + 1],
+                        aux_input,
                     )
                     mean_acc += rest["acc"].item()
                     scaler += 1
             else:
-                _, rest = self.loss(None, None, None, output, labels)
+                _, rest = self.loss(None, None, None, output, labels, aux_input)
                 mean_acc += rest["acc"].mean().item()
                 scaler += 1.0
 

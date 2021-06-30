@@ -132,7 +132,14 @@ def main(params):
         # the game object we will encounter below takes as one of its mandatory arguments a loss: a loss in EGG is expected to take as arguments the sender input,
         # the message, the Receiver input, the Receiver output and the labels (although some of these elements might not actually be used by a particular loss);
         # together with the actual loss computation, the loss function can return a dictionary with other auxiliary statistics: in this case, accuracy
-        def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+        def loss(
+            _sender_input,
+            _message,
+            _receiver_input,
+            receiver_output,
+            labels,
+            _aux_input,
+        ):
             # in the discriminative case, accuracy is computed by comparing the index with highest score in Receiver output (a distribution of unnormalized
             # probabilities over target poisitions) and the corresponding label read from input, indicating the ground-truth position of the target
             acc = (receiver_output.argmax(dim=1) == labels).detach().float()
@@ -166,7 +173,9 @@ def main(params):
 
     else:  # reco game
 
-        def loss(sender_input, _message, _receiver_input, receiver_output, labels):
+        def loss(
+            sender_input, _message, _receiver_input, receiver_output, labels, _aux_input
+        ):
             # in the case of the recognition game, for each attribute we compute a different cross-entropy score
             # based on comparing the probability distribution produced by the Receiver over the values of each attribute
             # with the corresponding ground truth, and then averaging across attributes

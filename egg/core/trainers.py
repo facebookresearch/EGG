@@ -17,6 +17,7 @@ except ImportError:
 import torch
 from torch.utils.data import DataLoader
 
+from .batch import Batch
 from .callbacks import (
     Callback,
     Checkpoint,
@@ -168,7 +169,9 @@ class Trainer:
         self.game.eval()
         with torch.no_grad():
             for batch in self.validation_data:
-                batch = move_to(batch, self.device)
+                if not isinstance(batch, Batch):
+                    batch = Batch(*batch)
+                batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed
@@ -203,7 +206,9 @@ class Trainer:
         self.optimizer.zero_grad()
 
         for batch_id, batch in enumerate(self.train_data):
-            batch = move_to(batch, self.device)
+            if not isinstance(batch, Batch):
+                batch = Batch(*batch)
+            batch = batch.to(self.device)
 
             context = autocast() if self.scaler else nullcontext()
             with context:

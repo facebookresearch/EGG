@@ -158,7 +158,9 @@ class TransformerBaseEncoder(torch.nn.Module):
         self.max_source_positions = max_len
         self.embed_scale = math.sqrt(embed_dim)
         self.embed_positions = (
-            SinusoidalPositionEmbedding(max_len, embed_dim)
+            SinusoidalPositionEmbedding(
+                max_len + 1, embed_dim  # accounting for the forced EOS added by EGG
+            )
             if positional_embedding
             else None
         )

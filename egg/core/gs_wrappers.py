@@ -117,14 +117,18 @@ class SymbolGameGS(nn.Module):
     """
     Implements one-symbol Sender/Receiver game. The loss must be differentiable wrt the parameters of the agents.
     Typically, this assumes Gumbel Softmax relaxation of the communication channel.
+    >>> class Sender(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc_out = nn.Sequential(nn.Linear(10, 10), nn.LogSoftmax(dim=1))
+    ...     def forward(self, x, _aux_input=None):
+    ...         return self.fc_out(x)
+    >>> sender = Sender()
     >>> class Receiver(nn.Module):
-    ...     def forward(self, x, _input=None):
+    ...     def forward(self, x, _input=None, _aux_input=None):
     ...         return x
-
     >>> receiver = Receiver()
-    >>> sender = nn.Sequential(nn.Linear(10, 10), nn.LogSoftmax(dim=1))
-
-    >>> def mse_loss(sender_input, _1, _2, receiver_output, _3):
+    >>> def mse_loss(sender_input, _1, _2, receiver_output, _3, _4):
     ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {}
 
     >>> game = SymbolGameGS(sender=sender, receiver=Receiver(), loss=mse_loss)
@@ -171,12 +175,12 @@ class SymbolGameGS(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message = self.sender(sender_input)
-        receiver_output = self.receiver(message, receiver_input)
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        message = self.sender(sender_input, aux_input)
+        receiver_output = self.receiver(message, receiver_input, aux_input)
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
 
         logging_strategy = (
@@ -186,6 +190,7 @@ class SymbolGameGS(nn.Module):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
+            aux_input=aux_input,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),
@@ -249,9 +254,9 @@ class SymbolReceiverWrapper(nn.Module):
         self.agent = agent
         self.embedding = RelaxedEmbedding(vocab_size, agent_input_size)
 
-    def forward(self, message, input=None):
+    def forward(self, message, input=None, aux_input=None):
         embedded_message = self.embedding(message)
-        return self.agent(embedded_message, input)
+        return self.agent(embedded_message, input, aux_input)
 
 
 class RnnSenderGS(nn.Module):
@@ -262,7 +267,13 @@ class RnnSenderGS(nn.Module):
     is supposed to be handled by the game implementation. Supports vanilla RNN ('rnn'), GRU ('gru'), and LSTM ('lstm')
     cells.
 
-    >>> agent = nn.Linear(10, 5) #  input size 10, the RNN's hidden size is 5
+    >>> class Sender(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc_out = nn.Linear(10, 5) #  input size 10, the RNN's hidden size is 5
+    ...     def forward(self, x, _aux_input=None):
+    ...         return self.fc_out(x)
+    >>> agent = Sender()
     >>> agent = RnnSenderGS(agent, vocab_size=2, embed_dim=10, hidden_size=5, max_len=3, temperature=1.0, cell='lstm')
     >>> output = agent(torch.ones((1, 10)))
     >>> output.size()  # batch size x max_len+1 x vocab_size
@@ -319,8 +330,8 @@ class RnnSenderGS(nn.Module):
     def reset_parameters(self):
         nn.init.normal_(self.sos_embedding, 0.0, 0.01)
 
-    def forward(self, x):
-        prev_hidden = self.agent(x)
+    def forward(self, x, aux_input=None):
+        prev_hidden = self.agent(x, aux_input)
         prev_c = torch.zeros_like(prev_hidden)  # only for LSTM
 
         e_t = torch.stack([self.sos_embedding] * prev_hidden.size(0))
@@ -376,7 +387,7 @@ class RnnReceiverGS(nn.Module):
 
         self.embedding = nn.Linear(vocab_size, embed_dim)
 
-    def forward(self, message, input=None):
+    def forward(self, message, input=None, aux_input=None):
         outputs = []
 
         emb = self.embedding(message)
@@ -396,7 +407,7 @@ class RnnReceiverGS(nn.Module):
             else:
                 h_t = self.cell(e_t, prev_hidden)
 
-            outputs.append(self.agent(h_t, input))
+            outputs.append(self.agent(h_t, input, aux_input))
             prev_hidden = h_t
 
         outputs = torch.stack(outputs).permute(1, 0, 2)
@@ -411,18 +422,22 @@ class SenderReceiverRnnGS(nn.Module):
     to the end-of-sequence symbol. It is assumed that communication is stopped either after all the message is processed
     or when the end-of-sequence symbol is met.
 
-    >>> sender = nn.Linear(10, 5)
+    >>> class Sender(nn.Module):
+    ...     def __init__(self):
+    ...         super().__init__()
+    ...         self.fc = nn.Linear(10, 5)
+    ...     def forward(self, x, _input=None, aux_input=None):
+    ...         return self.fc(x)
+    >>> sender = Sender()
     >>> sender = RnnSenderGS(sender, vocab_size=2, embed_dim=3, hidden_size=5, max_len=3, temperature=5.0, cell='gru')
-
     >>> class Receiver(nn.Module):
     ...     def __init__(self):
     ...         super().__init__()
     ...         self.fc = nn.Linear(7, 10)
-    ...     def forward(self, x, _input):
+    ...     def forward(self, x, _input=None, aux_input=None):
     ...         return self.fc(x)
     >>> receiver = RnnReceiverGS(Receiver(), vocab_size=2, embed_dim=4, hidden_size=7, cell='rnn')
-
-    >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels):
+    >>> def loss(sender_input, _message, _receiver_input, receiver_output, labels, aux_input):
     ...     return (sender_input - receiver_output).pow(2.0).mean(dim=1), {'aux': torch.zeros(sender_input.size(0))}
     >>> game = SenderReceiverRnnGS(sender, receiver, loss)
     >>> loss, interaction = game(torch.ones((3, 10)), None, None)  # batch of 3 10d vectors
@@ -474,9 +489,9 @@ class SenderReceiverRnnGS(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender_input, labels, receiver_input=None):
-        message = self.sender(sender_input)
-        receiver_output = self.receiver(message, receiver_input)
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        message = self.sender(sender_input, aux_input)
+        receiver_output = self.receiver(message, receiver_input, aux_input)
 
         loss = 0
         not_eosed_before = torch.ones(receiver_output.size(0)).to(
@@ -493,6 +508,7 @@ class SenderReceiverRnnGS(nn.Module):
                 receiver_input,
                 receiver_output[:, step, ...],
                 labels,
+                aux_input,
             )
             eos_mask = message[:, step, 0]  # always eos == 0
 
@@ -530,6 +546,7 @@ class SenderReceiverRnnGS(nn.Module):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
+            aux_input=aux_input,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=expected_length.detach(),

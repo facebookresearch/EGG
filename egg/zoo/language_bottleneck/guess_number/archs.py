@@ -8,8 +8,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Bernoulli
 
-import egg.core as core
-
 
 class Receiver(nn.Module):
     def __init__(self, n_bits, n_hidden):
@@ -19,7 +17,7 @@ class Receiver(nn.Module):
         self.fc1 = nn.Linear(2 * n_hidden, 2 * n_hidden)
         self.fc2 = nn.Linear(2 * n_hidden, n_bits)
 
-    def forward(self, embedded_message, bits):
+    def forward(self, embedded_message, bits, _auxt_input=None):
         embedded_bits = self.emb_column(bits.float())
 
         x = torch.cat([embedded_bits, embedded_message], dim=1)
@@ -38,7 +36,7 @@ class ReinforcedReceiver(nn.Module):
         self.fc1 = nn.Linear(2 * n_hidden, 2 * n_hidden)
         self.fc2 = nn.Linear(2 * n_hidden, n_bits)
 
-    def forward(self, embedded_message, bits):
+    def forward(self, embedded_message, bits, _aux_input=None):
         embedded_bits = self.emb_column(bits.float())
 
         x = torch.cat([embedded_bits, embedded_message], dim=1)
@@ -65,7 +63,7 @@ class Sender(nn.Module):
         self.emb = nn.Linear(n_bits, n_hidden)
         self.fc = nn.Linear(n_hidden, vocab_size)
 
-    def forward(self, bits):
+    def forward(self, bits, _aux_input=None):
         x = self.emb(bits.float())
         x = F.leaky_relu(x)
         message = self.fc(x)

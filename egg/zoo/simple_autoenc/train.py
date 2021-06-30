@@ -112,7 +112,7 @@ def get_params(params):
     return args
 
 
-def loss(sender_input, _message, _receiver_input, receiver_output, _labels):
+def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     acc = (receiver_output.argmax(dim=1) == sender_input.argmax(dim=1)).detach().float()
     loss = F.cross_entropy(
         receiver_output, sender_input.argmax(dim=1), reduction="none"

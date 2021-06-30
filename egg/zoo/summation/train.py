@@ -77,7 +77,7 @@ def get_params():
     return args
 
 
-def loss(_sender_input, _message, _receiver_input, receiver_output, labels):
+def loss(_sender_input, _message, _receiver_input, receiver_output, labels, _aux_input):
     acc = (receiver_output.argmax(dim=1) == labels).detach().float()
     loss = F.cross_entropy(receiver_output, labels)
     return loss, {"acc": acc}
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     )
     trainer.train(n_epochs=opts.n_epochs)
 
-    sender_inputs, messages, _, receiver_outputs, labels = core.dump_sender_receiver(
+    sender_inputs, messages, _, receiver_outputs, labels = core.dump_interactions(
         game, test_loader, gs=True, device=device, variable_length=True
     )
 

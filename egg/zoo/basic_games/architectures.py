@@ -22,7 +22,7 @@ class RecoReceiver(nn.Module):
         super(RecoReceiver, self).__init__()
         self.output = nn.Linear(n_hidden, n_features)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         return self.output(x)
 
 
@@ -36,7 +36,7 @@ class DiscriReceiver(nn.Module):
         super(DiscriReceiver, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
 
-    def forward(self, x, _input):
+    def forward(self, x, _input, _aux_input):
         # the rationale for the non-linearity here is that the RNN output will also be the outcome of a non-linearity
         embedded_input = self.fc1(_input).tanh()
         dots = torch.matmul(embedded_input, torch.unsqueeze(x, dim=-1))
@@ -50,6 +50,6 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
 
-    def forward(self, x):
+    def forward(self, x, _aux_input):
         return self.fc1(x)
         # here, it might make sense to add a non-linearity, such as tanh
