@@ -11,6 +11,7 @@ import torchvision
 
 from egg.core.continous_communication import SenderReceiverContinuousCommunication
 from egg.core.gs_wrappers import gumbel_softmax_sample
+from egg.zoo.population_game.losses import  Loss
 
 
 def get_vision_module(name: str = "resnet50", pretrained: bool = False):
@@ -93,6 +94,36 @@ class VisionGameWrapper(nn.Module):
             labels=labels,
             receiver_input=receiver_encoded_input,
         )
+
+class VisionGame(nn.Module):
+    def __init__(
+        self,
+        sender: nn.Module,
+        receiver: nn.Module,
+        loss: Loss,
+        game,
+        vision_module: nn.Module,
+        *args,
+        **kwargs
+    ):
+        super(VisionGame, self).__init__()
+        self.sender = sender
+        self.receiver = receiver
+        self.loss = loss
+        self.game = game(sender, receiver, loss, *args, **kwargs)
+        self.vision_module = vision_module
+
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        x_i, x_j = sender_input
+        sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
+
+        return self.game_obj(
+            sender_input=sender_encoded_input,
+            labels=labels,
+            receiver_input=receiver_encoded_input,
+        )
+
+
 
 class EmSSLSender(nn.Module):
     def __init__(

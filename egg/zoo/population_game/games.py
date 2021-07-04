@@ -6,16 +6,17 @@
 import torch
 
 from egg.core.interaction import LoggingStrategy
-from egg.zoo.emcom_as_ssl.archs import (
+from egg.zoo.population_game.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
     Receiver,
-    SimCLRSender,
     VisionGameWrapper,
     VisionModule,
     get_vision_modules,
+    VisionGame
 )
 from egg.zoo.emcom_as_ssl.losses import get_loss
+from egg.core.population import UniformAgentSampler, PopulationGame
 
 
 def build_vision_encoder(
@@ -98,16 +99,10 @@ def build_game(opts):
         )
     ]
 
+    agents_loss_sampler = UniformAgentSampler(senders, receivers, loss)
 
-    game = EmComSSLSymbolGame(
-        sender,
-        receiver,
-        loss,
-        train_logging_strategy=train_logging_strategy,
-        test_logging_strategy=test_logging_strategy,
-    )
+    game = PopulationGame(EmComSSLSymbolGame, agents_loss_sampler)
 
-    game = VisionGameWrapper(game, vision_encoder)
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
 
