@@ -15,7 +15,7 @@ from egg.zoo.population_game.archs import (
     get_vision_modules,
     VisionGame
 )
-from egg.zoo.emcom_as_ssl.losses import get_loss
+from egg.zoo.population_game.losses import get_loss
 from egg.core.population import UniformAgentSampler, PopulationGame
 
 

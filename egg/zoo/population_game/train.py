@@ -6,11 +6,11 @@
 import torch
 
 import egg.core as core
-from egg.zoo.emcom_as_ssl.data import get_dataloader
-from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
-from egg.zoo.emcom_as_ssl.games import build_game
-from egg.zoo.emcom_as_ssl.LARC import LARC
-from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
+from egg.zoo.population_game.data import get_dataloader
+from egg.zoo.population_game.game_callbacks import get_callbacks
+from egg.zoo.population_game.games import build_game
+from egg.zoo.population_game.LARC import LARC
+from egg.zoo.population_game.utils import add_weight_decay, get_common_opts
 
 
 def main(params):
