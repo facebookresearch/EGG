@@ -101,7 +101,14 @@ def build_game(opts):
 
     agents_loss_sampler = UniformAgentSampler(senders, receivers, loss)
 
-    game = PopulationGame(VisionGame, agents_loss_sampler, vision_encoder)
+    game = EmComSSLSymbolGame(
+        train_logging_strategy=train_logging_strategy,
+        test_logging_strategy=test_logging_strategy,
+    )
+
+    game = VisionGameWrapper(game, vision_encoder)
+
+    game = PopulationGame(game, agents_loss_sampler)
 
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)

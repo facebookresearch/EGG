@@ -69,6 +69,5 @@ class PopulationGame(nn.Module):
 
     def forward(self, *args, **kwargs):
         sender, receiver, loss = self.agents_loss_sampler()
-        game_inst = self.game(sender, receiver, loss)
 
-        return game_inst(*args, **kwargs)
+        return self.game(sender, receiver, loss, *args, **kwargs)

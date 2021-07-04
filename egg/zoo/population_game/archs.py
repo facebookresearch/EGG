@@ -85,14 +85,18 @@ class VisionGameWrapper(nn.Module):
         self.game = game
         self.vision_module = vision_module
 
-    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input=None, aux_input=None):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
         return self.game(
+            sender,
+            receiver,
+            loss,
             sender_input=sender_encoded_input,
             labels=labels,
             receiver_input=receiver_encoded_input,
+            aux_input=aux_input
         )
 
 class VisionGame(nn.Module):
@@ -175,19 +179,19 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
     def __init__(self, *args, **kwargs):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
 
-    def forward(self, sender_input, labels, receiver_input):
-        message, message_like, resnet_output_sender = self.sender(sender_input)
-        receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
+    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input, aux_input):
+        message, message_like, resnet_output_sender = sender(sender_input)
+        receiver_output, resnet_output_recv = receiver(message, receiver_input)
 
-        loss, aux_info = self.loss(
+        loss, aux_info = loss(
             sender_input, message, receiver_input, receiver_output, labels
         )
 
-        if hasattr(self.sender, "temperature"):
-            if isinstance(self.sender.temperature, torch.nn.Parameter):
-                temperature = self.sender.temperature.detach()
+        if hasattr(sender, "temperature"):
+            if isinstance(sender.temperature, torch.nn.Parameter):
+                temperature = sender.temperature.detach()
             else:
-                temperature = torch.Tensor([self.sender.temperature])
+                temperature = torch.Tensor([sender.temperature])
             aux_info["temperature"] = temperature
 
         if not self.training:
