@@ -99,7 +99,7 @@ def build_game(opts):
         )
     ]
 
-    agents_loss_sampler = UniformAgentSampler(senders, receivers, loss)
+    agents_loss_sampler = UniformAgentSampler(senders, receivers, [loss])
 
     game = EmComSSLSymbolGame(
         train_logging_strategy=train_logging_strategy,
