@@ -9,8 +9,8 @@ import torch
 import torch.nn as nn
 import torchvision
 
-from egg.core.continous_communication import SenderReceiverContinuousCommunication
 from egg.core.gs_wrappers import gumbel_softmax_sample
+from egg.core.interaction import LoggingStrategy
 from egg.zoo.population_game.losses import  Loss
 
 
@@ -175,9 +175,19 @@ class Receiver(nn.Module):
         return self.fc(resnet_output), resnet_output.detach()
 
 
-class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
-    def __init__(self, *args, **kwargs):
+class EmComSSLSymbolGame(nn.Module):
+    def __init__(self, train_logging_strategy, test_logging_strategy, *args, **kwargs):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
+        self.train_logging_strategy = (
+            LoggingStrategy()
+            if train_logging_strategy is None
+            else train_logging_strategy
+        )
+        self.test_logging_strategy = (
+            LoggingStrategy()
+            if test_logging_strategy is None
+            else test_logging_strategy
+        )
 
     def forward(self, sender, receiver, loss, sender_input, labels, receiver_input, aux_input):
         message, message_like, resnet_output_sender = sender(sender_input)
