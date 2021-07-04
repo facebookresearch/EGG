@@ -101,16 +101,13 @@ class VisionGame(nn.Module):
         sender: nn.Module,
         receiver: nn.Module,
         loss: Loss,
-        game,
         vision_module: nn.Module,
-        *args,
-        **kwargs
     ):
         super(VisionGame, self).__init__()
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
-        self.game = game(sender, receiver, loss, *args, **kwargs)
+        self.game = EmComSSLSymbolGame(sender, receiver, loss)
         self.vision_module = vision_module
 
     def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
