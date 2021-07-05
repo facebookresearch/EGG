@@ -189,7 +189,7 @@ class EmComSSLSymbolGame(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input, aux_input):
+    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input, aux_input=None):
         message, message_like, resnet_output_sender = sender(sender_input)
         receiver_output, resnet_output_recv = receiver(message, receiver_input)
 
