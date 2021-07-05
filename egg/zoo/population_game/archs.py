@@ -194,7 +194,7 @@ class EmComSSLSymbolGame(nn.Module):
         receiver_output, resnet_output_recv = receiver(message, receiver_input)
 
         loss, aux_info = loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
 
         if hasattr(sender, "temperature"):
