@@ -1,0 +1,15 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [2.4],
+    "random_seed": [111],
+    "shared_vision": [true],
+    "gs_temperature": [5.0],
+    "loss_type": ["xent"],
+    "validation_freq": [0],
+    "pretrain_vision": [true],
+    "image_size": [32],
+    "model_name": ["resnet50"],
+    "dataset_name": ["cifar10"],
+    "use_larc": [true]
+}
