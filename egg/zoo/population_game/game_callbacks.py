@@ -138,7 +138,7 @@ def get_callbacks(
     shared_vision: bool,
     n_epochs: int,
     checkpoint_dir: str,
-    sender: nn.Module,
+    sender: nn.Module = None,
     train_gs_temperature: bool = False,
     minimum_gs_temperature: float = 0.1,
     update_gs_temp_frequency: int = 1,
