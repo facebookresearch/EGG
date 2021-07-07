@@ -104,6 +104,12 @@ def get_vision_module_opts(parser):
 def get_game_arch_opts(parser):
     group = parser.add_argument_group("game architecture")
     group.add_argument(
+        "--n_senders", type=int, default=3, help="Number of senders in the population"
+    )
+    group.add_argument(
+        "--n_recvs", type=int, default=3, help="Number of receivers in the population"
+    )
+    group.add_argument(
         "--projection_hidden_dim",
         type=int,
         default=2048,
@@ -119,13 +125,6 @@ def get_game_arch_opts(parser):
 
 def get_loss_opts(parser):
     group = parser.add_argument_group("loss")
-    group.add_argument(
-        "--loss_type",
-        type=str,
-        default="xent",
-        choices=["xent", "ntxent"],
-        help="Model name for loss function",
-    )
     group.add_argument(
         "--loss_temperature",
         type=float,

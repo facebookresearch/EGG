@@ -13,9 +13,8 @@ from egg.zoo.population_game.archs import (
     VisionGameWrapper,
     VisionModule,
     get_vision_modules,
-    VisionGame
 )
-from egg.zoo.population_game.losses import get_loss
+from egg.zoo.population_game.losses import XEntLoss
 from egg.core.population import UniformAgentSampler, PopulationGame
 
 
@@ -45,14 +44,12 @@ def build_game(opts):
         pretrain_vision=opts.pretrain_vision,
     )
 
-    loss = get_loss(
-        temperature=opts.loss_temperature,
-        similarity=opts.similarity,
-        loss_type=opts.loss_type,
+    train_logging_strategy = LoggingStrategy(
+        False, False, True, False, True, True, False
     )
-
-    train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
-    test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
+    test_logging_strategy = LoggingStrategy(
+        False, False, True, False, True, True, False
+    )
 
     senders = [
         EmSSLSender(
@@ -62,23 +59,8 @@ def build_game(opts):
             temperature=opts.gs_temperature,
             trainable_temperature=opts.train_gs_temperature,
             straight_through=opts.straight_through,
-        ),
-        EmSSLSender(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
-            temperature=opts.gs_temperature,
-            trainable_temperature=opts.train_gs_temperature,
-            straight_through=opts.straight_through,
-        ),
-        EmSSLSender(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
-            temperature=opts.gs_temperature,
-            trainable_temperature=opts.train_gs_temperature,
-            straight_through=opts.straight_through,
         )
+        for _ in range(opts.n_senders)
     ]
 
     receivers = [
@@ -86,20 +68,22 @@ def build_game(opts):
             input_dim=visual_features_dim,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
-        ),
-        Receiver(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
-        ),
-        Receiver(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
+        )
+        for _ in range(opts.n_recvs)
+    ]
+
+    loss = [
+        XEntLoss(
+            temperature=opts.loss_temperature,
+            similarity=opts.similarity,
         )
     ]
 
-    agents_loss_sampler = UniformAgentSampler(senders, receivers, [loss])
+    agents_loss_sampler = UniformAgentSampler(
+        senders,
+        receivers,
+        loss,
+    )
 
     game = EmComSSLSymbolGame(
         train_logging_strategy=train_logging_strategy,
