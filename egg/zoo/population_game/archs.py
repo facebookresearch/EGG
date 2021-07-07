@@ -11,10 +11,9 @@ import torchvision
 
 from egg.core.gs_wrappers import gumbel_softmax_sample
 from egg.core.interaction import LoggingStrategy
-from egg.zoo.population_game.losses import  Loss
 
 
-def get_vision_module(name: str = "resnet50", pretrained: bool = False):
+def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
@@ -37,17 +36,17 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = False):
 
 
 def get_vision_modules(
-    encoder_arch: str, shared: bool = False, pretrain_vision: bool = False
+    encoder_arch: str, shared: bool = True, pretrain_vision: bool = True
 ):
     if pretrain_vision:
         assert (
             shared
         ), "A pretrained not shared vision_module is a waste of memory. Please run with --shared set"
 
-    encoder, features_dim = get_vision_module(encoder_arch, pretrain_vision)
+    encoder, features_dim = initialize_vision_module(encoder_arch, pretrain_vision)
     encoder_recv = None
     if not shared:
-        encoder_recv, _ = get_vision_module(encoder_arch)
+        encoder_recv, _ = initialize_vision_module(encoder_arch)
 
     return encoder, encoder_recv, features_dim
 
@@ -85,7 +84,16 @@ class VisionGameWrapper(nn.Module):
         self.game = game
         self.vision_module = vision_module
 
-    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input=None, aux_input=None):
+    def forward(
+        self,
+        sender,
+        receiver,
+        loss,
+        sender_input,
+        labels,
+        receiver_input,
+        aux_input=None,
+    ):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
@@ -96,15 +104,16 @@ class VisionGameWrapper(nn.Module):
             sender_input=sender_encoded_input,
             labels=labels,
             receiver_input=receiver_encoded_input,
-            aux_input=aux_input
+            aux_input=aux_input,
         )
+
 
 class VisionGame(nn.Module):
     def __init__(
         self,
         sender: nn.Module,
         receiver: nn.Module,
-        loss: Loss,
+        loss: nn.Module,
         vision_module: nn.Module,
     ):
         super(VisionGame, self).__init__()
@@ -118,12 +127,11 @@ class VisionGame(nn.Module):
         x_i, x_j = sender_input
         sender_encoded_input, receiver_encoded_input = self.vision_module(x_i, x_j)
 
-        return self.game_obj(
+        return self.game(
             sender_input=sender_encoded_input,
             labels=labels,
             receiver_input=receiver_encoded_input,
         )
-
 
 
 class EmSSLSender(nn.Module):
@@ -152,7 +160,7 @@ class EmSSLSender(nn.Module):
 
         self.fc_out = nn.Linear(hidden_dim, output_dim, bias=False)
 
-    def forward(self, resnet_output):
+    def forward(self, resnet_output, aux_input=None):
         first_projection = self.fc(resnet_output)
         message = gumbel_softmax_sample(
             first_projection, self.temperature, self.training, self.straight_through
@@ -171,7 +179,7 @@ class Receiver(nn.Module):
             nn.Linear(hidden_dim, output_dim, bias=False),
         )
 
-    def forward(self, _x, resnet_output):
+    def forward(self, _x, resnet_output, aux_input=None):
         return self.fc(resnet_output), resnet_output.detach()
 
 
@@ -189,12 +197,28 @@ class EmComSSLSymbolGame(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input, aux_input=None):
-        message, message_like, resnet_output_sender = sender(sender_input)
-        receiver_output, resnet_output_recv = receiver(message, receiver_input)
+    def forward(
+        self,
+        sender,
+        receiver,
+        loss,
+        sender_input,
+        labels,
+        receiver_input,
+        aux_input=None,
+    ):
+        message, message_like, resnet_output_sender = sender(sender_input, aux_input)
+        receiver_output, resnet_output_recv = receiver(
+            message, receiver_input, aux_input
+        )
 
         loss, aux_info = loss(
-            _sender_input=sender_input, message=message, _receiver_input=receiver_input, receiver_output=receiver_output, _labels=labels, _aux_input=aux_input
+            _sender_input=sender_input,
+            message=message,
+            _receiver_input=receiver_input,
+            receiver_output=receiver_output,
+            _labels=labels,
+            _aux_input=aux_input,
         )
 
         if hasattr(sender, "temperature"):

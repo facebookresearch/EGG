@@ -53,22 +53,19 @@ def main(params):
         optimizer, T_max=opts.n_epochs
     )
 
-    if (
-        opts.distributed_context.is_distributed
-        and opts.distributed_context.world_size > 2
-        and opts.use_larc
-    ):
+    if opts.use_larc:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
     callbacks = get_callbacks(
         shared_vision=opts.shared_vision,
         n_epochs=opts.n_epochs,
         checkpoint_dir=opts.checkpoint_dir,
+        senders=game.agents_loss_sampler.senders,
         train_gs_temperature=opts.train_gs_temperature,
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
         gs_temperature_decay=opts.gs_temperature_decay,
-        is_distributed=opts.distributed_context.is_distributed
+        is_distributed=opts.distributed_context.is_distributed,
     )
 
     trainer = core.Trainer(
@@ -76,7 +73,7 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        callbacks=callbacks
+        callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
 
