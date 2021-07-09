@@ -12,26 +12,30 @@ import torch.nn as nn
 
 class UniformAgentSampler(nn.Module):
     # NB: only a module to facilitate checkpoint persistance
-    def __init__(self, senders, receivers, losses):
+    def __init__(self, senders, receivers, losses, seed=1234):
         super().__init__()
 
+        random.seed(seed)
         self.senders = nn.ModuleList(senders)
         self.receivers = nn.ModuleList(receivers)
         self.losses = list(losses)
 
     def forward(self):
-        return (
-            random.choice(self.senders),
-            random.choice(self.receivers),
-            random.choice(self.losses),
+        s_idx, r_idx, l_idx = (
+            random.randrange(len(self.senders)),
+            random.randrange(len(self.receivers)),
+            random.randrange(len(self.losses))
         )
+        print(f"s_idx {s_idx}, r_idx {r_idx}, l_idx {l_idx}")
+        return self.senders[s_idx], self.receivers[r_idx], self.losses[l_idx]
 
 
 class FullSweepAgentSampler(nn.Module):
     # NB: only a module to facilitate checkpoint persistance
-    def __init__(self, senders, receivers, losses):
+    def __init__(self, senders, receivers, losses, seed=1234):
         super().__init__()
 
+        random.seed(seed)
         self.senders = nn.ModuleList(senders)
         self.receivers = nn.ModuleList(receivers)
         self.losses = list(losses)
