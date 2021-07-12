@@ -196,6 +196,8 @@ class Interaction:
                 return {}
 
             new_d = {}
+            if not d:
+                return new_d
 
             for k, v in d.items():
                 if v is not None:
