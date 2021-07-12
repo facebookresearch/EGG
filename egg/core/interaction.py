@@ -194,7 +194,7 @@ class Interaction:
         def send_collect_dict(d):
             if d is None:
                 return {}
-            
+
             new_d = {}
 
             for k, v in d.items():
