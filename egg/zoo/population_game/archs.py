@@ -184,7 +184,9 @@ class Receiver(nn.Module):
 
 
 class EmComSSLSymbolGame(nn.Module):
-    def __init__(self, train_logging_strategy, test_logging_strategy, *args, **kwargs):
+    def __init__(
+        self, train_logging_strategy=None, test_logging_strategy=None, *args, **kwargs
+    ):
         super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
         self.train_logging_strategy = (
             LoggingStrategy()
@@ -240,7 +242,7 @@ class EmComSSLSymbolGame(nn.Module):
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
-            aux_input=None,
+            aux_input=aux_input,
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=torch.ones(message.size(0)),

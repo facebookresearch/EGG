@@ -15,7 +15,11 @@ from egg.zoo.population_game.archs import (
     get_vision_modules,
 )
 from egg.zoo.population_game.losses import XEntLoss
-from egg.core.population import UniformAgentSampler, PopulationGame
+from egg.core.population import (
+    FullSweepAgentSampler,
+    UniformAgentSampler,
+    PopulationGame,
+)
 
 
 def build_vision_encoder(
@@ -37,7 +41,8 @@ def build_vision_encoder(
     return vision_encoder, visual_features_dim
 
 
-def build_game(opts):
+def build_game(opts, sampler="random"):
+    assert sampler in ["random", "full"]
     vision_encoder, visual_features_dim = build_vision_encoder(
         model_name=opts.model_name,
         shared_vision=opts.shared_vision,
@@ -45,10 +50,7 @@ def build_game(opts):
     )
 
     train_logging_strategy = LoggingStrategy(
-        False, False, True, False, True, True, False
-    )
-    test_logging_strategy = LoggingStrategy(
-        False, False, True, False, True, True, False
+        False, False, True, True, True, True, False
     )
 
     senders = [
@@ -79,15 +81,23 @@ def build_game(opts):
         )
     ]
 
-    agents_loss_sampler = UniformAgentSampler(
-        senders,
-        receivers,
-        loss,
-    )
+    if sampler == "random":
+        agents_loss_sampler = UniformAgentSampler(
+            senders,
+            receivers,
+            loss,
+        )
+    elif sampler == "full":
+        agents_loss_sampler = FullSweepAgentSampler(
+            senders,
+            receivers,
+            loss,
+        )
+    else:
+        raise RuntimeError("Unknown sampler {sampler}")
 
     game = EmComSSLSymbolGame(
         train_logging_strategy=train_logging_strategy,
-        test_logging_strategy=test_logging_strategy,
     )
 
     game = VisionGameWrapper(game, vision_encoder)
