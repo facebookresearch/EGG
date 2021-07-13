@@ -55,9 +55,9 @@ class FullSweepAgentSampler(nn.Module):
         self.reset_order()
 
     def reset_order(self):
-        np.random.shuffle(self.senders_order)
-        np.random.shuffle(self.receivers_order)
-        np.random.shuffle(self.losses_order)
+        # np.random.shuffle(self.senders_order)
+        # np.random.shuffle(self.receivers_order)
+        # np.random.shuffle(self.losses_order)
 
         self.iterator = itertools.product(
             self.senders_order, self.receivers_order, self.losses_order
