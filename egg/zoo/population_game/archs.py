@@ -254,39 +254,11 @@ class EmComSSLSymbolGame(nn.Module):
         return loss.mean(), interaction
 
 
-class UniformAgentSampler(nn.Module):
-    # NB: only a module to facilitate checkpoint persistance
+class AgentSampler(nn.Module):
     def __init__(self, senders, receivers, losses, seed=1234):
         super().__init__()
 
         np.random.seed(seed)
-
-        self.senders = nn.ModuleList(senders)
-        self.receivers = nn.ModuleList(receivers)
-        self.losses = list(losses)
-
-    def forward(self):
-        s_idx, r_idx, l_idx = (
-            np.random.choice(len(self.senders)),
-            np.random.choice(len(self.receivers)),
-            np.random.choice(len(self.losses)),
-        )
-        return (
-            self.senders[s_idx],
-            self.receivers[r_idx],
-            self.losses[l_idx],
-            (
-                torch.Tensor([s_idx]).int(),
-                torch.Tensor([r_idx]).int(),
-                torch.Tensor([l_idx]).int(),
-            ),
-        )
-
-
-class FullSweepAgentSampler(nn.Module):
-    # NB: only a module to facilitate checkpoint persistance
-    def __init__(self, senders, receivers, losses):
-        super().__init__()
 
         self.senders = nn.ModuleList(senders)
         self.receivers = nn.ModuleList(receivers)
@@ -299,28 +271,32 @@ class FullSweepAgentSampler(nn.Module):
         self.reset_order()
 
     def reset_order(self):
-        # np.random.shuffle(self.senders_order)
-        # np.random.shuffle(self.receivers_order)
-        # np.random.shuffle(self.losses_order)
-
         self.iterator = itertools.product(
             self.senders_order, self.receivers_order, self.losses_order
         )
 
     def forward(self):
-        try:
-            sender_idx, recv_idx, loss_idx = next(self.iterator)
-        except StopIteration:
-            self.reset_order()
-            sender_idx, recv_idx, loss_idx = next(self.iterator)
+        if self.training:
+            s_idx, r_idx, l_idx = (
+                np.random.choice(len(self.senders)),
+                np.random.choice(len(self.receivers)),
+                np.random.choice(len(self.losses)),
+            )
+        else:
+            try:
+                sender_idx, recv_idx, loss_idx = next(self.iterator)
+            except StopIteration:
+                self.reset_order()
+                sender_idx, recv_idx, loss_idx = next(self.iterator)
+
         return (
-            self.senders[sender_idx],
-            self.receivers[recv_idx],
-            self.losses[loss_idx],
+            self.senders[s_idx],
+            self.receivers[r_idx],
+            self.losses[l_idx],
             (
-                torch.Tensor([sender_idx]).int(),
-                torch.Tensor([recv_idx]).int(),
-                torch.Tensor([loss_idx]).int(),
+                torch.Tensor([s_idx]).int(),
+                torch.Tensor([r_idx]).int(),
+                torch.Tensor([l_idx]).int(),
             ),
         )
 

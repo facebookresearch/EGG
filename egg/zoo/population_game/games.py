@@ -7,12 +7,11 @@ import torch
 
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.population_game.archs import (
+    AgentSampler,
     EmComSSLSymbolGame,
     EmSSLSender,
-    FullSweepAgentSampler,
     PopulationGame,
     Receiver,
-    UniformAgentSampler,
     VisionGameWrapper,
     VisionModule,
     get_vision_modules,
@@ -39,8 +38,7 @@ def build_vision_encoder(
     return vision_encoder, visual_features_dim
 
 
-def build_game(opts, sampler="random"):
-    assert sampler in ["random", "full"]
+def build_game(opts):
     vision_encoder, visual_features_dim = build_vision_encoder(
         model_name=opts.model_name,
         shared_vision=opts.shared_vision,
@@ -79,20 +77,11 @@ def build_game(opts, sampler="random"):
         )
     ]
 
-    if sampler == "random":
-        agents_loss_sampler = UniformAgentSampler(
-            senders,
-            receivers,
-            loss,
-        )
-    elif sampler == "full":
-        agents_loss_sampler = FullSweepAgentSampler(
-            senders,
-            receivers,
-            loss,
-        )
-    else:
-        raise RuntimeError("Unknown sampler {sampler}")
+    agents_loss_sampler = AgentSampler(
+        senders,
+        receivers,
+        loss,
+    )
 
     game = EmComSSLSymbolGame(
         train_logging_strategy=train_logging_strategy,
