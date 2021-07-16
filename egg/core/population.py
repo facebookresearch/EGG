@@ -6,7 +6,6 @@
 import itertools
 
 import numpy as np
-import torch
 import torch.nn as nn
 
 
@@ -31,11 +30,6 @@ class UniformAgentSampler(nn.Module):
             self.senders[s_idx],
             self.receivers[r_idx],
             self.losses[l_idx],
-            (
-                torch.Tensor([s_idx]).int(),
-                torch.Tensor([r_idx]).int(),
-                torch.Tensor([l_idx]).int(),
-            ),
         )
 
 
@@ -55,9 +49,9 @@ class FullSweepAgentSampler(nn.Module):
         self.reset_order()
 
     def reset_order(self):
-        # np.random.shuffle(self.senders_order)
-        # np.random.shuffle(self.receivers_order)
-        # np.random.shuffle(self.losses_order)
+        np.random.shuffle(self.senders_order)
+        np.random.shuffle(self.receivers_order)
+        np.random.shuffle(self.losses_order)
 
         self.iterator = itertools.product(
             self.senders_order, self.receivers_order, self.losses_order
@@ -69,16 +63,7 @@ class FullSweepAgentSampler(nn.Module):
         except StopIteration:
             self.reset_order()
             sender_idx, recv_idx, loss_idx = next(self.iterator)
-        return (
-            self.senders[sender_idx],
-            self.receivers[recv_idx],
-            self.losses[loss_idx],
-            (
-                torch.Tensor([sender_idx]).int(),
-                torch.Tensor([recv_idx]).int(),
-                torch.Tensor([loss_idx]).int(),
-            ),
-        )
+        return self.senders[sender_idx], self.receivers[recv_idx], self.losses[loss_idx]
 
 
 class PopulationGame(nn.Module):
@@ -89,14 +74,6 @@ class PopulationGame(nn.Module):
         self.agents_loss_sampler = agents_loss_sampler
 
     def forward(self, *args, **kwargs):
-        sender, receiver, loss, idxs = self.agents_loss_sampler()
-        sender_idx, recv_idx, loss_idx = idxs
-        # creating an aux_input
-        args = list(args)
-        args[-1] = {
-            "sender_idx": sender_idx,
-            "recv_idx": recv_idx,
-            "loss_idx": loss_idx,
-        }
+        sender, receiver, loss = self.agents_loss_sampler()
 
         return self.game(sender, receiver, loss, *args, **kwargs)

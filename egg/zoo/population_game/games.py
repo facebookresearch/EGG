@@ -9,17 +9,15 @@ from egg.core.interaction import LoggingStrategy
 from egg.zoo.population_game.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
+    FullSweepAgentSampler,
+    PopulationGame,
     Receiver,
+    UniformAgentSampler,
     VisionGameWrapper,
     VisionModule,
     get_vision_modules,
 )
 from egg.zoo.population_game.losses import XEntLoss
-from egg.core.population import (
-    FullSweepAgentSampler,
-    UniformAgentSampler,
-    PopulationGame,
-)
 
 
 def build_vision_encoder(
@@ -50,7 +48,7 @@ def build_game(opts, sampler="random"):
     )
 
     train_logging_strategy = LoggingStrategy(
-        False, False, True, True, True, True, False
+        False, False, True, True, True, False, False
     )
 
     senders = [
