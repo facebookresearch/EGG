@@ -10,16 +10,24 @@ from PIL import ImageFilter
 from torchvision import datasets, transforms
 
 
+def collate_fn(batch):
+    return (
+        torch.stack([x[0][0] for x in batch], dim=0),
+        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),
+        torch.stack([x[0][1] for x in batch], dim=0),
+    )
+
+
 def get_dataloader(
     dataset_dir: str,
     dataset_name: str,
     batch_size: int = 32,
-    num_workers: int = 4,
+    image_size: int = 32,
+    num_workers: int = 0,
     is_distributed: bool = False,
     use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
-    image_size: int = 32,
 ):
 
     transformations = ImageTransformation(
@@ -28,7 +36,7 @@ def get_dataloader(
 
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
-            root="./data", train=True, download=True, transform=transformations
+            root="./data", train=False, download=True, transform=transformations
         )
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
@@ -45,8 +53,9 @@ def get_dataloader(
         shuffle=(train_sampler is None),
         sampler=train_sampler,
         num_workers=num_workers,
-        pin_memory=True,
+        collate_fn=collate_fn,
         drop_last=True,
+        pin_memory=True,
     )
 
     return train_loader
