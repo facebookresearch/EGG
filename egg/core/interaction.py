@@ -192,8 +192,10 @@ class Interaction:
             return torch.cat(lst, dim=0).to("cpu")
 
         def send_collect_dict(d):
-            new_d = {}
+            if not d or d is None:
+                return {}
 
+            new_d = {}
             for k, v in d.items():
                 if v is not None:
                     v = send_collect_tensor(v)

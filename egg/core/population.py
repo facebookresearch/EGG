@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import itertools
-import random
 
 import numpy as np
 import torch.nn as nn
@@ -12,18 +11,25 @@ import torch.nn as nn
 
 class UniformAgentSampler(nn.Module):
     # NB: only a module to facilitate checkpoint persistance
-    def __init__(self, senders, receivers, losses):
+    def __init__(self, senders, receivers, losses, seed=1234):
         super().__init__()
+
+        np.random.seed(seed)
 
         self.senders = nn.ModuleList(senders)
         self.receivers = nn.ModuleList(receivers)
         self.losses = list(losses)
 
     def forward(self):
+        s_idx, r_idx, l_idx = (
+            np.random.choice(len(self.senders)),
+            np.random.choice(len(self.receivers)),
+            np.random.choice(len(self.losses)),
+        )
         return (
-            random.choice(self.senders),
-            random.choice(self.receivers),
-            random.choice(self.losses),
+            self.senders[s_idx],
+            self.receivers[r_idx],
+            self.losses[l_idx],
         )
 
 

@@ -316,7 +316,7 @@ class InteractionSaver(Callback):
                 )
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if epoch in self.test_epochs:
+        if epoch in self.train_epochs:
             if (
                 not self.aggregated_interaction
                 or self.trainer.distributed_context.is_leader
