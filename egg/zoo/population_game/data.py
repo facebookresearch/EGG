@@ -88,18 +88,22 @@ class ImageTransformation:
         return_original_image: bool = False,
         dataset_name: Optional[str] = None,
     ):
-        transformations = [transforms.Resize(size=(size, size)), transforms.ToTensor()]
 
         if augmentation:
             s = 1
             color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
-            transformations.append(
+            transformations = [
                 transforms.RandomResizedCrop(size=size),
                 transforms.RandomApply([color_jitter], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
-            )
+                transforms.ToTensor(),
+            ]
+        else:
+            transformations = [
+                transforms.Resize(size=(size, size)),
+            ]
 
         if dataset_name == "imagenet":
             transformations.append(
@@ -121,8 +125,7 @@ class ImageTransformation:
             )
 
     def __call__(self, x):
-        x_i = self.transform(x)
-        x_j = self.transform(x)
+        x_i, x_j = self.transform(x), self.transform(x)
         if self.return_original_image:
             return x_i, x_j, self.original_image_transform(x)
         return x_i, x_j

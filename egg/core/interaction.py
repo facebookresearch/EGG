@@ -84,7 +84,7 @@ class Interaction:
         for t in interaction_fields:
             if t is not None:
                 return t.size(0)
-        raise RuntimeError("Cannot determine interaction log size; it is empty.")
+        return 0  # previously a RuntimeError was thrown
 
     def to(self, *args, **kwargs) -> "Interaction":
         """Moves all stored tensor to a device. For instance, it might be not
@@ -227,7 +227,8 @@ class Interaction:
 
         synced_interacton = Interaction(**interaction_as_dict)
 
-        assert log.size * world_size == synced_interacton.size
+        if log.size:
+            assert log.size * world_size == synced_interacton.size
         return synced_interacton
 
 
