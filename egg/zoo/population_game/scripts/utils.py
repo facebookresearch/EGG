@@ -19,13 +19,7 @@ from egg.zoo.population_game.games import build_game
 
 
 def add_common_cli_args(parser):
-    parser.add_argument(
-        "--pretrain_vision",
-        default=True,
-        action="store_true",
-        help="If set, pretrained vision modules will be used",
-    )
-    ###
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument(
         "--n_senders", type=int, default=3, help="Number of senders in the population"
     )
@@ -56,19 +50,22 @@ def get_params(
 
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
+        vocab_size=2048,
+        #
         pretrain_vision=True,
-        shared_vision=True,
-        use_augmentations=True,
-        random_seed=111,
-        model_name="resnet50",
-        loss_temperature=1.0,
-        similarity="cosine",
-        projection_hidden_dim=2048,
-        projection_output_dim=2048,
+        vision_model_name="resnet50",
+        #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,
+        update_gs_temp_frequency=1,
         train_gs_temperature=False,
         straight_through=False,
+        #
+        recv_temperature=0.1,
+        recv_hidden_dim=2048,
+        recv_output_dim=2048,
+        #
+        random_seed=111,
         distributed_context=distributed_context,
     )
     params.update(params_fixed)
@@ -84,7 +81,7 @@ def get_params(
 
 
 def get_game(params: argparse.Namespace, checkpoint_path: str):
-    game = build_game(params, sampler="full")
+    game = build_game(params)
     checkpoint = torch.load(checkpoint_path)
     game.load_state_dict(checkpoint.model_state_dict)
     return game
@@ -99,27 +96,61 @@ def save_interaction(interaction: Interaction, log_dir: Union[pathlib.Path, str]
 def get_test_data(
     dataset_dir: str = "/datasets01/imagenet_full_size/061417/train",
     batch_size: int = 32,
-    num_workers: int = 4,
-    use_augmentations: bool = False,
-    return_original_image: bool = False,
     image_size: int = 32,
+    num_workers: int = 4,
 ):
 
     transformations = ImageTransformation(
-        image_size, use_augmentations, return_original_image, "imagenet"
+        size=image_size,
+        augmentation=False,
+        return_original_image=False,
+        dataset_name="imagenet",
     )
     dataset = datasets.CIFAR10(
         root="./data", train=False, download=True, transform=transformations
     )
     # dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
 
+    def collate_fn(batch):
+        return (
+            torch.stack([x[0][0] for x in batch], dim=0),
+            torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),
+            torch.stack([x[0][1] for x in batch], dim=0),
+        )
+
     return torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         num_workers=num_workers,
+        collate_fn=collate_fn,
         pin_memory=True,
         drop_last=True,
     )
+
+
+def add_reshaped_interaction_fields(
+    interaction: Interaction, n_senders: int, n_recvs: int, batch_size: int
+):
+    interaction.aux["reshaped_receiver_output"] = interaction.receiver_output.view(
+        -1, n_senders * n_recvs, batch_size, batch_size
+    ).detach()
+
+    vocab_size = interaction.message.shape[-1]
+    interaction.aux["reshaped_message"] = torch.argmax(
+        interaction.message.view(-1, batch_size, n_senders * n_recvs, vocab_size), dim=1
+    ).detach()
+
+    """
+    acc = (
+        (
+            torch.argmax(interaction.aux["reshaped_receiver_output"], dim=-1).view(-1)
+            == torch.arange(32).repeat(312 * 9)
+        )
+        .float()
+        .mean()
+    )
+    print(f"acc {acc}")
+    """
 
 
 def evaluate(game, data, device, n_senders, n_recvs):

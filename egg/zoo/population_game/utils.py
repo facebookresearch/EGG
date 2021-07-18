@@ -29,7 +29,8 @@ def get_data_opts(parser):
     group.add_argument(
         "--num_workers", type=int, default=4, help="Workers used in the dataloader"
     )
-    parser.add_argument(
+    group.add_argument("--use_augmentations", action="store_true", default=False)
+    group.add_argument(
         "--return_original_image",
         action="store_true",
         default=False,
@@ -92,7 +93,6 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="If set, pretrained vision modules will be used",
     )
-    group.add_argument("--use_augmentations", action="store_true", default=False)
 
 
 def get_game_arch_opts(parser):

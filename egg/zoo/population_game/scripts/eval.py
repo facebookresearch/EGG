@@ -9,6 +9,7 @@ import sys
 import torch
 from egg.zoo.population_game.scripts.utils import (
     add_common_cli_args,
+    add_reshaped_interaction_fields,
     evaluate,
     get_game,
     get_params,
@@ -32,7 +33,7 @@ def main(params):
     print(f"| Loading model from {cli_args.checkpoint_path} ...")
     game = get_game(opts, cli_args.checkpoint_path)
     print("| Model loaded")
-    data = get_test_data()
+    data = get_test_data(batch_size=cli_args.batch_size)
 
     print("| Starting evaluation ...")
     loss, interaction = evaluate(
@@ -44,6 +45,13 @@ def main(params):
     )
     print(
         f"| Loss: {loss}, accuracy across all agents (out of 100): {interaction.aux['acc'].mean().item() * 100}"
+    )
+
+    add_reshaped_interaction_fields(
+        interaction=interaction,
+        n_senders=cli_args.n_senders,
+        n_recvs=cli_args.n_recvs,
+        batch_size=cli_args.batch_size,
     )
     if cli_args.dump_interaction_folder:
         save_interaction(

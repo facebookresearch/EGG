@@ -127,7 +127,7 @@ class AgentSampler(nn.Module):
 
     def forward(self):
         if self.training:
-            s_idx, r_idx, l_idx = (
+            sender_idx, recv_idx, loss_idx = (
                 np.random.choice(len(self.senders)),
                 np.random.choice(len(self.receivers)),
                 np.random.choice(len(self.losses)),
@@ -140,13 +140,13 @@ class AgentSampler(nn.Module):
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
 
         return (
-            self.senders[s_idx],
-            self.receivers[r_idx],
-            self.losses[l_idx],
+            self.senders[sender_idx],
+            self.receivers[recv_idx],
+            self.losses[loss_idx],
             (
-                torch.Tensor([s_idx]).int(),
-                torch.Tensor([r_idx]).int(),
-                torch.Tensor([l_idx]).int(),
+                torch.Tensor([sender_idx]).int(),
+                torch.Tensor([recv_idx]).int(),
+                torch.Tensor([loss_idx]).int(),
             ),
         )
 

@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import random
+from typing import Optional
 
 import torch
 from PIL import ImageFilter
@@ -85,37 +86,31 @@ class ImageTransformation:
         size: int,
         augmentation: bool = False,
         return_original_image: bool = False,
-        dataset_name: str = "imagenet",
+        dataset_name: Optional[str] = None,
     ):
+        transformations = [transforms.Resize(size=(size, size)), transforms.ToTensor()]
+
         if augmentation:
             s = 1
             color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
-            transformations = [
+            transformations.append(
                 transforms.RandomResizedCrop(size=size),
                 transforms.RandomApply([color_jitter], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
-            ]
-        else:
-            transformations = [transforms.Resize(size=(size, size))]
-
-        if dataset_name in ["imagenet", "cifar10"]:
-            if dataset_name == "imagenet":
-                m = [0.485, 0.456, 0.406]
-                std = [0.229, 0.224, 0.225]
-            elif dataset_name == "cifar10":
-                m = [0.5, 0.5, 0.5]
-                std = [0.5, 0.5, 0.5]
-
-            transformations.extend(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize(mean=m, std=std),
-                ]
             )
-        else:
-            transformations.extend([transforms.ToTensor()])
+
+        if dataset_name == "imagenet":
+            transformations.append(
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                )
+            )
+        elif dataset_name == "cifar10":
+            transformations.append(
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            )
 
         self.transform = transforms.Compose(transformations)
 
