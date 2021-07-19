@@ -19,7 +19,13 @@ from egg.zoo.population_game.games import build_game
 
 
 def add_common_cli_args(parser):
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument(
+        "--dataset_name",
+        choices=["cifar10", "imagenet"],
+        default="imagenet",
+        help="Dataset used for evaluating a trained a model",
+    )
     parser.add_argument(
         "--n_senders", type=int, default=3, help="Number of senders in the population"
     )
@@ -95,8 +101,9 @@ def save_interaction(interaction: Interaction, log_dir: Union[pathlib.Path, str]
 
 def get_test_data(
     dataset_dir: str = "/datasets01/imagenet_full_size/061417/train",
-    batch_size: int = 32,
-    image_size: int = 32,
+    dataset_name: str = "imagenet",
+    batch_size: int = 128,
+    image_size: int = 224,
     num_workers: int = 4,
 ):
 
@@ -104,12 +111,14 @@ def get_test_data(
         size=image_size,
         augmentation=False,
         return_original_image=False,
-        dataset_name="imagenet",
+        dataset_name=dataset_name,
     )
-    dataset = datasets.CIFAR10(
-        root="./data", train=False, download=True, transform=transformations
-    )
-    # dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
+    if dataset_name == "cifar10":
+        dataset = datasets.CIFAR10(
+            root="./data", train=True, download=True, transform=transformations
+        )
+    else:
+        dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
 
     def collate_fn(batch):
         return (

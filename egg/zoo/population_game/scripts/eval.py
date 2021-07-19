@@ -33,7 +33,9 @@ def main(params):
     print(f"| Loading model from {cli_args.checkpoint_path} ...")
     game = get_game(opts, cli_args.checkpoint_path)
     print("| Model loaded")
-    data = get_test_data(batch_size=cli_args.batch_size)
+    data = get_test_data(
+        dataset_name=cli_args.dataset_name, batch_size=cli_args.batch_siz
+    )
 
     print("| Starting evaluation ...")
     loss, interaction = evaluate(
