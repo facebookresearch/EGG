@@ -159,7 +159,8 @@ def add_reshaped_interaction_fields(
 
     vocab_size = interaction.message.shape[-1]
     interaction.aux["reshaped_message"] = torch.argmax(
-        interaction.message.view(-1, n_senders * n_recvs, batch_size, vocab_size), dim=1
+        interaction.message.view(-1, n_senders * n_recvs, batch_size, vocab_size),
+        dim=-1,
     ).detach()
 
     interaction.aux["reshaped_class_labels"] = interaction.labels.view(
