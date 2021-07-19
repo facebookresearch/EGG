@@ -22,8 +22,8 @@ def add_common_cli_args(parser):
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument(
         "--dataset_name",
-        choices=["cifar10", "imagenet"],
-        default="imagenet",
+        choices=["cifar10", "i_test", "o_test"],
+        default="i_test",
         help="Dataset used for evaluating a trained a model",
     )
     parser.add_argument(
@@ -100,12 +100,24 @@ def save_interaction(interaction: Interaction, log_dir: Union[pathlib.Path, str]
 
 
 def get_test_data(
-    dataset_dir: str = "/datasets01/imagenet_full_size/061417/train",
-    dataset_name: str = "imagenet",
+    dataset_name: str = "i_test",
     batch_size: int = 128,
     image_size: int = 224,
     num_workers: int = 4,
 ):
+
+    if dataset_name == "cifar10":
+        dataset_dir = "./data"
+        dataset_name = "cifar"
+    elif dataset_name == "i_test":
+        dataset_dir = "/datasets01/imagenet_full_size/061417/val"
+        dataset_name = "imagenet"
+    elif dataset_name == "o_test":
+        dataset_dir = (
+            "/private/home/mbaroni/agentini/representation_learning/"
+            "generalizaton_set_construction/80_generalization_data_set/"
+        )
+        dataset_name = "imagenet"
 
     transformations = ImageTransformation(
         size=image_size,
@@ -115,7 +127,7 @@ def get_test_data(
     )
     if dataset_name == "cifar10":
         dataset = datasets.CIFAR10(
-            root="./data", train=True, download=True, transform=transformations
+            root="./data", train=False, download=True, transform=transformations
         )
     else:
         dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
@@ -170,7 +182,8 @@ def evaluate(game, data, device, n_senders, n_recvs):
         game.cuda()
     game.eval()
     with torch.no_grad():
-        for batch in data:
+        for batch_id, batch in enumerate(data):
+            print(f"batch_id {batch_id}")
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to(device)

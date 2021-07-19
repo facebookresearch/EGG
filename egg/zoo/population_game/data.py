@@ -98,12 +98,13 @@ class ImageTransformation:
                 transforms.RandomGrayscale(p=0.2),
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
-                transforms.ToTensor(),
             ]
         else:
             transformations = [
                 transforms.Resize(size=(size, size)),
             ]
+
+        transformations.append(transforms.ToTensor())
 
         if dataset_name == "imagenet":
             transformations.append(
