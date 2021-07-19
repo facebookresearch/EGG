@@ -31,16 +31,13 @@ class UniformAgentSampler(nn.Module):
             self.receivers[r_idx],
             self.losses[l_idx],
         )
-        print(f"s_idx {s_idx}, r_idx {r_idx}, l_idx {l_idx}")
-        return self.senders[s_idx], self.receivers[r_idx], self.losses[l_idx]
 
 
 class FullSweepAgentSampler(nn.Module):
     # NB: only a module to facilitate checkpoint persistance
-    def __init__(self, senders, receivers, losses, seed=1234):
+    def __init__(self, senders, receivers, losses):
         super().__init__()
 
-        random.seed(seed)
         self.senders = nn.ModuleList(senders)
         self.receivers = nn.ModuleList(receivers)
         self.losses = list(losses)

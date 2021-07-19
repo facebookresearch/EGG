@@ -29,7 +29,8 @@ def get_data_opts(parser):
     group.add_argument(
         "--num_workers", type=int, default=4, help="Workers used in the dataloader"
     )
-    parser.add_argument(
+    group.add_argument("--use_augmentations", action="store_true", default=False)
+    group.add_argument(
         "--return_original_image",
         action="store_true",
         default=False,
@@ -80,17 +81,11 @@ def get_gs_opts(parser):
 def get_vision_module_opts(parser):
     group = parser.add_argument_group("vision module")
     group.add_argument(
-        "--model_name",
+        "--vision_model_name",
         type=str,
         default="resnet50",
         choices=["resnet50", "resnet101", "resnet152"],
         help="Model name for the encoder",
-    )
-    group.add_argument(
-        "--shared_vision",
-        default=False,
-        action="store_true",
-        help="If set, Sender and Receiver will share the vision encoder",
     )
     group.add_argument(
         "--pretrain_vision",
@@ -98,7 +93,6 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="If set, pretrained vision modules will be used",
     )
-    group.add_argument("--use_augmentations", action="store_true", default=False)
 
 
 def get_game_arch_opts(parser):
@@ -110,33 +104,22 @@ def get_game_arch_opts(parser):
         "--n_recvs", type=int, default=3, help="Number of receivers in the population"
     )
     group.add_argument(
-        "--projection_hidden_dim",
-        type=int,
-        default=2048,
-        help="Projection head's hidden dimension for image features",
-    )
-    group.add_argument(
-        "--projection_output_dim",
-        type=int,
-        default=2048,
-        help="Projection head's output dimension for image features",
-    )
-
-
-def get_loss_opts(parser):
-    group = parser.add_argument_group("loss")
-    group.add_argument(
-        "--loss_temperature",
+        "--recv_temperature",
         type=float,
         default=0.1,
         help="Temperature for similarity computation in the loss fn. Ignored when similarity is 'dot'",
     )
     group.add_argument(
-        "--similarity",
-        type=str,
-        default="cosine",
-        choices=["cosine", "dot"],
-        help="Similarity function used in loss",
+        "--recv_hidden_dim",
+        type=int,
+        default=2048,
+        help="Hidden dim of the non-linear projection of the distractors",
+    )
+    group.add_argument(
+        "--recv_output_dim",
+        type=int,
+        default=2048,
+        help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
     )
 
 
@@ -161,7 +144,6 @@ def get_common_opts(params):
     get_data_opts(parser)
     get_gs_opts(parser)
     get_vision_module_opts(parser)
-    get_loss_opts(parser)
     get_game_arch_opts(parser)
 
     opts = core.init(arg_parser=parser, params=params)

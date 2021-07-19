@@ -4,22 +4,31 @@
 # LICENSE file in the root directory of this source tree.
 
 import random
+from typing import Optional
 
 import torch
 from PIL import ImageFilter
 from torchvision import datasets, transforms
 
 
+def collate_fn(batch):
+    return (
+        torch.stack([x[0][0] for x in batch], dim=0),
+        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),
+        torch.stack([x[0][1] for x in batch], dim=0),
+    )
+
+
 def get_dataloader(
     dataset_dir: str,
     dataset_name: str,
     batch_size: int = 32,
-    num_workers: int = 4,
+    image_size: int = 32,
+    num_workers: int = 0,
     is_distributed: bool = False,
     use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
-    image_size: int = 32,
 ):
 
     transformations = ImageTransformation(
@@ -28,7 +37,7 @@ def get_dataloader(
 
     if dataset_name == "cifar10":
         train_dataset = datasets.CIFAR10(
-            root="./data", train=True, download=True, transform=transformations
+            root="./data", train=False, download=True, transform=transformations
         )
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
@@ -45,8 +54,9 @@ def get_dataloader(
         shuffle=(train_sampler is None),
         sampler=train_sampler,
         num_workers=num_workers,
-        pin_memory=True,
+        collate_fn=collate_fn,
         drop_last=True,
+        pin_memory=True,
     )
 
     return train_loader
@@ -76,8 +86,9 @@ class ImageTransformation:
         size: int,
         augmentation: bool = False,
         return_original_image: bool = False,
-        dataset_name: str = "imagenet",
+        dataset_name: Optional[str] = None,
     ):
+
         if augmentation:
             s = 1
             color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
@@ -89,24 +100,22 @@ class ImageTransformation:
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
         else:
-            transformations = [transforms.Resize(size=(size, size))]
+            transformations = [
+                transforms.Resize(size=(size, size)),
+            ]
 
-        if dataset_name in ["imagenet", "cifar10"]:
-            if dataset_name == "imagenet":
-                m = [0.485, 0.456, 0.406]
-                std = [0.229, 0.224, 0.225]
-            elif dataset_name == "cifar10":
-                m = [0.5, 0.5, 0.5]
-                std = [0.5, 0.5, 0.5]
+        transformations.append(transforms.ToTensor())
 
-            transformations.extend(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize(mean=m, std=std),
-                ]
+        if dataset_name == "imagenet":
+            transformations.append(
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                )
             )
-        else:
-            transformations.extend([transforms.ToTensor()])
+        elif dataset_name == "cifar10":
+            transformations.append(
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            )
 
         self.transform = transforms.Compose(transformations)
 
@@ -117,8 +126,7 @@ class ImageTransformation:
             )
 
     def __call__(self, x):
-        x_i = self.transform(x)
-        x_j = self.transform(x)
+        x_i, x_j = self.transform(x), self.transform(x)
         if self.return_original_image:
             return x_i, x_j, self.original_image_transform(x)
         return x_i, x_j

@@ -6,8 +6,12 @@
 import torch
 
 import egg.core as core
+from egg.core import ConsoleLogger
 from egg.zoo.population_game.data import get_dataloader
-from egg.zoo.population_game.game_callbacks import get_callbacks
+from egg.zoo.population_game.game_callbacks import (
+    BestStatsTracker,
+    DistributedSamplerEpochSetter,
+)
 from egg.zoo.population_game.games import build_game
 from egg.zoo.population_game.LARC import LARC
 from egg.zoo.population_game.utils import add_weight_decay, get_common_opts
@@ -56,17 +60,13 @@ def main(params):
     if opts.use_larc:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
-    callbacks = get_callbacks(
-        shared_vision=opts.shared_vision,
-        n_epochs=opts.n_epochs,
-        checkpoint_dir=opts.checkpoint_dir,
-        senders=game.agents_loss_sampler.senders,
-        train_gs_temperature=opts.train_gs_temperature,
-        minimum_gs_temperature=opts.minimum_gs_temperature,
-        update_gs_temp_frequency=opts.update_gs_temp_frequency,
-        gs_temperature_decay=opts.gs_temperature_decay,
-        is_distributed=opts.distributed_context.is_distributed,
-    )
+    callbacks = [
+        ConsoleLogger(as_json=True, print_train_loss=True),
+        BestStatsTracker(),
+    ]
+
+    if opts.distributed_context.is_distributed:
+        callbacks.append(DistributedSamplerEpochSetter())
 
     trainer = core.Trainer(
         game=game,

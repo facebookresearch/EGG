@@ -4,93 +4,82 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
+import torch.nn.functional as F
 
+from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.population_game.archs import (
-    EmComSSLSymbolGame,
-    EmSSLSender,
+    AgentSampler,
+    Game,
+    PopulationGame,
     Receiver,
-    VisionGameWrapper,
-    VisionModule,
-    get_vision_modules,
+    Sender,
+    initialize_vision_module,
 )
-from egg.zoo.population_game.losses import XEntLoss
-from egg.core.population import UniformAgentSampler, PopulationGame
 
 
-def build_vision_encoder(
-    model_name: str = "resnet50",
-    shared_vision: bool = False,
-    pretrain_vision: bool = False,
+def loss(
+    _sender_input,
+    _message,
+    _receiver_input,
+    receiver_output,
+    _labels,
+    _aux_input,
 ):
-    (
-        sender_vision_module,
-        receiver_vision_module,
-        visual_features_dim,
-    ) = get_vision_modules(
-        encoder_arch=model_name, shared=shared_vision, pretrain_vision=pretrain_vision
-    )
-    vision_encoder = VisionModule(
-        sender_vision_module=sender_vision_module,
-        receiver_vision_module=receiver_vision_module,
-    )
-    return vision_encoder, visual_features_dim
+    labels = torch.arange(receiver_output.shape[0], device=receiver_output.device)
+    acc = (receiver_output.argmax(dim=1) == labels).detach().float()
+    loss = F.cross_entropy(receiver_output, labels, reduction="none")
+    return loss, {"acc": acc}
 
 
 def build_game(opts):
-    vision_encoder, visual_features_dim = build_vision_encoder(
-        model_name=opts.model_name,
-        shared_vision=opts.shared_vision,
-        pretrain_vision=opts.pretrain_vision,
-    )
 
     train_logging_strategy = LoggingStrategy(
-        False, False, True, False, True, True, False
+        False, False, False, False, False, False, False
     )
-    test_logging_strategy = LoggingStrategy(
-        False, False, True, False, True, True, False
-    )
+    test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
+    vision_module, input_dim = initialize_vision_module(
+        name=opts.vision_model_name, pretrained=True
+    )
     senders = [
-        EmSSLSender(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
+        GumbelSoftmaxWrapper(
+            Sender(
+                vision_module=vision_module,
+                input_dim=input_dim,
+                vocab_size=opts.vocab_size,
+            ),
             temperature=opts.gs_temperature,
             trainable_temperature=opts.train_gs_temperature,
             straight_through=opts.straight_through,
         )
         for _ in range(opts.n_senders)
     ]
-
     receivers = [
-        Receiver(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
+        SymbolReceiverWrapper(
+            Receiver(
+                vision_module=vision_module,
+                input_dim=input_dim,
+                hidden_dim=opts.recv_hidden_dim,
+                output_dim=opts.recv_output_dim,
+                temperature=opts.recv_temperature,
+            ),
+            opts.vocab_size,
+            opts.recv_output_dim,
         )
         for _ in range(opts.n_recvs)
     ]
 
-    loss = [
-        XEntLoss(
-            temperature=opts.loss_temperature,
-            similarity=opts.similarity,
-        )
-    ]
-
-    agents_loss_sampler = UniformAgentSampler(
+    agents_loss_sampler = AgentSampler(
         senders,
         receivers,
-        loss,
+        [loss],
     )
 
-    game = EmComSSLSymbolGame(
+    game = Game(
         train_logging_strategy=train_logging_strategy,
         test_logging_strategy=test_logging_strategy,
     )
-
-    game = VisionGameWrapper(game, vision_encoder)
 
     game = PopulationGame(game, agents_loss_sampler)
 
