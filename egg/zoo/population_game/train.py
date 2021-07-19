@@ -11,6 +11,7 @@ from egg.zoo.population_game.data import get_dataloader
 from egg.zoo.population_game.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
+    SpeedOfLearningCallback,
 )
 from egg.zoo.population_game.games import build_game
 from egg.zoo.population_game.LARC import LARC
@@ -66,7 +67,7 @@ def main(params):
     ]
 
     if opts.distributed_context.is_distributed:
-        callbacks.append(DistributedSamplerEpochSetter())
+        callbacks.append(DistributedSamplerEpochSetter(), SpeedOfLearningCallback())
 
     trainer = core.Trainer(
         game=game,
