@@ -143,6 +143,7 @@ def get_test_data(
         dataset,
         batch_size=batch_size,
         num_workers=num_workers,
+        shuffle=True,
         collate_fn=collate_fn,
         pin_memory=True,
         drop_last=True,
@@ -158,20 +159,20 @@ def add_reshaped_interaction_fields(
 
     vocab_size = interaction.message.shape[-1]
     interaction.aux["reshaped_message"] = torch.argmax(
-        interaction.message.view(-1, batch_size, n_senders * n_recvs, vocab_size), dim=1
+        interaction.message.view(-1, n_senders * n_recvs, batch_size, vocab_size), dim=1
     ).detach()
 
-    """
-    acc = (
-        (
-            torch.argmax(interaction.aux["reshaped_receiver_output"], dim=-1).view(-1)
-            == torch.arange(32).repeat(312 * 9)
-        )
-        .float()
-        .mean()
+    interaction.aux["reshaped_class_labels"] = interaction.labels.view(
+        -1, n_senders * n_recvs, batch_size
     )
-    print(f"acc {acc}")
-    """
+    interaction.aux["n_batches"] = torch.Tensor(
+        [interaction.aux["reshaped_receiver_output"].shape[0]]
+    ).int()
+
+    interaction.aux["n_senders"] = torch.Tensor([n_senders]).int()
+    interaction.aux["n_recvs"] = torch.Tensor([n_recvs]).int()
+    interaction.aux["batch_size"] = torch.Tensor([batch_size]).int()
+    interaction.aux["vocab_size"] = torch.Tensor([vocab_size]).int()
 
 
 def evaluate(game, data, device, n_senders, n_recvs):
@@ -183,7 +184,7 @@ def evaluate(game, data, device, n_senders, n_recvs):
     game.eval()
     with torch.no_grad():
         for batch_id, batch in enumerate(data):
-            print(f"batch_id {batch_id}")
+            print(f"batch_id {batch_id+1}")
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to(device)
