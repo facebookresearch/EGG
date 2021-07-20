@@ -13,9 +13,9 @@ from torchvision import datasets, transforms
 
 def collate_fn(batch):
     return (
-        torch.stack([x[0][0] for x in batch], dim=0),
-        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),
-        torch.stack([x[0][1] for x in batch], dim=0),
+        torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
+        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),  # labels
+        torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
     )
 
 
