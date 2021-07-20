@@ -93,9 +93,9 @@ class SpeedOfLearningCallback:
         self.threshold = threshold
 
     def on_train_end(self):
+        logs.aux["epoch_of_threshold"] = self.epoch
         print(f"The accuracy threshold was reached after {self.epoch} epochs")
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        logs.aux["epoch_of_threshold"] = 0
         if logs.aux["acc"] >= self.threshold:
             self.epoch = epoch
