@@ -85,17 +85,3 @@ class DistributedSamplerEpochSetter(Callback):
     def on_validation_begin(self, epoch: int):
         if self.trainer.distributed_context.is_distributed:
             self.trainer.validation_data.sampler.set_epoch(epoch)
-
-
-class SpeedOfLearningCallback:
-    def __init__(self, threshold: float = 0.9):
-        self.epoch = 0
-        self.threshold = threshold
-
-    def on_train_end(self):
-        logs.aux["epoch_of_threshold"] = self.epoch
-        print(f"The accuracy threshold was reached after {self.epoch} epochs")
-
-    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
-        if logs.aux["acc"] >= self.threshold:
-            self.epoch = epoch
