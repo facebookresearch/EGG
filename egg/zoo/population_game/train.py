@@ -67,7 +67,7 @@ def main(params):
     ]
 
     if opts.distributed_context.is_distributed:
-        callbacks.extend([DistributedSamplerEpochSetter(), SpeedOfLearningCallback()])
+        callbacks.append(DistributedSamplerEpochSetter())
 
     trainer = core.Trainer(
         game=game,
