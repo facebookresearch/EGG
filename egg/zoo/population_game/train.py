@@ -11,7 +11,6 @@ from egg.zoo.population_game.data import get_dataloader
 from egg.zoo.population_game.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
-    SpeedOfLearningCallback,
 )
 from egg.zoo.population_game.games import build_game
 from egg.zoo.population_game.LARC import LARC
