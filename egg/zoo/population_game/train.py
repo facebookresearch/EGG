@@ -11,7 +11,7 @@ from egg.core.callbacks import WandbLogger
 from egg.zoo.population_game.data import get_dataloader
 from egg.zoo.population_game.game_callbacks import (
     BestStatsTracker,
-    DistributedSamplerEpochSetter
+    DistributedSamplerEpochSetter,
 )
 from egg.zoo.population_game.games import build_game
 from egg.zoo.population_game.LARC import LARC
