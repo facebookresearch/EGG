@@ -99,3 +99,4 @@ class SpeedOfLearningCallback:
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if logs.aux["acc"] >= self.threshold:
             self.epoch = epoch
+
