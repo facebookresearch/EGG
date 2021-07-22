@@ -43,6 +43,9 @@ def add_common_cli_args(parser):
     parser.add_argument(
         "--pdb", default=False, action="store_true", help="Run with pdb"
     )
+    parser.add_argument(
+        "--vocab_size", type=int, default=2048, help="Vocabulary size"
+    )
 
 
 def get_params(
