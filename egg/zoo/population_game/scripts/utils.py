@@ -48,16 +48,16 @@ def add_common_cli_args(parser):
 def get_params(
     n_senders: bool,
     n_recvs: bool,
+    vocab_size: int,
 ):
     params = dict(
         n_senders=n_senders,
         n_recvs=n_recvs,
+        vocab_size=vocab_size,
     )
 
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
-        vocab_size=2048,
-        #
         pretrain_vision=True,
         vision_model_name="resnet50",
         #
