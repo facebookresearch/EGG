@@ -62,6 +62,7 @@ def main():
     opts = get_params(
         n_senders=cli_args.n_senders,
         n_recvs=cli_args.n_recvs,
+        vocab_size=cli_args.vocab_size,
     )
 
     if cli_args.pdb:
