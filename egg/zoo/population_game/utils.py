@@ -102,6 +102,7 @@ def get_vision_module_opts(parser):
     group.add_argument(
         "--use_different_architectures",
         default=False,
+        action="store_true",
         help="Population game with different architectures.",
     )
 
