@@ -40,7 +40,9 @@ def build_game(opts):
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
     if opts.use_different_architectures:
-        vision_module_names = map(str, opts.vision_model_names.strip('[]').split(','))
+        vision_module_names = opts.vision_model_names
+
+        print(vision_module_names)
 
         vision_modules = [
             initialize_vision_module(

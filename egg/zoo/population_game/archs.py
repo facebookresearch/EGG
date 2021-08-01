@@ -15,6 +15,7 @@ from egg.core.interaction import LoggingStrategy
 
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
+    print("initialize module", name)
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
