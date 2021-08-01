@@ -93,6 +93,12 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="If set, pretrained vision modules will be used",
     )
+    group.add_argument(
+        "--vision_model_names",
+        type=str,
+        default=["resnet50", "resnet101", "resnet152"],
+        help="Model names for the encoder of senders and receivers.",
+    )
 
 
 def get_game_arch_opts(parser):
