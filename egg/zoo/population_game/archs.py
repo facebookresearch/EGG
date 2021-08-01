@@ -20,6 +20,8 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
+        "inception": torchvision.models.inception_v3(pretrained=pretrained),
+        "vgg11": torchvision.models.vgg11(pretrained=pretrained)
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
@@ -27,7 +29,9 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     model = modules[name]
 
     n_features = model.fc.in_features
+    print(n_features)
     model.fc = nn.Identity()
+    print(model.fc)
 
     if pretrained:
         for param in model.parameters():
