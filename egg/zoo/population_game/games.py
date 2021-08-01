@@ -39,42 +39,76 @@ def build_game(opts):
     )
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
-    vision_module_names = map(str, opts.vision_model_names.strip('[]').split(','))
+    if opts.use_different_architectures:
+        vision_module_names = map(str, opts.vision_model_names.strip('[]').split(','))
 
-    vision_modules = [
-        initialize_vision_module(
-        name=vision_module_names[i], pretrained=True
-        )
-        for i in range(opts.n_senders)
-    ]
+        vision_modules = [
+            initialize_vision_module(
+            name=vision_module_names[i], pretrained=True
+            )
+            for i in range(opts.n_senders)
+        ]
 
-    senders = [
-        GumbelSoftmaxWrapper(
-            Sender(
-                vision_module=vision_modules[i][0],
-                input_dim=vision_modules[i][1],
-                vocab_size=opts.vocab_size,
-            ),
-            temperature=opts.gs_temperature,
-            trainable_temperature=opts.train_gs_temperature,
-            straight_through=opts.straight_through,
+        senders = [
+            GumbelSoftmaxWrapper(
+                Sender(
+                    vision_module=vision_modules[i][0],
+                    input_dim=vision_modules[i][1],
+                    vocab_size=opts.vocab_size,
+                ),
+                temperature=opts.gs_temperature,
+                trainable_temperature=opts.train_gs_temperature,
+                straight_through=opts.straight_through,
+            )
+            for i in range(opts.n_senders)
+        ]
+        receivers = [
+            SymbolReceiverWrapper(
+                Receiver(
+                    vision_module=vision_modules[i][0],
+                    input_dim=vision_modules[i][1],
+                    hidden_dim=opts.recv_hidden_dim,
+                    output_dim=opts.recv_output_dim,
+                    temperature=opts.recv_temperature,
+                ),
+                opts.vocab_size,
+                opts.recv_output_dim,
+            )
+            for i in range(opts.n_recvs)
+        ]
+
+    else:
+        vision_module, input_dim = initialize_vision_module(
+            name=opts.vision_model_name, pretrained=True
         )
-        for i in range(opts.n_senders)
-    ]
-    receivers = [
-        SymbolReceiverWrapper(
-            Receiver(
-                vision_module=vision_modules[i][0],
-                input_dim=vision_modules[i][1],
-                hidden_dim=opts.recv_hidden_dim,
-                output_dim=opts.recv_output_dim,
-                temperature=opts.recv_temperature,
-            ),
-            opts.vocab_size,
-            opts.recv_output_dim,
-        )
-        for i in range(opts.n_recvs)
-    ]
+        senders = [
+            GumbelSoftmaxWrapper(
+                Sender(
+                    vision_module=vision_module,
+                    input_dim=input_dim,
+                    vocab_size=opts.vocab_size,
+                ),
+                temperature=opts.gs_temperature,
+                trainable_temperature=opts.train_gs_temperature,
+                straight_through=opts.straight_through,
+            )
+            for _ in range(opts.n_senders)
+        ]
+        receivers = [
+            SymbolReceiverWrapper(
+                Receiver(
+                    vision_module=vision_module,
+                    input_dim=input_dim,
+                    hidden_dim=opts.recv_hidden_dim,
+                    output_dim=opts.recv_output_dim,
+                    temperature=opts.recv_temperature,
+                ),
+                opts.vocab_size,
+                opts.recv_output_dim,
+            )
+            for _ in range(opts.n_recvs)
+        ]
+
 
     agents_loss_sampler = AgentSampler(
         senders,

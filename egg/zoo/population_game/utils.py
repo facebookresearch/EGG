@@ -99,6 +99,12 @@ def get_vision_module_opts(parser):
         default=["resnet50", "resnet101", "resnet152"],
         help="Model names for the encoder of senders and receivers.",
     )
+    group.add_argument(
+        "--use_different_architectures",
+        type=bool,
+        default=False,
+        help="Population game with different architectures.",
+    )
 
 
 def get_game_arch_opts(parser):
