@@ -96,7 +96,7 @@ def get_vision_module_opts(parser):
     group.add_argument(
         "--vision_model_names",
         type=list,
-        default=["resnet50", "resnet101", "vgg11"],
+        default=["resnet50", "inception", "vgg11"],
         help="Model names for the encoder of senders and receivers.",
     )
     group.add_argument(
