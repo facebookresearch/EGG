@@ -28,10 +28,21 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
 
     model = modules[name]
 
-    n_features = model.fc.in_features
-    print(n_features) # conv features?
-    model.fc = nn.Identity()
-    print(model.fc)
+    if name in ["resnet50", "resnet101", "resnet152"]:
+        n_features = model.fc.in_features
+        print("Input dim: ", n_features)  # conv features?
+        model.fc = nn.Identity()
+
+    elif name == 'vgg11':
+        n_features = model.classifier[6].in_features
+        print("Input dim: ", n_features)  # conv features?
+        model.classifier[6] = nn.Identity()
+
+    else:
+        n_features = model.fc.in_features
+        print("Input dim: ", n_features)  # conv features?
+        model.AuxLogits.fc = nn.Identity()
+        model.fc = nn.Identity()
 
     if pretrained:
         for param in model.parameters():
