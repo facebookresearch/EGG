@@ -34,7 +34,7 @@ The game can be configured with the following command-line parameters:
  * `--n_epochs` the number of training epochs to run (default: 10)
  * `--random_seed` sets the random seed
  * `--lr` , `--optimizer`, ...
- see [this doc](https://github.com/facebookresearch/EGG/blob/master/docs/CL.md).
+ see [this doc](https://github.com/facebookresearch/EGG/blob/main/docs/CL.md).
 
  
  
