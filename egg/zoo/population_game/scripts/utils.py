@@ -71,6 +71,7 @@ def get_params(
     params_fixed = dict(
         pretrain_vision=True,
         vision_model_names=["resnet50", "resnet101", "resnet152"],
+        vision_model_name="resnet50",
         #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,
