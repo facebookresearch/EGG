@@ -17,7 +17,7 @@ from egg.zoo.basic_games.data_readers import AttValDiscriDataset, AttValRecoData
 
 
 # the following section specifies parameters that are specific to our games: we will also inherit the
-# standard EGG parameters from https://github.com/facebookresearch/EGG/blob/master/egg/core/util.py
+# standard EGG parameters from https://github.com/facebookresearch/EGG/blob/main/egg/core/util.py
 def get_params(params):
     parser = argparse.ArgumentParser()
     # arguments controlling the game type

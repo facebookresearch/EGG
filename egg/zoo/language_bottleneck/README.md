@@ -2,7 +2,7 @@ Here you can find a set of the games/tasks that are used the following paper:
  * _Entropy Minimization In Emergent Languages_. Eugene Kharitonov, Rahma Chaabouni, Diane Bouchacourt, Marco Baroni. ICML 2020.
  [arxiv](https://arxiv.org/abs/1905.13687).
 
-To get a glimpse of some of the interesting things that can be done with Information Bottlenecks, see this tiny MNIST style transfer notebook: [notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/master/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb).
+To get a glimpse of some of the interesting things that can be done with Information Bottlenecks, see this tiny MNIST style transfer notebook: [notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/main/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb).
 
 # Structure
 

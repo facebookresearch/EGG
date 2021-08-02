@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
 ```
     
-The list of the supported "common" parameters can be found in [util.py](https://github.com/facebookresearch/EGG/blob/master/egg/core/util.py) and it includes both parameters that are read 
+The list of the supported "common" parameters can be found in [util.py](https://github.com/facebookresearch/EGG/blob/main/egg/core/util.py) and it includes both parameters that are read 
 by EGG itself and those that could be used by the user. Below we briefly discuss some important parameters in these two classes.
 
 ### EGG-used parameters
