@@ -46,6 +46,12 @@ def add_common_cli_args(parser):
     parser.add_argument(
         "--vocab_size", type=int, default=2048, help="Vocabulary size"
     )
+    parser.add_argument(
+        "--use_different_architectures",
+        default=False,
+        action="store_true",
+        help="Population game with different architectures.",
+    )
 
 
 def get_params(
@@ -62,7 +68,7 @@ def get_params(
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
         pretrain_vision=True,
-        vision_model_name="resnet50",
+        #vision_model_name="resnet50",
         #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,

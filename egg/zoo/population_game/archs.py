@@ -29,7 +29,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     model = modules[name]
 
     n_features = model.fc.in_features
-    print(n_features)
+    print(n_features) # conv features?
     model.fc = nn.Identity()
     print(model.fc)
 
