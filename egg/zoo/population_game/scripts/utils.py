@@ -70,7 +70,7 @@ def get_params(
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
         pretrain_vision=True,
-        #vision_model_name="resnet50",
+        vision_model_names=["resnet50", "resnet101", "resnet152"],
         #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,
