@@ -64,7 +64,7 @@ def get_params(
         pretrain_vision=True,
         vision_model_names=["resnet50", "resnet101", "resnet152"],
         vision_model_name="resnet50",
-        use_different_architectures=True,
+        use_different_architectures=False,
     #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,

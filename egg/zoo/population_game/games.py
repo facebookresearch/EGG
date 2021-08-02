@@ -80,7 +80,7 @@ def build_game(opts):
         ]
 
     else:
-        vision_module, input_dim = initialize_vision_module(
+        vision_module, input_dim, _ = initialize_vision_module(
             name=opts.vision_model_name, pretrained=True
         )
         senders = [

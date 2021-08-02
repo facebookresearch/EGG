@@ -21,7 +21,8 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(pretrained=pretrained),
-        "vgg11": torchvision.models.vgg11(pretrained=pretrained)
+        "vgg11": torchvision.models.vgg11(pretrained=pretrained),
+
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
@@ -49,7 +50,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
             param.requires_grad = False
         model = model.eval()
 
-    return model, n_features
+    return model, n_features, name
 
 
 class Sender(nn.Module):
@@ -57,9 +58,12 @@ class Sender(nn.Module):
         self,
         vision_module: Union[nn.Module, str],
         input_dim: Optional[int],
+        name: str,
         vocab_size: int = 2048,
     ):
         super(Sender, self).__init__()
+
+        self.name = name
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -75,6 +79,8 @@ class Sender(nn.Module):
         )
 
     def forward(self, x, aux_input=None):
+        if self.name == 'inception':
+            x = x.view(-1, 3, -1, -1)
         return self.fc(self.vision_module(x))
 
 
