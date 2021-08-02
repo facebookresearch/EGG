@@ -58,12 +58,12 @@ class Sender(nn.Module):
         self,
         vision_module: Union[nn.Module, str],
         input_dim: Optional[int],
-        #name: str,
+        name: str,
         vocab_size: int = 2048,
     ):
         super(Sender, self).__init__()
 
-        #self.name = name
+        self.name = name
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -79,8 +79,10 @@ class Sender(nn.Module):
         )
 
     def forward(self, x, aux_input=None):
-        #if self.name == 'inception':
-            #x = x.view(-1, 3, -1, -1)
+        if self.name == 'inception':
+            x = x.view(-1, 3, -1, -1)
+            print(x.shape)
+        print(x.shape)
         return self.fc(self.vision_module(x))
 
 
@@ -88,6 +90,7 @@ class Receiver(nn.Module):
     def __init__(
         self,
         vision_module: Union[nn.Module, str],
+        name: str,
         input_dim: int,
         hidden_dim: int = 2048,
         output_dim: int = 2048,
@@ -95,6 +98,8 @@ class Receiver(nn.Module):
     ):
 
         super(Receiver, self).__init__()
+
+        self.name = name
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -112,6 +117,13 @@ class Receiver(nn.Module):
         self.temperature = temperature
 
     def forward(self, message, distractors, aux_input=None):
+
+        print("distractors shape", distractors.shape)
+
+        if self.name == 'inception':
+            distractors = distractors.view(-1, 3, -1, -1)
+            print(distractors.shape)
+
         distractors = self.fc(self.vision_module(distractors))
 
         similarity_scores = (

@@ -80,7 +80,7 @@ def build_game(opts):
         ]
 
     else:
-        vision_module, input_dim, _ = initialize_vision_module(
+        vision_module, input_dim, name = initialize_vision_module(
             name=opts.vision_model_name, pretrained=True
         )
         senders = [
@@ -89,6 +89,7 @@ def build_game(opts):
                     vision_module=vision_module,
                     input_dim=input_dim,
                     vocab_size=opts.vocab_size,
+                    name=name
                 ),
                 temperature=opts.gs_temperature,
                 trainable_temperature=opts.train_gs_temperature,
