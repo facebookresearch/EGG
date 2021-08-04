@@ -90,8 +90,8 @@ class Receiver(nn.Module):
     def __init__(
         self,
         vision_module: Union[nn.Module, str],
-        name: str,
         input_dim: int,
+        name: str = 'resnet50',
         hidden_dim: int = 2048,
         output_dim: int = 2048,
         temperature: float = 1.0,
