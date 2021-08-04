@@ -58,7 +58,7 @@ class Sender(nn.Module):
         self,
         vision_module: Union[nn.Module, str],
         input_dim: Optional[int],
-        name: str,
+        name: str = 'resnet50',
         vocab_size: int = 2048,
     ):
         super(Sender, self).__init__()
