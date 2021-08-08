@@ -27,6 +27,7 @@ def main(params):
         n_recvs=cli_args.n_recvs,
         vocab_size=cli_args.vocab_size,
         use_different_architectures=cli_args.use_different_architectures,
+        vision_model_name=cli_args.vision_model_name,
     )
 
     if cli_args.pdb:
