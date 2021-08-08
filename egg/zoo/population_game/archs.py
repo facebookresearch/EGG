@@ -80,9 +80,9 @@ class Sender(nn.Module):
 
     def forward(self, x, aux_input=None):
         if self.name == 'inception':
-            x = x.view(-1, 3, -1, -1)
-            #print(x.shape)
-        #print(x.shape)
+            x = x.unsqueeze(0)
+            print(x.shape)
+        print(x.shape)
         return self.fc(self.vision_module(x))
 
 
@@ -118,11 +118,11 @@ class Receiver(nn.Module):
 
     def forward(self, message, distractors, aux_input=None):
 
-        #print("distractors shape", distractors.shape)
+        print("distractors shape", distractors.shape)
 
         if self.name == 'inception':
-            distractors = distractors.view(-1, 3, -1, -1)
-            #print(distractors.shape)
+            distractors = distractors.unsqueeze(0)
+            print(distractors.shape)
 
         distractors = self.fc(self.vision_module(distractors))
 
