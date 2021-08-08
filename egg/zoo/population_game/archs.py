@@ -64,7 +64,7 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
 
         self.name = name
-        print("Module name (before the constructor): ", self.name)
+        #print("Module name (before the constructor): ", self.name)
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -79,12 +79,12 @@ class Sender(nn.Module):
             nn.BatchNorm1d(vocab_size),
         )
 
-        print("Module name (before forward): ", self.name)
+        #print("Module name (before forward): ", self.name)
 
 
     def forward(self, x, aux_input=None):
-        print("Module name: ", self.name)
-        print("Sender shape: ", x.shape)
+        #print("Module name: ", self.name)
+        #print("Sender shape: ", x.shape)
         return self.fc(self.vision_module(x))
 
 
@@ -102,7 +102,7 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
 
         self.name = name
-        print("before the constructor (receiver)", self.name)
+        #print("before the constructor (receiver)", self.name)
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -118,12 +118,12 @@ class Receiver(nn.Module):
             nn.Linear(hidden_dim, output_dim, bias=False),
         )
         self.temperature = temperature
-        print("before the forward (receiver)", self.name)
+        #print("before the forward (receiver)", self.name)
 
     def forward(self, message, distractors, aux_input=None):
 
-        print("distractors shape", distractors.shape)
-        print("Module name (receiver): ", self.name)
+        #print("distractors shape", distractors.shape)
+        #print("Module name (receiver): ", self.name)
 
         distractors = self.fc(self.vision_module(distractors))
 
