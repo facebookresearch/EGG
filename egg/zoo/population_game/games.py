@@ -107,6 +107,7 @@ def build_game(opts):
                     hidden_dim=opts.recv_hidden_dim,
                     output_dim=opts.recv_output_dim,
                     temperature=opts.recv_temperature,
+                    name=name
                 ),
                 opts.vocab_size,
                 opts.recv_output_dim,

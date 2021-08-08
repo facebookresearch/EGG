@@ -64,7 +64,7 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
 
         self.name = name
-        print("before the constructor", self.name)
+        print("Module name (before the constructor): ", self.name)
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -78,7 +78,9 @@ class Sender(nn.Module):
             nn.Linear(input_dim, vocab_size),
             nn.BatchNorm1d(vocab_size),
         )
-        print("before forward", self.name)
+
+        print("Module name (before forward): ", self.name)
+
 
     def forward(self, x, aux_input=None):
         print("Module name: ", self.name)
