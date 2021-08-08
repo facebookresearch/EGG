@@ -110,7 +110,9 @@ class ImageTransformation:
             transformations.append(
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                )
+                ),
+                transforms.Resize(299),
+                transforms.CenterCrop(299),
             )
         elif dataset_name == "cifar10":
             transformations.append(
