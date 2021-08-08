@@ -85,7 +85,10 @@ class Sender(nn.Module):
     def forward(self, x, aux_input=None):
         print("Module name: ", self.name)
         print("Sender shape: ", x.shape)
-        return self.fc(self.vision_module(x))
+        vision_module_out = self.vision_module(x)
+        if self.name == 'inception':
+            vision_module_out = vision_module_out.logits
+        return self.fc(vision_module_out)
 
 
 class Receiver(nn.Module):
@@ -125,7 +128,10 @@ class Receiver(nn.Module):
         print("distractors shape", distractors.shape)
         print("Module name (receiver): ", self.name)
 
-        distractors = self.fc(self.vision_module(distractors))
+        vision_module_out = self.vision_module(distractors)
+        if self.name == 'inception':
+            vision_module_out = vision_module_out.logits
+        distractors = self.fc(vision_module_out)
 
         similarity_scores = (
             torch.nn.functional.cosine_similarity(
