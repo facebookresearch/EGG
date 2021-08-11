@@ -7,6 +7,7 @@ import torch
 
 import egg.core as core
 from egg.core import ConsoleLogger
+from egg.core.callbacks import WandbLogger
 from egg.zoo.population_game.data import get_dataloader
 from egg.zoo.population_game.game_callbacks import (
     BestStatsTracker,
@@ -63,6 +64,7 @@ def main(params):
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
+        WandbLogger(opts)
     ]
 
     if opts.distributed_context.is_distributed:

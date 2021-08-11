@@ -130,6 +130,7 @@ class WandbLogger(Callback):
         # subclassing WandbLogger and implementing a custom logic since we do not know a priori
         # what type of data are to be logged.
         self.opts = opts
+        self.last_train_acc = 0.0
 
         wandb.init(project=project, id=run_id, **kwargs)
         wandb.config.update(opts)
@@ -149,8 +150,11 @@ class WandbLogger(Callback):
             self.log_to_wandb({"batch_loss": loss}, commit=True)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        self.last_train_acc = logs.aux["acc"].mean().item()
+
         if self.trainer.distributed_context.is_leader:
             self.log_to_wandb({"train_loss": loss, "epoch": epoch}, commit=True)
+            self.log_to_wandb({"train_acc": self.last_train_acc, "epoch": epoch}, commit=True)
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if self.trainer.distributed_context.is_leader:

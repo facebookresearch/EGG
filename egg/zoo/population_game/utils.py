@@ -93,6 +93,18 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="If set, pretrained vision modules will be used",
     )
+    group.add_argument(
+        "--vision_model_names",
+        type=list,
+        default=["resnet50", "inception", "vgg11"],
+        help="Model names for the encoder of senders and receivers.",
+    )
+    group.add_argument(
+        "--use_different_architectures",
+        default=False,
+        action="store_true",
+        help="Population game with different architectures.",
+    )
 
 
 def get_game_arch_opts(parser):

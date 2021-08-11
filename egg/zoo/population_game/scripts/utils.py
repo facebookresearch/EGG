@@ -43,24 +43,38 @@ def add_common_cli_args(parser):
     parser.add_argument(
         "--pdb", default=False, action="store_true", help="Run with pdb"
     )
-
+    parser.add_argument(
+        "--vocab_size", type=int, default=2048, help="Vocabulary size"
+    )
+    parser.add_argument(
+        "--use_different_architectures", default=False, action="store_true", help="Run with pdb"
+    )
+    parser.add_argument(
+        "--vision_model_name", type=str, default="resnet50", help="Run with pdb"
+    )
 
 def get_params(
     n_senders: bool,
     n_recvs: bool,
+    vocab_size: int,
+    use_different_architectures: bool,
+    vision_model_name : bool
 ):
     params = dict(
         n_senders=n_senders,
         n_recvs=n_recvs,
+        vocab_size=vocab_size,
+        use_different_architectures=use_different_architectures,
+        vision_model_name=vision_model_name,
+
     )
 
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
-        vocab_size=2048,
-        #
         pretrain_vision=True,
-        vision_model_name="resnet50",
-        #
+        vision_model_names=["resnet50", "resnet101", "resnet152"],
+        #use_different_architectures=False,
+    #
         gs_temperature=5.0,
         gs_temperature_decay=1.0,
         update_gs_temp_frequency=1,

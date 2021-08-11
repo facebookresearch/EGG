@@ -107,10 +107,11 @@ class ImageTransformation:
         transformations.append(transforms.ToTensor())
 
         if dataset_name == "imagenet":
-            transformations.append(
-                transforms.Normalize(
+            transformations.extend(
+                [transforms.Normalize(
                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                )
+                ),
+                transforms.CenterCrop(299)]
             )
         elif dataset_name == "cifar10":
             transformations.append(
