@@ -79,6 +79,10 @@ class Sender(nn.Module):
         vision_module_out = self.vision_module(x)
         if self.name == 'inception':
             vision_module_out = vision_module_out.logits
+
+        if not self.training:
+            aux_input["resnet_output_sender"] = vision_module_out.detach()
+
         return self.fc(vision_module_out)
 
 
@@ -124,6 +128,10 @@ class Receiver(nn.Module):
             )
             / self.temperature
         )
+
+        if not self.training:
+            aux_input["receiver_message_embedding"] = message.detach()
+
 
         return similarity_scores
 
