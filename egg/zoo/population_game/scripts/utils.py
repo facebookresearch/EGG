@@ -52,13 +52,20 @@ def add_common_cli_args(parser):
     parser.add_argument(
         "--vision_model_name", type=str, default="resnet50", help="Run with pdb"
     )
+    parser.add_argument(
+        "--vision_model_names",
+        type=list,
+        default=["resnet50", "inception", "vgg11"],
+        help="Model names for the encoder of senders and receivers.",
+    )
 
 def get_params(
     n_senders: bool,
     n_recvs: bool,
     vocab_size: int,
     use_different_architectures: bool,
-    vision_model_name : bool
+    vision_model_name : bool,
+    vision_model_names: bool,
 ):
     params = dict(
         n_senders=n_senders,
@@ -66,13 +73,14 @@ def get_params(
         vocab_size=vocab_size,
         use_different_architectures=use_different_architectures,
         vision_model_name=vision_model_name,
+        vision_model_names=vision_model_names,
 
     )
 
     distributed_context = argparse.Namespace(is_distributed=False)
     params_fixed = dict(
         pretrain_vision=True,
-        vision_model_names=["resnet50", "resnet101", "resnet152"],
+        #vision_model_names=["resnet50", "resnet101", "resnet152"],
         #use_different_architectures=False,
     #
         gs_temperature=5.0,
