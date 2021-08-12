@@ -3,7 +3,7 @@
     "batch_size": [128],
     "lr": [2.4],
     "random_seed": [111],
-    "vocab_size": [2048],
+    "vocab_size": [1024],
     "dataset_dir": ["/datasets01/imagenet_full_size/061417/train"],
     "use_augmentations": [true],
     "gs_temperature": [5.0],

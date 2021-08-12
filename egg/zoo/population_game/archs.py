@@ -31,17 +31,14 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
 
     if name in ["resnet50", "resnet101", "resnet152"]:
         n_features = model.fc.in_features
-        print("Input dim: ", n_features)  # conv features?
         model.fc = nn.Identity()
 
     elif name == 'vgg11':
         n_features = model.classifier[6].in_features
-        print("Input dim: ", n_features)  # conv features?
         model.classifier[6] = nn.Identity()
 
     else:
         n_features = model.fc.in_features
-        print("Input dim: ", n_features)  # conv features?
         model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
 
@@ -64,7 +61,6 @@ class Sender(nn.Module):
         super(Sender, self).__init__()
 
         self.name = name
-        #print("Module name (before the constructor): ", self.name)
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -79,13 +75,15 @@ class Sender(nn.Module):
             nn.BatchNorm1d(vocab_size),
         )
 
-        #print("Module name (before forward): ", self.name)
-
-
     def forward(self, x, aux_input=None):
-        #print("Module name: ", self.name)
-        #print("Sender shape: ", x.shape)
-        return self.fc(self.vision_module(x))
+        vision_module_out = self.vision_module(x)
+        if self.name == 'inception':
+            vision_module_out = vision_module_out.logits
+
+        if not self.training:
+            aux_input["resnet_output_sender"] = vision_module_out.detach()
+
+        return self.fc(vision_module_out)
 
 
 class Receiver(nn.Module):
@@ -102,7 +100,6 @@ class Receiver(nn.Module):
         super(Receiver, self).__init__()
 
         self.name = name
-        #print("before the constructor (receiver)", self.name)
 
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -118,14 +115,12 @@ class Receiver(nn.Module):
             nn.Linear(hidden_dim, output_dim, bias=False),
         )
         self.temperature = temperature
-        #print("before the forward (receiver)", self.name)
 
     def forward(self, message, distractors, aux_input=None):
-
-        #print("distractors shape", distractors.shape)
-        #print("Module name (receiver): ", self.name)
-
-        distractors = self.fc(self.vision_module(distractors))
+        vision_module_out = self.vision_module(distractors)
+        if self.name == 'inception':
+            vision_module_out = vision_module_out.logits
+        distractors = self.fc(vision_module_out)
 
         similarity_scores = (
             torch.nn.functional.cosine_similarity(
@@ -133,6 +128,10 @@ class Receiver(nn.Module):
             )
             / self.temperature
         )
+
+        if not self.training:
+            aux_input["receiver_message_embedding"] = message.detach()
+
 
         return similarity_scores
 
