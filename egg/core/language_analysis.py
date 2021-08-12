@@ -318,7 +318,7 @@ class Disent(Callback):
             self.print_message(logs, "test", epoch)
 
 
-# The PrintValidationEvent callback function checks that we are at the
+# The PrintValidationEvents callback function checks that we are at the
 # last epoch (either the last epoch required by the user, or because
 # of early stopping), and it prints sender_input, labels, message and
 # receiver_output for all data points in the validation set.
