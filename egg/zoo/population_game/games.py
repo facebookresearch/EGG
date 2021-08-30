@@ -40,24 +40,36 @@ def build_game(opts):
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
     if opts.use_different_architectures:
-        vision_module_names = opts.vision_model_names
+        vision_module_names_senders = eval(opts.vision_model_names_senders.replace("#", "\""))
+        vision_module_names_receivers = eval(opts.vision_model_names_recvs.replace("#", "\""))
 
-        print(vision_module_names)
+        if not (vision_module_names_senders and vision_module_names_receivers):
+            vision_module_names_senders = eval(vision_module_names.replace("#", "\""))
+            vision_module_names_receivers = eval(vision_module_names.replace("#", "\""))
 
-        vision_modules = [
+        print(vision_module_names_senders)
+        print(vision_module_names_receivers)
+
+        vision_modules_senders = [
             initialize_vision_module(
-            name=vision_module_names[i], pretrained=True
+            name=vision_module_names_senders[i], pretrained=True
             )
             for i in range(opts.n_senders)
+        ]
+        vision_modules_receivers = [
+            initialize_vision_module(
+            name=vision_module_names_receivers[i], pretrained=True
+            )
+            for i in range(opts.n_recvs)
         ]
 
         senders = [
             GumbelSoftmaxWrapper(
                 Sender(
-                    vision_module=vision_modules[i][0],
-                    input_dim=vision_modules[i][1],
+                    vision_module=vision_modules_senders[i][0],
+                    input_dim=vision_modules_senders[i][1],
                     vocab_size=opts.vocab_size,
-                    name=vision_module_names[i]
+                    name=vision_module_names_senders[i]
                 ),
                 temperature=opts.gs_temperature,
                 trainable_temperature=opts.train_gs_temperature,
@@ -68,12 +80,12 @@ def build_game(opts):
         receivers = [
             SymbolReceiverWrapper(
                 Receiver(
-                    vision_module=vision_modules[i][0],
-                    input_dim=vision_modules[i][1],
+                    vision_module=vision_modules_receivers[i][0],
+                    input_dim=vision_modules_receivers[i][1],
                     hidden_dim=opts.recv_hidden_dim,
                     output_dim=opts.recv_output_dim,
                     temperature=opts.recv_temperature,
-                    name=vision_module_names[i]
+                    name=vision_module_names_receivers[i]
                 ),
                 opts.vocab_size,
                 opts.recv_output_dim,

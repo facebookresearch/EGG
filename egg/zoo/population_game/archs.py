@@ -118,8 +118,8 @@ class Receiver(nn.Module):
 
     def forward(self, message, distractors, aux_input=None):
         vision_module_out = self.vision_module(distractors)
-        if self.name == 'inception':
-            vision_module_out = vision_module_out.logits
+        #if self.name == 'inception':
+        #    vision_module_out = vision_module_out.logits
         distractors = self.fc(vision_module_out)
 
         similarity_scores = (
@@ -214,6 +214,9 @@ class Game(nn.Module):
         receiver_input=None,
         aux_input=None,
     ):
+        if not self.training:
+            sender.to("cuda")
+            receiver.to("cuda")
         message = sender(sender_input, aux_input)
         receiver_output = receiver(message, receiver_input, aux_input)
 
@@ -239,6 +242,9 @@ class Game(nn.Module):
             message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
+        if not self.training:
+            sender.to("cpu")
+            receiver.to("cpu")
         return loss.mean(), interaction
 
 

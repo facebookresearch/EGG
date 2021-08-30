@@ -1,19 +1,17 @@
 {
-    "n_epoch": [3],
+    "n_epoch": [150],
     "batch_size": [128],
     "lr": [2.4],
     "random_seed": [111],
-    "vocab_size": [2048],
+    "vocab_size": [3072],
     "dataset_dir": ["/datasets01/imagenet_full_size/061417/train"],
-    "dataset_name": ["cifar10"],
-    "image_size": [299],
     "gs_temperature": [5.0],
+    "vision_model_name": ["vgg11"],
     "pretrain_vision": [true],
-    "n_senders": [3],
-    "n_recvs": [3],
+    "n_senders": [4],
+    "n_recvs": [4],
     "recv_temperature": [0.1],
     "recv_hidden_dim": [2048],
     "recv_output_dim": [2048],
-    "use_larc": [true],
-    "use_different_architectures": [true]
+    "use_larc": [true]
 }

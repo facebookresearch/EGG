@@ -29,6 +29,8 @@ def main(params):
         use_different_architectures=cli_args.use_different_architectures,
         vision_model_name=cli_args.vision_model_name,
         vision_model_names=cli_args.vision_model_names,
+        vision_model_names_senders=cli_args.vision_model_names_senders,
+        vision_model_names_recvs=cli_args.vision_model_names_recvs,
     )
 
     if cli_args.pdb:
@@ -45,7 +47,7 @@ def main(params):
     loss, interaction = evaluate(
         game,
         data,
-        torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+        torch.device("cuda"),
         cli_args.n_senders,
         cli_args.n_recvs,
     )

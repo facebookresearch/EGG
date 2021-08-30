@@ -65,6 +65,9 @@ def main():
         vocab_size=cli_args.vocab_size,
         use_different_architectures=cli_args.use_different_architectures,
         vision_model_name=cli_args.vision_model_name,
+        vision_model_names=cli_args.vision_model_names,
+        vision_model_names_senders=cli_args.vision_model_names_senders,
+        vision_model_names_recvs=cli_args.vision_model_names_recvs,
     )
 
     if cli_args.pdb:
