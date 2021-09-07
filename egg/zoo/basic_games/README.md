@@ -13,7 +13,7 @@ The reconstruction game reads input from files that have an input item (attribut
 Here is an example of how to run the reconstruction game (we do not need to specify that we are playing this type of game, as it is the default option):
 
 ```bash
-python -m egg.zoo.basic_games.play --mode 'gs' --train_data "train_file.txt" --validation_data "valid_file.txt" --n_attributes 2 --n_values 10 --n_epochs 50 --batch_size 512 --validation_batch_size 1000 --max_len 4 --vocab_size 100 --sender_hidden 256 --receiver_hidden 512 --sender_embedding 5 --receiver_embedding 30 --receiver_cell "gru" --sender_cell "gru" --lr 0.01 --print_validation_events
+python -m egg.zoo.basic_games.play --mode 'gs' --train_data "train_file.txt" --validation_data "valid_file.txt" --n_attributes 5 --n_values 10 --n_epochs 50 --batch_size 512 --validation_batch_size 1000 --max_len 4 --vocab_size 100 --sender_hidden 256 --receiver_hidden 512 --sender_embedding 5 --receiver_embedding 30 --receiver_cell "gru" --sender_cell "gru" --lr 0.01 --print_validation_events
 ```
 
 In this particular instance, the following parameters are invoked:
