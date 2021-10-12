@@ -130,7 +130,7 @@ If you find EGG useful in your research, please cite this repository:
 ```
 
 ## Contributing
-Please read the contribution [guide](CONTRIBUTING.md).
+Please read the contribution [guide](.github/CONTRIBUTING.md).
 
 
 ## Testing
