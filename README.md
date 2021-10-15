@@ -139,5 +139,6 @@ python -m pytest
 All tests should pass.
 
 ## Licence
-EGG is licensed under the MIT license. The text of the license can be found [here](LICENSE).
+The majority of EGG is licensed under CC-BY-NC, however portions of the project are available under separate license terms: [LARC](egg/zoo/emcom_as_ssl/LARC.py) is licensed under the BSD 3-Clause license.
 
+The text of the license for EGG can be found [here](LICENSE).
