@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 # Copyright (c) Facebook, Inc. All Rights Reserved.
 
 #  Original code from https://github.com/NVIDIA/apex/blob/master/apex/parallel/LARC.py,
