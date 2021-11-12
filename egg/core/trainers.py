@@ -168,11 +168,11 @@ class Trainer:
         n_batches = 0
         self.game.eval()
         with torch.no_grad():
-            for batch in self.validation_data:
+            for batch_id, batch in enumerate(self.validation_data):
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
                 batch = batch.to(self.device)
-                optimized_loss, interaction = self.game(*batch)
+                optimized_loss, interaction = self.game(*batch, batch_id)
                 if (
                     self.distributed_context.is_distributed
                     and self.aggregate_interaction_logs
@@ -185,13 +185,13 @@ class Trainer:
 
                 for callback in self.callbacks:
                     callback.on_batch_end(
-                        interaction, optimized_loss, n_batches, is_training=False
+                        interaction, optimized_loss, batch_id, is_training=False
                     )
 
                 interactions.append(interaction)
                 n_batches += 1
 
-        mean_loss /= n_batches
+        mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
 
         return mean_loss.item(), full_interaction
@@ -212,7 +212,7 @@ class Trainer:
 
             context = autocast() if self.scaler else nullcontext()
             with context:
-                optimized_loss, interaction = self.game(*batch)
+                optimized_loss, interaction = self.game(*batch, batch_id)
 
                 if self.update_freq > 1:
                     # throughout EGG, we minimize _mean_ loss, not sum

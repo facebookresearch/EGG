@@ -24,6 +24,7 @@ class LoggingStrategy:
 
     def filtered_interaction(
         self,
+            batch_id: int,
         sender_input: Optional[torch.Tensor],
         receiver_input: Optional[torch.Tensor],
         labels: Optional[torch.Tensor],
@@ -141,6 +142,8 @@ class Interaction:
 
         assert interactions, "interaction list must not be empty"
         has_aux_input = interactions[0].aux_input is not None
+        # filter out empty interactions
+        interactions=[x for x in interactions if not x.is_empty()]
         for x in interactions:
             assert len(x.aux) == len(interactions[0].aux)
             if has_aux_input:
@@ -175,6 +178,9 @@ class Interaction:
     @staticmethod
     def empty() -> "Interaction":
         return Interaction(None, None, None, {}, None, None, None, {})
+
+    def is_empty(self) -> bool:
+        return self == self.empty()
 
     @staticmethod
     def gather_distributed_interactions(log: "Interaction") -> Optional["Interaction"]:
