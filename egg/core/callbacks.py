@@ -426,7 +426,7 @@ class ProgressBarLogger(Callback):
         self.n_epochs = n_epochs
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
-        self.use_info_table= use_info_table
+        self.use_info_table = use_info_table
         self.progress = CustomProgress(
             TextColumn(
                 "[bold]Epoch {task.fields[cur_epoch]}/{task.fields[n_epochs]} | [blue]{task.fields[mode]}",
