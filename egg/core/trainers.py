@@ -165,7 +165,6 @@ class Trainer:
     def eval(self):
         mean_loss = 0.0
         interactions = []
-        n_batches = 0
         self.game.eval()
         with torch.no_grad():
             for batch_id, batch in enumerate(self.validation_data):
@@ -189,7 +188,6 @@ class Trainer:
                     )
 
                 interactions.append(interaction)
-                n_batches += 1
 
         mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
