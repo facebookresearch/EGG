@@ -12,49 +12,6 @@ import torch.distributed as distrib
 from egg.core.batch import Batch
 
 
-@dataclass(repr=True, eq=True)
-class LoggingStrategy:
-    store_sender_input: bool = True
-    store_receiver_input: bool = True
-    store_labels: bool = True
-    store_aux_input: bool = True
-    store_message: bool = True
-    store_receiver_output: bool = True
-    store_message_length: bool = True
-
-    def filtered_interaction(
-        self,
-        sender_input: Optional[torch.Tensor],
-        receiver_input: Optional[torch.Tensor],
-        labels: Optional[torch.Tensor],
-        aux_input: Optional[Dict[str, torch.Tensor]],
-        message: Optional[torch.Tensor],
-        receiver_output: Optional[torch.Tensor],
-        message_length: Optional[torch.Tensor],
-        aux: Dict[str, torch.Tensor],
-    ):
-
-        return Interaction(
-            sender_input=sender_input if self.store_sender_input else None,
-            receiver_input=receiver_input if self.store_receiver_input else None,
-            labels=labels if self.store_labels else None,
-            aux_input=aux_input if self.store_aux_input else None,
-            message=message if self.store_message else None,
-            receiver_output=receiver_output if self.store_receiver_output else None,
-            message_length=message_length if self.store_message_length else None,
-            aux=aux,
-        )
-
-    @classmethod
-    def minimal(cls):
-        args = [False] * 6 + [True]
-        return cls(*args)
-
-    @classmethod
-    def maximal(cls):
-        return cls()
-
-
 @dataclass(repr=True, unsafe_hash=True)
 class Interaction:
     # incoming data
@@ -85,6 +42,9 @@ class Interaction:
             if t is not None:
                 return t.size(0)
         raise RuntimeError("Cannot determine interaction log size; it is empty.")
+
+    def is_empty(self) -> bool:
+        return self == self.empty()
 
     def to(self, *args, **kwargs) -> "Interaction":
         """Moves all stored tensor to a device. For instance, it might be not
@@ -137,10 +97,18 @@ class Interaction:
                     "Appending empty and non-empty interactions logs. "
                     "Normally this shouldn't happen!"
                 )
-            return torch.cat(lst, dim=0)
+
+            if all([isinstance(x, torch.Tensor) for x in lst]):
+                return torch.cat(lst, dim=0)
+            else:
+                return lst
 
         assert interactions, "interaction list must not be empty"
         has_aux_input = interactions[0].aux_input is not None
+
+        # filter out empty interactions
+        interactions = [x for x in interactions if not x.is_empty()]
+
         for x in interactions:
             assert len(x.aux) == len(interactions[0].aux)
             if has_aux_input:
@@ -226,6 +194,56 @@ class Interaction:
 
         assert log.size * world_size == synced_interacton.size
         return synced_interacton
+
+
+@dataclass(repr=True, eq=True)
+class LoggingStrategy:
+    store_sender_input: bool = True
+    store_receiver_input: bool = True
+    store_labels: bool = True
+    store_aux_input: bool = True
+    store_message: bool = True
+    store_receiver_output: bool = True
+    store_message_length: bool = True
+    logging_step: int = -1
+
+    def filtered_interaction(self, interaction: Interaction, batch_id: int):
+
+        filtered_interaction = None
+        # when logging_step=-1 do not consider batch_id so log. Or then is time then log
+        if self.logging_step <= 0 or batch_id % self.logging_step == 0:
+
+            filtered_interaction = Interaction(
+                sender_input=interaction.sender_input
+                if self.store_sender_input
+                else None,
+                receiver_input=interaction.receiver_input
+                if self.store_receiver_input
+                else None,
+                labels=interaction.labels if self.store_labels else None,
+                aux_input=interaction.aux_input if self.store_aux_input else None,
+                message=interaction.message if self.store_message else None,
+                receiver_output=interaction.receiver_output
+                if self.store_receiver_output
+                else None,
+                message_length=interaction.message_length
+                if self.store_message_length
+                else None,
+                aux=interaction.aux,
+            )
+        else:
+            filtered_interaction = Interaction().empty()
+
+        return filtered_interaction
+
+    @classmethod
+    def minimal(cls):
+        args = [False] * 6 + [True]
+        return cls(*args)
+
+    @classmethod
+    def maximal(cls):
+        return cls()
 
 
 def dump_interactions(

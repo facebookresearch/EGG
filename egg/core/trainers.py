@@ -26,7 +26,7 @@ from .callbacks import (
     TensorboardLogger,
 )
 from .distributed import get_preemptive_checkpoint_dir
-from .interaction import Interaction
+from .interaction import Interaction, LoggingStrategy
 from .util import get_opts, move_to
 
 try:
@@ -52,6 +52,8 @@ class Trainer:
         callbacks: Optional[List[Callback]] = None,
         grad_norm: float = None,
         aggregate_interaction_logs: bool = True,
+        train_logging_strategy: LoggingStrategy = LoggingStrategy(),
+        val_logging_strategy: LoggingStrategy = LoggingStrategy(),
     ):
         """
         :param game: A nn.Module that implements forward(); it is expected that forward returns a tuple of (loss, d),
@@ -63,6 +65,8 @@ class Trainer:
         :param validation_data: A DataLoader for the validation set (can be None)
         :param device: A torch.device on which to tensors should be stored
         :param callbacks: A list of egg.core.Callback objects that can encapsulate monitoring or checkpointing
+        :param train_logging_strategy, val_logging_strategy: specify what parts of interactions to persist for
+            later analysis in callbacks
         """
         self.game = game
         self.optimizer = optimizer
@@ -72,6 +76,9 @@ class Trainer:
         common_opts = get_opts()
         self.validation_freq = common_opts.validation_freq
         self.device = common_opts.device if device is None else device
+
+        self.train_logging_strategy = train_logging_strategy
+        self.val_logging_strategy = val_logging_strategy
 
         self.should_stop = False
         self.start_epoch = 0  # Can be overwritten by checkpoint loader
@@ -173,6 +180,10 @@ class Trainer:
                     batch = Batch(*batch)
                 batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
+                interaction = self.val_logging_strategy.filtered_interaction(
+                    interaction, n_batches
+                )
+
                 if (
                     self.distributed_context.is_distributed
                     and self.aggregate_interaction_logs
@@ -213,6 +224,9 @@ class Trainer:
             context = autocast() if self.scaler else nullcontext()
             with context:
                 optimized_loss, interaction = self.game(*batch)
+                interaction = self.train_logging_strategy.filtered_interaction(
+                    interaction, batch_id
+                )
 
                 if self.update_freq > 1:
                     # throughout EGG, we minimize _mean_ loss, not sum
