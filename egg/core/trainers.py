@@ -254,7 +254,7 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
-            
+
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
 
