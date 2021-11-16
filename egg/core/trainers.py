@@ -169,13 +169,14 @@ class Trainer:
         else:
             self.scaler = None
 
-    def eval(self):
+    def eval(self, data=None):
         mean_loss = 0.0
         interactions = []
         n_batches = 0
+        validation_data = self.validation_data if data is None else data
         self.game.eval()
         with torch.no_grad():
-            for batch in self.validation_data:
+            for batch in validation_data:
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
                 batch = batch.to(self.device)

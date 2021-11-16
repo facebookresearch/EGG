@@ -45,7 +45,9 @@ def check_copyright(file: Path) -> bool:
 
 
 if __name__ == "__main__":
-    exclude_files = {}  # add any file (as a Path object) to exclude in this set
+    exclude_files = {
+        Path("egg/zoo/emcom_as_ssl/LARC.py")
+    }  # add any file (as a Path object) to exclude in this set
     python_files = filter(
         lambda x: x not in exclude_files,
         itertools.chain(
