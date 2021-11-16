@@ -62,7 +62,7 @@ class Trainer:
         :param optimizer: An instance of torch.optim.Optimizer
         :param optimizer_scheduler: An optimizer scheduler to adjust lr throughout training
         :param train_data: A DataLoader for the training set
-        :param validation_data: A DataLoader for the validation set  (can be None)
+        :param validation_data: A DataLoader for the validation set (can be None)
         :param device: A torch.device on which to tensors should be stored
         :param callbacks: A list of egg.core.Callback objects that can encapsulate monitoring or checkpointing
         :param train_logging_strategy, val_logging_strategy: specify what parts of interactions to persist for
