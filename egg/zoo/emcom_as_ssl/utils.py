@@ -151,6 +151,12 @@ def get_loss_opts(parser):
         choices=["cosine", "dot"],
         help="Similarity function used in loss",
     )
+    group.add_argument(
+        "--use_distributed_negatives",
+        default=False,
+        action="store_true",
+        help="Share negatives across GPUs (requires a distributed training setup)",
+    )
 
 
 def get_common_opts(params):

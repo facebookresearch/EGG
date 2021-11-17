@@ -6,21 +6,23 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torch.distributed as dist
 
 def get_loss(
-    temperature: float = 1.0, similarity: str = "cosine", loss_type: str = "xent"
+        temperature: float = 1.0, similarity: str = "cosine", use_distributed_negatives: bool = False, loss_type: str = "xent"
 ):
     if loss_type.lower() == "xent":
-        return XEntLoss(temperature=temperature, similarity=similarity)
+        return XEntLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
     elif loss_type.lower() == "ntxent":
-        return NTXentLoss(temperature=temperature, similarity=similarity)
+        if use_distrinuted_negatives:
+            raise NotImplementedError("we do not support NTXent loss with shared negatives")
+        return NTXentLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
     else:
         raise NotImplementedError(f"ERROR: cannot recognize {loss_type} loss")
 
 
 class Loss:
-    def __init__(self, temperature: float = 1.0, similarity: str = "cosine"):
+    def __init__(self, temperature: float = 1.0, similarity: str = "cosine", use_distributed_negatives: bool = False):
         self.temperature = temperature
 
         similarities = {"cosine", "dot"}
@@ -28,6 +30,7 @@ class Loss:
             similarity.lower() in similarities
         ), "Cannot recognize similarity function {similarity}"
         self.similarity = similarity
+        self.use_distributed_negatives = use_distributed_negatives
 
     def get_similarity_matrix(
         self,
@@ -48,9 +51,20 @@ class Loss:
 class XEntLoss(Loss):
     def xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
         batch_size = receiver_output.shape[0]
-        model_guesses = self.get_similarity_matrix(message, receiver_output)
-
         labels = torch.arange(batch_size, device=message.device)
+        if (self.use_distributed_negatives):
+            current_rank = dist.get_rank()
+            with torch.no_grad():
+                all_receiver_outputs = [torch.zeros_like(receiver_output) for _ in range(dist.get_world_size())]
+                dist.all_gather(all_receiver_outputs, receiver_output)
+            all_receiver_outputs[current_rank] = receiver_output
+            all_receiver_outputs = torch.cat(all_receiver_outputs)
+            model_guesses = self.get_similarity_matrix(message, all_receiver_outputs)
+            output_size = receiver_output.size()[0]
+            labels = labels + (output_size*current_rank)
+        else:
+            model_guesses = self.get_similarity_matrix(message, receiver_output)
+
         acc = (model_guesses.argmax(dim=1) == labels).detach().float()
         loss = F.cross_entropy(model_guesses, labels, reduction="none")
         return loss, {"acc": acc, "game_acc": acc}

@@ -207,6 +207,10 @@ class Trainer:
         self.optimizer.zero_grad()
 
         for batch_id, batch in enumerate(self.train_data):
+            # shorter run for debugging purposes
+#            if batch_id == 3:
+#                break 
+
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to(self.device)

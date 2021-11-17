@@ -1,0 +1,12 @@
+{
+    "n_epoch": [100],
+    "batch_size": [128],
+    "lr": [4.8],
+    "random_seed": [111],
+    "use_augmentations": [true],
+    "gs_temperature": [5.0],
+    "loss_type": ["xent"],
+    "dataset_dir" : "/datasets01/imagenet_full_size/061417/train",
+    "use_larc": [true],
+    "use_distributed_negatives": [true]
+}
