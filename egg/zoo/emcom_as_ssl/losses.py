@@ -14,7 +14,7 @@ def get_loss(
     if loss_type.lower() == "xent":
         return XEntLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
     elif loss_type.lower() == "ntxent":
-        if use_distrinuted_negatives:
+        if use_distributed_negatives:
             raise NotImplementedError("we do not support NTXent loss with shared negatives")
         return NTXentLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
     else:
