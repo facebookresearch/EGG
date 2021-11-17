@@ -43,10 +43,10 @@ def build_game(opts):
         shared_vision=opts.shared_vision,
         pretrain_vision=opts.pretrain_vision,
     )
-
     loss = get_loss(
         temperature=opts.loss_temperature,
         similarity=opts.similarity,
+        use_distributed_negatives = opts.use_distributed_negatives,
         loss_type=opts.loss_type,
     )
 
