@@ -46,7 +46,7 @@ def build_game(opts):
     loss = get_loss(
         temperature=opts.loss_temperature,
         similarity=opts.similarity,
-        use_distributed_negatives = opts.use_distributed_negatives,
+        use_distributed_negatives=opts.use_distributed_negatives,
         loss_type=opts.loss_type,
     )
 

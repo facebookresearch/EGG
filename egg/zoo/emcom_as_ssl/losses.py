@@ -8,21 +8,40 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributed as dist
 
+
 def get_loss(
-        temperature: float = 1.0, similarity: str = "cosine", use_distributed_negatives: bool = False, loss_type: str = "xent"
+    temperature: float = 1.0,
+    similarity: str = "cosine",
+    use_distributed_negatives: bool = False,
+    loss_type: str = "xent",
 ):
     if loss_type.lower() == "xent":
-        return XEntLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
+        return XEntLoss(
+            temperature=temperature,
+            similarity=similarity,
+            use_distributed_negatives=use_distributed_negatives,
+        )
     elif loss_type.lower() == "ntxent":
         if use_distributed_negatives:
-            raise NotImplementedError("we do not support NTXent loss with shared negatives")
-        return NTXentLoss(temperature=temperature, similarity=similarity, use_distributed_negatives = use_distributed_negatives)
+            raise NotImplementedError(
+                "we do not support NTXent loss with shared negatives"
+            )
+        return NTXentLoss(
+            temperature=temperature,
+            similarity=similarity,
+            use_distributed_negatives=use_distributed_negatives,
+        )
     else:
         raise NotImplementedError(f"ERROR: cannot recognize {loss_type} loss")
 
 
 class Loss:
-    def __init__(self, temperature: float = 1.0, similarity: str = "cosine", use_distributed_negatives: bool = False):
+    def __init__(
+        self,
+        temperature: float = 1.0,
+        similarity: str = "cosine",
+        use_distributed_negatives: bool = False,
+    ):
         self.temperature = temperature
 
         similarities = {"cosine", "dot"}
@@ -52,16 +71,19 @@ class XEntLoss(Loss):
     def xent_loss(self, message: torch.Tensor, receiver_output: torch.Tensor):
         batch_size = receiver_output.shape[0]
         labels = torch.arange(batch_size, device=message.device)
-        if (self.use_distributed_negatives):
+        if self.use_distributed_negatives:
             current_rank = dist.get_rank()
             with torch.no_grad():
-                all_receiver_outputs = [torch.zeros_like(receiver_output) for _ in range(dist.get_world_size())]
+                all_receiver_outputs = [
+                    torch.zeros_like(receiver_output)
+                    for _ in range(dist.get_world_size())
+                ]
                 dist.all_gather(all_receiver_outputs, receiver_output)
             all_receiver_outputs[current_rank] = receiver_output
             all_receiver_outputs = torch.cat(all_receiver_outputs)
             model_guesses = self.get_similarity_matrix(message, all_receiver_outputs)
             output_size = receiver_output.size()[0]
-            labels = labels + (output_size*current_rank)
+            labels = labels + (output_size * current_rank)
         else:
             model_guesses = self.get_similarity_matrix(message, receiver_output)
 
