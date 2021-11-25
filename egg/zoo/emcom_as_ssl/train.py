@@ -3,6 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
+from pathlib import Path
+
 import torch
 
 import egg.core as core
@@ -11,9 +14,6 @@ from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
 from egg.zoo.emcom_as_ssl.games import build_game
 from egg.zoo.emcom_as_ssl.LARC import LARC
 from egg.zoo.emcom_as_ssl.utils import add_weight_decay, get_common_opts
-
-import json
-from pathlib import Path
 
 
 def main(params):

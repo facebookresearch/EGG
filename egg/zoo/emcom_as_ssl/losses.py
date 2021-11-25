@@ -4,9 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
 
 
 def get_loss(

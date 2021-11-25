@@ -13,7 +13,6 @@ from collections import OrderedDict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 import torch
-import wandb
 from rich.columns import Columns
 from rich.console import RenderableType
 from rich.progress import (
@@ -26,6 +25,7 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 
+import wandb
 from egg.core.interaction import Interaction
 from egg.core.util import get_summary_writer
 
