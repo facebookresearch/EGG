@@ -218,7 +218,7 @@ def deprecated(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
 
-        if not "batch_id" in kwargs.keys():
+        if "batch_id" not in kwargs.keys():
             warn()
             interaction = Interaction(**kwargs)
             return func(*args, interaction=interaction, batch_id=-1)
