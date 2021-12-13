@@ -110,6 +110,10 @@ class Interaction:
         # filter out empty interactions
         interactions = [x for x in interactions if not x.is_empty()]
 
+        if len(interactions) == 0:
+            # we still need at least one empty interaction in the list, so it is empty after the filtering add one
+            interactions = [Interaction.empty()]
+
         for x in interactions:
             assert len(x.aux) == len(interactions[0].aux)
             if has_aux_input:
@@ -203,11 +207,13 @@ def deprecated(func):
     when the function is used."""
 
     def warn():
-        warnings.simplefilter('always', DeprecationWarning)  # turn off filter
-        warnings.warn("Call to deprecated function {}.".format(func.__name__),
-                      category=DeprecationWarning,
-                      stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning)  # reset filter
+        warnings.simplefilter("always", DeprecationWarning)  # turn off filter
+        warnings.warn(
+            f"Call to deprecated version of '{func.__name__}'. You should pass an Interaction class based on the input dict ",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        warnings.simplefilter("default", DeprecationWarning)  # reset filter
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
