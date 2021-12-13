@@ -182,7 +182,7 @@ class Trainer:
                 batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 interaction = self.val_logging_strategy.filtered_interaction(
-                    interaction, n_batches
+                    interaction=interaction, batch_id=n_batches
                 )
 
                 if (
@@ -226,7 +226,7 @@ class Trainer:
             with context:
                 optimized_loss, interaction = self.game(*batch)
                 interaction = self.train_logging_strategy.filtered_interaction(
-                    interaction, batch_id
+                    interaction=interaction, batch_id=batch_id
                 )
 
                 if self.update_freq > 1:

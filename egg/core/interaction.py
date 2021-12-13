@@ -2,7 +2,8 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
+import functools
+import warnings
 from dataclasses import dataclass
 from typing import Dict, Iterable, Optional
 
@@ -196,6 +197,31 @@ class Interaction:
         return synced_interacton
 
 
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emitted
+    when the function is used."""
+
+    def warn():
+        warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+                      category=DeprecationWarning,
+                      stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)  # reset filter
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+
+        if not "batch_id" in kwargs.keys():
+            warn()
+            interaction = Interaction(**kwargs)
+            return func(*args, interaction=interaction, batch_id=-1)
+        else:
+            return func(*args, **kwargs)
+
+    return new_func
+
+
 @dataclass(repr=True, eq=True)
 class LoggingStrategy:
     store_sender_input: bool = True
@@ -207,6 +233,7 @@ class LoggingStrategy:
     store_message_length: bool = True
     logging_step: int = -1
 
+    @deprecated
     def filtered_interaction(self, interaction: Interaction, batch_id: int):
 
         filtered_interaction = None
