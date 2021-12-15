@@ -172,17 +172,16 @@ class Trainer:
     def eval(self, data=None):
         mean_loss = 0.0
         interactions = []
-        n_batches = 0
         validation_data = self.validation_data if data is None else data
         self.game.eval()
         with torch.no_grad():
-            for batch in validation_data:
+            for batch_id, batch in enumerate(validation_data):
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
                 batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 interaction = self.val_logging_strategy.filtered_interaction(
-                    interaction=interaction, batch_id=n_batches
+                    interaction=interaction, batch_id=batch_id
                 )
 
                 if (
@@ -197,13 +196,12 @@ class Trainer:
 
                 for callback in self.callbacks:
                     callback.on_batch_end(
-                        interaction, optimized_loss, n_batches, is_training=False
+                        interaction, optimized_loss, batch_id, is_training=False
                     )
 
                 interactions.append(interaction)
-                n_batches += 1
 
-        mean_loss /= n_batches
+        mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
 
         return mean_loss.item(), full_interaction

@@ -201,10 +201,9 @@ class Interaction:
         return synced_interacton
 
 
-def deprecated(func):
-    """This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used."""
+def old_signature_warning(func):
+    """This is a decorator which is used to warn users on the new signature for the 'filtered_interaction'.
+    ."""
 
     def warn():
         warnings.simplefilter("always", DeprecationWarning)  # turn off filter
@@ -222,8 +221,7 @@ def deprecated(func):
             warn()
             interaction = Interaction(**kwargs)
             return func(*args, interaction=interaction, batch_id=-1)
-        else:
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return new_func
 
@@ -237,14 +235,13 @@ class LoggingStrategy:
     store_message: bool = True
     store_receiver_output: bool = True
     store_message_length: bool = True
-    logging_step: int = -1
+    logging_step: int = 0
 
-    @deprecated
+    @old_signature_warning
     def filtered_interaction(self, interaction: Interaction, batch_id: int):
 
-        filtered_interaction = None
-        # when logging_step=-1 do not consider batch_id so log. Or then is time then log
-        if self.logging_step <= 0 or batch_id % self.logging_step == 0:
+        # when logging_step==0 log. Else consider batch_id value
+        if self.logging_step == 0 or batch_id % self.logging_step == 0:
 
             filtered_interaction = Interaction(
                 sender_input=interaction.sender_input
@@ -265,7 +262,7 @@ class LoggingStrategy:
                 aux=interaction.aux,
             )
         else:
-            filtered_interaction = Interaction().empty()
+            filtered_interaction = Interaction.empty()
 
         return filtered_interaction
 
