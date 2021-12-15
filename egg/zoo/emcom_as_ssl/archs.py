@@ -193,7 +193,7 @@ class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
             receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
 
         loss, aux_info = self.loss(
-            sender_input, message, receiver_input, receiver_output, labels
+            sender_input, message, receiver_input, receiver_output, labels, None
         )
 
         if hasattr(self.sender, "temperature"):
