@@ -5,7 +5,8 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional
+from itertools import groupby
+from typing import Dict, Iterable, Optional, Union
 
 import torch
 import torch.distributed as distrib
@@ -16,18 +17,18 @@ from egg.core.batch import Batch
 @dataclass(repr=True, unsafe_hash=True)
 class Interaction:
     # incoming data
-    sender_input: Optional[torch.Tensor]
-    receiver_input: Optional[torch.Tensor]
-    labels: Optional[torch.Tensor]
-    aux_input: Optional[Dict[str, torch.Tensor]]
+    sender_input: Optional[Union[torch.Tensor, list]]
+    receiver_input: Optional[Union[torch.Tensor, list]]
+    labels: Optional[Union[torch.Tensor, list]]
+    aux_input: Optional[Dict[str, Union[torch.Tensor, list]]]
 
     # what agents produce
-    message: Optional[torch.Tensor]
-    receiver_output: Optional[torch.Tensor]
+    message: Optional[Union[torch.Tensor, list]]
+    receiver_output: Optional[Union[torch.Tensor, list]]
 
     # auxilary info
-    message_length: Optional[torch.Tensor]
-    aux: Dict[str, torch.Tensor]
+    message_length: Optional[Union[torch.Tensor, list]]
+    aux: Dict[str, Union[torch.Tensor, list]]
 
     @property
     def size(self):
@@ -89,6 +90,10 @@ class Interaction:
         RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
         """
 
+        def _all_equal(iterable):
+            g = groupby(iterable)
+            return next(g, True) and not next(g, False)
+
         def _check_cat(lst):
             if all(x is None for x in lst):
                 return None
@@ -100,9 +105,19 @@ class Interaction:
                 )
 
             if all([isinstance(x, torch.Tensor) for x in lst]):
-                return torch.cat(lst, dim=0)
+                return torch.stack(lst, dim=0)
+            elif all([isinstance(x, list) for x in lst]):
+                # lst is a list of lists
+                if _all_equal([len(x) for x in lst]):
+                    return lst
+                else:
+                    raise RuntimeError(
+                        "The element of the interaction logs must have the same size!"
+                    )
             else:
-                return lst
+                raise RuntimeError(
+                    "Element of interaction have different datatypes, be sure to choose either list or torch.Tensor"
+                )
 
         assert interactions, "interaction list must not be empty"
         has_aux_input = interactions[0].aux_input is not None
@@ -216,7 +231,6 @@ def old_signature_warning(func):
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
-
         if "batch_id" not in kwargs.keys():
             warn()
             interaction = Interaction(**kwargs)
