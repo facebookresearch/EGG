@@ -5,7 +5,7 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from itertools import chain, groupby
+from itertools import groupby
 from typing import Dict, Iterable, Optional, Union
 
 import torch
