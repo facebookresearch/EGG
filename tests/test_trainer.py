@@ -22,6 +22,11 @@ class Dataset:
         return iter([(BATCH_X, BATCH_Y)])
 
 
+class EmptyDataset:
+    def __iter__(self):
+        return iter([])
+
+
 class Receiver(torch.nn.Module):
     def __init__(self):
         super(Receiver, self).__init__()
@@ -170,3 +175,15 @@ def test_early_stopping():
     )
     trainer.train(1)
     assert trainer.should_stop
+
+
+def test_empty_dataset():
+    core.init(params=[])
+    game, data = MockGame(), EmptyDataset()
+    trainer = core.Trainer(
+        game=game,
+        optimizer=torch.optim.Adam(game.parameters()),
+        train_data=data,
+        validation_data=data,
+    )
+    trainer.train(1)

@@ -209,7 +209,7 @@ class Trainer:
 
     def train_epoch(self):
         mean_loss = 0
-        n_batches = 0
+        batch_id = 1
         interactions = []
 
         self.game.train()
@@ -254,7 +254,6 @@ class Trainer:
 
                 self.optimizer.zero_grad()
 
-            n_batches += 1
             mean_loss += optimized_loss.detach()
             if (
                 self.distributed_context.is_distributed
@@ -271,7 +270,7 @@ class Trainer:
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
 
-        mean_loss /= n_batches
+        mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
         return float(mean_loss), full_interaction
 
