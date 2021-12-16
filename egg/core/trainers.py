@@ -171,6 +171,7 @@ class Trainer:
 
     def eval(self, data=None):
         mean_loss = 0.0
+        batch_id = 1
         interactions = []
         validation_data = self.validation_data if data is None else data
         self.game.eval()
@@ -204,7 +205,7 @@ class Trainer:
         mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
 
-        return mean_loss.item(), full_interaction
+        return float(mean_loss), full_interaction
 
     def train_epoch(self):
         mean_loss = 0
@@ -272,7 +273,7 @@ class Trainer:
 
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
-        return mean_loss.item(), full_interaction
+        return float(mean_loss), full_interaction
 
     def train(self, n_epochs):
         for callback in self.callbacks:
