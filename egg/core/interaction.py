@@ -5,7 +5,7 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from itertools import groupby
+from itertools import chain, groupby
 from typing import Dict, Iterable, Optional, Union
 
 import torch
@@ -82,7 +82,10 @@ class Interaction:
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), ..., receiver_output=tensor([1., 1.]), message_length=None, aux={})
+        Interaction(sender_input=tensor([[1.],
+                [1.]]), receiver_input=None, labels=None, aux_input={}, message=tensor([[1.],
+                [1.]]), receiver_output=tensor([[1.],
+                [1.]]), message_length=None, aux={})
         >>> d = Interaction(torch.ones(1), torch.ones(1), None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
@@ -114,13 +117,13 @@ class Interaction:
                     raise RuntimeError(
                         "The element of the interaction logs must have the same size!"
                     )
+            elif all([isinstance(x, type(lst[0])) for x in lst]):
+                # if not a list or tensor then return as long as everything has the same type
+                return lst
             else:
                 raise RuntimeError(
                     "Element of interaction have different datatypes, be sure to choose either list or torch.Tensor"
                 )
-
-        assert interactions, "interaction list must not be empty"
-        has_aux_input = interactions[0].aux_input is not None
 
         # filter out empty interactions
         interactions = [x for x in interactions if not x.is_empty()]
@@ -128,6 +131,8 @@ class Interaction:
         if len(interactions) == 0:
             # we still need at least one empty interaction in the list, so it is empty after the filtering add one
             interactions = [Interaction.empty()]
+
+        has_aux_input = interactions[0].aux_input is not None
 
         for x in interactions:
             assert len(x.aux) == len(interactions[0].aux)

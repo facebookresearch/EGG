@@ -45,7 +45,10 @@ class AssertCallback(Callback):
 
         assert logs.sender_input.shape == torch.Size([batch_size, data_size])
         if logs.receiver_input is not None:
-            assert logs.receiver_input.shape == torch.Size([batch_size])
+            if isinstance(logs.receiver_input, torch.Tensor):
+                assert logs.receiver_input.shape == torch.Size([batch_size])
+            else:
+                assert len(logs.receiver_input) == batch_size
 
     def on_epoch_end(self, loss: float, logs: core.Interaction, epoch: int):
         pass
@@ -60,7 +63,6 @@ class MockGame(torch.nn.Module):
             self.forward = self.forward_list
         elif mode == 1:
             self.forward = self.forward_mixed_types
-
         elif mode == 2:
             self.forward = self.forward_empty
         elif mode == 3:
@@ -69,8 +71,6 @@ class MockGame(torch.nn.Module):
             self.forward = self.forward_mixed_dimension_list
         elif mode == 5:
             self.forward = self.forward_mixed_data_types
-        elif mode == 3:
-            self.forward = self.forward_mixed_none
 
     def forward_list(self, *args, **kwargs):
         """
@@ -98,7 +98,7 @@ class MockGame(torch.nn.Module):
         """
         interaction = core.Interaction(
             sender_input=args[0],
-            receiver_input=args[1],
+            receiver_input=float(args[1]),
             labels=list(range(10)),
             message=list(range(10)),
             receiver_output=list(range(10)),
@@ -121,7 +121,7 @@ class MockGame(torch.nn.Module):
 
             interaction = core.Interaction(
                 sender_input=args[0],
-                receiver_input=args[1],
+                receiver_input=float(args[1]),
                 labels=list(range(10)),
                 message=list(range(10)),
                 receiver_output=list(range(10)),
@@ -184,7 +184,7 @@ class MockGame(torch.nn.Module):
         Test for interaction made of list and torch tensors
         """
         sender_input = args[0]
-        receiver_input = args[0]
+        receiver_input = args[1]
 
         if random.uniform(0, 1) > 0.5:
             sender_input = sender_input.tolist()
