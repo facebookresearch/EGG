@@ -170,8 +170,8 @@ class Trainer:
             self.scaler = None
 
     def eval(self, data=None):
-        mean_loss = 0.0
-        batch_id = 1
+        mean_loss = 0
+        n_batches = 0
         interactions = []
         validation_data = self.validation_data if data is None else data
         self.game.eval()
@@ -193,6 +193,8 @@ class Trainer:
                         interaction
                     )
                 interaction = interaction.to("cpu")
+
+                n_batches += 1
                 mean_loss += optimized_loss
 
                 for callback in self.callbacks:
@@ -202,14 +204,15 @@ class Trainer:
 
                 interactions.append(interaction)
 
+        assert n_batches > 0, "No batches in the eval dataset!"
         mean_loss /= batch_id
         full_interaction = Interaction.from_iterable(interactions)
 
-        return float(mean_loss), full_interaction
+        return mean_loss.item(), full_interaction
 
     def train_epoch(self):
         mean_loss = 0
-        batch_id = 1
+        n_batches = 0
         interactions = []
 
         self.game.train()
@@ -254,6 +257,7 @@ class Trainer:
 
                 self.optimizer.zero_grad()
 
+            n_batches += 1
             mean_loss += optimized_loss.detach()
             if (
                 self.distributed_context.is_distributed
@@ -270,9 +274,11 @@ class Trainer:
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
 
-        mean_loss /= batch_id
+        assert n_batches > 0, "No batches in the train dataset!"
+
+        mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
-        return float(mean_loss), full_interaction
+        return mean_loss.item(), full_interaction
 
     def train(self, n_epochs):
         for callback in self.callbacks:

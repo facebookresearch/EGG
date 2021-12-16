@@ -57,7 +57,7 @@ class MockGame(torch.nn.Module):
 
 
 def test_temperature_updater_callback():
-    core.init()
+    core.init(params=[])
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
@@ -83,7 +83,7 @@ def test_temperature_updater_callback():
 def test_snapshoting():
     CHECKPOINT_PATH = Path("./test_checkpoints")
 
-    core.init()
+    core.init(params=[])
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
@@ -123,7 +123,7 @@ def test_snapshoting():
 def test_max_snapshoting():
     CHECKPOINT_PATH = Path("./test_checkpoints")
 
-    core.init()
+    core.init(params=[])
     sender = core.GumbelSoftmaxWrapper(ToyAgent(), temperature=1)
     receiver = Receiver()
     loss = lambda sender_input, message, receiver_input, receiver_output, labels, aux_input: (
@@ -186,4 +186,11 @@ def test_empty_dataset():
         train_data=data,
         validation_data=data,
     )
-    trainer.train(1)
+
+    passed = False
+    try:
+        trainer.train(1)
+    except AssertionError:
+        passed = True
+
+    assert passed, "The empty dataset assertion has not been raised"
