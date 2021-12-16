@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 
 import egg.core as core
-from egg.core import Callback
+from egg.core import Callback, LoggingStrategy
 
 sys.path.insert(0, Path(__file__).parent.parent.resolve().as_posix())
 
@@ -39,7 +39,35 @@ class AssertCallback(Callback):
             self.on_epoch_end = self.on_epoch_end_mixed
 
         elif mode == 3:
+
             self.on_epoch_end = self.on_epoch_end_mixed
+
+        elif mode == 6:
+            self.on_epoch_end = self.on_epoch_end_logging_step
+
+        elif mode == 7:
+            self.on_epoch_end = self.on_epoch_end_logging_store
+
+    def on_epoch_end_logging_store(
+        self, loss: float, logs: core.Interaction, epoch: int
+    ):
+
+        assert logs.sender_input is None
+        assert logs.labels is None
+        assert logs.message is None
+
+    def on_epoch_end_logging_step(
+        self, loss: float, logs: core.Interaction, epoch: int
+    ):
+
+        bs = batch_size // 2
+
+        assert logs.sender_input.shape == torch.Size([bs, data_size])
+        if logs.receiver_input is not None:
+            if isinstance(logs.receiver_input, torch.Tensor):
+                assert logs.receiver_input.shape == torch.Size([bs])
+            else:
+                assert len(logs.receiver_input) == bs
 
     def on_epoch_end_mixed(self, loss: float, logs: core.Interaction, epoch: int):
 
@@ -55,7 +83,7 @@ class AssertCallback(Callback):
 
 
 class MockGame(torch.nn.Module):
-    def __init__(self, mode):
+    def __init__(self, mode=-1):
         super(MockGame, self).__init__()
         self.param = torch.nn.Parameter(torch.Tensor([0]))
         if mode == 0:
@@ -71,6 +99,26 @@ class MockGame(torch.nn.Module):
             self.forward = self.forward_mixed_dimension_list
         elif mode == 5:
             self.forward = self.forward_mixed_data_types
+
+    def forward(self, *args, **kwargs):
+        """
+        Test for interaction made of list only
+        """
+        interaction = core.Interaction(
+            sender_input=args[0],
+            receiver_input=float(args[1]),
+            labels=list(range(10)),
+            message=list(range(10)),
+            receiver_output=list(range(10)),
+            message_length=list(range(10)),
+            aux_input=dict(
+                prov=list(range(10)),
+            ),
+            aux=dict(
+                prov=list(range(10)),
+            ),
+        )
+        return self.param, interaction
 
     def forward_list(self, *args, **kwargs):
         """
@@ -251,7 +299,7 @@ def test_empty_interaction():
     trainer.train(1)
 
 
-def test_mixed_none():
+def test_mixed_none_interaction():
     core.init(params=[])
     mode = 3
     game = MockGame(mode=mode)
@@ -267,7 +315,7 @@ def test_mixed_none():
     trainer.train(1)
 
 
-def test_mixed_dimension_list():
+def test_mixed_dimension_list_interaction():
     core.init(params=[])
     mode = 4
     game = MockGame(mode=mode)
@@ -289,7 +337,7 @@ def test_mixed_dimension_list():
     assert passed, "Mixed dimension test did not pass"
 
 
-def test_mixed_data_type():
+def test_mixed_data_type_interaction():
     core.init(params=[])
     mode = 5
     game = MockGame(mode=mode)
@@ -310,3 +358,47 @@ def test_mixed_data_type():
         passed = True
 
     assert passed, "Mixed dimension test did not pass"
+
+
+def test_logging_step():
+    core.init(params=[])
+    mode = 6
+    game = MockGame()
+    optimizer = torch.optim.Adam(game.parameters())
+
+    data = Dataset(batch_size=batch_size)
+    custom_logging = LoggingStrategy(logging_step=2)
+
+    trainer = core.Trainer(
+        game,
+        optimizer,
+        train_data=data,
+        train_logging_strategy=custom_logging,
+        callbacks=[AssertCallback(mode=mode)],
+    )
+
+    trainer.train(1)
+
+
+def test_logging_store():
+    core.init(params=[])
+    mode = 7
+    game = MockGame()
+    optimizer = torch.optim.Adam(game.parameters())
+
+    data = Dataset(batch_size=batch_size)
+    custom_logging = LoggingStrategy(
+        store_sender_input=False,
+        store_labels=False,
+        store_message=False,
+    )
+
+    trainer = core.Trainer(
+        game,
+        optimizer,
+        train_data=data,
+        train_logging_strategy=custom_logging,
+        callbacks=[AssertCallback(mode=mode)],
+    )
+
+    trainer.train(1)
