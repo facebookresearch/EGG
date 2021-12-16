@@ -59,10 +59,14 @@ def main(params):
     device = opts.device
 
     train_data = SphereData(n_points=int(opts.n_points))
-    train_loader = DataLoader(train_data, batch_size=opts.batch_size, shuffle=True)
+    train_loader = DataLoader(
+        train_data, batch_size=opts.batch_size, shuffle=True, drop_last=True
+    )
 
     test_data = SphereData(n_points=int(1e3))
-    test_loader = DataLoader(train_data, batch_size=opts.batch_size, shuffle=False)
+    test_loader = DataLoader(
+        train_data, batch_size=opts.batch_size, shuffle=False, drop_last=True
+    )
 
     sender = CircleSender(opts.vocab_size)
 

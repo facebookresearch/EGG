@@ -130,10 +130,14 @@ def main(params):
     opts.vocab_size = n_v
 
     train_data = AttributeValueData(n_attributes=n_a, n_values=n_v, mul=1, mode="train")
-    train_loader = DataLoader(train_data, batch_size=opts.batch_size, shuffle=True)
+    train_loader = DataLoader(
+        train_data, batch_size=opts.batch_size, shuffle=True, drop_last=True
+    )
 
     test_data = AttributeValueData(n_attributes=n_a, n_values=n_v, mul=1, mode="test")
-    test_loader = DataLoader(test_data, batch_size=opts.batch_size, shuffle=False)
+    test_loader = DataLoader(
+        test_data, batch_size=opts.batch_size, shuffle=False, drop_last=True
+    )
 
     print(f"# Size of train {len(train_data)} test {len(test_data)}")
 

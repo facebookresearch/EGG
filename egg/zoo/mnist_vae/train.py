@@ -120,12 +120,14 @@ def main(params):
         datasets.MNIST("./data", train=True, download=True, transform=transform),
         batch_size=opts.batch_size,
         shuffle=True,
+        drop_last=True,
         **kwargs
     )
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST("./data", train=False, transform=transform),
         batch_size=opts.batch_size,
         shuffle=True,
+        drop_last=True,
         **kwargs
     )
 
