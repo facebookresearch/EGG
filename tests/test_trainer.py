@@ -190,7 +190,7 @@ def test_empty_dataset():
     passed = False
     try:
         trainer.train(1)
-    except AssertionError:
+    except ZeroDivisionError:
         passed = True
 
     assert passed, "The empty dataset assertion has not been raised"
