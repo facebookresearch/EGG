@@ -5,7 +5,6 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from itertools import groupby
 from typing import Dict, Iterable, Optional, Union
 
 import torch
@@ -93,9 +92,9 @@ class Interaction:
         RuntimeError: Appending empty and non-empty interactions logs. Normally this shouldn't happen!
         """
 
-        def _all_equal(iterable):
-            g = groupby(iterable)
-            return next(g, True) and not next(g, False)
+        def _all_equal(len_list):
+            g = set(len_list)
+            return len(g) == 1
 
         def _check_cat(lst):
             if all(x is None for x in lst):
@@ -106,11 +105,12 @@ class Interaction:
                     "Appending empty and non-empty interactions logs. "
                     "Normally this shouldn't happen!"
                 )
-
+            # is all elem are tensor stack
             if all([isinstance(x, torch.Tensor) for x in lst]):
                 return torch.stack(lst, dim=0)
+            # if all elem are list
             elif all([isinstance(x, list) for x in lst]):
-                # lst is a list of lists
+                # check that all elems have same length
                 if _all_equal([len(x) for x in lst]):
                     return lst
                 else:
