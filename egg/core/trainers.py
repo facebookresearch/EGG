@@ -5,6 +5,7 @@
 
 import os
 import pathlib
+import warnings
 from typing import List, Optional
 
 try:
@@ -204,8 +205,8 @@ class Trainer:
 
                 interactions.append(interaction)
 
-        assert n_batches > 0, "No batches in the eval dataset!"
-        mean_loss /= batch_id
+        on_empty_dataset(n_batches, is_train=False)
+        mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
 
         return mean_loss.item(), full_interaction
@@ -274,8 +275,7 @@ class Trainer:
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
 
-        assert n_batches > 0, "No batches in the train dataset!"
-
+        on_empty_dataset(n_batches, is_train=True)
         mean_loss /= n_batches
         full_interaction = Interaction.from_iterable(interactions)
         return mean_loss.item(), full_interaction
@@ -350,3 +350,16 @@ class Trainer:
 
         if latest_file is not None:
             self.load_from_checkpoint(latest_file)
+
+
+def on_empty_dataset(n_batches: int, is_train=True):
+    """
+    Warn the user if the number of batches is zero, i.e. the dataset is empty
+    """
+    if n_batches == 0:
+        flag = "train" if is_train else "eval"
+        warnings.warn(
+            f"Empty {flag} dataset!",
+            category=RuntimeWarning,
+            stacklevel=2,
+        )
