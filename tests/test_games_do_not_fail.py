@@ -92,7 +92,7 @@ def test_compo_generalization():
 def test_compositional_efficiency():
     run_game(
         "egg.zoo.compositional_efficiency.discrete",
-        dict(n_a=2, n_v=11, n_epochs=1, language="identity"),
+        dict(n_a=2, n_v=11, n_epochs=1, language="identity", batch_size=16),
     )
     run_game(
         "egg.zoo.compositional_efficiency.continuous", dict(vocab_size=5, n_epochs=1)
