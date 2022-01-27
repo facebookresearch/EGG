@@ -39,12 +39,9 @@ def build_vision_encoder(
     return vision_encoder, visual_features_dim
 
 
-def build_game(opts):  # Mat : check vision.
-    vision_encoder, visual_features_dim = build_vision_encoder(
-        model_name=opts.model_name,
-        shared_vision=opts.shared_vision,
-        pretrain_vision=opts.pretrain_vision,
-    )
+def build_game(
+    opts,
+):  # Mat : check vision rcv can exist + remove opts.shared_vision and opts.pretrain_vision
     loss = get_loss(
         temperature=opts.loss_temperature,
         similarity=opts.similarity,
@@ -56,16 +53,10 @@ def build_game(opts):  # Mat : check vision.
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
 
     if opts.simclr_sender:
-        sender = SimCLRSender(
-            input_dim=visual_features_dim,
-            hidden_dim=opts.projection_hidden_dim,
-            output_dim=opts.projection_output_dim,
-            discrete_evaluation=opts.discrete_evaluation_simclr,
-        )
-        receiver = sender
+        raise NotImplementedError("Not implemented in the pop Game")
     else:
         sender = EmSSLSender(
-            input_dim=visual_features_dim,
+            vision_module=opts.model_name,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
             temperature=opts.gs_temperature,
@@ -73,7 +64,7 @@ def build_game(opts):  # Mat : check vision.
             straight_through=opts.straight_through,
         )
         receiver = Receiver(
-            input_dim=visual_features_dim,
+            vision_module=opts.model_name,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
         )
@@ -86,8 +77,7 @@ def build_game(opts):  # Mat : check vision.
     losses = [loss]
     agents_loss_sampler = FullSweepAgentSampler(senders, receivers, losses)
     game = PopulationGame(game, agents_loss_sampler)
-    # Mat : The vision check happens here.
-    game = VisionGameWrapper(game, vision_encoder)
+    # game = VisionGameWrapper(game, vision_encoder)
 
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
