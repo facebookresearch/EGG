@@ -18,7 +18,9 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
-        # "deit": torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=pretrained),
+        "deit": torch.hub.load(
+            "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=pretrained
+        ),
         "inception": torchvision.models.models.inception_v3(pretrained=pretrained),
     }
     if name not in modules:
