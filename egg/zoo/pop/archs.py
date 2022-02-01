@@ -8,8 +8,7 @@ from typing import Optional, Union
 import torch
 import torch.nn as nn
 import torchvision
-
-from egg.core.continous_communication import SenderReceiverContinuousCommunication
+from egg.core.interaction import LoggingStrategy
 from egg.core.gs_wrappers import gumbel_softmax_sample
 
 
@@ -155,29 +154,45 @@ class Receiver(nn.Module):
         return self.fc(vision_output), vision_output.detach()
 
 
-class EmComSSLSymbolGame(SenderReceiverContinuousCommunication):
-    def __init__(self, *args, **kwargs):
-        super(EmComSSLSymbolGame, self).__init__(*args, **kwargs)
+class PopSymbolGame(nn.Module):
+    def __init__(
+        self,
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None,
+        *args,
+        **kwargs,
+    ):
+        super(PopSymbolGame, self).__init__(*args, **kwargs)
+        self.train_logging_strategy = (
+            LoggingStrategy()
+            if train_logging_strategy is None
+            else train_logging_strategy
+        )
+        self.test_logging_strategy = (
+            LoggingStrategy()
+            if test_logging_strategy is None
+            else test_logging_strategy
+        )
 
-    def forward(self, sender_input, labels, receiver_input):
+    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input):
         if isinstance(self.sender, SimCLRSender):
-            message, message_like, resnet_output_sender = self.sender(
+            message, message_like, resnet_output_sender = sender(
                 sender_input, sender=True
             )
-            receiver_output, _, resnet_output_recv = self.receiver(receiver_input)
+            receiver_output, _, resnet_output_recv = receiver(receiver_input)
         else:
-            message, message_like, resnet_output_sender = self.sender(sender_input)
-            receiver_output, resnet_output_recv = self.receiver(message, receiver_input)
+            message, message_like, resnet_output_sender = sender(sender_input)
+            receiver_output, resnet_output_recv = receiver(message, receiver_input)
 
-        loss, aux_info = self.loss(
+        loss, aux_info = loss(
             sender_input, message, receiver_input, receiver_output, labels, None
         )
 
-        if hasattr(self.sender, "temperature"):
-            if isinstance(self.sender.temperature, torch.nn.Parameter):
-                temperature = self.sender.temperature.detach()
+        if hasattr(sender, "temperature"):
+            if isinstance(sender.temperature, torch.nn.Parameter):
+                temperature = sender.temperature.detach()
             else:
-                temperature = torch.Tensor([self.sender.temperature])
+                temperature = torch.Tensor([sender.temperature])
             aux_info["temperature"] = temperature
 
         if not self.training:
