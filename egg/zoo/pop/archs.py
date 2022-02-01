@@ -21,7 +21,7 @@ def get_vision_module(name: str = "resnet50", pretrained: bool = False):
         "deit": torch.hub.load(
             "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=pretrained
         ),
-        "inception": torchvision.models.models.inception_v3(pretrained=pretrained),
+        "inception": torchvision.models.inception_v3(pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
