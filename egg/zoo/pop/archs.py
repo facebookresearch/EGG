@@ -186,7 +186,7 @@ class PerAgentGame(nn.Module):
         aux_input=None,
     ):
         # aux_input seems to be for inference (and not training). Just trying it here.
-        if isinstance(self.sender, SimCLRSender):
+        if isinstance(sender, SimCLRSender):
             message, message_like, resnet_output_sender = sender(
                 sender_input, sender=True
             )
