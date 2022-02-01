@@ -87,8 +87,8 @@ class EmSSLSender(nn.Module):
         super(EmSSLSender, self).__init__()
         if vision_module is None:
             raise NotImplementedError(
-                "Sneder not implemented without vision_module"
-            )  # Mat : maybe just remove the optional marker
+                "no implementation of sender without a vision_module"
+            )  # Mat : maybe just remove the optional marker ?
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
             input_dim = self.vision_module.fc.in_features
@@ -155,6 +155,7 @@ class Receiver(nn.Module):
 
 
 class PerAgentGame(nn.Module):
+    # Mat : Modification from the em_com_as_ssl to allow for different senders to be sampled
     def __init__(
         self,
         train_logging_strategy: Optional[LoggingStrategy] = None,
@@ -174,7 +175,17 @@ class PerAgentGame(nn.Module):
             else test_logging_strategy
         )
 
-    def forward(self, sender, receiver, loss, sender_input, labels, receiver_input):
+    def forward(
+        self,
+        sender,
+        receiver,
+        loss,
+        sender_input,
+        labels,
+        receiver_input,
+        aux_input=None,
+    ):
+        # aux_input seems to be for inference (and not training). Just trying it here.
         if isinstance(self.sender, SimCLRSender):
             message, message_like, resnet_output_sender = sender(
                 sender_input, sender=True
