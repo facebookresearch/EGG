@@ -12,29 +12,8 @@ from egg.zoo.pop.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
     Receiver,
-    VisionModule,
-    get_vision_modules,
 )
 from egg.zoo.emcom_as_ssl.losses import get_loss
-
-
-def build_vision_encoder(
-    model_name: str = "resnet50",
-    shared_vision: bool = False,
-    pretrain_vision: bool = False,
-):
-    (
-        sender_vision_module,
-        receiver_vision_module,
-        visual_features_dim,
-    ) = get_vision_modules(
-        encoder_arch=model_name, shared=shared_vision, pretrain_vision=pretrain_vision
-    )
-    vision_encoder = VisionModule(
-        sender_vision_module=sender_vision_module,
-        receiver_vision_module=receiver_vision_module,
-    )
-    return vision_encoder, visual_features_dim
 
 
 def build_game(
@@ -47,8 +26,8 @@ def build_game(
         loss_type=opts.loss_type,
     )
 
-    train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
-    test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
+    # train_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
+    # test_logging_strategy = LoggingStrategy(False, False, True, True, True, False)
 
     if opts.simclr_sender:
         raise NotImplementedError("Not implemented in the pop Game")
