@@ -87,7 +87,7 @@ class EmSSLSender(nn.Module):
         super(EmSSLSender, self).__init__()
         if vision_module is None:
             raise NotImplementedError(
-                "no implementation of sender without a vision_module"
+                "Sender with no vision module is not currently implemented"
             )  # Mat : maybe just remove the optional marker ?
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -185,7 +185,10 @@ class PerAgentGame(nn.Module):
         receiver_input,
         aux_input=None,
     ):
-        # aux_input seems to be for inference (and not training). Just trying it here.
+        # Mat : aux_input seems to be for inference (and not training).
+        # Writting it here catches the extra param sent by popgame.
+        # Mat : sender_input has everything and receiver input has nothing, which seems kind of counter-intuitive
+        sender_input, receiver_input = sender_input
         if isinstance(sender, SimCLRSender):
             message, message_like, resnet_output_sender = sender(
                 sender_input, sender=True
