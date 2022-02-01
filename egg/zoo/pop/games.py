@@ -49,8 +49,8 @@ def build_game(
     senders = [sender]
     receivers = [receiver]
     losses = [loss]
-    train_logging_strategy = (train_logging_strategy,)
-    test_logging_strategy = (test_logging_strategy,)
+    # train_logging_strategy = (train_logging_strategy,) # Mat : need to check if this had an importance
+    # test_logging_strategy = (test_logging_strategy,)
     game = PerAgentGame(train_logging_strategy, test_logging_strategy)
 
     agents_loss_sampler = FullSweepAgentSampler(senders, receivers, losses)

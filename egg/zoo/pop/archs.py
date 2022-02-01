@@ -182,13 +182,14 @@ class PerAgentGame(nn.Module):
         loss,
         sender_input,
         labels,
-        receiver_input,
+        receiver_input,  # Mat : None
         aux_input=None,
     ):
         # Mat : aux_input seems to be for inference (and not training).
         # Writting it here catches the extra param sent by popgame.
         # Mat : sender_input has everything and receiver input has nothing, which seems kind of counter-intuitive
         sender_input, receiver_input = sender_input
+
         if isinstance(sender, SimCLRSender):
             message, message_like, resnet_output_sender = sender(
                 sender_input, sender=True
