@@ -154,7 +154,7 @@ class Receiver(nn.Module):
         return self.fc(vision_output), vision_output.detach()
 
 
-class PopSymbolGame(nn.Module):
+class PerAgentGame(nn.Module):
     def __init__(
         self,
         train_logging_strategy: Optional[LoggingStrategy] = None,
@@ -162,7 +162,7 @@ class PopSymbolGame(nn.Module):
         *args,
         **kwargs,
     ):
-        super(PopSymbolGame, self).__init__(*args, **kwargs)
+        super(PerAgentGame, self).__init__(*args, **kwargs)
         self.train_logging_strategy = (
             LoggingStrategy()
             if train_logging_strategy is None

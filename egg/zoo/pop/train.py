@@ -71,7 +71,7 @@ def main(params):
         shared_vision=opts.shared_vision,
         n_epochs=opts.n_epochs,
         checkpoint_dir=opts.checkpoint_dir,
-        sender=game.game.sender,
+        sender=game.agents_loss_sampler.senders,
         train_gs_temperature=opts.train_gs_temperature,
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
@@ -99,7 +99,9 @@ def main(params):
     }
     # Here be error due to imagenet not being allowed (follow up qu° : where are the tests during training ?)
     # I also need to make sure printed torch has game information inside it
-    i_test_loader = get_dataloader(dataset_name="cifar_100", **data_args)
+    i_test_loader = get_dataloader(
+        dataset_name="cifar100", training_set=False, **data_args
+    )
     _, i_test_interaction = trainer.eval(i_test_loader)
     dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
     dump.update(dict(mode="VALIDATION_I_TEST"))
