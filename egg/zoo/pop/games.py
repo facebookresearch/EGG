@@ -12,8 +12,6 @@ from egg.zoo.pop.archs import (
     EmComSSLSymbolGame,
     EmSSLSender,
     Receiver,
-    SimCLRSender,
-    VisionGameWrapper,
     VisionModule,
     get_vision_modules,
 )
@@ -56,7 +54,7 @@ def build_game(
         raise NotImplementedError("Not implemented in the pop Game")
     else:
         sender = EmSSLSender(
-            vision_module=opts.model_name,
+            vision_module=opts.sender_model_name,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
             temperature=opts.gs_temperature,
@@ -64,7 +62,7 @@ def build_game(
             straight_through=opts.straight_through,
         )
         receiver = Receiver(
-            vision_module=opts.model_name,
+            vision_module=opts.rcv_model_name,
             hidden_dim=opts.projection_hidden_dim,
             output_dim=opts.projection_output_dim,
         )
