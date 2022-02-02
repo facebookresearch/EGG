@@ -11,7 +11,7 @@ import torch
 # Mat : Here we make the links to the emcom_as_ssl parts that have not been changed and the pop parts that have
 import egg.core as core
 from egg.zoo.pop.data import get_dataloader
-from egg.zoo.emcom_as_ssl.game_callbacks import get_callbacks
+from egg.zoo.pop.game_callbacks import get_callbacks
 from egg.zoo.pop.games import build_game
 from egg.zoo.emcom_as_ssl.LARC import LARC
 from egg.zoo.emcom_as_ssl.utils import add_weight_decay

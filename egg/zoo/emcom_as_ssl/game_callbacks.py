@@ -75,50 +75,6 @@ class BestStatsTracker(Callback):
         print(json.dumps(val_stats), flush=True)
 
 
-class VisionModelSaver(Callback):
-    """A callback that stores vision module(s) in trainer's checkpoint_dir, if any."""
-
-    def __init__(
-        self,
-        shared: bool,
-    ):
-        super().__init__()
-        self.shared = shared
-
-    def save_vision_model(self, epoch=""):
-        if hasattr(self.trainer, "checkpoint_path"):
-            if (
-                self.trainer.checkpoint_path
-                and self.trainer.distributed_context.is_leader
-            ):
-                self.trainer.checkpoint_path.mkdir(exist_ok=True, parents=True)
-                if self.trainer.distributed_context.is_distributed:
-                    # if distributed training the model is an instance of
-                    # DistributedDataParallel and we need to unpack it from it.
-                    vision_module = self.trainer.game.module.vision_module
-                else:
-                    vision_module = self.trainer.game.vision_module
-
-                model_name = f"vision_module_{'shared' if self.shared else 'sender'}_{epoch if epoch else 'final'}.pt"
-                torch.save(
-                    vision_module.encoder.state_dict(),
-                    self.trainer.checkpoint_path / model_name,
-                )
-
-                if not self.shared:
-                    model_name = f"vision_module_recv_{epoch if epoch else '_final'}.pt"
-                    torch.save(
-                        vision_module.encoder_recv.state_dict(),
-                        self.trainer.checkpoint_path / model_name,
-                    )
-
-    def on_train_end(self):
-        self.save_vision_model()
-
-    def on_epoch_end(self, loss: float, _logs: Interaction, epoch: int):
-        self.save_vision_model(epoch=epoch)
-
-
 class DistributedSamplerEpochSetter(Callback):
     """A callback that sets the right epoch of a DistributedSampler instance."""
 
@@ -148,7 +104,6 @@ def get_callbacks(
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
-        VisionModelSaver(shared_vision),
     ]
 
     if is_distributed:
