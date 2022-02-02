@@ -11,7 +11,6 @@ import torch.nn as nn
 from egg.core import ConsoleLogger, TemperatureUpdater
 from egg.zoo.emcom_as_ssl.game_callbacks import (
     BestStatsTracker,
-    VisionModelSaver,
     DistributedSamplerEpochSetter,
 )
 
@@ -31,7 +30,6 @@ def get_callbacks(
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
-        VisionModelSaver(shared_vision),
     ]
 
     if is_distributed:
