@@ -71,7 +71,7 @@ def main(params):
         shared_vision=opts.shared_vision,
         n_epochs=opts.n_epochs,
         checkpoint_dir=opts.checkpoint_dir,
-        sender=game.agents_loss_sampler.senders,
+        senders=game.agents_loss_sampler.senders,
         train_gs_temperature=opts.train_gs_temperature,
         minimum_gs_temperature=opts.minimum_gs_temperature,
         update_gs_temp_frequency=opts.update_gs_temp_frequency,
