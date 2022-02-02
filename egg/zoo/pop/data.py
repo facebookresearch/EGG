@@ -38,7 +38,7 @@ def get_dataloader(
     )
 
     if dataset_name == "cifar100":
-        train_dataset = datasets.CIFAR10(
+        train_dataset = datasets.CIFAR100(
             root="./data", train=training_set, download=True, transform=transformations
         )
     else:
@@ -117,7 +117,7 @@ class ImageTransformation:
                     transforms.CenterCrop(299),
                 ]
             )
-        elif dataset_name == "cifar10":
+        elif dataset_name == "cifar100":
             transformations.append(
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             )
