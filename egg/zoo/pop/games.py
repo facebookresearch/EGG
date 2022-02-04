@@ -41,7 +41,7 @@ def build_game(opts):
 
     if opts.use_different_architectures:
         vision_module_names_senders = eval(
-            opts.vision_model_names_senders.replace("#", '"')
+            opts.vision_model_names_senders.replace("#", '"')  # Mat : ...
         )
         vision_module_names_receivers = eval(
             opts.vision_model_names_recvs.replace("#", '"')
