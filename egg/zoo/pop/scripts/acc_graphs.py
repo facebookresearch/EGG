@@ -37,4 +37,4 @@ def make_acc_graph():
     pass
 
 
-text_to_data()
+make_acc_graph()
