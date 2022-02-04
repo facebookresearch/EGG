@@ -19,10 +19,7 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
 
 
 def get_log_files(wandb_path="/mnt/efs/fs1/EGG/wandb"):
-    return [
-        os.path.join(file, "files/output.log")
-        for file in glob.glob(wandb_path + "/run*")
-    ]
+    return [file for file in glob.glob(wandb_path + "/run*")]
 
 
 def make_acc_graph():
@@ -32,10 +29,10 @@ def make_acc_graph():
     # access the number of epochs as x
     # plot with line indicating arrival time at chosen performance
     # Additionaly, give the arriving accuracy and the number of epochs to reach peak performance (to check validity of what will later be used.)
-    for file_path in get_log_files():
-        x, y = text_to_data(file_path, mode="train")
+    for i, file_path in enumerate(get_log_files()):
+        x, y = text_to_data(os.path.join(file_path, "files/output.log"), mode="train")
         plt.plot(x, y)
-        plt.savefig()
+        plt.savefig(os.path.join(file_path, "acc_graph.png"))
 
     pass
 
