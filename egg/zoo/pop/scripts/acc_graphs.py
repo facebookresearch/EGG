@@ -18,6 +18,15 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
         return x, y
 
 
+def extract_metadata(file):
+    meta = json.load(file)
+    return (
+        meta.args[5][29 : len(meta.args[5]) - 2]
+        + " + "
+        + meta.args[10][31 : len(meta.args[10]) - 2]
+    )
+
+
 def get_log_files(wandb_path="/mnt/efs/fs1/EGG/wandb"):
     return [file for file in glob.glob(wandb_path + "/run*")]
 
@@ -31,7 +40,15 @@ def make_acc_graph():
     # Additionaly, give the arriving accuracy and the number of epochs to reach peak performance (to check validity of what will later be used.)
     for i, file_path in enumerate(get_log_files()):
         x, y = text_to_data(os.path.join(file_path, "files/output.log"), mode="train")
-        plt.plot(x, y)
+        plt.plot(
+            x,
+            y,
+            label=extract_metadata(
+                os.path.join(file_path, "files/wandb-metadata.json")
+            ),
+        )
+        plt.legend()
+        plt.title("r={}")
         plt.savefig(os.path.join(file_path, "acc_graph.png"))
 
     pass
