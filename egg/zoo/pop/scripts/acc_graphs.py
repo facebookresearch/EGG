@@ -18,13 +18,14 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
         return x, y
 
 
-def extract_metadata(file):
-    meta = json.load(file)
-    return (
-        meta.args[5][29 : len(meta.args[5]) - 2]
-        + " + "
-        + meta.args[10][31 : len(meta.args[10]) - 2]
-    )
+def extract_metadata(path):
+    with open(path) as file:
+        meta = json.load(file)
+        return (
+            meta.args[5][29 : len(meta.args[5]) - 2]
+            + " + "
+            + meta.args[10][31 : len(meta.args[10]) - 2]
+        )
 
 
 def get_log_files(wandb_path="/mnt/efs/fs1/EGG/wandb"):
