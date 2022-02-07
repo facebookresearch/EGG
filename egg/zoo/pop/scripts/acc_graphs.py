@@ -21,6 +21,7 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
 def extract_metadata(path):
     with open(path) as file:
         meta = json.load(file)
+        print(meta["args"][5],meta["args"][10])
         return (
             meta["args"][5][29 : len(meta["args"][5]) - 2]
             + " + "
