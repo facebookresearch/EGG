@@ -22,9 +22,9 @@ def extract_metadata(path):
     with open(path) as file:
         meta = json.load(file)
         return (
-            meta.args[5][29 : len(meta.args[5]) - 2]
+            meta["args"][5][29 : len(meta.args[5]) - 2]
             + " + "
-            + meta.args[10][31 : len(meta.args[10]) - 2]
+            + meta["args"][10][31 : len(meta.args[10]) - 2]
         )
 
 
