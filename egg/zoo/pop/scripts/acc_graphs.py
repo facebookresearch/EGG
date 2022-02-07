@@ -21,12 +21,13 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
 def extract_metadata(path):
     with open(path) as file:
         meta = json.load(file)
-        print(meta["args"][5], meta["args"][10])
-        return (
-            meta["args"][5][29 : len(meta["args"][5]) - 2]
-            + " + "
-            + meta["args"][10][31 : len(meta["args"][10]) - 2]
-        )
+        result = ""
+        for arg in meta["args"]:
+            if "--vision_model_names_recvs" in arg:
+                result += arg[29 : len(arg) - 2] + " "
+            if "--vision_model_names_senders" in arg:
+                result += arg[31 : len(arg) - 2]
+        return result
 
 
 def get_log_files(wandb_path):
