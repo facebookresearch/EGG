@@ -21,7 +21,7 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
 def extract_metadata(path):
     with open(path) as file:
         meta = json.load(file)
-        print(meta["args"][5],meta["args"][10])
+        print(meta["args"][5], meta["args"][10])
         return (
             meta["args"][5][29 : len(meta["args"][5]) - 2]
             + " + "
@@ -29,18 +29,19 @@ def extract_metadata(path):
         )
 
 
-def get_log_files(wandb_path="/mnt/efs/fs1/EGG/wandb"):
+def get_log_files(wandb_path):
     return [file for file in glob.glob(wandb_path + "/run*")]
 
 
-def make_acc_graph():
+def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb"):
     # model identifyer
     # is the validation directly printed in the logs ? if yes could we json bundle it all for easier access ?
     # access the validation data
     # access the number of epochs as x
     # plot with line indicating arrival time at chosen performance
     # Additionaly, give the arriving accuracy and the number of epochs to reach peak performance (to check validity of what will later be used.)
-    for i, file_path in enumerate(get_log_files()):
+    for file_path in get_log_files(wandb_path):
+        print(f"extracting data from {file_path}")
         x, y = text_to_data(os.path.join(file_path, "files/output.log"), mode="train")
         plt.plot(
             x,
@@ -50,10 +51,9 @@ def make_acc_graph():
             ),
         )
         plt.legend()
-        plt.title("r={}")
-        plt.savefig(os.path.join(file_path, "acc_graph.png"))
-
-    pass
+        # plt.title("r={}")
+    plt.savefig(os.path.join(wandb_path, "acc_graph.png"))
 
 
 make_acc_graph()
+# print(extract_metadata("D:/alpha/EGG/egg/zoo/pop/test.json"))
