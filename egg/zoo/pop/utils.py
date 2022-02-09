@@ -84,7 +84,7 @@ def get_vision_module_opts(parser):
         "--vision_model_name",
         type=str,
         default="",
-        choices=["resnet50", "resnet101", "resnet152", "vgg11", "inception"],
+        choices=["resnet50", "resnet101", "resnet152", "vgg11", "inception", "vit"],
         help="Model name for the encoder",
     )
     group.add_argument(
@@ -113,7 +113,7 @@ def get_vision_module_opts(parser):
     )
     group.add_argument(
         "--use_different_architectures",
-        default=False,
+        default=True,
         action="store_true",
         help="Population game with different architectures.",
     )
@@ -122,10 +122,10 @@ def get_vision_module_opts(parser):
 def get_game_arch_opts(parser):
     group = parser.add_argument_group("game architecture")
     group.add_argument(
-        "--n_senders", type=int, default=3, help="Number of senders in the population"
+        "--n_senders", type=int, default=1, help="Number of senders in the population"
     )
     group.add_argument(
-        "--n_recvs", type=int, default=3, help="Number of receivers in the population"
+        "--n_recvs", type=int, default=1, help="Number of receivers in the population"
     )
     group.add_argument(
         "--recv_temperature",

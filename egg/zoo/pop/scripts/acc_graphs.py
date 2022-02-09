@@ -32,17 +32,16 @@ def extract_metadata(path, verbose=False):
         return result
 
 
+def extract_meta_from_output():
+
+    pass
+
+
 def get_log_files(wandb_path):
     return [file for file in glob.glob(wandb_path + "/run*")]
 
 
 def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb", verbose=False):
-    # model identifyer
-    # is the validation directly printed in the logs ? if yes could we json bundle it all for easier access ?
-    # access the validation data
-    # access the number of epochs as x
-    # plot with line indicating arrival time at chosen performance
-    # Additionaly, give the arriving accuracy and the number of epochs to reach peak performance (to check validity of what will later be used.)
     for file_path in get_log_files(wandb_path):
         print(f"extracting data from {file_path}")
         x, y = text_to_data(os.path.join(file_path, "files/output.log"), mode="train")
@@ -56,6 +55,10 @@ def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb", verbose=False):
         plt.legend()
         # plt.title("r={}")
     plt.savefig(os.path.join(wandb_path, "acc_graph.png"))
+
+
+def nest_acc_graph():
+    pass
 
 
 make_acc_graph(verbose=True)

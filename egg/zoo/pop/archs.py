@@ -6,6 +6,7 @@
 import itertools
 from typing import Optional, Union
 
+import timm
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,13 +23,14 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(pretrained=pretrained),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
+        "vit": timm.create_model("vit_base_patch16_224", pretrained=True),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
 
     model = modules[name]
 
-    if name in ["resnet50", "resnet101", "resnet152"]:
+    if name in ["resnet50", "resnet101", "resnet152", "vit"]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
 
