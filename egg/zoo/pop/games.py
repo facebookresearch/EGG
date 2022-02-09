@@ -155,13 +155,18 @@ def build_game(opts):
 
 
 def _build_second_game(opts):
-    """temporary version of build_game, train a new receiver with a pretrained sender"""
+    """temporary version of build_game, train a new receiver with a pretrained sender
+    (might end up using checkpoints instead...)
+    """
+
     train_logging_strategy = LoggingStrategy(
         False, False, False, False, False, False, False
     )
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
-    if opts.use_different_architectures: # Mat : Nearly forgot that one twice. Maybe refactor the opts
+    if (
+        opts.use_different_architectures
+    ):  # Mat : Nearly forgot that one twice. Maybe refactor the opts
         vision_module_names_senders = eval(
             opts.vision_model_names_senders.replace("#", '"')
         )
@@ -172,9 +177,8 @@ def _build_second_game(opts):
         print(vision_module_names_senders)
         print(vision_module_names_receivers)
 
-        vision_modules_senders = [ # Mat : input are paths to pretrained models
-            torch.load(vision_module_names_senders[i])
-            for i in range(opts.n_senders)
+        vision_modules_senders = [  # Mat : input are paths to pretrained models
+            torch.load(vision_module_names_senders[i]) for i in range(opts.n_senders)
         ]
         vision_modules_receivers = [
             initialize_vision_module(

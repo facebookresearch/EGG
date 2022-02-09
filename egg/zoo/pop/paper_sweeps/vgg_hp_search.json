@@ -1,0 +1,50 @@
+{
+    "n_epoch": [
+        15
+    ],
+    "batch_size": [
+        16,
+        8
+    ],
+    "lr": [
+        0.5,
+        1,
+        2.4
+    ],
+    "vocab_size": [
+        256,
+        512,
+        1024
+    ],
+    "random_seed": [
+        111
+    ],
+    "fp16": [
+        true
+    ],
+    "use_augmentations": [
+        true
+    ],
+    "dataset_name": [
+        "cifar100"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "loss_type": [
+        "xent"
+    ],
+    "use_larc": [
+        true
+    ],
+    "vision_module_names_recvs": [
+        [
+            "inception"
+        ]
+    ],
+    "vision_module_names_senders": [
+        [
+            "inception"
+        ]
+    ]
+}
