@@ -31,16 +31,13 @@
     "gs_temperature": [
         5.0
     ],
-    "loss_type": [
-        "xent"
-    ],
     "use_larc": [
         true
     ],
-    "vision_module_names_recvs": [
+    "vision_model_names_recvs": [
         "['vgg11']"
     ],
-    "vision_module_names_senders": [
+    "vision_model_names_senders": [
         "['vgg11']"
     ]
 }
