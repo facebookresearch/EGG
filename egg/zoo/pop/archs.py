@@ -23,7 +23,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(pretrained=pretrained),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
-        "vit": timm.create_model("vit_base_patch16_224", pretrained=True),
+        "vit": timm.create_model("vit_base_patch16_224", pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
@@ -38,10 +38,14 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         n_features = model.classifier[6].in_features
         model.classifier[6] = nn.Identity()
 
-    else:
+    elif name == "inception":
         n_features = model.fc.in_features
         model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
+
+    else:  # vit
+        n_features = model.head.in_features
+        model.head = nn.Identity()
 
     if pretrained:
         for param in model.parameters():
