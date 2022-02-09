@@ -42,5 +42,14 @@
     ],
     "use_different_architectures": [
         true
+    ],
+    "image_size": [
+        512
+    ],
+    "n_recvs": [
+        3
+    ],
+    "n_senders": [
+        3
     ]
 }
