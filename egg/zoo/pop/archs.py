@@ -30,7 +30,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
 
     model = modules[name]
 
-    if name in ["resnet50", "resnet101", "resnet152", "vit"]:
+    if name in ["resnet50", "resnet101", "resnet152"]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
 
