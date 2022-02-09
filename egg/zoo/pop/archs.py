@@ -44,7 +44,9 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     if pretrained:
         for param in model.parameters():
             param.requires_grad = False
-        model = model.eval()
+        model = (
+            model.eval()
+        )  # Mat : --> dropout blocked, as well as all other training dependant behaviors
 
     return model, n_features, name
 
@@ -58,9 +60,11 @@ class Sender(nn.Module):
         vocab_size: int = 2048,
     ):
         super(Sender, self).__init__()
-
         self.name = name
+        self.init_vision_module(vision_module, input_dim)
+        self.init_com_layer(input_dim, vocab_size)
 
+    def init_vision_module(self, vision_module, input_dim):
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
             input_dim = input_dim
@@ -69,10 +73,12 @@ class Sender(nn.Module):
         else:
             raise RuntimeError("Unknown vision module for the Sender")
 
+    def init_com_layer(self, input_dim, vocab_size):
         self.fc = nn.Sequential(
             nn.Linear(input_dim, vocab_size),
             nn.BatchNorm1d(vocab_size),
         )
+        pass
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
@@ -117,8 +123,8 @@ class Receiver(nn.Module):
 
     def forward(self, message, distractors, aux_input=None):
         vision_module_out = self.vision_module(distractors)
-        # if self.name == 'inception':
-        #    vision_module_out = vision_module_out.logits
+        if self.name == "inception":
+            vision_module_out = vision_module_out.logits
         distractors = self.fc(vision_module_out)
 
         similarity_scores = (

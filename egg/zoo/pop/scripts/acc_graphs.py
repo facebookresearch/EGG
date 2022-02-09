@@ -18,7 +18,7 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
         return x, y
 
 
-def extract_metadata(path):
+def extract_metadata(path, verbose=False):
     with open(path) as file:
         meta = json.load(file)
         result = ""
@@ -27,6 +27,8 @@ def extract_metadata(path):
                 result += arg[29 : len(arg) - 2] + " "
             if "--vision_model_names_senders" in arg:
                 result += arg[31 : len(arg) - 2]
+        if verbose:
+            print(result)
         return result
 
 
@@ -34,7 +36,7 @@ def get_log_files(wandb_path):
     return [file for file in glob.glob(wandb_path + "/run*")]
 
 
-def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb"):
+def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb", verbose=False):
     # model identifyer
     # is the validation directly printed in the logs ? if yes could we json bundle it all for easier access ?
     # access the validation data
@@ -48,7 +50,7 @@ def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb"):
             x,
             y,
             label=extract_metadata(
-                os.path.join(file_path, "files/wandb-metadata.json")
+                os.path.join(file_path, "files/wandb-metadata.json"), verbose=verbose
             ),
         )
         plt.legend()
@@ -56,5 +58,5 @@ def make_acc_graph(wandb_path="/mnt/efs/fs1/EGG/wandb"):
     plt.savefig(os.path.join(wandb_path, "acc_graph.png"))
 
 
-make_acc_graph()
+make_acc_graph(verbose=True)
 # print(extract_metadata("D:/alpha/EGG/egg/zoo/pop/test.json"))
