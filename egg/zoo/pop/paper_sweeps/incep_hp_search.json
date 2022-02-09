@@ -39,12 +39,12 @@
     ],
     "vision_module_names_recvs": [
         [
-            "vgg11"
+            "inception"
         ]
     ],
     "vision_module_names_senders": [
         [
-            "vgg11"
+            "inception"
         ]
     ]
 }
