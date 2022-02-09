@@ -38,13 +38,9 @@
         true
     ],
     "vision_module_names_recvs": [
-        [
-            "vgg11"
-        ]
+        "['vgg11']"
     ],
     "vision_module_names_senders": [
-        [
-            "vgg11"
-        ]
+        "['vgg11']"
     ]
 }
