@@ -31,20 +31,16 @@
     "gs_temperature": [
         5.0
     ],
-    "loss_type": [
-        "xent"
-    ],
     "use_larc": [
         true
     ],
-    "vision_module_names_recvs": [
-        [
-            "resnet152"
-        ]
+    "vision_model_names_recvs": [
+        "['resnet152']"
     ],
-    "vision_module_names_senders": [
-        [
-            "resnet152"
-        ]
+    "vision_model_names_senders": [
+        "['resnet152']"
+    ],
+    "use_different_architectures": [
+        true
     ]
 }

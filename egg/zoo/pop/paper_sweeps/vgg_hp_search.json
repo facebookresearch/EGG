@@ -39,5 +39,8 @@
     ],
     "vision_model_names_senders": [
         "['vgg11']"
+    ],
+    "use_different_architectures": [
+        true
     ]
 }
