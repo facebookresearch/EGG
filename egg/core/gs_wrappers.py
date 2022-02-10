@@ -13,12 +13,11 @@ from .interaction import LoggingStrategy
 
 
 def gumbel_softmax_sample(
-    logits: torch.Tensor,
-    temperature: float = 1.0,
-    training: bool = True,
-    straight_through: bool = False,
+        logits: torch.Tensor,
+        temperature: float = 1.0,
+        training: bool = True,
+        straight_through: bool = False,
 ):
-
     size = logits.size()
     if not training:
         indexes = logits.argmax(dim=-1)
@@ -42,10 +41,10 @@ def gumbel_softmax_sample(
 
 class GumbelSoftmaxLayer(nn.Module):
     def __init__(
-        self,
-        temperature: float = 1.0,
-        trainable_temperature: bool = False,
-        straight_through: bool = False,
+            self,
+            temperature: float = 1.0,
+            trainable_temperature: bool = False,
+            straight_through: bool = False,
     ):
         super(GumbelSoftmaxLayer, self).__init__()
         self.straight_through = straight_through
@@ -83,11 +82,11 @@ class GumbelSoftmaxWrapper(nn.Module):
     """
 
     def __init__(
-        self,
-        agent,
-        temperature=1.0,
-        trainable_temperature=False,
-        straight_through=False,
+            self,
+            agent,
+            temperature=1.0,
+            trainable_temperature=False,
+            straight_through=False,
     ):
         """
         :param agent: The agent to be wrapped. agent.forward() has to output log-probabilities over the vocabulary
@@ -140,12 +139,12 @@ class SymbolGameGS(nn.Module):
     """
 
     def __init__(
-        self,
-        sender: nn.Module,
-        receiver: nn.Module,
-        loss: Callable,
-        train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None,
+            self,
+            sender: nn.Module,
+            receiver: nn.Module,
+            loss: Callable,
+            train_logging_strategy: Optional[LoggingStrategy] = None,
+            test_logging_strategy: Optional[LoggingStrategy] = None,
     ):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
@@ -228,7 +227,7 @@ class RelaxedEmbedding(nn.Embedding):
 
     def forward(self, x):
         if isinstance(x, torch.LongTensor) or (
-            torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)
+                torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)
         ):
             return F.embedding(
                 x,
@@ -281,16 +280,16 @@ class RnnSenderGS(nn.Module):
     """
 
     def __init__(
-        self,
-        agent,
-        vocab_size,
-        embed_dim,
-        hidden_size,
-        max_len,
-        temperature,
-        cell="rnn",
-        trainable_temperature=False,
-        straight_through=False,
+            self,
+            agent,
+            vocab_size,
+            embed_dim,
+            hidden_size,
+            max_len,
+            temperature,
+            cell="rnn",
+            trainable_temperature=False,
+            straight_through=False,
     ):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
@@ -448,13 +447,13 @@ class SenderReceiverRnnGS(nn.Module):
     """
 
     def __init__(
-        self,
-        sender,
-        receiver,
-        loss,
-        length_cost=0.0,
-        train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None,
+            self,
+            sender,
+            receiver,
+            loss,
+            length_cost=0.0,
+            train_logging_strategy: Optional[LoggingStrategy] = None,
+            test_logging_strategy: Optional[LoggingStrategy] = None,
     ):
         """
         :param sender: sender agent
@@ -524,8 +523,8 @@ class SenderReceiverRnnGS(nn.Module):
 
         # the remainder of the probability mass
         loss += (
-            step_loss * not_eosed_before
-            + self.length_cost * (step + 1.0) * not_eosed_before
+                step_loss * not_eosed_before
+                + self.length_cost * (step + 1.0) * not_eosed_before
         )
         expected_length += (step + 1) * not_eosed_before
 
@@ -550,6 +549,225 @@ class SenderReceiverRnnGS(nn.Module):
             receiver_output=receiver_output.detach(),
             message=message.detach(),
             message_length=expected_length.detach(),
+            aux=aux_info,
+        )
+
+        return loss.mean(), interaction
+
+
+class FixedLengthSenderGS(nn.Module):
+    """
+    Gumbel Softmax wrapper for Sender that outputs fixed-length sequence of symbols.
+    The user-defined `agent` takes an input and outputs an initial hidden state vector for the RNN cell;
+    `RnnSenderGS` then unrolls this RNN for the `nos` symbols. Supports vanilla RNN ('rnn'), GRU ('gru'),
+    and LSTM ('lstm') cells.
+    """
+
+    def __init__(
+            self,
+            agent,
+            vocab_size,
+            embed_dim,
+            hidden_size,
+            temperature,
+            cell="rnn",
+            nos=1,
+            trainable_temperature=False,
+            straight_through=False,
+    ):
+        super(FixedLengthSenderGS, self).__init__()
+        self.agent = agent
+
+        assert nos >= 1, "Cannot have a max_len below 1"
+        self.nos = nos
+
+        self.hidden_to_output = nn.Linear(hidden_size, vocab_size)
+        self.embedding = nn.Linear(vocab_size, embed_dim)
+        self.sos_embedding = nn.Parameter(torch.zeros(embed_dim))
+        self.embed_dim = embed_dim
+        self.vocab_size = vocab_size
+
+        if not trainable_temperature:
+            self.temperature = temperature
+        else:
+            self.temperature = torch.nn.Parameter(
+                torch.tensor([temperature]), requires_grad=True
+            )
+
+        self.straight_through = straight_through
+        self.cell = None
+
+        cell = cell.lower()
+
+        if cell == "rnn":
+            self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
+        elif cell == "gru":
+            self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
+        elif cell == "lstm":
+            self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
+        else:
+            raise ValueError(f"Unknown RNN Cell: {cell}")
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.normal_(self.sos_embedding, 0.0, 0.01)
+
+    def forward(self, x, aux_input=None):
+        prev_hidden = self.agent(x, aux_input)
+        prev_c = torch.zeros_like(prev_hidden)  # only for LSTM
+
+        e_t = torch.stack([self.sos_embedding] * prev_hidden.size(0))
+        sequence = []
+
+        for step in range(self.nos):
+            if isinstance(self.cell, nn.LSTMCell):
+                h_t, prev_c = self.cell(e_t, (prev_hidden, prev_c))
+            else:
+                h_t = self.cell(e_t, prev_hidden)
+
+            step_logits = self.hidden_to_output(h_t)
+            x = gumbel_softmax_sample(
+                step_logits, self.temperature, self.training, self.straight_through
+            )
+
+            prev_hidden = h_t
+            e_t = self.embedding(x)
+            sequence.append(x)
+
+        sequence = torch.stack(sequence).permute(1, 0, 2)
+
+        eos = torch.zeros_like(sequence[:, 0, :]).unsqueeze(1)
+        eos[:, 0, 0] = 1
+        sequence = torch.cat([sequence, eos], dim=1)
+
+        return sequence
+
+
+class FixedLengthReceiverGS(nn.Module):
+    """
+    Gumbel Softmax-based wrapper for Receiver agent in Fixed-length communication game. The user implemented logic
+    is passed in `agent` and is responsible for mapping (RNN's hidden state + Receiver's optional input)
+    into the output vector.
+    """
+
+    def __init__(self, agent, vocab_size, embed_dim, hidden_size, cell="rnn", nos=1):
+        super(FixedLengthReceiverGS, self).__init__()
+        self.agent = agent
+        self.nos = nos  # Number of Symbols that the Receiver gets from Sender.
+
+        self.cell = None
+        cell = cell.lower()
+        if cell == "rnn":
+            self.cell = nn.RNNCell(input_size=embed_dim, hidden_size=hidden_size)
+        elif cell == "gru":
+            self.cell = nn.GRUCell(input_size=embed_dim, hidden_size=hidden_size)
+        elif cell == "lstm":
+            self.cell = nn.LSTMCell(input_size=embed_dim, hidden_size=hidden_size)
+        else:
+            raise ValueError(f"Unknown RNN Cell: {cell}")
+
+        self.embedding = nn.Linear(vocab_size, embed_dim)
+
+    def forward(self, message, input=None, aux_input=None):
+        outputs = []
+
+        emb = self.embedding(message)
+
+        prev_hidden = None
+        prev_c = None
+        h_t = None
+
+        # to get an access to the hidden states, we have to unroll the cell ourselves
+        for step in range(message.size(1)):
+            e_t = emb[:, step, ...]
+            if isinstance(self.cell, nn.LSTMCell):
+                h_t, prev_c = (
+                    self.cell(e_t, (prev_hidden, prev_c))
+                    if prev_hidden is not None
+                    else self.cell(e_t)
+                )
+            else:
+                h_t = self.cell(e_t, prev_hidden)
+
+            prev_hidden = h_t
+
+        outputs.append(self.agent(h_t, input, aux_input))
+        outputs = torch.stack(outputs).permute(1, 0, 2)
+
+        return outputs
+
+
+class FixedLengthSenderReceiverGS(nn.Module):
+    """
+    This class implements the Sender/Receiver game mechanics for the Sender/Receiver game with fixed-length
+    communication messages and Gumber-Softmax relaxation of the channel. It is assumed that communication is stopped
+    only after all the message is processed.
+    """
+
+    def __init__(
+            self,
+            sender,
+            receiver,
+            loss,
+            train_logging_strategy: Optional[LoggingStrategy] = None,
+            test_logging_strategy: Optional[LoggingStrategy] = None,
+    ):
+        """
+        :param sender: sender agent
+        :param receiver: receiver agent
+        :param loss:  the optimized loss that accepts
+            sender_input: input of Sender
+            message: the is sent by Sender
+            receiver_input: input of Receiver from the dataset
+            receiver_output: output of Receiver
+            labels: labels assigned to Sender's input data
+          and outputs a tuple of (1) a loss tensor of shape (batch size, 1) (2) the dict with auxiliary information
+          of the same shape. The loss will be minimized during training, and the auxiliary information aggregated over
+          all batches in the dataset.
+        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
+            later analysis in the callbacks.
+
+        """
+        super(FixedLengthSenderReceiverGS, self).__init__()
+        self.sender = sender
+        self.receiver = receiver
+        self.loss = loss
+        self.train_logging_strategy = (
+            LoggingStrategy()
+            if train_logging_strategy is None
+            else train_logging_strategy
+        )
+        self.test_logging_strategy = (
+            LoggingStrategy()
+            if test_logging_strategy is None
+            else test_logging_strategy
+        )
+
+    def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
+        message = self.sender(sender_input, aux_input)
+        receiver_output = self.receiver(message, receiver_input, aux_input)
+
+        loss, aux_info = self.loss(
+            sender_input,
+            message[:, 0, ...],
+            receiver_input,
+            receiver_output[:, 0, ...],
+            labels,
+            aux_input,
+        )
+
+        logging_strategy = (
+            self.train_logging_strategy if self.training else self.test_logging_strategy
+        )
+        interaction = logging_strategy.filtered_interaction(
+            sender_input=sender_input,
+            receiver_input=receiver_input,
+            labels=labels,
+            aux_input=aux_input,
+            receiver_output=receiver_output.detach(),
+            message=message.detach(),
+            message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
 

@@ -25,7 +25,7 @@ from .gs_wrappers import (
     RnnSenderGS,
     SenderReceiverRnnGS,
     SymbolGameGS,
-    SymbolReceiverWrapper,
+    SymbolReceiverWrapper, FixedLengthSenderGS, FixedLengthReceiverGS, FixedLengthSenderReceiverGS,
 )
 from .interaction import Interaction, LoggingStrategy, dump_interactions
 from .language_analysis import (
@@ -111,4 +111,7 @@ __all__ = [
     "ContinuousLinearSender",
     "ContinuousLinearReceiver",
     "SenderReceiverContinuousCommunication",
+    "FixedLengthSenderGS",
+    "FixedLengthReceiverGS",
+    "FixedLengthSenderReceiverGS",
 ]
