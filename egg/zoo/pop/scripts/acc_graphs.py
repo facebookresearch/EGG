@@ -4,7 +4,7 @@ import glob
 import os
 
 
-def text_to_data(file_path, mode="train"):  # Mat going through console
+def text_to_data(file_path, mode="train"):  # Mat : going through console
     with open(file_path) as f:
         x = []
         y = []
@@ -18,23 +18,30 @@ def text_to_data(file_path, mode="train"):  # Mat going through console
         return x, y
 
 
+def extract_model_names(args, verbose=False):
+    result = ""
+    for arg in args:
+        if "--vision_model_names_senders" in arg:
+            result = arg[31 : len(arg) - 2] + result
+        if "--vision_model_names_recvs" in arg:
+            result = result + arg[29 : len(arg) - 2] + " "
+    if verbose:
+        print(result)
+    return result
+
+
 def extract_metadata(path, verbose=False):
     with open(path) as file:
         meta = json.load(file)
-        result = ""
-        for arg in meta["args"]:
-            if "--vision_model_names_recvs" in arg:
-                result += arg[29 : len(arg) - 2] + " "
-            if "--vision_model_names_senders" in arg:
-                result += arg[31 : len(arg) - 2]
-        if verbose:
-            print(result)
-        return result
+    return extract_model_names(meta["args"], verbose=verbose)
 
 
-def extract_meta_from_output():
-
-    pass
+def extract_meta_from_output(file_path, verbose=False):
+    with open(file_path) as f:
+        lines = f.readlines()
+        # from the nest output we only need the first line
+        params = eval(lines[0][2:])  # Mat : injection liability
+    return extract_model_names(params, verbose=verbose)
 
 
 def get_log_files(wandb_path):

@@ -20,10 +20,10 @@
         111
     ],
     "fp16": [
-        true
+        false
     ],
     "use_augmentations": [
-        true
+        false
     ],
     "dataset_name": [
         "cifar100"
