@@ -13,10 +13,10 @@ from .interaction import LoggingStrategy
 
 
 def gumbel_softmax_sample(
-        logits: torch.Tensor,
-        temperature: float = 1.0,
-        training: bool = True,
-        straight_through: bool = False,
+    logits: torch.Tensor,
+    temperature: float = 1.0,
+    training: bool = True,
+    straight_through: bool = False,
 ):
     size = logits.size()
     if not training:
@@ -41,10 +41,10 @@ def gumbel_softmax_sample(
 
 class GumbelSoftmaxLayer(nn.Module):
     def __init__(
-            self,
-            temperature: float = 1.0,
-            trainable_temperature: bool = False,
-            straight_through: bool = False,
+        self,
+        temperature: float = 1.0,
+        trainable_temperature: bool = False,
+        straight_through: bool = False,
     ):
         super(GumbelSoftmaxLayer, self).__init__()
         self.straight_through = straight_through
@@ -82,11 +82,11 @@ class GumbelSoftmaxWrapper(nn.Module):
     """
 
     def __init__(
-            self,
-            agent,
-            temperature=1.0,
-            trainable_temperature=False,
-            straight_through=False,
+        self,
+        agent,
+        temperature=1.0,
+        trainable_temperature=False,
+        straight_through=False,
     ):
         """
         :param agent: The agent to be wrapped. agent.forward() has to output log-probabilities over the vocabulary
@@ -139,12 +139,12 @@ class SymbolGameGS(nn.Module):
     """
 
     def __init__(
-            self,
-            sender: nn.Module,
-            receiver: nn.Module,
-            loss: Callable,
-            train_logging_strategy: Optional[LoggingStrategy] = None,
-            test_logging_strategy: Optional[LoggingStrategy] = None,
+        self,
+        sender: nn.Module,
+        receiver: nn.Module,
+        loss: Callable,
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None,
     ):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
@@ -227,7 +227,7 @@ class RelaxedEmbedding(nn.Embedding):
 
     def forward(self, x):
         if isinstance(x, torch.LongTensor) or (
-                torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)
+            torch.cuda.is_available() and isinstance(x, torch.cuda.LongTensor)
         ):
             return F.embedding(
                 x,
@@ -280,16 +280,16 @@ class RnnSenderGS(nn.Module):
     """
 
     def __init__(
-            self,
-            agent,
-            vocab_size,
-            embed_dim,
-            hidden_size,
-            max_len,
-            temperature,
-            cell="rnn",
-            trainable_temperature=False,
-            straight_through=False,
+        self,
+        agent,
+        vocab_size,
+        embed_dim,
+        hidden_size,
+        max_len,
+        temperature,
+        cell="rnn",
+        trainable_temperature=False,
+        straight_through=False,
     ):
         super(RnnSenderGS, self).__init__()
         self.agent = agent
@@ -447,13 +447,13 @@ class SenderReceiverRnnGS(nn.Module):
     """
 
     def __init__(
-            self,
-            sender,
-            receiver,
-            loss,
-            length_cost=0.0,
-            train_logging_strategy: Optional[LoggingStrategy] = None,
-            test_logging_strategy: Optional[LoggingStrategy] = None,
+        self,
+        sender,
+        receiver,
+        loss,
+        length_cost=0.0,
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None,
     ):
         """
         :param sender: sender agent
@@ -523,8 +523,8 @@ class SenderReceiverRnnGS(nn.Module):
 
         # the remainder of the probability mass
         loss += (
-                step_loss * not_eosed_before
-                + self.length_cost * (step + 1.0) * not_eosed_before
+            step_loss * not_eosed_before
+            + self.length_cost * (step + 1.0) * not_eosed_before
         )
         expected_length += (step + 1) * not_eosed_before
 
@@ -564,16 +564,16 @@ class FixedLengthSenderGS(nn.Module):
     """
 
     def __init__(
-            self,
-            agent,
-            vocab_size,
-            embed_dim,
-            hidden_size,
-            temperature,
-            cell="rnn",
-            nos=1,
-            trainable_temperature=False,
-            straight_through=False,
+        self,
+        agent,
+        vocab_size,
+        embed_dim,
+        hidden_size,
+        temperature,
+        cell="rnn",
+        nos=1,
+        trainable_temperature=False,
+        straight_through=False,
     ):
         super(FixedLengthSenderGS, self).__init__()
         self.agent = agent
@@ -706,12 +706,12 @@ class FixedLengthSenderReceiverGS(nn.Module):
     """
 
     def __init__(
-            self,
-            sender,
-            receiver,
-            loss,
-            train_logging_strategy: Optional[LoggingStrategy] = None,
-            test_logging_strategy: Optional[LoggingStrategy] = None,
+        self,
+        sender,
+        receiver,
+        loss,
+        train_logging_strategy: Optional[LoggingStrategy] = None,
+        test_logging_strategy: Optional[LoggingStrategy] = None,
     ):
         """
         :param sender: sender agent

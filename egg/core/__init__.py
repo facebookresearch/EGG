@@ -19,13 +19,16 @@ from .continous_communication import (
 )
 from .early_stopping import EarlyStopperAccuracy
 from .gs_wrappers import (
+    FixedLengthReceiverGS,
+    FixedLengthSenderGS,
+    FixedLengthSenderReceiverGS,
     GumbelSoftmaxWrapper,
     RelaxedEmbedding,
     RnnReceiverGS,
     RnnSenderGS,
     SenderReceiverRnnGS,
     SymbolGameGS,
-    SymbolReceiverWrapper, FixedLengthSenderGS, FixedLengthReceiverGS, FixedLengthSenderReceiverGS,
+    SymbolReceiverWrapper,
 )
 from .interaction import Interaction, LoggingStrategy, dump_interactions
 from .language_analysis import (
