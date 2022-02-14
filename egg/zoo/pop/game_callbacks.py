@@ -5,7 +5,8 @@
 
 import json
 
-from egg.core import Callback, Interaction, WandbLogger
+from egg.core import Callback, Interaction
+from egg.core.callbacks import WandbLogger
 from typing import Dict, Optional, Union
 import argparse
 import wandb

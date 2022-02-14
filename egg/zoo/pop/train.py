@@ -9,11 +9,13 @@ from pathlib import Path
 
 import egg.core as core
 from egg.core import ConsoleLogger
-from egg.core.callbacks import WandbLogger
+
+# from egg.core.callbacks import WandbLogger
 from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.game_callbacks import (
     BestStatsTracker,
     DistributedSamplerEpochSetter,
+    WandbLogger,
 )
 from egg.zoo.pop.games import build_game
 from egg.zoo.pop.LARC import LARC
@@ -76,7 +78,6 @@ def main(params):
     if opts.use_larc:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
-    opts.dir = opts.checkpoint_dir  # add the dir arguement used by wandb
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
