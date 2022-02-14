@@ -50,7 +50,7 @@ def extract_model_names(args, verbose=False):
     return result
 
 
-def check_constraints(path, names=[], values=[]):
+def check_constraints(path, names=[], values=[], verbose=False):
     """
     Default parameters result in automatic pass
     """
@@ -58,10 +58,15 @@ def check_constraints(path, names=[], values=[]):
     assert len(names) == len(values)
     # Maybe, only the file opener needs to be different
     with open(path) as f:
-        params = metadata_opener(f)
-        for i in range(len(values)):
-            if not extract_param(names[i], params) in values[i]:
-                respects_constraints = False
+        if os.stat("file").st_size == 0:
+            if verbose:
+                print("file is empty")
+            respects_constraints = False
+        else:
+            params = metadata_opener(f)
+            for i in range(len(values)):
+                if not extract_param(names[i], params) in values[i]:
+                    respects_constraints = False
 
     return respects_constraints
 
@@ -78,11 +83,13 @@ def extract_param(param_name, params, verbose=False):
     )  # Mat : is it a Keyerror tho ?
 
 
-def text_to_acc(file_path, mode="train"):  # Mat : going through console
+def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through console
     with open(file_path) as f:
         x = []
         y = []
         lines = f.readlines()
+        if verbose and lines == []:
+            print("empty file")
         for line in lines:
             if "{" in line:
                 _dict = json.loads(line)
@@ -141,11 +148,13 @@ def nest_acc_graph(nest_path="~/nest_local/", names=[], values=[], verbose=False
     xs = []
     ys = []
     labels = []
-    for file_path in glob.glob(nest_path + "*.out"):
+    for file_path in glob.glob(nest_path + "*/*.out"):
+        if verbose:
+            print(file_path)
         # restrict to specific parameters
         if check_constraints(file_path, names, values):
             labels.append(extract_meta_from_nest_out(file_path))
-            x, y = text_to_acc(file_path)
+            x, y = text_to_acc(file_path, verbose)
             xs.append(x)
             ys.append(y)
     acc_graph(xs, ys, labels, nest_path, verbose)
