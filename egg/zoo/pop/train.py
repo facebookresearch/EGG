@@ -92,7 +92,7 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        # validation_data=val_loader,
+        validation_data=val_loader,
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
@@ -101,7 +101,7 @@ def main(params):
     data_args = {
         "image_size": opts.image_size,
         "batch_size": opts.batch_size,
-        "dataset_name": "imagenet",
+        "dataset_name": opts.dataset_name,
         "num_workers": opts.num_workers,
         "use_augmentations": False,
         "is_distributed": opts.distributed_context.is_distributed,
