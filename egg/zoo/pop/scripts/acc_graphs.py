@@ -58,9 +58,9 @@ def check_constraints(path, names=[], values=[], verbose=False):
     assert len(names) == len(values)
     # Maybe, only the file opener needs to be different
     with open(path) as f:
-        if os.stat("file").st_size == 0:
+        if os.stat(f).st_size == 0:
             if verbose:
-                print("file is empty")
+                print(f"{f} is empty")
             respects_constraints = False
         else:
             params = metadata_opener(f)
