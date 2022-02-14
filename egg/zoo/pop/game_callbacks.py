@@ -5,7 +5,27 @@
 
 import json
 
-from egg.core import Callback, Interaction
+from egg.core import Callback, Interaction, WandbLogger
+from typing import Dict, Optional, Union
+import argparse
+import wandb
+
+
+class WandbLogger(WandbLogger):
+    def __init__(
+        self,
+        opts: Union[argparse.ArgumentParser, Dict, str, None] = None,
+        project: Optional[str] = None,
+        run_id: Optional[str] = None,
+        **kwargs,
+    ):
+        kwargs = dict(kwargs, dir=opts.checkpoint_dir)  # adding a new save_dir to wandb
+        super().__init__(
+            opts,
+            project,
+            run_id,
+            **kwargs,
+        )
 
 
 class BestStatsTracker(Callback):
