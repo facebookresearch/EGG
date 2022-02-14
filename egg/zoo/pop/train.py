@@ -92,7 +92,7 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
-        validation_data=val_loader,
+        # validation_data=val_loader,
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
