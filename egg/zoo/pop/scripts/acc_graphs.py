@@ -4,6 +4,8 @@ import json
 import glob
 import os
 
+import wandb
+
 # 1st Harvest data, either from wnb or from nest output. Then make a graph out of it
 
 ##
@@ -63,7 +65,9 @@ def check_constraints(path, names=[], values=[], verbose=False):
         respects_constraints = False
     else:
         with open(path) as f:
-            params = metadata_opener(f)
+            params = metadata_opener(
+                f, "wandb" if path[len(path) - 3 : len(path)] == "log" else "nest"
+            )
             for i in range(len(values)):
                 if not extract_param(names[i], params) in values[i]:
                     respects_constraints = False
