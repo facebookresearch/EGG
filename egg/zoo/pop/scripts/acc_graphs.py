@@ -140,7 +140,9 @@ def extract_meta_from_nest_out(file_path, verbose=False):
         return extract_model_names(params, verbose=verbose)
 
 
-def nest_acc_graph(nest_path="~/nest_local/", names=[], values=[], verbose=False):
+def nest_acc_graph(
+    nest_path="/home/ubuntu/nest_local/", names=[], values=[], verbose=False
+):
     """
     restrict nest_path to a more specific experiment to only search there
     TODO : three file access seems too much, do it in one
