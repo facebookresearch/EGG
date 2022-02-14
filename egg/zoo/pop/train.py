@@ -47,6 +47,19 @@ def main(params):
         return_original_image=opts.return_original_image,
     )
 
+    val_loader = get_dataloader(
+        training_set=False,
+        dataset_dir=opts.dataset_dir,
+        dataset_name=opts.dataset_name,
+        image_size=opts.image_size,
+        batch_size=opts.batch_size,
+        num_workers=opts.num_workers,
+        is_distributed=opts.distributed_context.is_distributed,
+        seed=opts.random_seed,
+        use_augmentations=opts.use_augmentations,
+        return_original_image=opts.return_original_image,
+    )
+
     game = build_game(opts)
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")
@@ -63,6 +76,7 @@ def main(params):
     if opts.use_larc:
         optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
 
+    opts.dir = opts.checkpoint_dir  # add the dir arguement used by wandb
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
         BestStatsTracker(),
@@ -77,6 +91,7 @@ def main(params):
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
+        validation_data=val_loader,
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
@@ -92,9 +107,7 @@ def main(params):
         "seed": opts.random_seed,
     }
 
-    i_test_loader = get_dataloader(
-        dataset_name="cifar100", training_set=False, **data_args
-    )
+    i_test_loader = get_dataloader(training_set=False, **data_args)
     _, i_test_interaction = trainer.eval(i_test_loader)
     dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
     dump.update(dict(mode="VALIDATION_I_TEST"))

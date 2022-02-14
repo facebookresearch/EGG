@@ -166,7 +166,8 @@ def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
         )
         plt.legend()
         # plt.title("r={}")
-    plt.savefig(os.path.join(save_path, "acc_graph.png"))
+    with open(os.path.join(save_path, "acc_graph.png")) as f:
+        plt.savefig(f)
 
 
 ## Execution
@@ -174,6 +175,8 @@ if __name__ == "__main__":
     nest_acc_graph(
         names=["lr", "vocab_size", "batch_size"],
         values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16]],
+        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16]],
         verbose=True,
     )
     # print(extract_metadata("D:/alpha/EGG/egg/zoo/pop/test.json"))
+    

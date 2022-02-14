@@ -85,3 +85,29 @@ class DistributedSamplerEpochSetter(Callback):
     def on_validation_begin(self, epoch: int):
         if self.trainer.distributed_context.is_distributed:
             self.trainer.validation_data.sampler.set_epoch(epoch)
+
+
+class ConsoleLogger(Callback):
+    def __init__(self, print_train_loss=False, as_json=False):
+        self.print_train_loss = print_train_loss
+        self.as_json = as_json
+
+    def aggregate_print(self, loss: float, logs: Interaction, mode: str, epoch: int):
+        dump = dict(loss=loss)
+        aggregated_metrics = dict((k, v.mean().item()) for k, v in logs.aux.items())
+        dump.update(aggregated_metrics)
+
+        if self.as_json:
+            dump.update(dict(mode=mode, epoch=epoch))
+            output_message = json.dumps(dump)
+        else:
+            output_message = ", ".join(sorted([f"{k}={v}" for k, v in dump.items()]))
+            output_message = f"{mode}: epoch {epoch}, loss {loss}, " + output_message
+        print(output_message, flush=True)
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        self.aggregate_print(loss, logs, "test", epoch)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if self.print_train_loss:
+            self.aggregate_print(loss, logs, "train", epoch)
