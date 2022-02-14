@@ -59,7 +59,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
     # Check and notify for empty files
     if os.stat(f).st_size == 0:
         if verbose:
-            print(f"{f} is empty")
+            print(f"{path} is empty")
         respects_constraints = False
     else:
         with open(path) as f:
