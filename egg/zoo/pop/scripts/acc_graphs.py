@@ -162,7 +162,7 @@ def nest_acc_graph(
         if verbose:
             print(file_path)
         # restrict to specific parameters
-        if check_constraints(file_path, names, values):
+        if check_constraints(file_path, names, values, verbose):
             labels.append(extract_meta_from_nest_out(file_path))
             x, y = text_to_acc(file_path, verbose)
             xs.append(x)
