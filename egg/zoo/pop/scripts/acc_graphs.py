@@ -57,7 +57,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
     respects_constraints = True
     assert len(names) == len(values)
     # Check and notify for empty files
-    if os.stat(f).st_size == 0:
+    if os.stat(path).st_size == 0:
         if verbose:
             print(f"{path} is empty")
         respects_constraints = False
