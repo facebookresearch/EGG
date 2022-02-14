@@ -71,7 +71,8 @@ def check_constraints(path, names=[], values=[], verbose=False):
             for i in range(len(values)):
                 if not extract_param(names[i], params) in values[i]:
                     respects_constraints = False
-
+    if verbose:
+        print(f"constraints respected : {respects_constraints}")
     return respects_constraints
 
 
@@ -184,7 +185,7 @@ def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
         )
         plt.legend()
         # plt.title("r={}")
-        plt.savefig(save_path)
+    plt.savefig(save_path)
 
 
 ## Execution
