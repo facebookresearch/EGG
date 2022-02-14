@@ -166,7 +166,7 @@ def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
         )
         plt.legend()
         # plt.title("r={}")
-    with open(os.path.join(save_path, "acc_graph.png")) as f:
+    with open(os.path.join(save_path, "acc_graph.png", "w")) as f:
         plt.savefig(f)
 
 
@@ -179,4 +179,7 @@ if __name__ == "__main__":
         verbose=True,
     )
     # print(extract_metadata("D:/alpha/EGG/egg/zoo/pop/test.json"))
-    
+    graphs = [
+        "run-20220210_141726-13fzy208/files/output.log",
+        "run-20220210_143845-1c7bfzdf/files/output.log",
+    ]
