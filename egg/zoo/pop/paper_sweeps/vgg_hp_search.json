@@ -44,7 +44,7 @@
         true
     ],
     "image_size": [
-        512
+        384
     ],
     "n_recvs": [
         1
