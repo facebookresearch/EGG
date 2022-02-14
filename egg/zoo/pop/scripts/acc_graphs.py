@@ -56,13 +56,13 @@ def check_constraints(path, names=[], values=[], verbose=False):
     """
     respects_constraints = True
     assert len(names) == len(values)
-    # Maybe, only the file opener needs to be different
-    with open(path) as f:
-        if os.stat(f).st_size == 0:
-            if verbose:
-                print(f"{f} is empty")
-            respects_constraints = False
-        else:
+    # Check and notify for empty files
+    if os.stat(f).st_size == 0:
+        if verbose:
+            print(f"{f} is empty")
+        respects_constraints = False
+    else:
+        with open(path) as f:
             params = metadata_opener(f)
             for i in range(len(values)):
                 if not extract_param(names[i], params) in values[i]:
