@@ -166,8 +166,7 @@ def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
         )
         plt.legend()
         # plt.title("r={}")
-    with open(os.path.join(save_path, "acc_graph.png"), "w") as f:
-        plt.savefig(f)
+        plt.savefig(save_path)
 
 
 ## Execution
