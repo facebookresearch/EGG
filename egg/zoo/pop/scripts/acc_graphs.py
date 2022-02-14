@@ -148,7 +148,10 @@ def nest_acc_graph(nest_path="~/nest_local/", names=[], values=[], verbose=False
     xs = []
     ys = []
     labels = []
-    for file_path in glob.glob(nest_path + "*/*.out"):
+    files = glob.glob(nest_path + "*/*.out")
+    if verbose and files == []:
+        print(f"no files were found in path {nest_path}")
+    for file_path in glob.glob(nest_path + "*/*/*.out"):
         if verbose:
             print(file_path)
         # restrict to specific parameters
