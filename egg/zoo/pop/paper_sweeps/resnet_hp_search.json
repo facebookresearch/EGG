@@ -24,12 +24,6 @@
         1024,
         512
     ],
-    "fp16": [
-        false
-    ],
-    "use_augmentations": [
-        false
-    ],
     "dataset_name": [
         "cifar100"
     ],
