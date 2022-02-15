@@ -40,10 +40,10 @@
         true
     ],
     "vision_model_names_recvs": [
-        "['inception']"
+        "['vit']"
     ],
     "vision_model_names_senders": [
-        "['inception']"
+        "['vit']"
     ],
     "use_different_architectures": [
         true

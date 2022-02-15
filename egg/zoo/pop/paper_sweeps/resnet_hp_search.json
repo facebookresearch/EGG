@@ -19,6 +19,11 @@
     "random_seed": [
         111
     ],
+    "recv_hidden_dim": [
+        2048,
+        1024,
+        512
+    ],
     "fp16": [
         false
     ],
