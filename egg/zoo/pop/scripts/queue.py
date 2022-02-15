@@ -1,9 +1,13 @@
 from egg.zoo.pop.train import main
 import json
 import itertools as it
+import os
 
 
-def launch_sequential_jobs(json_path):
+def launch_sequential_jobs(
+    json_path, logfile_path="/mnt/efs/fs1/logs/", prefix="incep_hp_search"
+):
+
     with open(json_path) as f:
         params = json.load(f)
         allkeys = sorted(params)
@@ -12,6 +16,11 @@ def launch_sequential_jobs(json_path):
             args = []
             for i, arg in enumerate(experiment):
                 args.append(f"--{allkeys[i]}={arg}")
+            outdir = f"{logfile_path}{prefix}.{outdir[0:len(outdir-2)]}"
+            args.append(f"--checkpoint_dir={outdir}")
+            # early creation of checkpoint dir for wandb
+            if not os.path.exists(outdir):
+                os.mkdir(outdir)
             main(args)
 
 
