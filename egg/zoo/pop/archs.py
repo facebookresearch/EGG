@@ -23,7 +23,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(pretrained=pretrained),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
-        "vit": timm.create_model("vit_base_patch16_224", pretrained=pretrained),
+        "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
@@ -224,9 +224,9 @@ class Game(nn.Module):
         receiver_input=None,
         aux_input=None,
     ):
-        if not self.training:
-            sender.to("cuda")
-            receiver.to("cuda")
+        # if not self.training:
+        #     sender.to("cuda")
+        #     receiver.to("cuda")
         message = sender(sender_input, aux_input)
         receiver_output = receiver(message, receiver_input, aux_input)
 
@@ -252,9 +252,9 @@ class Game(nn.Module):
             message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
-        if not self.training:
-            sender.to("cpu")
-            receiver.to("cpu")
+        # if not self.training:
+        #     sender.to("cpu")
+        #     receiver.to("cpu")
         return loss.mean(), interaction
 
 
