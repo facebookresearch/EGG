@@ -1,4 +1,4 @@
-from egg.zoo.pop.train import main
+from egg.zoo.pop import train
 import json
 import itertools as it
 import os
@@ -21,7 +21,7 @@ def launch_sequential_jobs(
             # early creation of checkpoint dir for wandb
             if not os.path.exists(outdir):
                 os.mkdir(outdir)
-            main(args)
+            train.main(args)
 
 
 if __name__ == "__main__":
