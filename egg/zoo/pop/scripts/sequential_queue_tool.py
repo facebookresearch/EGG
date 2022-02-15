@@ -16,7 +16,7 @@ def launch_sequential_jobs(
             args = []
             expname = ""
             for i, arg in enumerate(experiment):
-                if arg != True:
+                if arg != "true":
                     args.append(f"--{allkeys[i]}={arg}")
                 else:
                     args.append(f"--{allkeys[i]}")
