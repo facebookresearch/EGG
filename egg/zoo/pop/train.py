@@ -25,10 +25,6 @@ import os
 
 def main(params):
     opts = get_common_opts(params=params)
-    # early creation of checkpoint dir for wandb
-    if not os.path.exists(opts.checkpoint_dir):
-        os.mkdir(opts.checkpoint_dir)
-    print(f"{opts}\n")
     assert (
         not opts.batch_size % 2
     ), f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -102,26 +98,26 @@ def main(params):
     trainer.train(n_epochs=opts.n_epochs)
 
     # Quick test
-    data_args = {
-        "image_size": opts.image_size,
-        "batch_size": opts.batch_size,
-        "dataset_name": opts.dataset_name,
-        "num_workers": opts.num_workers,
-        "use_augmentations": False,
-        "is_distributed": opts.distributed_context.is_distributed,
-        "seed": opts.random_seed,
-    }
+    # data_args = {
+    #     "image_size": opts.image_size,
+    #     "batch_size": opts.batch_size,
+    #     "dataset_name": opts.dataset_name,
+    #     "num_workers": opts.num_workers,
+    #     "use_augmentations": False,
+    #     "is_distributed": opts.distributed_context.is_distributed,
+    #     "seed": opts.random_seed,
+    # }
 
-    i_test_loader = get_dataloader(training_set=False, **data_args)
-    _, i_test_interaction = trainer.eval(i_test_loader)
-    dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
-    dump.update(dict(mode="VALIDATION_I_TEST"))
-    print(json.dumps(dump), flush=True)
+    # i_test_loader = get_dataloader(training_set=False, **data_args)
+    # _, i_test_interaction = trainer.eval(i_test_loader)
+    # dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
+    # dump.update(dict(mode="VALIDATION_I_TEST"))
+    # print(json.dumps(dump), flush=True)
 
-    if opts.checkpoint_dir:
-        output_path = Path(opts.checkpoint_dir)
-        output_path.mkdir(exist_ok=True, parents=True)
-        torch.save(i_test_interaction, output_path / "i_test_interaction")
+    # if opts.checkpoint_dir:
+    #     output_path = Path(opts.checkpoint_dir)
+    #     output_path.mkdir(exist_ok=True, parents=True)
+    #     torch.save(i_test_interaction, output_path / "i_test_interaction")
 
     print("| FINISHED JOB")
 
