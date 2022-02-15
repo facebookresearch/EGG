@@ -16,10 +16,10 @@ def launch_sequential_jobs(
             args = []
             expname = ""
             for i, arg in enumerate(experiment):
-                if arg != "true":
-                    args.append(f"--{allkeys[i]}={arg}")
-                else:
+                if allkeys[i] in ["use_larc", "use_different_architectures"]:
                     args.append(f"--{allkeys[i]}")
+                else:
+                    args.append(f"--{allkeys[i]}={arg}")
                 if allkeys[i] in ["batch_size", "lr", "vocab_size", "recv_hidden_dim"]:
                     # $batch_size.$lr.$vocab_size.$recv_hidden_dim"
                     expname += f"{arg}."
