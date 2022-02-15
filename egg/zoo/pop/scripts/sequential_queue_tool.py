@@ -16,8 +16,13 @@ def launch_sequential_jobs(
             args = []
             expname = ""
             for i, arg in enumerate(experiment):
-                args.append(f"--{allkeys[i]}={arg}")
-                expname += f"{arg}."
+                if arg != True:
+                    args.append(f"--{allkeys[i]}={arg}")
+                else:
+                    args.append(f"--{allkeys[i]}")
+                if allkeys[i] in ["batch_size", "lr", "vocab_size", "recv_hidden_dim"]:
+                    # $batch_size.$lr.$vocab_size.$recv_hidden_dim"
+                    expname += f"{arg}."
             outdir = f"{logfile_path}{prefix}.{expname[0:len(expname)-2]}"
             args.append(f"--checkpoint_dir={outdir}")
             # early creation of checkpoint dir for wandb
