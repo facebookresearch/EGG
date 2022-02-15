@@ -20,10 +20,14 @@ from egg.zoo.pop.game_callbacks import (
 from egg.zoo.pop.games import build_game
 from egg.zoo.pop.LARC import LARC
 from egg.zoo.pop.utils import add_weight_decay, get_common_opts
+import os
 
 
 def main(params):
     opts = get_common_opts(params=params)
+    # early creation of checkpoint dir for wandb
+    if not os.path.exists(opts.checkpoint_dir):
+        os.mkdir(opts.checkpoint_dir)
     print(f"{opts}\n")
     assert (
         not opts.batch_size % 2

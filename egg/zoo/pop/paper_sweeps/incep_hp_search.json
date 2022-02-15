@@ -1,5 +1,5 @@
 {
-    "n_epoch": [
+    "n_epochs": [
         15
     ],
     "batch_size": [
