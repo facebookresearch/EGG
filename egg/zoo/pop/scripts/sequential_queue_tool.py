@@ -24,6 +24,8 @@ def write_sequential_jobs(
                 for i, arg in enumerate(experiment):
                     if allkeys[i] in ["use_larc", "use_different_architectures"]:
                         args.append(f"--{allkeys[i]}")
+                    elif isinstance(arg, str):
+                        args.append(f'--{allkeys[i]}="{arg}"')
                     else:
                         args.append(f"--{allkeys[i]}={arg}")
                     if allkeys[i] in [
