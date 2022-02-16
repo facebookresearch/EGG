@@ -40,7 +40,7 @@ def write_sequential_jobs(
                 if not os.path.exists(outdir):
                     os.mkdir(outdir)
                 command_file.write(
-                    f"sudo python3 egg/zoo/pop/train {' '.join(args)} \\n"
+                    f"sudo python3 egg/zoo/pop/train.py {' '.join(args)} \\n"
                 )
 
 
