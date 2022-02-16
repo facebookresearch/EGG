@@ -3,6 +3,7 @@ import json
 import itertools as it
 import os
 import sys
+import wandb
 
 
 def launch_sequential_jobs(
@@ -33,6 +34,7 @@ def launch_sequential_jobs(
 
 
 if __name__ == "__main__":
+    wandb.config.update(allow_val_change=True)
     args = sys.argv[1:]
     print(args)
     launch_sequential_jobs(
