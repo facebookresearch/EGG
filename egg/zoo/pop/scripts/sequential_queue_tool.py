@@ -2,6 +2,7 @@ from egg.zoo.pop import train
 import json
 import itertools as it
 import os
+import sys
 
 
 def launch_sequential_jobs(
@@ -32,6 +33,9 @@ def launch_sequential_jobs(
 
 
 if __name__ == "__main__":
+    args = sys.argv[1:]
+    print(args)
     launch_sequential_jobs(
-        "/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/incep_hp_search.json"
+        f"/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/{args[0]}_hp_search.json",
+        prefix=f"{args[0]}_hp_search",
     )
