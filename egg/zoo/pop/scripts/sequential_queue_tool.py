@@ -48,7 +48,7 @@ if __name__ == "__main__":
     wandb.config.allow_val_change = True
     args = sys.argv[1:]
     print(args)
-    command_file_path = "~/hp.sh"
+    command_file_path = "../bash_exp_plans/hp.sh"
     write_sequential_jobs(
         f"/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/{args[0]}_hp_search.json",
         prefix=f"{args[0]}_hp_search",
