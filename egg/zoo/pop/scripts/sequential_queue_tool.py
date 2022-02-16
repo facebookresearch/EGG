@@ -34,7 +34,7 @@ def launch_sequential_jobs(
 
 
 if __name__ == "__main__":
-    wandb.config.update(allow_val_change=True)
+    wandb.config.allow_val_change = True
     args = sys.argv[1:]
     print(args)
     launch_sequential_jobs(
