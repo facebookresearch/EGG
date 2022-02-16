@@ -4,8 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-import json
-from pathlib import Path
+
+# import json
+# from pathlib import Path
 
 import egg.core as core
 from egg.core import ConsoleLogger

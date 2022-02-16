@@ -5,7 +5,7 @@ import os
 
 
 def launch_sequential_jobs(
-    json_path, logfile_path="/mnt/efs/fs1/logs/", prefix="resnet_hp_search"
+    json_path, logfile_path="/mnt/efs/fs1/logs/", prefix="vgg_hp_search"
 ):
 
     with open(json_path) as f:
@@ -33,5 +33,5 @@ def launch_sequential_jobs(
 
 if __name__ == "__main__":
     launch_sequential_jobs(
-        "/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/resnet_hp_search.json"
+        "/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/vgg_hp_search.json"
     )
