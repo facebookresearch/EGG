@@ -98,7 +98,7 @@ def main(params):
     )
     trainer.train(n_epochs=opts.n_epochs)
 
-    # Quick test
+    # Quick test -- now on hold as validation occurs before
     # data_args = {
     #     "image_size": opts.image_size,
     #     "batch_size": opts.batch_size,
