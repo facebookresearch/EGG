@@ -53,7 +53,7 @@ def write_sequential_jobs(
 if __name__ == "__main__":
     wandb.config.allow_val_change = True
     args = sys.argv[1:]
-    command_file_path = "../bash_exp_plans/hp.sh"
+    command_file_path = f"../bash_exp_plans/hp_{args[0]}.sh"
     write_sequential_jobs(
         f"/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/{args[0]}_hp_search.json",
         prefix=f"{args[0]}_hp_search_p",
