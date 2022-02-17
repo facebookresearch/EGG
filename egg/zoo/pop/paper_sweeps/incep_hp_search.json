@@ -42,6 +42,9 @@
     "use_different_architectures": [
         true
     ],
+    "pretrain_vision": [
+        true
+    ],
     "image_size": [
         384
     ],

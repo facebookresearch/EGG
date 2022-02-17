@@ -22,7 +22,11 @@ def write_sequential_jobs(
                 args = []
                 expname = ""
                 for i, arg in enumerate(experiment):
-                    if allkeys[i] in ["use_larc", "use_different_architectures"]:
+                    if allkeys[i] in [
+                        "use_larc",
+                        "use_different_architectures",
+                        "pretrain_vision",
+                    ]:
                         args.append(f"--{allkeys[i]}")
                     elif isinstance(arg, str):
                         args.append(f'--{allkeys[i]}="{arg}"')
@@ -49,11 +53,10 @@ def write_sequential_jobs(
 if __name__ == "__main__":
     wandb.config.allow_val_change = True
     args = sys.argv[1:]
-    print(args)
     command_file_path = "../bash_exp_plans/hp.sh"
     write_sequential_jobs(
         f"/mnt/efs/fs1/EGG/egg/zoo/pop/paper_sweeps/{args[0]}_hp_search.json",
-        prefix=f"{args[0]}_hp_search",
+        prefix=f"{args[0]}_hp_search_p",
         command_path=command_file_path,
     )
     print(f"experimental plan written to {command_file_path}, launching...")
