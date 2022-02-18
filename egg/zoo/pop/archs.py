@@ -88,11 +88,10 @@ class Sender(nn.Module):
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
-        if self.name == "inception":
-            vision_module_out = vision_module_out.logits
-
         if not self.training:
             aux_input["resnet_output_sender"] = vision_module_out.detach()
+        elif self.name == "inception":
+            vision_module_out = vision_module_out.logits
 
         return self.fc(vision_module_out)
 
