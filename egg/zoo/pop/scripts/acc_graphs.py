@@ -18,7 +18,7 @@ def metadata_opener(file, data_type: str):
     data_type : str in {"wandb", "nest"}
     Mat : case match in python 3.10 will cover all of this in syntaxic sugar
     """
-    if data_type == "wandb":
+    if data_type == "wandb":  # TODO : move to the yaml file in the near future
         meta = json.load(file)
         return meta["args"]
 
@@ -116,37 +116,12 @@ def extract_meta_from_wnb(path, verbose=False):
         return extract_model_names(meta["args"], verbose=verbose)
 
 
-def make_wnb_graph(wandb_path="/mnt/efs/fs1/EGG/wandb", verbose=False):
-    xs = []
-    ys = []
-    labels = []
-    for file_path in glob.glob(wandb_path + "/run*"):
-        if verbose:
-            print(f"extracting data from {file_path}")
-        x, y = text_to_acc(os.path.join(file_path, "files/output.log"), mode="train")
-        xs.append(x)
-        ys.append(y)
-        labels.append(
-            extract_meta_from_wnb(
-                os.path.join(file_path, "files/wandb-metadata.json"), verbose=verbose
-            )
-        )
-    acc_graph(xs, ys, labels, wandb_path)
-
-
-##
-## Data harvest nest
-##
-def extract_meta_from_nest_out(file_path, verbose=False):
-    with open(file_path) as f:
-        lines = f.readlines()
-        # Mat : from the nest output we only need the first line
-        params = eval(lines[0][2:])  # Mat : injection liability
-        return extract_model_names(params, verbose=verbose)
-
-
-def nest_acc_graph(
-    nest_path="/home/ubuntu/nest_local/", names=[], values=[], verbose=False
+def wnb_hp_specific_graph(
+    wnb_path="/mnt/efs/fs1/logs/",
+    names=[],
+    values=[],
+    verbose=False,
+    graph_name="graph",
 ):
     """
     restrict nest_path to a more specific experiment to only search there
@@ -155,24 +130,54 @@ def nest_acc_graph(
     xs = []
     ys = []
     labels = []
-    files = glob.glob(nest_path + "*/*/*.out")
+    files = glob.glob(
+        os.path.join(wnb_path, "/*")
+    )  # TODO : average accross multiple seeds
     if verbose and files == []:
-        print(f"no files were found in path {nest_path}")
+        print(f"no files were found in path {wnb_path}")
     for file_path in files:
         if verbose:
             print(file_path)
         # restrict to specific parameters
-        if check_constraints(file_path, names, values, verbose):
+        if check_constraints(
+            os.path.join(file_path, "/wandb/latest-run/files/wandb-metadata.json"),
+            names,
+            values,
+            verbose,
+        ):
             labels.append(extract_meta_from_nest_out(file_path))
-            x, y = text_to_acc(file_path, verbose)
+            x, y = text_to_acc(
+                os.path.join(file_path, "/wandb/latest-run/files/output.log"), verbose
+            )
             xs.append(x)
             ys.append(y)
-    acc_graph(xs, ys, labels, nest_path, verbose)
+    acc_graph(xs, ys, labels, wnb_path, verbose, name=graph_name)
+
+
+##
+## Data harvest nest
+##
+
+
+def extract_meta_from_nest_out(file_path, verbose=False):
+    with open(file_path) as f:
+        lines = f.readlines()
+        # Mat : from the nest output we only need the first line
+        params = eval(lines[0][2:])  # Mat : injection liability
+        return extract_model_names(params, verbose=verbose)
 
 
 ## Graph making
-def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
-    # maybe to add a better file naming system, preventing overwrite
+def acc_graph(
+    xs,
+    ys,
+    labels,
+    save_path="~/graphs",
+    verbose=False,
+    name="graph.png",
+    title="train_acc",
+):
+    # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
 
     for i in range(len(xs)):
@@ -184,20 +189,29 @@ def acc_graph(xs, ys, labels, save_path="~/graphs", verbose=False):
             label=labels[i],
         )
         plt.legend()
-        # plt.title("r={}")
-    plt.savefig(save_path)
+        plt.title(title)
+    plt.savefig(os.path.join(save_path, name))
 
 
 ## Execution
 if __name__ == "__main__":
-    nest_acc_graph(
-        names=["lr", "vocab_size", "batch_size"],
-        values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16]],
-        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16]],
+    wnb_hp_specific_graph(
+        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
+        values=[[0.5, 1, 2.4], [256], [16], [2048]],
         verbose=True,
+        graph_name="learning_rates.png",
     )
-    # print(extract_metadata("D:/alpha/EGG/egg/zoo/pop/test.json"))
-    graphs = [
-        "run-20220210_141726-13fzy208/files/output.log",
-        "run-20220210_143845-1c7bfzdf/files/output.log",
-    ]
+    wnb_hp_specific_graph(
+        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
+        values=[[0.5], [256, 512, 1024], [16], [2048]],
+        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+        verbose=True,
+        graph_name="vocab_size.png",
+    )
+    wnb_hp_specific_graph(
+        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
+        values=[[0.5], [256], [16], [2048, 1024, 512]],
+        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+        verbose=True,
+        graph_name="recv_hidden_dim.png",
+    )
