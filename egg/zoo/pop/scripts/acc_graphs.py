@@ -99,8 +99,6 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
         x = []
         y = []
         lines = f.readlines()
-        if verbose and lines == []:
-            print("empty file")
         for line in lines:
             if "{" in line:
                 _dict = json.loads(line)
@@ -108,7 +106,7 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
         if verbose and x == y == []:
-            print("file opened but no data was aquired")
+            print("file opened but no data was available")
         return x, y
 
 
@@ -197,7 +195,8 @@ def acc_graph(
 ):
     # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
-
+    # debug temp
+    print(xs, ys)
     for i in range(len(xs)):
         if verbose:
             print(f"adding {labels[i]} to graph")
