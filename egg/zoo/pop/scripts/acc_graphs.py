@@ -102,10 +102,10 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
         for line in lines:
             if "{" in line:
                 _dict = json.loads(line)
-                print(_dict)
-                if _dict["mode"] == mode:
-                    x.append(_dict["epoch"])
-                    y.append(_dict["acc"])
+                print(_dict['epoch'],_dict['acc'],_dict['mode'])
+                if _dict['mode'] == mode:
+                    x.append(_dict['epoch'])
+                    y.append(_dict['acc'])
         if verbose and x == []:
             print("file opened but no data was available")
         return x, y
