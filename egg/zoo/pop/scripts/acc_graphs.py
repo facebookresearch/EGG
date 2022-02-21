@@ -158,6 +158,8 @@ def wnb_hp_specific_graph(
                 x, y = text_to_acc(data_file, verbose)
                 xs.append(x)
                 ys.append(y)
+        else:
+            print(f"empty directory {file_path}")
     # plot all aquired data
     acc_graph(xs, ys, labels, wnb_path, verbose, name=graph_name)
 
@@ -213,7 +215,7 @@ if __name__ == "__main__":
         ],
         values=[[0.5, 1, 2.4], [256], [16], [2048], ["vgg11"]],
         verbose=True,
-        graph_name="incep_learning_rates.png",
+        graph_name="vgg_learning_rates.png",
     )
     wnb_hp_specific_graph(
         names=[
@@ -226,7 +228,7 @@ if __name__ == "__main__":
         values=[[0.5], [256, 512, 1024], [16], [2048], ["vgg11"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
-        graph_name="incep_vocab_size.png",
+        graph_name="vgg_vocab_size.png",
     )
     wnb_hp_specific_graph(
         names=[
@@ -239,5 +241,5 @@ if __name__ == "__main__":
         values=[[0.5], [256], [16], [2048, 1024, 512], ["vgg11"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
-        graph_name="incep_recv_hidden_dim.png",
+        graph_name="vgg_recv_hidden_dim.png",
     )
