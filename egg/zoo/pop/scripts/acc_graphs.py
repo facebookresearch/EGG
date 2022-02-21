@@ -69,7 +69,10 @@ def check_constraints(path, names=[], values=[], verbose=False):
                 f, "wandb" if path[len(path) - 4 : len(path)] == "json" else "nest"
             )
             for i in range(len(values)):
-                if not extract_param(names[i], params, verbose=True) in values[i]:
+                _ep = extract_param(names[i], params, verbose=False)
+                if verbose:
+                    print(f'cheking {_ep} in {values}')
+                if not _ep  in values[i]:
                     respects_constraints = False
     if verbose:
         print(f"constraints respected : {respects_constraints}")
