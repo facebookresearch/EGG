@@ -160,7 +160,13 @@ def wnb_hp_specific_graph(
                 verbose,
             ):
                 # data is added to those needing to be plotted when it respects the constraints
-                labels.append(extract_meta_from_nest_out(file_path))
+                labels.append(
+                    extract_meta_from_nest_out(
+                        os.path.join(
+                            file_path, "wandb/latest-run/files/wandb-metadata.json"
+                        )
+                    )
+                )
                 x, y = text_to_acc(data_file, verbose)
                 xs.append(x)
                 ys.append(y)
