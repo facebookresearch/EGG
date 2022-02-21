@@ -133,15 +133,15 @@ def wnb_hp_specific_graph(
     # find all folders in log path
     # TODO: use title to reduce search space
     files = glob.glob(
-        os.path.join(wnb_path, "/*")
+        os.path.join(wnb_path, "*")
     )  # TODO : average accross multiple seeds
     if verbose and files == []:
         print(f"no files were found in path {wnb_path}")
     for file_path in files:
         metadata_file = os.path.join(
-            file_path, "/wandb/latest-run/files/wandb-metadata.json"
+            file_path, "wandb/latest-run/files/wandb-metadata.json"
         )
-        data_file = os.path.join(file_path, "/wandb/latest-run/files/output.log")
+        data_file = os.path.join(file_path, "wandb/latest-run/files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(metadata_file) and os.path.exists(data_file):
             if verbose:
