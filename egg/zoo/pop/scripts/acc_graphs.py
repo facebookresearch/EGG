@@ -84,7 +84,7 @@ def extract_param(param_name, params, verbose=False):
                 print(result)
             return result
     raise KeyError(
-        f"{param} was not found amongs parameters"
+        f"{param_name} was not found amongst parameters"
     )  # Mat : is it a Keyerror tho ?
 
 
