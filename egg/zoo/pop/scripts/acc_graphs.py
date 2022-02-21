@@ -105,10 +105,8 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
                 if _dict["mode"] == mode:
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
-        if verbose and x == y == []:
+        if verbose and x == []:
             print("file opened but no data was available")
-        print(x, y)
-
         return x, y
 
 
@@ -152,14 +150,14 @@ def wnb_hp_specific_graph(
         data_file = os.path.join(file_path, "wandb/latest-run/files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(metadata_file) and os.path.exists(data_file):
-            if verbose:
+            if False:  # Temp verbose blocked
                 print(file_path)
             # restrict to specific parameters
             if check_constraints(
                 metadata_file,
                 names,
                 values,
-                verbose,
+                False,
             ):
                 # data is added to those needing to be plotted when it respects the constraints
                 labels.append(file_path[18:])  # TODO : nul a refaire
