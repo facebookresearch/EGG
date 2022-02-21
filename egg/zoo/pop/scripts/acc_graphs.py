@@ -102,6 +102,7 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
         for line in lines:
             if "{" in line:
                 _dict = json.loads(line)
+                print(_dict)
                 if _dict["mode"] == mode:
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
@@ -164,8 +165,8 @@ def wnb_hp_specific_graph(
                 x, y = text_to_acc(data_file, verbose)
                 xs.append(x)
                 ys.append(y)
-        else:
-            print(f"empty directory {file_path}")
+        # elif verbose:
+        #     print(f"empty directory {file_path}")
     # plot all aquired data
     acc_graph(xs, ys, labels, wnb_path, verbose, name=graph_name)
 
