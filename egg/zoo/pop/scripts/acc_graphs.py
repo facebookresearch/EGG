@@ -130,27 +130,35 @@ def wnb_hp_specific_graph(
     xs = []
     ys = []
     labels = []
+    # find all folders in log path
+    # TODO: use title to reduce search space
     files = glob.glob(
         os.path.join(wnb_path, "/*")
     )  # TODO : average accross multiple seeds
     if verbose and files == []:
         print(f"no files were found in path {wnb_path}")
     for file_path in files:
-        if verbose:
-            print(file_path)
-        # restrict to specific parameters
-        if check_constraints(
-            os.path.join(file_path, "/wandb/latest-run/files/wandb-metadata.json"),
-            names,
-            values,
-            verbose,
-        ):
-            labels.append(extract_meta_from_nest_out(file_path))
-            x, y = text_to_acc(
-                os.path.join(file_path, "/wandb/latest-run/files/output.log"), verbose
-            )
-            xs.append(x)
-            ys.append(y)
+        metadata_file = os.path.join(
+            file_path, "/wandb/latest-run/files/wandb-metadata.json"
+        )
+        data_file = os.path.join(file_path, "/wandb/latest-run/files/output.log")
+        # prevent experiments that crashed without generating files to show (as well as any empty folder)
+        if os.path.exists(metadata_file) and os.path.exists(data_file):
+            if verbose:
+                print(file_path)
+            # restrict to specific parameters
+            if check_constraints(
+                metadata_file,
+                names,
+                values,
+                verbose,
+            ):
+                # data is added to those needing to be plotted when it respects the constraints
+                labels.append(extract_meta_from_nest_out(file_path))
+                x, y = text_to_acc(data_file, verbose)
+                xs.append(x)
+                ys.append(y)
+    # plot all aquired data
     acc_graph(xs, ys, labels, wnb_path, verbose, name=graph_name)
 
 
@@ -196,22 +204,40 @@ def acc_graph(
 ## Execution
 if __name__ == "__main__":
     wnb_hp_specific_graph(
-        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
-        values=[[0.5, 1, 2.4], [256], [16], [2048]],
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[0.5, 1, 2.4], [256], [16], [2048], ["vgg11"]],
         verbose=True,
-        graph_name="learning_rates.png",
+        graph_name="incep_learning_rates.png",
     )
     wnb_hp_specific_graph(
-        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
-        values=[[0.5], [256, 512, 1024], [16], [2048]],
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[0.5], [256, 512, 1024], [16], [2048], ["vgg11"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
-        graph_name="vocab_size.png",
+        graph_name="incep_vocab_size.png",
     )
     wnb_hp_specific_graph(
-        names=["lr", "vocab_size", "batch_size", "recv_hidden_dim"],
-        values=[[0.5], [256], [16], [2048, 1024, 512]],
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[0.5], [256], [16], [2048, 1024, 512], ["vgg11"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
-        graph_name="recv_hidden_dim.png",
+        graph_name="incep_recv_hidden_dim.png",
     )
