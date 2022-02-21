@@ -83,7 +83,8 @@ def extract_param(param_name, params, verbose=False):
             if verbose:
                 print(result)
             return result
-    raise KeyError(
+    # raise KeyError(
+    print(
         f"{param_name} was not found amongst parameters"
     )  # Mat : is it a Keyerror tho ?
 
