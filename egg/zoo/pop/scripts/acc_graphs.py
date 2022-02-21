@@ -163,7 +163,7 @@ def wnb_hp_specific_graph(
             ):
                 # data is added to those needing to be plotted when it respects the constraints
                 labels.append(file_path[18:])  # TODO : nul a refaire
-                x, y = text_to_acc(data_file, verbose)
+                x, y = text_to_acc(data_file, verbose=verbose)
                 xs.append(x)
                 ys.append(y)
         # elif verbose:
