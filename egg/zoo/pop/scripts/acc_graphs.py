@@ -94,7 +94,7 @@ def extract_param(param_name, params, verbose=False):
     )  # Mat : is it a Keyerror tho ?
 
 
-def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through console
+def text_to_acc(file_path, mode="test", verbose=False):  # Mat : going through console
     with open(file_path) as f:
         x = []
         y = []
