@@ -107,6 +107,8 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
                 if _dict["mode"] == mode:
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
+        if verbose and x == y == []:
+            print("file opened but no data was aquired")
         return x, y
 
 
@@ -207,6 +209,7 @@ def acc_graph(
         plt.legend()
         plt.title(title)
     plt.savefig(os.path.join(save_path, name))
+    plt.clf()
 
 
 ## Execution
