@@ -140,9 +140,7 @@ def wnb_hp_specific_graph(
     labels = []
     # find all folders in log path
     # TODO: use title to reduce search space
-    files = glob.glob(
-        os.path.join(wnb_path, "*")
-    )  # TODO : average accross multiple seeds
+    files = glob.glob(wnb_path + "*")  # TODO : average accross multiple seeds
     if verbose and files == []:
         print(f"no files were found in path {wnb_path}")
     for file_path in files:
@@ -214,6 +212,7 @@ def acc_graph(
 ## Execution
 if __name__ == "__main__":
     wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
         names=[
             "lr",
             "vocab_size",
@@ -226,6 +225,7 @@ if __name__ == "__main__":
         graph_name="vgg_learning_rates.png",
     )
     wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
         names=[
             "lr",
             "vocab_size",
@@ -239,6 +239,7 @@ if __name__ == "__main__":
         graph_name="vgg_vocab_size.png",
     )
     wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
         names=[
             "lr",
             "vocab_size",
@@ -251,3 +252,66 @@ if __name__ == "__main__":
         verbose=True,
         graph_name="vgg_recv_hidden_dim.png",
     )
+    # RND 2
+    wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[0.5, 1, 2.4], [256], [16], [512], [["vgg11"]]],
+        verbose=True,
+        graph_name="vgg_learning_rates_hd512.png",
+    )
+    wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[0.5], [256, 512, 1024], [16], [512], [["vgg11"]]],
+        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+        verbose=True,
+        graph_name="vgg_vocab_size_hd512.png",
+    )
+    wnb_hp_specific_graph(
+        wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+        names=[
+            "lr",
+            "vocab_size",
+            "batch_size",
+            "recv_hidden_dim",
+            "vision_model_names_senders",
+        ],
+        values=[[2.4], [256], [16], [2048, 1024, 512], [["vgg11"]]],
+        # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+        verbose=True,
+        graph_name="vgg_recv_hidden_dim_lr_2.4.png",
+    )
+wnb_hp_specific_graph(
+    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    names=[
+        "vision_model_names_senders",
+    ],
+    values=[[["resnet152"]]],
+    # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+    verbose=True,
+    graph_name="resnet.png",
+)
+
+wnb_hp_specific_graph(
+    wnb_path="/mnt/efs/fs1/logs/vit_hp_search_p",
+    names=[
+        "vision_model_names_senders",
+    ],
+    values=[[["vit"]]],
+    # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+    verbose=True,
+    graph_name="vit.png",
+)
