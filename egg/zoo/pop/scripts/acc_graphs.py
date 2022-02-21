@@ -71,8 +71,8 @@ def check_constraints(path, names=[], values=[], verbose=False):
             for i in range(len(values)):
                 _ep = extract_param(names[i], params, verbose=False)
                 if verbose:
-                    print(f'cheking {_ep} in {values}')
-                if not _ep  in values[i]:
+                    print(f"cheking {_ep} in {values[i]}")
+                if not _ep in values[i]:
                     respects_constraints = False
     if verbose:
         print(f"constraints respected : {respects_constraints}")
