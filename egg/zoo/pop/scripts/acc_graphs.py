@@ -106,7 +106,6 @@ def text_to_acc(file_path, mode="train", verbose=False):  # Mat : going through 
                     print(_dict)
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
-                print(x, y)
         if verbose and x == []:
             print("file opened but no data was available")
         return x, y
@@ -126,6 +125,7 @@ def extract_meta_from_wnb(path, verbose=False):
 
 def wnb_hp_specific_graph(
     wnb_path="/mnt/efs/fs1/logs/",
+    save_path="/mnt/efs/fs1/logs/",
     names=[],
     values=[],
     verbose=False,
@@ -167,7 +167,7 @@ def wnb_hp_specific_graph(
         # elif verbose:
         #     print(f"empty directory {file_path}")
     # plot all aquired data
-    acc_graph(xs, ys, labels, wnb_path, verbose, name=graph_name)
+    acc_graph(xs, ys, labels, save_path, verbose, name=graph_name)
 
 
 ##
