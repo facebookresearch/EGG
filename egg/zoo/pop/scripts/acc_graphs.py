@@ -79,7 +79,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
 def extract_param(param_name, params, verbose=False):
     for param in params:
         if param_name in param:
-            result = param[len(param_name) + 2 : len(param)]
+            result = param[len(param_name) + 3 : len(param)]
             if verbose:
                 print(result)
             return result
@@ -214,7 +214,7 @@ if __name__ == "__main__":
             "recv_hidden_dim",
             "vision_model_names_senders",
         ],
-        values=[[0.5, 1, 2.4], [256], [16], [2048], ["vgg11"]],
+        values=[[0.5, 1, 2.4], [256], [16], [2048], ["['vgg11']"]],
         verbose=True,
         graph_name="vgg_learning_rates.png",
     )
@@ -226,7 +226,7 @@ if __name__ == "__main__":
             "recv_hidden_dim",
             "vision_model_names_senders",
         ],
-        values=[[0.5], [256, 512, 1024], [16], [2048], ["vgg11"]],
+        values=[[0.5], [256, 512, 1024], [16], [2048], ["['vgg11']"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
         graph_name="vgg_vocab_size.png",
@@ -239,7 +239,7 @@ if __name__ == "__main__":
             "recv_hidden_dim",
             "vision_model_names_senders",
         ],
-        values=[[0.5], [256], [16], [2048, 1024, 512], ["vgg11"]],
+        values=[[0.5], [256], [16], [2048, 1024, 512], ["['vgg11']"]],
         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
         verbose=True,
         graph_name="vgg_recv_hidden_dim.png",
