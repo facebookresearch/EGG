@@ -66,7 +66,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
     else:
         with open(path) as f:
             params = metadata_opener(
-                f, "wandb" if path[len(path) - 3 : len(path)] == "log" else "nest"
+                f, "wandb" if path[len(path) - 4 : len(path)] == "json" else "nest"
             )
             for i in range(len(values)):
                 if not extract_param(names[i], params) in values[i]:
