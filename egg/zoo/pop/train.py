@@ -38,7 +38,7 @@ def main(params):
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
 
-    train_loader = get_dataloader(
+    val_loader, train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
         dataset_name=opts.dataset_name,
         image_size=opts.image_size,
@@ -48,19 +48,7 @@ def main(params):
         seed=opts.random_seed,
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
-    )
-
-    val_loader = get_dataloader(
-        training_set=False,
-        dataset_dir=opts.dataset_dir,
-        dataset_name=opts.dataset_name,
-        image_size=opts.image_size,
-        batch_size=opts.batch_size,
-        num_workers=opts.num_workers,
-        is_distributed=opts.distributed_context.is_distributed,
-        seed=opts.random_seed,
-        use_augmentations=opts.use_augmentations,
-        return_original_image=opts.return_original_image,
+        split_set=True,
     )
 
     game = build_game(opts)

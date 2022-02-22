@@ -29,9 +29,9 @@ def get_dataloader(
     use_augmentations: bool = True,
     return_original_image: bool = False,
     seed: int = 111,
-    training_set: bool = True,
+    split_set: bool = True,
 ):
-    # Mat : Param : training_set : if true will load the training set. Otherwise will load test set. (only works with CIFAR)
+    # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
 
     transformations = ImageTransformation(
         image_size, use_augmentations, return_original_image, dataset_name
@@ -39,11 +39,17 @@ def get_dataloader(
 
     if dataset_name == "cifar100":
         train_dataset = datasets.CIFAR100(
-            root="./data", train=training_set, download=True, transform=transformations
+            root="./data", download=True, transform=transformations
         )
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
 
+    if split_set:
+        test_dataset, train_dataset = torch.utils.data.random_split(
+            train_dataset,
+            [len(train_dataset) // 10, len(train_dataset) // 10 * 9],
+            torch.Generator().manual_seed(seed),
+        )
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -61,6 +67,18 @@ def get_dataloader(
         pin_memory=True,
     )
 
+    if split_set:
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=batch_size,
+            shuffle=(train_sampler is None),
+            sampler=train_sampler,
+            num_workers=num_workers,
+            collate_fn=collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return test_loader, train_loader
     return train_loader
 
 

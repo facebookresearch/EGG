@@ -1,15 +1,14 @@
 {
     "n_epochs": [
-        5
+        10
     ],
     "batch_size": [
-        16,
-        8
+        64
     ],
     "lr": [
-        0.5,
-        1,
-        2.4
+        0.0001,
+        0.001,
+        0.005
     ],
     "vocab_size": [
         256,
@@ -29,9 +28,6 @@
     ],
     "gs_temperature": [
         5.0
-    ],
-    "use_larc": [
-        true
     ],
     "vision_model_names_recvs": [
         "['inception']"

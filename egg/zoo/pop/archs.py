@@ -128,8 +128,8 @@ class Receiver(nn.Module):
 
     def forward(self, message, distractors, aux_input=None):
         vision_module_out = self.vision_module(distractors)
-        if self.name == "inception":
-            vision_module_out = vision_module_out.logits
+        # if self.name == "inception":
+        #     vision_module_out = vision_module_out.logits
         distractors = self.fc(vision_module_out)
 
         similarity_scores = (
