@@ -1,19 +1,16 @@
 {
     "n_epochs": [
-        10
+        5
     ],
     "batch_size": [
         64
     ],
     "lr": [
         0.0001,
-        0.001,
-        0.005
+        0.01
     ],
     "vocab_size": [
-        256,
-        512,
-        1024
+        512
     ],
     "random_seed": [
         111
@@ -21,6 +18,9 @@
     "recv_hidden_dim": [
         2048,
         1024,
+        512
+    ],
+    "recv_output_dim": [
         512
     ],
     "dataset_name": [
@@ -34,9 +34,6 @@
     ],
     "vision_model_names_senders": [
         "['inception']"
-    ],
-    "use_different_architectures": [
-        true
     ],
     "pretrain_vision": [
         true
