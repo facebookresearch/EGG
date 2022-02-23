@@ -55,11 +55,7 @@ def main(params):
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")
 
-    optimizer = torch.optim.SGD(
-        model_parameters,
-        lr=opts.lr,
-        momentum=0.9,
-    )
+    optimizer = torch.optim.Adam(model_parameters, lr=opts.lr)
     optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=opts.n_epochs
     )
