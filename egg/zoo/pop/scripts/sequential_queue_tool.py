@@ -29,7 +29,6 @@ def write_sequential_jobs(
                 expname = ""
                 for i, arg in enumerate(experiment):
                     if allkeys[i] in [
-                        "use_larc",
                         "use_different_architectures",
                         "pretrain_vision",
                     ]:

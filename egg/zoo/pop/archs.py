@@ -50,6 +50,9 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     if pretrained:
         for param in model.parameters():
             param.requires_grad = False
+        if name == "inception":
+            model.aux_logits = False
+        # TODO : verify that this is not mistakenly turned back on
         model = (
             model.eval()
         )  # Mat : --> dropout blocked, as well as all other training dependant behaviors
@@ -90,8 +93,8 @@ class Sender(nn.Module):
         vision_module_out = self.vision_module(x)
         if not self.training:
             aux_input["resnet_output_sender"] = vision_module_out.detach()
-        elif self.name == "inception":
-            vision_module_out = vision_module_out.logits
+        # elif self.name == "inception":
+        #     vision_module_out = vision_module_out.logits
 
         return self.fc(vision_module_out)
 
