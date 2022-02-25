@@ -43,6 +43,11 @@ def get_dataloader(
         )
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
+    train_sampler = None
+    if is_distributed:
+        train_sampler = torch.utils.data.distributed.DistributedSampler(
+            train_dataset, shuffle=True, drop_last=True, seed=seed
+        )
 
     if split_set:
         test_dataset, train_dataset = torch.utils.data.random_split(
@@ -50,24 +55,6 @@ def get_dataloader(
             [len(train_dataset) // 10, len(train_dataset) // 10 * 9],
             torch.Generator().manual_seed(seed),
         )
-    train_sampler = None
-    if is_distributed:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(
-            train_dataset, shuffle=True, drop_last=True, seed=seed
-        )
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=(train_sampler is None),
-        sampler=train_sampler,
-        num_workers=num_workers,
-        collate_fn=collate_fn,
-        drop_last=True,
-        pin_memory=True,
-    )
-
-    if split_set:
         test_loader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=batch_size,
@@ -78,7 +65,30 @@ def get_dataloader(
             drop_last=True,
             pin_memory=True,
         )
+
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=(train_sampler is None),
+            sampler=train_sampler,
+            num_workers=num_workers,
+            collate_fn=collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
         return test_loader, train_loader
+        
+    else:
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=(train_sampler is None),
+            sampler=train_sampler,
+            num_workers=num_workers,
+            collate_fn=collate_fn,
+            drop_last=True,
+            pin_memory=True,
+        )
     return train_loader
 
 
