@@ -71,6 +71,31 @@ class Interaction:
     message_length: Optional[torch.Tensor]
     aux: Dict[str, torch.Tensor]
 
+    def __add__(self, other) -> "Interaction":
+        """
+        Defines the behaviour of the + operator between two Interaction objects
+        """
+        sender_input = torch.cat((self.sender_input, other.sender_input))
+        receiver_input = torch.cat((self.receiver_input, other.receiver_input))
+        labels = torch.cat((self.labels, other.labels))
+        message = torch.cat((self.message, other.message))
+        message_length = torch.cat((self.message_length, other.message_length))
+        receiver_output = torch.cat((self.receiver_output, other.receiver_output))
+        if self.aux:
+            aux = {**self.aux, **other.aux}
+        if self.aux_input:
+            aux_input = {**self.aux_input, **other.aux_input}
+        return Interaction(
+            sender_input = sender_input,
+            receiver_input = receiver_input,
+            labels = labels,
+            aux_input = aux_input,
+            message = message,
+            message_length = message_length,
+            receiver_output = receiver_output,
+            aux = aux
+        )
+        
     @property
     def size(self):
         interaction_fields = [
@@ -245,6 +270,7 @@ def dump_interactions(
     :param variable_length: whether variable-length communication is used.
     :param device: device (e.g. 'cuda') to be used.
     :return: The entire log of agent interactions, represented as an Interaction instance.
+        Interaction instances.
     """
     train_state = game.training  # persist so we restore it back
     game.eval()
@@ -280,4 +306,4 @@ def dump_interactions(
             )
 
     game.train(mode=train_state)
-    return interaction
+    return full_interaction
