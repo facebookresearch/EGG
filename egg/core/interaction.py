@@ -306,4 +306,5 @@ def dump_interactions(
             )
 
     game.train(mode=train_state)
+
     return full_interaction
