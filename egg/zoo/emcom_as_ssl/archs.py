@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torchvision
 
-from egg.core.continous_communication import SenderReceiverContinuousCommunication
+from egg.core.continuous_communication import SenderReceiverContinuousCommunication
 from egg.core.gs_wrappers import gumbel_softmax_sample
 
 
