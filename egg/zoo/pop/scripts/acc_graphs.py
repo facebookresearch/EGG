@@ -175,7 +175,7 @@ def wnb_hp_specific_graph(
         save_path,
         verbose,
         name=graph_name,
-        title=f"{graph_name}_{mode}_acc",
+        title=f"{graph_name[:-4]}_{mode}_acc",
     )
 
 
@@ -325,68 +325,68 @@ def acc_graph(
 #     graph_name="vit.png",
 # )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "vision_model_names_senders",
     ],
-    values=[[["vgg11"]]],
+    values=[[["inception"]]],
     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
     verbose=True,
-    graph_name="vgg.png",
+    graph_name="incep.png",
 )
 
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.01], [2048, 1024, 512], [["vgg11"]]],
+    values=[[0.01], [2048, 1024, 512], [["inception"]]],
     verbose=True,
-    graph_name="vgglr0.01.png",
+    graph_name="inceplr0.01.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.001], [2048, 1024, 512], [["vgg11"]]],
+    values=[[0.001], [2048, 1024, 512], [["inception"]]],
     verbose=True,
-    graph_name="vgglr0.001.png",
+    graph_name="inceplr0.001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.0001], [2048, 1024, 512], [["vgg11"]]],
+    values=[[0.0001], [2048, 1024, 512], [["inception"]]],
     verbose=True,
-    graph_name="vgglr0.0001.png",
+    graph_name="inceplr0.0001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.00001], [2048, 1024, 512], [["vgg11"]]],
+    values=[[0.00001], [2048, 1024, 512], [["inception"]]],
     verbose=True,
-    graph_name="vgglr0.00001.png",
+    graph_name="inceplr0.00001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/incep_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.000001], [2048, 1024, 512], [["vgg11"]]],
+    values=[[0.000001], [2048, 1024, 512], [["inception"]]],
     verbose=True,
-    graph_name="vgglr0.000001.png",
+    graph_name="inceplr0.000001.png",
 )
