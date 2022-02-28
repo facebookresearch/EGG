@@ -86,16 +86,16 @@ class Interaction:
         if self.aux_input:
             aux_input = {**self.aux_input, **other.aux_input}
         return Interaction(
-            sender_input = sender_input,
-            receiver_input = receiver_input,
-            labels = labels,
-            aux_input = aux_input,
-            message = message,
-            message_length = message_length,
-            receiver_output = receiver_output,
-            aux = aux
+            sender_input=sender_input,
+            receiver_input=receiver_input,
+            labels=labels,
+            aux_input=aux_input,
+            message=message,
+            message_length=message_length,
+            receiver_output=receiver_output,
+            aux=aux,
         )
-        
+
     @property
     def size(self):
         interaction_fields = [
