@@ -130,6 +130,7 @@ def wnb_hp_specific_graph(
     values=[],
     verbose=False,
     graph_name="graph",
+    mode="test",
 ):
     """
     restrict nest_path to a more specific experiment to only search there
@@ -161,13 +162,21 @@ def wnb_hp_specific_graph(
             ):
                 # data is added to those needing to be plotted when it respects the constraints
                 labels.append(file_path[18:])  # TODO : nul a refaire
-                x, y = text_to_acc(data_file, verbose=verbose)
+                x, y = text_to_acc(data_file, verbose=verbose, mode=mode)
                 xs.append(x)
                 ys.append(y)
         # elif verbose:
         #     print(f"empty directory {file_path}")
     # plot all aquired data
-    acc_graph(xs, ys, labels, save_path, verbose, name=graph_name)
+    acc_graph(
+        xs,
+        ys,
+        labels,
+        save_path,
+        verbose,
+        name=graph_name,
+        title=f"{graph_name}_{mode}_acc",
+    )
 
 
 ##
@@ -316,68 +325,68 @@ def acc_graph(
 #     graph_name="vit.png",
 # )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "vision_model_names_senders",
     ],
-    values=[[["resnet152"]]],
+    values=[[["vgg11"]]],
     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
     verbose=True,
-    graph_name="resnet.png",
+    graph_name="vgg.png",
 )
 
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.01], [2048, 1024, 512], [["resnet152"]]],
+    values=[[0.01], [2048, 1024, 512], [["vgg11"]]],
     verbose=True,
-    graph_name="resnetlr0.01.png",
+    graph_name="vgglr0.01.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.001], [2048, 1024, 512], [["resnet152"]]],
+    values=[[0.001], [2048, 1024, 512], [["vgg11"]]],
     verbose=True,
-    graph_name="resnetlr0.001.png",
+    graph_name="vgglr0.001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.0001], [2048, 1024, 512], [["resnet152"]]],
+    values=[[0.0001], [2048, 1024, 512], [["vgg11"]]],
     verbose=True,
-    graph_name="resnetlr0.0001.png",
+    graph_name="vgglr0.0001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.00001], [2048, 1024, 512], [["resnet152"]]],
+    values=[[0.00001], [2048, 1024, 512], [["vgg11"]]],
     verbose=True,
-    graph_name="resnetlr0.00001.png",
+    graph_name="vgglr0.00001.png",
 )
 wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+    wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
     names=[
         "lr",
         "recv_hidden_dim",
         "vision_model_names_senders",
     ],
-    values=[[0.000001], [2048, 1024, 512], [["resnet152"]]],
+    values=[[0.000001], [2048, 1024, 512], [["vgg11"]]],
     verbose=True,
-    graph_name="resnetlr0.000001.png",
+    graph_name="vgglr0.000001.png",
 )
