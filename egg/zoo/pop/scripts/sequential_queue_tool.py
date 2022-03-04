@@ -1,5 +1,3 @@
-from pyparsing import cpp_style_comment
-from egg.zoo.pop import train
 import json
 import itertools as it
 import os
