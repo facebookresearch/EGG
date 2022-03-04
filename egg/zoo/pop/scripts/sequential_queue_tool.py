@@ -54,6 +54,7 @@ def write_sequential_jobs(
 
 
 if __name__ == "__main__":
+    wandb.init()
     wandb.config.allow_val_change = True
     args = sys.argv[1:]
     # [0] is arch type
