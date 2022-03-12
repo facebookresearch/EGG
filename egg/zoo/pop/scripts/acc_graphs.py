@@ -151,8 +151,6 @@ def wnb_hp_specific_graph(
         data_file = os.path.join(file_path, "wandb/latest-run/files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(metadata_file) and os.path.exists(data_file):
-            if False:  # Temp verbose blocked
-                print(file_path)
             # restrict to specific parameters
             if check_constraints(
                 metadata_file,
@@ -324,70 +322,69 @@ def acc_graph(
 #     verbose=True,
 #     graph_name="vit.png",
 # )
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "vision_model_names_senders",
-    ],
-    values=[[["resnet152"]]],
-    # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-    verbose=True,
-    graph_name="resnet.png",
-)
-
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "lr",
-        "recv_hidden_dim",
-        "vision_model_names_senders",
-    ],
-    values=[[0.01], [2048, 1024, 512], [["resnet152"]]],
-    verbose=True,
-    graph_name="resnetlr0.01.png",
-)
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "lr",
-        "recv_hidden_dim",
-        "vision_model_names_senders",
-    ],
-    values=[[0.001], [2048, 1024, 512], [["resnet152"]]],
-    verbose=True,
-    graph_name="resnetlr0.001.png",
-)
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "lr",
-        "recv_hidden_dim",
-        "vision_model_names_senders",
-    ],
-    values=[[0.0001], [2048, 1024, 512], [["resnet152"]]],
-    verbose=True,
-    graph_name="resnetlr0.0001.png",
-)
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "lr",
-        "recv_hidden_dim",
-        "vision_model_names_senders",
-    ],
-    values=[[0.00001], [2048, 1024, 512], [["resnet152"]]],
-    verbose=True,
-    graph_name="resnetlr0.00001.png",
-)
-wnb_hp_specific_graph(
-    wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-    names=[
-        "lr",
-        "recv_hidden_dim",
-        "vision_model_names_senders",
-    ],
-    values=[[0.000001], [2048, 1024, 512], [["resnet152"]]],
-    verbose=True,
-    graph_name="resnetlr0.000001.png",
-)
-
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "vision_model_names_senders",
+#     ],
+#     values=[[["resnet152"]]],
+#     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
+#     verbose=True,
+#     graph_name="resnet.png",
+# )
+# from egg.zoo.pop.scripts.acc_graphs import wnb_hp_specific_graph as wg
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "lr",
+#         "recv_hidden_dim",
+#         "vision_model_names_senders",
+#     ],
+#     values=[[0.01], [2048, 1024, 512], [["resnet152"]]],
+#     verbose=True,
+#     graph_name="resnetlr0.01.png",
+# )
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "lr",
+#         "recv_hidden_dim",
+#         "vision_model_names_senders",
+#     ],
+#     values=[[0.001], [2048, 1024, 512], [["resnet152"]]],
+#     verbose=True,
+#     graph_name="resnetlr0.001.png",
+# )
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "lr",
+#         "recv_hidden_dim",
+#         "vision_model_names_senders",
+#     ],
+#     values=[[0.0001], [2048, 1024, 512], [["resnet152"]]],
+#     verbose=True,
+#     graph_name="resnetlr0.0001.png",
+# )
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "lr",
+#         "recv_hidden_dim",
+#         "vision_model_names_senders",
+#     ],
+#     values=[[0.00001], [2048, 1024, 512], [["resnet152"]]],
+#     verbose=True,
+#     graph_name="resnetlr0.00001.png",
+# )
+# wnb_hp_specific_graph(
+#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
+#     names=[
+#         "lr",
+#         "recv_hidden_dim",
+#         "vision_model_names_senders",
+#     ],
+#     values=[[0.000001], [2048, 1024, 512], [["resnet152"]]],
+#     verbose=True,
+#     graph_name="resnetlr0.000001.png",
+# )
