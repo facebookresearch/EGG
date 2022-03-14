@@ -134,7 +134,7 @@ if __name__ == "__main__":
     executor.update_parameters(
         timeout_min=args.time,
         slurm_partition=args.partition,
-        cpus_per_task=4,
+        cpus_per_task=1,
         gpus_per_node=args.tasks,
         name=args.name,
         slurm_comment=args.comment,
