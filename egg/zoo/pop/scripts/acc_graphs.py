@@ -210,7 +210,7 @@ def acc_graph(
             ys[i],
             label=labels[i],
         )
-        plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+        plt.legend()
         plt.title(title)
     plt.savefig(os.path.join(save_path, name))
     plt.clf()
