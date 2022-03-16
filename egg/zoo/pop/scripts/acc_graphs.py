@@ -128,6 +128,7 @@ def wnb_hp_specific_graph(
     save_path="/mnt/efs/fs1/logs/",
     names=[],
     values=[],
+    label_names=["vision_model_names_recvs", "vision_model_names_senders"],
     verbose=False,
     graph_name="graph",
     mode="test",
@@ -141,25 +142,33 @@ def wnb_hp_specific_graph(
     labels = []
     # find all folders in log path
     # TODO: use title to reduce search space
-    files = glob.glob(wnb_path + "*")  # TODO : average accross multiple seeds
+    files = glob.glob(wnb_path + "*/wandb/*")  # TODO : average accross multiple seeds
     if verbose and files == []:
         print(f"no files were found in path {wnb_path}")
     for file_path in files:
         metadata_file = os.path.join(
-            file_path, "wandb/latest-run/files/wandb-metadata.json"
+            file_path, "/files/wandb-metadata.json"
         )
-        data_file = os.path.join(file_path, "wandb/latest-run/files/output.log")
+        data_file = os.path.join(file_path, "/files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(metadata_file) and os.path.exists(data_file):
             # restrict to specific parameters
+
             if check_constraints(
                 metadata_file,
                 names,
                 values,
                 False,
             ):
-                # data is added to those needing to be plotted when it respects the constraints
-                labels.append(file_path[18:])  # TODO : nul a refaire
+                with open(metadata_file) as f:
+                    params = metadata_opener(
+                        f, "wandb"
+                    )  # TODO : make one file call for the whole function
+                    label = ""
+                    for _ln in label_names:
+                        label += str(extract_param(_ln, params, verbose=False))
+                    # data is added to those needing to be plotted when it respects the constraints
+                    labels.append(label)
                 x, y = text_to_acc(data_file, verbose=verbose, mode=mode)
                 xs.append(x)
                 ys.append(y)
