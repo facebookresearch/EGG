@@ -123,14 +123,14 @@ def extract_meta_from_wnb(path, verbose=False):
         return extract_model_names(meta["args"], verbose=verbose)
 
 
-def wnb_hp_specific_graph(
-    wnb_path="/shared/mateo/logs/het_nest",
+def nest_graph(
+    path="/shared/mateo/logs/het_nest",
     save_path="/shared/mateo/logs",
     names=[],
     values=[],
     label_names=["vision_model_names_recvs", "vision_model_names_senders"],
     verbose=False,
-    graph_name="graph",
+    graph_name="nest",
     mode="test",
 ):
     """
@@ -142,32 +142,30 @@ def wnb_hp_specific_graph(
     labels = []
     # find all folders in log path
     # TODO: use title to reduce search space
-    files = glob.glob(wnb_path + "*/wandb/*")  # TODO : average accross multiple seeds
+    files = glob.glob(path + "*.out")  # TODO : average accross multiple seeds
     if verbose and files == []:
-        print(f"no files were found in path {wnb_path}")
+        print(f"no files were found in path {path}")
     for file_path in files:
-        metadata_file = os.path.join(file_path, "files/wandb-metadata.json")
-        data_file = os.path.join(file_path, "files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
-        if os.path.exists(metadata_file) and os.path.exists(data_file):
+        if os.path.exists(file_path):
             # restrict to specific parameters
 
             if check_constraints(
-                metadata_file,
+                file_path,
                 names,
                 values,
                 verbose,
             ):
-                with open(metadata_file) as f:
+                with open(file_path) as f:
                     params = metadata_opener(
-                        f, "wandb"
+                        f, "nest"
                     )  # TODO : make one file call for the whole function
                     label = ""
                     for _ln in label_names:
                         label += str(extract_param(_ln, params, verbose=False))
                     # data is added to those needing to be plotted when it respects the constraints
                     labels.append(label)
-                x, y = text_to_acc(data_file, verbose=verbose, mode=mode)
+                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 xs.append(x)
                 ys.append(y)
         # elif verbose:
