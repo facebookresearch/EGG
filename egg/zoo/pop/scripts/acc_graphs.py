@@ -29,9 +29,9 @@ def metadata_opener(file, data_type: str):
         # A future version of this opener should take into account the Namespace object on the following line
         lines = file.readlines()
         assert (
-            lines[0][0] == "#"
+            lines[3][0] == "#"
         )  # Making sure we're in the right place on the right line
-        params = eval(lines[0][2:])  # Mat : injection liability
+        params = eval(lines[3][2:])  # Mat : injection liability
         return params
 
     else:
