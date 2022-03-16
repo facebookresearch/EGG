@@ -31,7 +31,7 @@ def metadata_opener(file, data_type: str):
         assert (
             lines[2][0] == "#"
         )  # Making sure we're in the right place on the right line
-        params = eval(lines[2][2:])  # Mat : injection liability
+        params = eval(lines[2][12:])  # Mat : injection liability
         return params
 
     else:
