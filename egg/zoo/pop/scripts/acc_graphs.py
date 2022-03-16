@@ -128,7 +128,7 @@ def nest_graph(
     save_path="/shared/mateo/logs",
     names=[],
     values=[],
-    label_names=["vision_model_names_recvs", "vision_model_names_senders"],
+    label_names=["vision_model_names_senders", "vision_model_names_recvs"],
     verbose=False,
     graph_name="nest",
     mode="test",
