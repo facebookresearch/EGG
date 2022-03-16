@@ -156,7 +156,7 @@ def wnb_hp_specific_graph(
                 metadata_file,
                 names,
                 values,
-                False,
+                verbose,
             ):
                 with open(metadata_file) as f:
                     params = metadata_opener(
