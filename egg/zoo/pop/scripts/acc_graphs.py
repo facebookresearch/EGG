@@ -146,8 +146,8 @@ def wnb_hp_specific_graph(
     if verbose and files == []:
         print(f"no files were found in path {wnb_path}")
     for file_path in files:
-        metadata_file = os.path.join(file_path, "/files/wandb-metadata.json")
-        data_file = os.path.join(file_path, "/files/output.log")
+        metadata_file = os.path.join(file_path, "files/wandb-metadata.json")
+        data_file = os.path.join(file_path, "files/output.log")
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(metadata_file) and os.path.exists(data_file):
             # restrict to specific parameters
