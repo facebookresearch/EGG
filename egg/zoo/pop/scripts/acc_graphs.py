@@ -29,9 +29,9 @@ def metadata_opener(file, data_type: str):
         # A future version of this opener should take into account the Namespace object on the following line
         lines = file.readlines()
         assert (
-            lines[3][0] == "#"
+            lines[2][0] == "#"
         )  # Making sure we're in the right place on the right line
-        params = eval(lines[3][2:])  # Mat : injection liability
+        params = eval(lines[2][2:])  # Mat : injection liability
         return params
 
     else:
@@ -124,7 +124,7 @@ def extract_meta_from_wnb(path, verbose=False):
 
 
 def nest_graph(
-    path="/shared/mateo/logs/het_nest",
+    path="/shared/mateo/logs/het_nest/",
     save_path="/shared/mateo/logs",
     names=[],
     values=[],
