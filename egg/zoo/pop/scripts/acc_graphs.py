@@ -28,11 +28,10 @@ def metadata_opener(file, data_type: str):
         # All other parameters will be set to default values but will not appear here
         # A future version of this opener should take into account the Namespace object on the following line
         lines = file.readlines()
-        assert (
-            lines[2][0] == "#"
-        )  # Making sure we're in the right place on the right line
-        params = eval(lines[2][12:])  # Mat : injection liability
-        return params
+        for i in range(len(lines)):
+            if lines[i][0] == "#":
+                params = eval(lines[i][12:])  # Mat : injection liability
+                return params
 
     else:
         raise KeyError(
