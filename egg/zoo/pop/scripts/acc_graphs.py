@@ -13,7 +13,7 @@ import wandb
 ##
 
 
-def metadata_opener(file, data_type: str):
+def metadata_opener(file, data_type: str, verbose=False):
     """
     data_type : str in {"wandb", "nest"}
     Mat : case match in python 3.10 will cover all of this in syntaxic sugar
@@ -32,6 +32,9 @@ def metadata_opener(file, data_type: str):
             if lines[i][0] == "#":
                 params = eval(lines[i][12:])  # Mat : injection liability
                 return params
+        if verbose:
+            print("failed to find metadata in file")
+        return []
 
     else:
         raise KeyError(
@@ -65,7 +68,9 @@ def check_constraints(path, names=[], values=[], verbose=False):
     else:
         with open(path) as f:
             params = metadata_opener(
-                f, "wandb" if path[len(path) - 4 : len(path)] == "json" else "nest"
+                f,
+                "wandb" if path[len(path) - 4 : len(path)] == "json" else "nest",
+                verbose=True,
             )
             for i in range(len(values)):
                 _ep = extract_param(names[i], params, verbose=False)
@@ -157,14 +162,14 @@ def nest_graph(
             ):
                 with open(file_path) as f:
                     params = metadata_opener(
-                        f, "nest"
+                        f, "nest", verbose=True
                     )  # TODO : make one file call for the whole function
                     label = ""
                     for _ln in label_names:
                         label += str(extract_param(_ln, params, verbose=False))
                     # data is added to those needing to be plotted when it respects the constraints
                     labels.append(label)
-                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
+                x, y = text_to_acc(file_path, verbose=False, mode=mode)
                 xs.append(x)
                 ys.append(y)
         # elif verbose:
