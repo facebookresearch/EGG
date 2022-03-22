@@ -27,10 +27,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','inception','vit']"
+        "['vgg11','inception','vit','resnet152']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','inception','vit']"
+        "['resnet152']"
     ],
     "pretrain_vision": [
         true
