@@ -33,10 +33,7 @@
         "['vit']"
     ],
     "vision_model_names_senders": [
-        "['vgg11']",
-        "['inception']",
-        "['resnet152']",
-        "['vit']"
+        "['resnet152']"
     ],
     "pretrain_vision": [
         true
