@@ -3,7 +3,7 @@
         25
     ],
     "batch_size": [
-        64
+        32
     ],
     "lr": [
         0.0001
@@ -29,10 +29,11 @@
     "vision_model_names_recvs": [
         "['resnet152']",
         "['vit']",
+        "['inception']",
         "['vgg11']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152']"
+        "['vgg11','inception','vit','resnet152']"
     ],
     "pretrain_vision": [
         true
@@ -44,6 +45,6 @@
         1
     ],
     "n_senders": [
-        3
+        4
     ]
 }
