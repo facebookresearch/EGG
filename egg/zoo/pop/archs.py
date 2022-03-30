@@ -232,6 +232,9 @@ class Game(nn.Module):
         # if not self.training:
         sender.to("cuda")  # Mat !! TODO : change this to common opts device
         receiver.to("cuda")
+        sender_input = sender_input.to("cuda")
+        receiver_input = receiver_input.to("cuda")
+
         message = sender(sender_input, aux_input)
         receiver_output = receiver(message, receiver_input, aux_input)
 
