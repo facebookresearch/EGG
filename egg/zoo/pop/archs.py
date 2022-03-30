@@ -230,10 +230,10 @@ class Game(nn.Module):
         aux_input=None,
     ):
         # if not self.training:
-        sender.to("cuda")  # Mat !! TODO : change this to common opts device
-        receiver.to("cuda")
-        sender_input = sender_input.to("cuda")
-        receiver_input = receiver_input.to("cuda")
+        # sender.to("cuda")  # Mat !! TODO : change this to common opts device
+        # receiver.to("cuda")
+        # sender_input = sender_input.to("cuda")
+        # receiver_input = receiver_input.to("cuda")
 
         message = sender(sender_input, aux_input)
         receiver_output = receiver(message, receiver_input, aux_input)
@@ -261,8 +261,8 @@ class Game(nn.Module):
             aux=aux_info,
         )
         # if not self.training:
-        sender.to("cpu")
-        receiver.to("cpu")
+        # sender.to("cpu")
+        # receiver.to("cpu")
         return loss.mean(), interaction
 
 
@@ -284,4 +284,6 @@ class PopulationGame(nn.Module):
             "loss_idx": loss_idx,
         }
 
-        return self.game(sender, receiver, loss, *args, **kwargs)
+        return self.game(
+            sender.to("cuda"), receiver.to("cuda"), loss, *args, **kwargs
+        ).to("cpu")
