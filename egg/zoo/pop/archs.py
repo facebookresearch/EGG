@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import itertools
-from types import NoneType
 from typing import Optional, Union
 
 import timm
@@ -278,8 +277,9 @@ class PopulationGame(nn.Module):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
+        # sender and receiver input to CUDA
         args = [
-            arg.to("cuda") if not isinstance(arg, NoneType) else arg for arg in args
+            arg.to("cuda") if arg is not None else arg for arg in args
         ]  # list(args)
         args[-1] = {
             "sender_idx": sender_idx,
