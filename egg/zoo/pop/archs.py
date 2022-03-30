@@ -227,8 +227,8 @@ class Game(nn.Module):
         aux_input=None,
     ):
         # if not self.training:
-        #     sender.to("cuda")
-        #     receiver.to("cuda")
+        sender.to("cuda")
+        receiver.to("cuda")
         message = sender(sender_input, aux_input)
         receiver_output = receiver(message, receiver_input, aux_input)
 
@@ -255,8 +255,8 @@ class Game(nn.Module):
             aux=aux_info,
         )
         # if not self.training:
-        #     sender.to("cpu")
-        #     receiver.to("cpu")
+        sender.to("cpu")
+        receiver.to("cpu")
         return loss.mean(), interaction
 
 

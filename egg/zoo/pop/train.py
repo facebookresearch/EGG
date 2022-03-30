@@ -79,6 +79,7 @@ def main(params):
         train_data=train_loader,
         validation_data=val_loader,
         callbacks=callbacks,
+        device="cpu",
     )
     trainer.train(n_epochs=opts.n_epochs)
 
