@@ -277,7 +277,7 @@ class PopulationGame(nn.Module):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
-        args = list(args.to("cuda"))
+        args = [arg.to("cuda") for arg in args]  # list(args)
         args[-1] = {
             "sender_idx": sender_idx,
             "recv_idx": recv_idx,
