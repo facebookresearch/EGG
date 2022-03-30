@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import itertools
+from types import NoneType
 from typing import Optional, Union
 
 import timm
@@ -278,7 +279,7 @@ class PopulationGame(nn.Module):
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
         args = [
-            arg.to("cuda") if isinstance(arg, torch.tensor) else arg for arg in args
+            arg.to("cuda") if not isinstance(arg, NoneType) else arg for arg in args
         ]  # list(args)
         args[-1] = {
             "sender_idx": sender_idx,
