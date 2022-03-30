@@ -286,7 +286,9 @@ class PopulationGame(nn.Module):
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
         }
-
-        return self.game(
+        mean_loss, interactions = self.game(
             sender.to("cuda"), receiver.to("cuda"), loss, *args, **kwargs
-        ).to("cpu")
+        )
+        sender.to("cpu")
+        receiver.to("cpu")
+        return mean_loss, interactions
