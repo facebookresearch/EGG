@@ -13,6 +13,7 @@ import torch.nn as nn
 import torchvision
 
 from egg.core.interaction import LoggingStrategy
+from egg.core.util import move_to
 
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
@@ -273,20 +274,19 @@ class PopulationGame(nn.Module):
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
 
-
-    def forward(self, device='cuda',*args, **kwargs):
+    def forward(self, device="cuda", *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
         sender.to(device)
         receiver.to(device)
-        args = [arg.to("cuda") if arg is not None else arg for arg in args] # list(args)
+        args = move_to(list(args), device)
         args[-1] = {
             "sender_idx": sender_idx,
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
         }
         mean_loss, interactions = self.game(sender, receiver, loss, *args, **kwargs)
-        sender.to('cpu')
-        receiver.to('cpu')
-        return mean_loss.to('cpu'), interactions #sent to cpu in trainer
+        sender.to("cpu")
+        receiver.to("cpu")
+        return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
