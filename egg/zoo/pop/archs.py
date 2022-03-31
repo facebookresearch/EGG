@@ -273,6 +273,7 @@ class PopulationGame(nn.Module):
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
+        # TODO : Mat : this should be in sync with thatever the opts selected
         self.device = "cuda"
 
     def forward(self, *args, **kwargs):
@@ -289,5 +290,6 @@ class PopulationGame(nn.Module):
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
-        self.to("cpu")
+        sender.to("cpu")
+        receiver.to("cpu")
         return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
