@@ -254,7 +254,6 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
-            self.game.to("cpu")
 
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
