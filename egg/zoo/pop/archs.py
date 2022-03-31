@@ -286,10 +286,11 @@ class PopulationGame(nn.Module):
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
         }
-        args = move_to(args, self.device)
-        mean_loss, interactions = self.game(
-            sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
-        )
-        sender.to("cpu")
-        receiver.to("cpu")
-        return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
+        # args = move_to(args, self.device)
+        # mean_loss, interactions = self.game(
+        #     sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
+        # )
+        # sender.to("cpu")
+        # receiver.to("cpu")
+        # return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
+        return self.game(sender, receiver, loss, *args, **kwargs)
