@@ -278,8 +278,6 @@ class PopulationGame(nn.Module):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
-        sender.to(device)
-        receiver.to(device)
         args = list(args)
         args[-1] = {
             "sender_idx": sender_idx,
@@ -287,7 +285,8 @@ class PopulationGame(nn.Module):
             "loss_idx": loss_idx,
         }
         # args = move_to(args, device)
-        mean_loss, interactions = self.game(sender, receiver, loss, *args, **kwargs)
-        sender.to("cpu")
-        receiver.to("cpu")
+        mean_loss, interactions = self.game(
+            sender.to(device), receiver.to(device), loss, *args, **kwargs
+        )
+        self.to("cpu")
         return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
