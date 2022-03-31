@@ -280,7 +280,7 @@ class PopulationGame(nn.Module):
         # creating an aux_input
         sender.to(device)
         receiver.to(device)
-        list(args)
+        args = list(args)
         args[-1] = {
             "sender_idx": sender_idx,
             "recv_idx": recv_idx,
