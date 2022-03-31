@@ -274,7 +274,7 @@ class PopulationGame(nn.Module):
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
 
-    def forward(self, device="cuda", *args, **kwargs):
+    def forward(self, device="cpu", *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
