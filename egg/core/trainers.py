@@ -155,7 +155,9 @@ class Trainer:
             # NB: some optimizers pre-allocate buffers before actually doing any steps
             # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
             # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
-            self.optimizer.state = move_to(self.optimizer.state, 'cuda') # TODO : use self.device
+            self.optimizer.state = move_to(
+                self.optimizer.state, self.device
+            )  # TODO : examine whether it should (and can) be on GPU
 
         if common_opts.fp16:
             self.scaler = GradScaler()
@@ -225,6 +227,10 @@ class Trainer:
             else:
                 optimized_loss.backward()
 
+            self.game.to(
+                "cpu"
+            )  # chosen sender and receiver where put on gpu during forward call. bring them back.
+
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)
@@ -254,7 +260,6 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
-            self.game.to('cpu') # chosen sender and receiver where put on gpu during forward call. bring them back.
 
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
