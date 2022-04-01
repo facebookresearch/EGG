@@ -174,7 +174,7 @@ class Trainer:
             for batch in validation_data:
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
-                batch = batch.to(self.device)
+                batch = batch.to("cuda")
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed
@@ -185,7 +185,7 @@ class Trainer:
                     )
                 interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
-
+                self.game.to("cpu")
                 for callback in self.callbacks:
                     callback.on_batch_end(
                         interaction, optimized_loss, n_batches, is_training=False
