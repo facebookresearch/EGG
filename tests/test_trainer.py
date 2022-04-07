@@ -188,5 +188,5 @@ def test_empty_dataset():
         validation_data=data,
     )
 
-    with pytest.raises(ZeroDivisionError) as e_info:
+    with pytest.raises(ZeroDivisionError):
         trainer.train(1)

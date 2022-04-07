@@ -2,14 +2,14 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from typing import Callable, Optional
+from typing import Callable
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
-from .interaction import Interaction, LoggingStrategy
+from .interaction import Interaction
 
 
 def gumbel_softmax_sample(
