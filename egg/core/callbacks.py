@@ -426,7 +426,6 @@ class ProgressBarLogger(Callback):
         self.n_epochs = n_epochs
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
-        self.use_info_table = use_info_table
         self.progress = CustomProgress(
             TextColumn(
                 "[bold]Epoch {task.fields[cur_epoch]}/{task.fields[n_epochs]} | [blue]{task.fields[mode]}",
@@ -483,7 +482,6 @@ class ProgressBarLogger(Callback):
             n_epochs=self.n_epochs,
             mode="Train",
         )
-
         self.progress.start_task(self.train_p)
         self.progress.update(self.train_p, visible=True)
 
@@ -505,9 +503,8 @@ class ProgressBarLogger(Callback):
             mode="Train",
         )
 
-        if self.use_info_table:
-            od = self.build_od(logs, loss, epoch)
-            self.progress.update_info_table(od, "train")
+        od = self.build_od(logs, loss, epoch)
+        self.progress.update_info_table(od, "train")
 
     def on_validation_begin(self, epoch: int):
         self.progress.reset(
@@ -541,9 +538,8 @@ class ProgressBarLogger(Callback):
             mode="Test",
         )
 
-        if self.use_info_table:
-            od = self.build_od(logs, loss, epoch)
-            self.progress.update_info_table(od, "test")
+        od = self.build_od(logs, loss, epoch)
+        self.progress.update_info_table(od, "test")
 
     def on_train_end(self):
         self.progress.stop()
