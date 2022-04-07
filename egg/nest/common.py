@@ -26,7 +26,7 @@ def parse_json_sweep(config):
 
     commands = []
     for p in perms:
-        args = [to_arg(k, p[i]) for i, k in enumerate(config.keys())]
+        args = [to_arg(k, p[i]) for i, k in enumerate(config.keys()) if to_arg(k, p[i])]
         commands.append(args)
     return commands
 
