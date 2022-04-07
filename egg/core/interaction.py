@@ -287,7 +287,7 @@ class LoggingStrategy:
 
     @classmethod
     def minimal(cls):
-        args = [False] * 6 + [True]
+        args = [False] * 7
         return cls(*args)
 
     @classmethod
