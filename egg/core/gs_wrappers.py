@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import RelaxedOneHotCategorical
 
-from .interaction import LoggingStrategy
+from .interaction import Interaction, LoggingStrategy
 
 
 def gumbel_softmax_sample(
@@ -144,8 +144,7 @@ class SymbolGameGS(nn.Module):
         sender: nn.Module,
         receiver: nn.Module,
         loss: Callable,
-        train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None,
+        **kwargs,
     ):
         """
         :param sender: Sender agent. sender.forward() has to output log-probabilities over the vocabulary.
@@ -157,23 +156,13 @@ class SymbolGameGS(nn.Module):
           * receiver_input: input to Receiver from dataset
           * receiver_output: output of Receiver
           * labels: labels that come from dataset
-        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
-            later analysis in the callbacks.
+        :param kwargs: used for deprecated logging strategy
+
         """
         super(SymbolGameGS, self).__init__()
         self.sender = sender
         self.receiver = receiver
         self.loss = loss
-        self.train_logging_strategy = (
-            LoggingStrategy()
-            if train_logging_strategy is None
-            else train_logging_strategy
-        )
-        self.test_logging_strategy = (
-            LoggingStrategy()
-            if test_logging_strategy is None
-            else test_logging_strategy
-        )
 
     def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
         message = self.sender(sender_input, aux_input)
@@ -183,10 +172,7 @@ class SymbolGameGS(nn.Module):
             sender_input, message, receiver_input, receiver_output, labels, aux_input
         )
 
-        logging_strategy = (
-            self.train_logging_strategy if self.training else self.test_logging_strategy
-        )
-        interaction = logging_strategy.filtered_interaction(
+        interaction = Interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,
@@ -453,8 +439,7 @@ class SenderReceiverRnnGS(nn.Module):
         receiver,
         loss,
         length_cost=0.0,
-        train_logging_strategy: Optional[LoggingStrategy] = None,
-        test_logging_strategy: Optional[LoggingStrategy] = None,
+        **kwargs,
     ):
         """
         :param sender: sender agent
@@ -469,8 +454,7 @@ class SenderReceiverRnnGS(nn.Module):
           of the same shape. The loss will be minimized during training, and the auxiliary information aggregated over
           all batches in the dataset.
         :param length_cost: the penalty applied to Sender for each symbol produced
-        :param train_logging_strategy, test_logging_strategy: specify what parts of interactions to persist for
-            later analysis in the callbacks.
+        :param kwargs: used for deprecated logging strategy
 
         """
         super(SenderReceiverRnnGS, self).__init__()
@@ -478,16 +462,6 @@ class SenderReceiverRnnGS(nn.Module):
         self.receiver = receiver
         self.loss = loss
         self.length_cost = length_cost
-        self.train_logging_strategy = (
-            LoggingStrategy()
-            if train_logging_strategy is None
-            else train_logging_strategy
-        )
-        self.test_logging_strategy = (
-            LoggingStrategy()
-            if test_logging_strategy is None
-            else test_logging_strategy
-        )
 
     def forward(self, sender_input, labels, receiver_input=None, aux_input=None):
         message = self.sender(sender_input, aux_input)
@@ -539,10 +513,7 @@ class SenderReceiverRnnGS(nn.Module):
 
         aux_info["length"] = expected_length
 
-        logging_strategy = (
-            self.train_logging_strategy if self.training else self.test_logging_strategy
-        )
-        interaction = logging_strategy.filtered_interaction(
+        interaction = Interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
             labels=labels,

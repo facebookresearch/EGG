@@ -6,6 +6,7 @@ import shutil
 import sys
 from pathlib import Path
 
+import pytest
 import torch
 from torch.nn import functional as F
 
@@ -187,10 +188,5 @@ def test_empty_dataset():
         validation_data=data,
     )
 
-    passed = False
-    try:
+    with pytest.raises(ZeroDivisionError) as e_info:
         trainer.train(1)
-    except ZeroDivisionError:
-        passed = True
-
-    assert passed, "The empty dataset assertion has not been raised"

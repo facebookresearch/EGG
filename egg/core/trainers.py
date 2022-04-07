@@ -171,9 +171,9 @@ class Trainer:
             self.scaler = None
 
     def eval(self, data=None):
-        mean_loss = 0
-        n_batches = 0
+        mean_loss = 0.0
         interactions = []
+        n_batches = 0
         validation_data = self.validation_data if data is None else data
         self.game.eval()
         with torch.no_grad():
