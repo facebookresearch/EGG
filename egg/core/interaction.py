@@ -5,7 +5,7 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional, Union, List
+from typing import Dict, Iterable, List, Optional, Union
 
 import torch
 import torch.distributed as distrib

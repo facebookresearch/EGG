@@ -207,7 +207,7 @@ class Trainer:
 
         if not warn_on_empty_dataset(n_batches, is_train=False):
             mean_loss /= n_batches
-            mean_loss= mean_loss.item()
+            mean_loss = mean_loss.item()
 
         full_interaction = Interaction.from_iterable(interactions)
 
