@@ -6,7 +6,6 @@ import shutil
 import sys
 from pathlib import Path
 
-import pytest
 import torch
 from torch.nn import functional as F
 
