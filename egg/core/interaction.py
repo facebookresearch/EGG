@@ -5,7 +5,7 @@
 import functools
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional, Union
+from typing import Dict, Iterable, Optional, Union, List
 
 import torch
 import torch.distributed as distrib
@@ -16,18 +16,18 @@ from egg.core.batch import Batch
 @dataclass(repr=True, unsafe_hash=True)
 class Interaction:
     # incoming data
-    sender_input: Optional[Union[torch.Tensor, list]]
-    receiver_input: Optional[Union[torch.Tensor, list]]
-    labels: Optional[Union[torch.Tensor, list]]
-    aux_input: Optional[Dict[str, Union[torch.Tensor, list]]]
+    sender_input: Optional[Union[torch.Tensor, List]]
+    receiver_input: Optional[Union[torch.Tensor, List]]
+    labels: Optional[Union[torch.Tensor, List]]
+    aux_input: Optional[Dict[str, Union[torch.Tensor, List]]]
 
     # what agents produce
-    message: Optional[Union[torch.Tensor, list]]
-    receiver_output: Optional[Union[torch.Tensor, list]]
+    message: Optional[Union[torch.Tensor, List]]
+    receiver_output: Optional[Union[torch.Tensor, List]]
 
     # auxilary info
-    message_length: Optional[Union[torch.Tensor, list]]
-    aux: Dict[str, Union[torch.Tensor, list]]
+    message_length: Optional[Union[torch.Tensor, List]]
+    aux: Dict[str, Union[torch.Tensor, List]]
 
     @property
     def size(self):

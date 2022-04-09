@@ -179,7 +179,7 @@ def test_early_stopping():
 
 
 def test_empty_dataset():
-    core.init(params=[])
+    core.init()
     game, data = MockGame(), EmptyDataset()
     trainer = core.Trainer(
         game=game,
@@ -188,5 +188,5 @@ def test_empty_dataset():
         validation_data=data,
     )
 
-    with pytest.raises(ZeroDivisionError):
-        trainer.train(1)
+    # should warn user of zero sized batch
+    trainer.train(1)

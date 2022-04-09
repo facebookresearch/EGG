@@ -156,7 +156,7 @@ class SymbolGameGS(nn.Module):
           * receiver_input: input to Receiver from dataset
           * receiver_output: output of Receiver
           * labels: labels that come from dataset
-        :param kwargs: used for deprecated logging strategy
+        :param kwargs: kwargs arguments
 
         """
         super(SymbolGameGS, self).__init__()
@@ -454,7 +454,7 @@ class SenderReceiverRnnGS(nn.Module):
           of the same shape. The loss will be minimized during training, and the auxiliary information aggregated over
           all batches in the dataset.
         :param length_cost: the penalty applied to Sender for each symbol produced
-        :param kwargs: used for deprecated logging strategy
+        :param kwargs:  kwargs arguments
 
         """
         super(SenderReceiverRnnGS, self).__init__()
