@@ -4,8 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+import os
 import pathlib
 import random
+import subprocess
 import sys
 from collections import defaultdict
 from typing import Any, Iterable, List, Optional
@@ -311,3 +313,39 @@ def find_lengths(messages: torch.Tensor) -> torch.Tensor:
     lengths.add_(1).clamp_(max=max_k)
 
     return lengths
+
+
+def setup_print_for_distributed(is_master: bool):
+    """Prevents non-master processes from printing to stdout unless explicitly requested."""
+    import builtins as __builtin__
+
+    builtin_print = __builtin__.print
+
+    def print(*args, **kwargs):
+        force = kwargs.pop("force", False)
+        if is_master or force:
+            builtin_print(*args, **kwargs)
+
+    __builtin__.print = print
+
+
+def get_sha():
+    """Computes and returns info about current state of working directory and staging area."""
+    cwd = os.path.dirname(os.path.abspath(__file__))
+
+    def _run(command):
+        return subprocess.check_output(command, cwd=cwd).decode("ascii").strip()
+
+    sha = "N/A"
+    diff = "clean"
+    branch = "N/A"
+    try:
+        sha = _run(["git", "rev-parse", "HEAD"])
+        subprocess.check_output(["git", "diff"], cwd=cwd)
+        diff = _run(["git", "diff-index", "HEAD"])
+        diff = "has uncommited changes" if diff else "clean"
+        branch = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    except Exception:
+        pass
+    message = f"sha: {sha}, status: {diff}, branch: {branch}"
+    return message
