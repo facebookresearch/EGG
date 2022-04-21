@@ -281,11 +281,11 @@ class PopulationGame(nn.Module):
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
         args = list(args)
-        args[-1] = {
-            "sender_idx": sender_idx,
-            "recv_idx": recv_idx,
-            "loss_idx": loss_idx,
-        }
+        # args[-1] = {
+        #     "sender_idx": sender_idx,
+        #     "recv_idx": recv_idx,
+        #     "loss_idx": loss_idx,
+        # }
         # args = move_to(args, self.device)
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
