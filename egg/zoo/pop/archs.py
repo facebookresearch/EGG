@@ -77,6 +77,18 @@ class Sender(nn.Module):
         self.init_vision_module(vision_module, input_dim)
         self.init_com_layer(input_dim, vocab_size)
 
+    def train(self, mode: bool = True):
+        r"""
+        sets all in training mode EXCEPT vision module which is pre-trained and frozen
+        """
+        if not isinstance(mode, bool):
+            raise ValueError("training mode is expected to be boolean")
+        self.training = mode
+        for module in self.children():
+            if module != self.vision_module:
+                module.train(mode)
+        return self
+
     def init_vision_module(self, vision_module, input_dim):
         if isinstance(vision_module, nn.Module):
             self.vision_module = vision_module
@@ -95,9 +107,9 @@ class Sender(nn.Module):
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
-        if not self.training:
-            aux_input["resnet_output_sender"] = vision_module_out.detach()
-        # elif self.name == "inception":
+        # if not self.training: # this is commented because with pops of agents each visiion module has a different size and interactions can't concat
+        #     aux_input["resnet_output_sender"] = vision_module_out.detach()
+        # elif self.name == "inception": # This is commented because incep is set not to have logits in the setting where models are pretrained
         #     vision_module_out = vision_module_out.logits
 
         return self.fc(vision_module_out)
@@ -281,11 +293,11 @@ class PopulationGame(nn.Module):
         sender_idx, recv_idx, loss_idx = idxs
         # creating an aux_input
         args = list(args)
-        # args[-1] = {
-        #     "sender_idx": sender_idx,
-        #     "recv_idx": recv_idx,
-        #     "loss_idx": loss_idx,
-        # }
+        args[-1] = {
+            "sender_idx": sender_idx,
+            "recv_idx": recv_idx,
+            "loss_idx": loss_idx,
+        }
         # args = move_to(args, self.device)
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
