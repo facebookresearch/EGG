@@ -145,6 +145,18 @@ class Receiver(nn.Module):
         )
         self.temperature = temperature
 
+    def train(self, mode: bool = True):
+        r"""
+        sets all in training mode EXCEPT vision module which is pre-trained and frozen
+        """
+        if not isinstance(mode, bool):
+            raise ValueError("training mode is expected to be boolean")
+        self.training = mode
+        for module in self.children():
+            if module != self.vision_module:
+                module.train(mode)
+        return self
+
     def forward(self, message, distractors, aux_input=None):
         vision_module_out = self.vision_module(distractors)
         # if self.name == "inception":
