@@ -107,7 +107,8 @@ def text_to_acc(file_path, mode="test", verbose=False):  # Mat : going through c
             if "{" in line:
                 _dict = json.loads(line)
                 if _dict["mode"] == mode:
-                    print(_dict)
+                    if verbose:
+                        print(_dict)
                     x.append(_dict["epoch"])
                     y.append(_dict["acc"])
         if verbose and x == []:
@@ -169,7 +170,7 @@ def nest_graph(
                         label += str(extract_param(_ln, params, verbose=False))
                     # data is added to those needing to be plotted when it respects the constraints
                     labels.append(label)
-                x, y = text_to_acc(file_path, verbose=False, mode=mode)
+                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 xs.append(x)
                 ys.append(y)
         # elif verbose:
