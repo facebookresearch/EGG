@@ -137,6 +137,7 @@ def nest_graph(
     verbose=False,
     graph_name="nest",
     mode="test",
+    epoch_limit=None,
 ):
     """
     restrict nest_path to a more specific experiment to only search there
@@ -171,8 +172,8 @@ def nest_graph(
                     # data is added to those needing to be plotted when it respects the constraints
                     labels.append(label)
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
-                xs.append(x)
-                ys.append(y)
+                xs.append(x if epoch_limit is None else x[:epoch_limit])
+                ys.append(y if epoch_limit is None else y[:epoch_limit])
         # elif verbose:
         #     print(f"empty directory {file_path}")
     # plot all aquired data
