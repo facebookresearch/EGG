@@ -272,7 +272,7 @@ def one_architecture_all_exps(
     labels = _labels
 
     # slight colour changes for the different elements, in the same colour zone
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.1, len(xs))))
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.1, len(xs) + 1)))
     colours = [next(colour_iterator) for _ in range(len(xs))]
 
     if baselines:
@@ -287,7 +287,7 @@ def one_architecture_all_exps(
         xs += _xs
         ys += _ys
         labels += _labels
-        colours += [1.0000000e00, 1.2246468e-16, 6.1232340e-17, 1.0000000e00] * len(
+        colours += [[1.0000000e00, 1.2246468e-16, 6.1232340e-17, 1.0000000e00]] * len(
             _xs
         )  # one specific colour
 
