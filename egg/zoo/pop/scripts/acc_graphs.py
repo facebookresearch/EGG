@@ -283,7 +283,7 @@ def one_architecture_all_exps(
         verbose,
         name=graph_name,
         title=arch_name if graph_title is None else graph_title,
-        legend_title="sender architecture --> receiver architecture",
+        legend_title="sender --> receiver",
     )
 
 
@@ -327,13 +327,21 @@ def nest_graph_collector(
                     params = metadata_opener(f, "nest", verbose=True)
 
                     # generate labels
-                    _sender_label = extract_param(label_names[0], params, verbose=False)
-                    _recv_label = extract_param(label_names[1], params, verbose=False)
+                    _sender_label = eval(
+                        extract_param(label_names[0], params, verbose=False)
+                    )
+                    _recv_label = eval(
+                        extract_param(label_names[1], params, verbose=False)
+                    )
 
-                    if len(eval(_sender_label)) > 1:
-                        _sender_label = "all architectures"
-                    if len(eval(_recv_label)) > 1:
-                        _recv_label = "all architectures"
+                    _sender_label = (
+                        "all architectures"
+                        if len(_sender_label) > 1
+                        else _sender_label[0]
+                    )
+                    _recv_label = (
+                        "all architectures" if len(_recv_label) > 1 else _recv_label[0]
+                    )
 
                     label = f"{_sender_label} --> {_recv_label}"
                     labels.append(label)
