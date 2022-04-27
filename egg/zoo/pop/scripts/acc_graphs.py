@@ -215,7 +215,9 @@ def acc_graph(
     for i in range(len(xs)):
         if verbose:
             print(f"adding {labels[i]} to graph")
-        plt.plot(xs[i], ys[i], label=labels[i], c=colours)
+        plt.plot(
+            xs[i], ys[i], label=labels[i], c=colours[i] if colours is not None else None
+        )
         plt.legend(title=legend_title)
         plt.title(title)
     plt.savefig(os.path.join(save_path, name))
