@@ -68,7 +68,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
             params = metadata_opener(
                 f,
                 "wandb" if path[len(path) - 4 : len(path)] == "json" else "nest",
-                verbose=True,
+                verbose=verbose,
             )
             for i in range(len(values)):
                 _ep = extract_param(names[i], params, verbose=False)
@@ -162,7 +162,7 @@ def nest_graph(
             ):
                 with open(file_path) as f:
                     params = metadata_opener(
-                        f, "nest", verbose=True
+                        f, "nest", verbose=verbose
                     )  # TODO : make one file call for the whole function
                     label = ""
                     for _ln in label_names:
@@ -258,30 +258,23 @@ def one_architecture_all_exps(
         values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
-    labels = [
-        f"{arch_name} --> other architecture" if l == labels[0] else None
-        for l in labels
-    ]
-    colours = [next(colour_iterator)] * len(xs)
 
-    _xs, _ys, _labels = nest_graph_collector(
-        names=[
-            "vision_model_names_senders",
-            "vision_model_names_recvs",
-            "recv_hidden_dim",
-            "lr",
-            "recv_output_dim",
-            "n_epochs",
-            "batch_size",
-        ],
-        values=[[[arch_name]], [[[arch_name]]], [2048], [0.0001], [512], [25], [64]],
-        verbose=verbose,
-    )
+    # correcting and simplifying labels on a case by case basis
+    _labels = []
+    _nothing_labeled = True
 
-    xs += _xs
-    ys += _ys
-    labels += _labels
-    colours += [next(colour_iterator)] * len(_xs)
+    for l in labels:
+        if l == "{arch_name} --> {arch_name}":
+           _l = l 
+        elif _nothing_labeled :
+            _l = "{arch_name} --> other architecture"
+            _nothing_labeled = False
+        _labels.append(_l)
+    labels = _labels
+    
+    #slight colour changes for the different elements, in the same colour zone
+    next(colour_iterator) #skip the first one
+    colours = plt.cm.rainbow(np.linspace(0, 0.1, len(xs))) #generate all colours in a tight zone close to 0
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
