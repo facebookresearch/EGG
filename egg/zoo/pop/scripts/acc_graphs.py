@@ -296,7 +296,11 @@ def one_architecture_all_exps(
             _l = l
             colours.append("limegreen")
         elif _nothing_labeled:
-            _l = f"{arch_name} --> other architecture"
+            _l = (
+                f"{arch_name} --> other architecture"
+                if arch_as_sender
+                else f"other architecture --> {arch_name}"
+            )
             _nothing_labeled = False
             colours.append(next(colour_iterator))
         else:
