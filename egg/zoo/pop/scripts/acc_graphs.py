@@ -269,7 +269,7 @@ def one_architecture_all_exps(
         if l == f"{arch_name} --> {arch_name}":
             _l = l
             colours.append("r")
-        if l == f"{arch_name} --> all architectures":
+        elif l == f"{arch_name} --> all architectures":
             _l = l
             colours.append("limegreen")
         elif _nothing_labeled:
