@@ -208,7 +208,7 @@ def acc_graph(
     verbose=False,
     name="graph.png",
     title="train_acc",
-    legend_title=None
+    legend_title=None,
 ):
     # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
@@ -226,7 +226,14 @@ def acc_graph(
     plt.clf()
 
 
-def one_architecture_all_exps(arch_name="inception", baselines=True, verbose=False, save_path='/shared/mateo/logs/',graph_name="arch_graph", graph_title=None):
+def one_architecture_all_exps(
+    arch_name="inception",
+    baselines=True,
+    verbose=False,
+    save_path="/shared/mateo/logs/",
+    graph_name="arch_graph",
+    graph_title=None,
+):
     """
     params
     ------
@@ -242,18 +249,26 @@ def one_architecture_all_exps(arch_name="inception", baselines=True, verbose=Fal
     xs, ys, labels = nest_graph_collector(
         names=["vision_model_names_recvs"], values=[[[arch_name]]], verbose=verbose
     )
-    xs, ys, labels += nest_graph_collector(
+
+    _xs, _ys, _labels = nest_graph_collector(
         names=["vision_model_names_senders"], values=[[[arch_name]]], verbose=verbose
     )
+    xs += _xs
+    ys += _ys
+    labels += _labels
+
     if baselines:
-        xs, ys, labels += nest_graph_collector(
+        _xs, _ys, _labels = nest_graph_collector(
             names=["vision_model_names_senders", "vision_model_names_recvs"],
             values=[
                 [["vgg11", "vit", "resnet152", "inception"]],
                 [["vgg11", "vit", "resnet152", "inception"]],
-            ], 
-            verbose=verbose
+            ],
+            verbose=verbose,
         )
+        xs += _xs
+        ys += _ys
+        labels += _labels
 
     # plot all aquired data
     acc_graph(
@@ -264,7 +279,7 @@ def one_architecture_all_exps(arch_name="inception", baselines=True, verbose=Fal
         verbose,
         name=graph_name,
         title=arch_name if graph_title is None else graph_title,
-        legend_title='sender architecture --> receiver architecture'
+        legend_title="sender architecture --> receiver architecture",
     )
 
 
@@ -281,8 +296,8 @@ def nest_graph_collector(
     !! if more than one architecture is used, the label will be set to 'all architectures'
     """
     # hard-coded parameter
-    label_names=["vision_model_names_senders", "vision_model_names_recvs"],
-    #"['vgg11', 'vit', 'resnet152', 'inception']"
+    label_names = (["vision_model_names_senders", "vision_model_names_recvs"],)
+    # "['vgg11', 'vit', 'resnet152', 'inception']"
     # data collectors
     xs = []
     ys = []
@@ -303,20 +318,20 @@ def nest_graph_collector(
                 verbose,
             ):
 
-            # collect data
+                # collect data
                 with open(file_path) as f:
                     params = metadata_opener(f, "nest", verbose=True)
 
                     # generate labels
-                    _sender_label = extract_param(label_names[0], params, verbose=False) 
+                    _sender_label = extract_param(label_names[0], params, verbose=False)
                     _recv_label = extract_param(label_names[1], params, verbose=False)
 
                     if len(_sender_label) > 1:
-                        _sender_label = 'all architectures'
+                        _sender_label = "all architectures"
                     if len(_recv_label) > 1:
-                        _recv_label = 'all architectures'
+                        _recv_label = "all architectures"
 
-                    label = f'{_sender_label} --> {_recv_label}'
+                    label = f"{_sender_label} --> {_recv_label}"
                     labels.append(label)
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
