@@ -304,7 +304,7 @@ def nest_graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "/*/*.out")
+    files = glob.glob(path + "*/*.out")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
