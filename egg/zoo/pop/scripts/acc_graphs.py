@@ -272,11 +272,11 @@ def one_architecture_all_exps(
         if l == f"{arch_name} --> {arch_name}":
             _l = l
             colours.append("r")
-        elif l == f"{arch_name} --> all architectures":
+        elif l == f"{arch_name} --> diverse population":
             _l = l
             colours.append("limegreen")
         elif _nothing_labeled:
-            _l = f"{arch_name} --> another architecture"
+            _l = f"{arch_name} --> other architecture"
             _nothing_labeled = False
             colours.append(next(colour_iterator))
         else:
@@ -365,12 +365,12 @@ def nest_graph_collector(
                         )
 
                         _sender_label = (
-                            "all architectures"
+                            "diverse population"
                             if len(_sender_label) > 1
                             else _sender_label[0]
                         )
                         _recv_label = (
-                            "all architectures"
+                            "diverse population"
                             if len(_recv_label) > 1
                             else _recv_label[0]
                         )
