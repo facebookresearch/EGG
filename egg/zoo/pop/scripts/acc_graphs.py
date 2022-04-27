@@ -273,10 +273,10 @@ def one_architecture_all_exps(
     labels = _labels
 
     # slight colour changes for the different elements, in the same colour zone
-    next(colour_iterator)  # skip the first one
-    colours = plt.cm.rainbow(np.linspace(0, 1, len(xs) * 10))[
-        :10
-    ]  # generate all colours in a tight zone close to 0
+    colours = [next(colour_iterator)] * len(xs)  # skip the first one
+    # colours = plt.cm.rainbow(np.linspace(0, 1, len(xs) * 10))[
+    #     :len(xs)
+    # ]  # generate all colours in a tight zone close to 0
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
