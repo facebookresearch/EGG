@@ -91,9 +91,10 @@ def extract_param(param_name, params, verbose=False):
                 print(result)
             return result
     # raise KeyError(
-    print(
-        f"{param_name} was not found amongst parameters"
-    )  # Mat : is it a Keyerror tho ?
+    if verbose:
+        print(
+            f"{param_name} was not found amongst parameters"
+        )  # Mat : is it a Keyerror tho ?
 
 
 def text_to_acc(file_path, mode="test", verbose=False):  # Mat : going through console
