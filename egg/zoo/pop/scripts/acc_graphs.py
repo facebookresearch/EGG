@@ -243,7 +243,6 @@ def one_architecture_all_exps(
 
     # xmin, xmax, ymin, ymax = axis()
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 1, 3)))
 
     # sender graph
     xs, ys, labels = nest_graph_collector(
@@ -273,10 +272,8 @@ def one_architecture_all_exps(
     labels = _labels
 
     # slight colour changes for the different elements, in the same colour zone
-    colours = [next(colour_iterator)] * len(xs)  # skip the first one
-    # colours = plt.cm.rainbow(np.linspace(0, 1, len(xs) * 10))[
-    #     :len(xs)
-    # ]  # generate all colours in a tight zone close to 0
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.1, len(xs))))
+    colours = [next(colour_iterator) for _ in len(xs)]
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
@@ -290,7 +287,9 @@ def one_architecture_all_exps(
         xs += _xs
         ys += _ys
         labels += _labels
-        colours += [next(colour_iterator)] * len(_xs)
+        colours += [1.0000000e00, 1.2246468e-16, 6.1232340e-17, 1.0000000e00] * len(
+            _xs
+        )  # one specific colour
 
     # plot all aquired data
     acc_graph(
@@ -344,7 +343,8 @@ def nest_graph_collector(
                 label = ""
                 # collect data
                 with open(file_path) as f:
-                    print(f)
+                    if verbose:
+                        print(file_path)
                     params = metadata_opener(f, "nest", verbose=verbose)
 
                     # generate labels
