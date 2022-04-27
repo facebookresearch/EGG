@@ -248,6 +248,20 @@ def one_architecture_all_exps(
     # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
     xs, ys, labels = nest_graph_collector(
         names=[
+            "vision_model_names_senders" "vision_model_names_recvs",
+            "recv_hidden_dim",
+            "lr",
+            "recv_output_dim",
+            "n_epochs",
+            "batch_size",
+        ],
+        values=[[[arch_name]], [[arch_name]], [2048], [0.0001], [512], [25], [64]],
+        verbose=verbose,
+    )
+
+    _xs, _ys, _labels = nest_graph_collector(
+        names=[
+            "vision_model_names_senders",
             "vision_model_names_recvs",
             "recv_hidden_dim",
             "lr",
@@ -255,22 +269,28 @@ def one_architecture_all_exps(
             "n_epochs",
             "batch_size",
         ],
-        values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
+        values=[[[arch_name]], [["vgg11"]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
+
+    xs += _xs
+    ys += _ys
+    labels += _labels
 
     _xs, _ys, _labels = nest_graph_collector(
         names=[
             "vision_model_names_senders",
+            "vision_model_names_recvs",
             "recv_hidden_dim",
             "lr",
             "recv_output_dim",
             "n_epochs",
             "batch_size",
         ],
-        values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
+        values=[[["vgg11"]], [[arch_name]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
+
     xs += _xs
     ys += _ys
     labels += _labels
