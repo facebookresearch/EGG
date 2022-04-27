@@ -350,6 +350,7 @@ def nest_graph_collector(
                     )
 
                     label = f"{_sender_label} --> {_recv_label}"
+                    labels.append(label)
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 xs.append(x if epoch_limit is None else x[:epoch_limit])
