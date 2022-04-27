@@ -248,7 +248,8 @@ def one_architecture_all_exps(
     # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
     xs, ys, labels = nest_graph_collector(
         names=[
-            "vision_model_names_senders" "vision_model_names_recvs",
+            "vision_model_names_senders",
+            "vision_model_names_recvs",
             "recv_hidden_dim",
             "lr",
             "recv_output_dim",
