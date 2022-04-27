@@ -259,23 +259,25 @@ def one_architecture_all_exps(
     )
 
     # correcting and simplifying labels on a case by case basis
+    # adding slightly different colours for the different elements
+
     _labels = []
     _nothing_labeled = True
-
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.2, len(xs) + 1)))
+    colours = []
     for l in labels:
         if l == f"{arch_name} --> {arch_name}":
             _l = l
+            colours.append("r")
         elif _nothing_labeled:
             _l = f"{arch_name} --> other architecture"
             _nothing_labeled = False
+            colours.append(next(colour_iterator))
         else:
             _l = None
+            colours.append(next(colour_iterator))
         _labels.append(_l)
     labels = _labels
-
-    # slight colour changes for the different elements, in the same colour zone
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.2, len(xs) + 1)))
-    colours = [next(colour_iterator) for _ in range(len(xs))]
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
@@ -289,9 +291,7 @@ def one_architecture_all_exps(
         xs += _xs
         ys += _ys
         labels += _labels
-        colours += [[1.0000000e00, 1.2246468e-16, 6.1232340e-17, 1.0000000e00]] * len(
-            _xs
-        )  # one specific colour
+        colours += ["g"] * len(_xs)  # one specific colour
 
     # plot all aquired data
     acc_graph(
