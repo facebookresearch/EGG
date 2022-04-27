@@ -247,11 +247,15 @@ def one_architecture_all_exps(
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
     # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
     xs, ys, labels = nest_graph_collector(
-        names=["vision_model_names_recvs"], values=[[[arch_name]]], verbose=verbose
+        names=["vision_model_names_recvs", "recv_hidden_dim"],
+        values=[[[arch_name]], [2048]],
+        verbose=verbose,
     )
 
     _xs, _ys, _labels = nest_graph_collector(
-        names=["vision_model_names_senders"], values=[[[arch_name]]], verbose=verbose
+        names=["vision_model_names_senders", "recv_hidden_dim"],
+        values=[[[arch_name]], [2048]],
+        verbose=verbose,
     )
     xs += _xs
     ys += _ys
@@ -304,7 +308,7 @@ def nest_graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "*/*.out")
+    files = glob.glob(path + "/*/*.out")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
@@ -326,10 +330,10 @@ def nest_graph_collector(
                     _sender_label = extract_param(label_names[0], params, verbose=False)
                     _recv_label = extract_param(label_names[1], params, verbose=False)
 
-                    if len(_sender_label) > 1:
-                        _sender_label = "all architectures"
-                    if len(_recv_label) > 1:
-                        _recv_label = "all architectures"
+                    # if len(_sender_label) > 1:
+                    #     _sender_label = "all architectures"
+                    # if len(_recv_label) > 1:
+                    #     _recv_label = "all architectures"
 
                     label = f"{_sender_label} --> {_recv_label}"
                     labels.append(label)
