@@ -129,13 +129,14 @@ def extract_meta_from_wnb(path, verbose=False):
 
 
 def nest_graph(
-    path="/shared/mateo/logs/het_nest/",
+    path="/shared/mateo/logs/",
     save_path="/shared/mateo/logs",
     names=[],
     values=[],
     label_names=["vision_model_names_senders", "vision_model_names_recvs"],
     verbose=False,
     graph_name="nest",
+    graph_title=None,
     mode="test",
     epoch_limit=None,
 ):
@@ -147,15 +148,13 @@ def nest_graph(
     ys = []
     labels = []
     # find all folders in log path
-    # TODO: use title to reduce search space
-    files = glob.glob(path + "*.out")  # TODO : average accross multiple seeds
+    files = glob.glob(path + "/*/*.out")  # TODO : average accross multiple seeds
     if verbose and files == []:
         print(f"no files were found in path {path}")
     for file_path in files:
         # prevent experiments that crashed without generating files to show (as well as any empty folder)
         if os.path.exists(file_path):
             # restrict to specific parameters
-
             if check_constraints(
                 file_path,
                 names,
@@ -174,8 +173,7 @@ def nest_graph(
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 xs.append(x if epoch_limit is None else x[:epoch_limit])
                 ys.append(y if epoch_limit is None else y[:epoch_limit])
-        # elif verbose:
-        #     print(f"empty directory {file_path}")
+
     # plot all aquired data
     acc_graph(
         xs,
@@ -184,7 +182,7 @@ def nest_graph(
         save_path,
         verbose,
         name=graph_name,
-        title=f"{graph_name[:-4]}_{mode}_acc",
+        title=f"{graph_name[:-4]}_{mode}_acc" if graph_title is None else graph_title,
     )
 
 
@@ -210,6 +208,7 @@ def acc_graph(
     verbose=False,
     name="graph.png",
     title="train_acc",
+    legend_title=None
 ):
     # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
@@ -221,181 +220,107 @@ def acc_graph(
             ys[i],
             label=labels[i],
         )
-        plt.legend()
+        plt.legend(title=legend_title)
         plt.title(title)
     plt.savefig(os.path.join(save_path, name))
     plt.clf()
 
 
-## Execution
-# if __name__ == "__main__":
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[0.5, 1, 2.4], [256], [16], [2048], [["vgg11"]]],
-#         verbose=True,
-#         graph_name="vgg_learning_rates.png",
-#     )
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[0.5], [256, 512, 1024], [16], [2048], [["vgg11"]]],
-#         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#         verbose=True,
-#         graph_name="vgg_vocab_size.png",
-#     )
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[0.5], [256], [16], [2048, 1024, 512], [["vgg11"]]],
-#         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#         verbose=True,
-#         graph_name="vgg_recv_hidden_dim.png",
-#     )
-#     # RND 2
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[0.5, 1, 2.4], [256], [16], [512], [["vgg11"]]],
-#         verbose=True,
-#         graph_name="vgg_learning_rates_hd512.png",
-#     )
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[0.5], [256, 512, 1024], [16], [512], [["vgg11"]]],
-#         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#         verbose=True,
-#         graph_name="vgg_vocab_size_hd512.png",
-#     )
-#     wnb_hp_specific_graph(
-#         wnb_path="/mnt/efs/fs1/logs/vgg_hp_search_p",
-#         names=[
-#             "lr",
-#             "vocab_size",
-#             "batch_size",
-#             "recv_hidden_dim",
-#             "vision_model_names_senders",
-#         ],
-#         values=[[2.4], [256], [16], [2048, 1024, 512], [["vgg11"]]],
-#         # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#         verbose=True,
-#         graph_name="vgg_recv_hidden_dim_lr_2.4.png",
-#     )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "vision_model_names_senders",
-#     ],
-#     values=[[["resnet152"]]],
-#     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#     verbose=True,
-#     graph_name="resnet.png",
-# )
+def one_architecture_all_exps(arch_name="inception", baselines=True, verbose=False, save_path='/shared/mateo/logs/',graph_name="arch_graph", graph_title=None):
+    """
+    params
+    ------
+    arch_name : string, {'vgg11', 'vit', 'inception', 'resnet152'}
+        which architecture's data will be used in the graph
+    baselines : bool
+        whether baselines are also to be plotted (for now, only the full population baseline is available)
+    """
 
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/vit_hp_search_p",
-#     names=[
-#         "vision_model_names_senders",
-#     ],
-#     values=[[["vit"]]],
-#     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#     verbose=True,
-#     graph_name="vit.png",
-# )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "vision_model_names_senders",
-#     ],
-#     values=[[["resnet152"]]],
-#     # values=[[0.5, 1, 2.4], [256, 512, 1024], [8, 16], [2048, 1024, 512]],
-#     verbose=True,
-#     graph_name="resnet.png",
-# )
-# from egg.zoo.pop.scripts.acc_graphs import wnb_hp_specific_graph as wg
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "lr",
-#         "recv_hidden_dim",
-#         "vision_model_names_senders",
-#     ],
-#     values=[[0.01], [2048, 1024, 512], [["resnet152"]]],
-#     verbose=True,
-#     graph_name="resnetlr0.01.png",
-# )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "lr",
-#         "recv_hidden_dim",
-#         "vision_model_names_senders",
-#     ],
-#     values=[[0.001], [2048, 1024, 512], [["resnet152"]]],
-#     verbose=True,
-#     graph_name="resnetlr0.001.png",
-# )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "lr",
-#         "recv_hidden_dim",
-#         "vision_model_names_senders",
-#     ],
-#     values=[[0.0001], [2048, 1024, 512], [["resnet152"]]],
-#     verbose=True,
-#     graph_name="resnetlr0.0001.png",
-# )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "lr",
-#         "recv_hidden_dim",
-#         "vision_model_names_senders",
-#     ],
-#     values=[[0.00001], [2048, 1024, 512], [["resnet152"]]],
-#     verbose=True,
-#     graph_name="resnetlr0.00001.png",
-# )
-# wnb_hp_specific_graph(
-#     wnb_path="/mnt/efs/fs1/logs/resnet_hp_search_p",
-#     names=[
-#         "lr",
-#         "recv_hidden_dim",
-#         "vision_model_names_senders",
-#     ],
-#     values=[[0.000001], [2048, 1024, 512], [["resnet152"]]],
-#     verbose=True,
-#     graph_name="resnetlr0.000001.png",
-# )
+    # xmin, xmax, ymin, ymax = axis()
+    # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
+    # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
+    xs, ys, labels = nest_graph_collector(
+        names=["vision_model_names_recvs"], values=[[[arch_name]]], verbose=verbose
+    )
+    xs, ys, labels += nest_graph_collector(
+        names=["vision_model_names_senders"], values=[[[arch_name]]], verbose=verbose
+    )
+    if baselines:
+        xs, ys, labels += nest_graph_collector(
+            names=["vision_model_names_senders", "vision_model_names_recvs"],
+            values=[
+                [["vgg11", "vit", "resnet152", "inception"]],
+                [["vgg11", "vit", "resnet152", "inception"]],
+            ], 
+            verbose=verbose
+        )
+
+    # plot all aquired data
+    acc_graph(
+        xs,
+        ys,
+        labels,
+        save_path,
+        verbose,
+        name=graph_name,
+        title=arch_name if graph_title is None else graph_title,
+        legend_title='sender architecture --> receiver architecture'
+    )
+
+
+def nest_graph_collector(
+    path="/shared/mateo/logs/",
+    names=[],
+    values=[],
+    verbose=False,
+    mode="test",
+    epoch_limit=None,
+):
+    """
+    redoing this for a specific graph format. This has been decommented, but todos have not been dealt with
+    !! if more than one architecture is used, the label will be set to 'all architectures'
+    """
+    # hard-coded parameter
+    label_names=["vision_model_names_senders", "vision_model_names_recvs"],
+    #"['vgg11', 'vit', 'resnet152', 'inception']"
+    # data collectors
+    xs = []
+    ys = []
+    labels = []
+
+    # get all available files
+    files = glob.glob(path + "/*/*.out")
+    if verbose and files == []:
+        print(f"no files were found in path {path}")
+
+    # select desired files
+    for file_path in files:
+        if os.path.exists(file_path):
+            if check_constraints(
+                file_path,
+                names,
+                values,
+                verbose,
+            ):
+
+            # collect data
+                with open(file_path) as f:
+                    params = metadata_opener(f, "nest", verbose=True)
+
+                    # generate labels
+                    _sender_label = extract_param(label_names[0], params, verbose=False) 
+                    _recv_label = extract_param(label_names[1], params, verbose=False)
+
+                    if len(_sender_label) > 1:
+                        _sender_label = 'all architectures'
+                    if len(_recv_label) > 1:
+                        _recv_label = 'all architectures'
+
+                    label = f'{_sender_label} --> {_recv_label}'
+                    labels.append(label)
+
+                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
+                xs.append(x if epoch_limit is None else x[:epoch_limit])
+                ys.append(y if epoch_limit is None else y[:epoch_limit])
+
+    return xs, ys, labels
