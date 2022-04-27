@@ -256,7 +256,8 @@ def one_architecture_all_exps(
         verbose=verbose,
     )
     labels = [
-        f"{arch_name} --> different arch." if l == labels[0] else None for l in labels
+        f"{arch_name} --> other architecture" if l == labels[0] else None
+        for l in labels
     ]
     colours = [next(colour_iterator)] * len(xs)
 
@@ -303,7 +304,7 @@ def one_architecture_all_exps(
         name=graph_name,
         title=arch_name if graph_title is None else graph_title,
         legend_title="sender --> receiver",
-        colours=None,
+        colours=colours,
     )
 
 
