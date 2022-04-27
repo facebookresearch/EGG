@@ -265,16 +265,18 @@ def one_architecture_all_exps(
 
     for l in labels:
         if l == "{arch_name} --> {arch_name}":
-           _l = l 
-        elif _nothing_labeled :
+            _l = l
+        elif _nothing_labeled:
             _l = "{arch_name} --> other architecture"
             _nothing_labeled = False
         _labels.append(_l)
     labels = _labels
-    
-    #slight colour changes for the different elements, in the same colour zone
-    next(colour_iterator) #skip the first one
-    colours = plt.cm.rainbow(np.linspace(0, 0.1, len(xs))) #generate all colours in a tight zone close to 0
+
+    # slight colour changes for the different elements, in the same colour zone
+    next(colour_iterator)  # skip the first one
+    colours = plt.cm.rainbow(np.linspace(0, 1, len(xs) * 10))[
+        :10
+    ]  # generate all colours in a tight zone close to 0
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
