@@ -247,14 +247,19 @@ def one_architecture_all_exps(
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
     # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
     xs, ys, labels = nest_graph_collector(
-        names=["vision_model_names_recvs", "recv_hidden_dim", "lr"],
-        values=[[[arch_name]], [2048], [0.0001]],
+        names=["vision_model_names_recvs", "recv_hidden_dim", "lr", "recv_output_dim"],
+        values=[[[arch_name]], [2048], [0.0001], [512]],
         verbose=verbose,
     )
 
     _xs, _ys, _labels = nest_graph_collector(
-        names=["vision_model_names_senders", "recv_hidden_dim", "lr"],
-        values=[[[arch_name]], [2048], [0.0001]],
+        names=[
+            "vision_model_names_senders",
+            "recv_hidden_dim",
+            "lr",
+            "recv_output_dim",
+        ],
+        values=[[[arch_name]], [2048], [0.0001], [512]],
         verbose=verbose,
     )
     xs += _xs
@@ -324,7 +329,8 @@ def nest_graph_collector(
 
                 # collect data
                 with open(file_path) as f:
-                    params = metadata_opener(f, "nest", verbose=True)
+                    print(f)
+                    params = metadata_opener(f, "nest", verbose=verbose)
 
                     # generate labels
                     _sender_label = eval(
@@ -344,7 +350,6 @@ def nest_graph_collector(
                     )
 
                     label = f"{_sender_label} --> {_recv_label}"
-                    labels.append(label)
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 xs.append(x if epoch_limit is None else x[:epoch_limit])
