@@ -247,8 +247,15 @@ def one_architecture_all_exps(
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
     # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
     xs, ys, labels = nest_graph_collector(
-        names=["vision_model_names_recvs", "recv_hidden_dim", "lr", "recv_output_dim"],
-        values=[[[arch_name]], [2048], [0.0001], [512]],
+        names=[
+            "vision_model_names_recvs",
+            "recv_hidden_dim",
+            "lr",
+            "recv_output_dim",
+            "n_epochs",
+            "batch_size",
+        ],
+        values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
 
@@ -258,8 +265,10 @@ def one_architecture_all_exps(
             "recv_hidden_dim",
             "lr",
             "recv_output_dim",
+            "n_epochs",
+            "batch_size",
         ],
-        values=[[[arch_name]], [2048], [0.0001], [512]],
+        values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
     xs += _xs
