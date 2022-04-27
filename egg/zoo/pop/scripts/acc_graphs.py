@@ -296,7 +296,7 @@ def nest_graph_collector(
     !! if more than one architecture is used, the label will be set to 'all architectures'
     """
     # hard-coded parameter
-    label_names = (["vision_model_names_senders", "vision_model_names_recvs"],)
+    label_names = ["vision_model_names_senders", "vision_model_names_recvs"]
     # "['vgg11', 'vit', 'resnet152', 'inception']"
     # data collectors
     xs = []
