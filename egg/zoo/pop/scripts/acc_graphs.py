@@ -356,7 +356,7 @@ def nest_graph_collector(
                 values,
                 verbose,
             ):
-
+                label = ""
                 # collect data
                 with open(file_path) as f:
                     print(f)
@@ -380,11 +380,11 @@ def nest_graph_collector(
                     )
 
                     label = f"{_sender_label} --> {_recv_label}"
-                    labels.append(label)
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 if len(x) > 0:
                     xs.append(x if epoch_limit is None else x[:epoch_limit])
                     ys.append(y if epoch_limit is None else y[:epoch_limit])
+                    labels.append(label)
 
     return xs, ys, labels
