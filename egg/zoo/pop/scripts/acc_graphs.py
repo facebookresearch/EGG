@@ -383,7 +383,8 @@ def nest_graph_collector(
                     labels.append(label)
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
-                xs.append(x if epoch_limit is None else x[:epoch_limit])
-                ys.append(y if epoch_limit is None else y[:epoch_limit])
+                if len(x) > 0:
+                    xs.append(x if epoch_limit is None else x[:epoch_limit])
+                    ys.append(y if epoch_limit is None else y[:epoch_limit])
 
     return xs, ys, labels
