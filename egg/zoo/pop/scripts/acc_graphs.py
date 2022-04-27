@@ -275,6 +275,9 @@ def one_architecture_all_exps(
         elif l == f"{arch_name} --> diverse population":
             _l = l
             colours.append("limegreen")
+        elif l == f"diverse population --> {arch_name}":
+            _l = l
+            colours.append("limegreen")
         elif _nothing_labeled:
             _l = f"{arch_name} --> other architecture"
             _nothing_labeled = False
