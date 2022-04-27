@@ -263,16 +263,16 @@ def one_architecture_all_exps(
     _nothing_labeled = True
 
     for l in labels:
-        if l == "{arch_name} --> {arch_name}":
+        if l == f"{arch_name} --> {arch_name}":
             _l = l
         elif _nothing_labeled:
-            _l = "{arch_name} --> other architecture"
+            _l = f"{arch_name} --> other architecture"
             _nothing_labeled = False
         _labels.append(_l)
     labels = _labels
 
     # slight colour changes for the different elements, in the same colour zone
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.1, len(xs) + 1)))
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.3, len(xs) + 1)))
     colours = [next(colour_iterator) for _ in range(len(xs))]
 
     if baselines:
