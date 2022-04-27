@@ -1,10 +1,8 @@
-from unicodedata import name
 import matplotlib.pyplot as plt
 import json
 import glob
 import os
-
-import wandb
+import numpy as np
 
 # 1st Harvest data, either from wnb or from nest output. Then make a graph out of it
 
@@ -209,17 +207,14 @@ def acc_graph(
     name="graph.png",
     title="train_acc",
     legend_title=None,
+    colours=None,
 ):
     # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
     for i in range(len(xs)):
         if verbose:
             print(f"adding {labels[i]} to graph")
-        plt.plot(
-            xs[i],
-            ys[i],
-            label=labels[i],
-        )
+        plt.plot(xs[i], ys[i], label=labels[i], c=colours)
         plt.legend(title=legend_title)
         plt.title(title)
     plt.savefig(os.path.join(save_path, name))
@@ -245,20 +240,25 @@ def one_architecture_all_exps(
 
     # xmin, xmax, ymin, ymax = axis()
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
-    # nest_graph(names=['vision_model_names_recvs'],values=[[[arch_name]]])
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 1, 3)))
+
+    # sender graph
     xs, ys, labels = nest_graph_collector(
         names=[
             "vision_model_names_senders",
-            "vision_model_names_recvs",
             "recv_hidden_dim",
             "lr",
             "recv_output_dim",
             "n_epochs",
             "batch_size",
         ],
-        values=[[[arch_name]], [[arch_name]], [2048], [0.0001], [512], [25], [64]],
+        values=[[[arch_name]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
+    labels = [
+        f"{arch_name} --> different arch." if l == labels[0] else None for l in labels
+    ]
+    colours = [next(colour_iterator)] * len(xs)
 
     _xs, _ys, _labels = nest_graph_collector(
         names=[
@@ -270,31 +270,14 @@ def one_architecture_all_exps(
             "n_epochs",
             "batch_size",
         ],
-        values=[[[arch_name]], [["vgg11"]], [2048], [0.0001], [512], [25], [64]],
+        values=[[[arch_name]], [[[arch_name]]], [2048], [0.0001], [512], [25], [64]],
         verbose=verbose,
     )
 
     xs += _xs
     ys += _ys
     labels += _labels
-
-    _xs, _ys, _labels = nest_graph_collector(
-        names=[
-            "vision_model_names_senders",
-            "vision_model_names_recvs",
-            "recv_hidden_dim",
-            "lr",
-            "recv_output_dim",
-            "n_epochs",
-            "batch_size",
-        ],
-        values=[[["vgg11"]], [[arch_name]], [2048], [0.0001], [512], [25], [64]],
-        verbose=verbose,
-    )
-
-    xs += _xs
-    ys += _ys
-    labels += _labels
+    colours += [next(colour_iterator)] * len(_xs)
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
@@ -308,6 +291,7 @@ def one_architecture_all_exps(
         xs += _xs
         ys += _ys
         labels += _labels
+        colours += [next(colour_iterator)] * len(_xs)
 
     # plot all aquired data
     acc_graph(
@@ -319,6 +303,7 @@ def one_architecture_all_exps(
         name=graph_name,
         title=arch_name if graph_title is None else graph_title,
         legend_title="sender --> receiver",
+        colours=None,
     )
 
 
@@ -329,6 +314,7 @@ def nest_graph_collector(
     verbose=False,
     mode="test",
     epoch_limit=None,
+    get_labels=True,
 ):
     """
     redoing this for a specific graph format. This has been decommented, but todos have not been dealt with
@@ -363,23 +349,28 @@ def nest_graph_collector(
                     params = metadata_opener(f, "nest", verbose=verbose)
 
                     # generate labels
-                    _sender_label = eval(
-                        extract_param(label_names[0], params, verbose=False)
-                    )
-                    _recv_label = eval(
-                        extract_param(label_names[1], params, verbose=False)
-                    )
+                    if get_labels:
+                        _sender_label = eval(
+                            extract_param(label_names[0], params, verbose=False)
+                        )
+                        _recv_label = eval(
+                            extract_param(label_names[1], params, verbose=False)
+                        )
 
-                    _sender_label = (
-                        "all architectures"
-                        if len(_sender_label) > 1
-                        else _sender_label[0]
-                    )
-                    _recv_label = (
-                        "all architectures" if len(_recv_label) > 1 else _recv_label[0]
-                    )
+                        _sender_label = (
+                            "all architectures"
+                            if len(_sender_label) > 1
+                            else _sender_label[0]
+                        )
+                        _recv_label = (
+                            "all architectures"
+                            if len(_recv_label) > 1
+                            else _recv_label[0]
+                        )
 
-                    label = f"{_sender_label} --> {_recv_label}"
+                        label = f"{_sender_label} --> {_recv_label}"
+                    else:
+                        label = None
 
                 x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 if len(x) > 0:
