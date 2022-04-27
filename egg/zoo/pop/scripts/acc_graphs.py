@@ -226,6 +226,7 @@ def acc_graph(
 
 def one_architecture_all_exps(
     arch_name="inception",
+    arch_as_sender=True,
     baselines=True,
     verbose=False,
     save_path="/shared/mateo/logs/",
@@ -247,7 +248,9 @@ def one_architecture_all_exps(
     # sender graph
     xs, ys, labels = nest_graph_collector(
         names=[
-            "vision_model_names_senders",
+            "vision_model_names_senders"
+            if arch_as_sender
+            else "vision_model_names_recvs",
             "recv_hidden_dim",
             "lr",
             "recv_output_dim",
