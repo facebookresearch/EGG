@@ -273,7 +273,7 @@ def one_architecture_all_exps(
 
     # slight colour changes for the different elements, in the same colour zone
     colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.1, len(xs))))
-    colours = [next(colour_iterator) for _ in len(xs)]
+    colours = [next(colour_iterator) for _ in range(len(xs))]
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
