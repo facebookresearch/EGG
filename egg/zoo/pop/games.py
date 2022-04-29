@@ -5,7 +5,7 @@
 
 import torch
 import torch.nn.functional as F
-from egg.zoo.pop.utils import load_from_latest
+from egg.zoo.pop.utils import load_from_checkpoint
 from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.pop.archs import (
@@ -127,7 +127,7 @@ def build_second_game(opts):
 
     pop_game = build_game(opts)
     with open(opts.base_checkpoint_path) as _path:
-        load_from_latest(pop_game, _path)
+        load_from_checkpoint(pop_game, _path)
     new_senders, new_receivers = build_senders_receivers(opts, opts.additional_senders, opts.additional_recvs)
     pop_game.agents_loss_sampler.add_senders(new_senders)
     pop_game.agents_loss_sampler.add_receivers(new_receivers)

@@ -218,19 +218,6 @@ def load_from_checkpoint(game, path):
     checkpoint = torch.load(path)
     load(game, checkpoint)
 
-
-def load_from_latest(game, path):
-    latest_file, latest_time = None, None
-
-    for file in path.glob("*.tar"):
-        creation_time = os.stat(file).st_ctime
-        if latest_time is None or creation_time > latest_time:
-            latest_file, latest_time = file, creation_time
-
-    if latest_file is not None:
-        load_from_checkpoint(game, latest_file)
-
-
 def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
     decay = []
     no_decay = []
