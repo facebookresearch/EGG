@@ -5,7 +5,7 @@
 
 import torch
 import torch.nn.functional as F
-
+from utils import load_from_latest
 from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.pop.archs import (
@@ -32,35 +32,32 @@ def loss(
     return loss, {"acc": acc}
 
 
-def build_game(opts):
+def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
+    # In the case of the second game (TODO: rename it more explicitly) used to measure learning speed, then we need to make senders that are from elsewhere in the options 
+    if vision_model_names_senders is None:
+        vision_model_names_senders = opts.vision_model_names_senders
+    if vision_model_names_receiver is None:
+        vision_model_names_receiver = opts.vision_model_names_recvs
 
-    train_logging_strategy = LoggingStrategy(
-        False, False, False, False, False, False, False
+    vision_model_names_senders = eval(
+        vision_model_names_senders.replace("#", '"')  # Mat : ...
     )
-    test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
-
-    # if opts.use_different_architectures:
-    vision_module_names_senders = eval(
-        opts.vision_model_names_senders.replace("#", '"')  # Mat : ...
-    )
-    vision_module_names_receivers = eval(
-        opts.vision_model_names_recvs.replace("#", '"')
+    vision_model_names_receiver = eval(
+        vision_model_names_receiver.replace("#", '"')
     )
 
-    if not (vision_module_names_senders and vision_module_names_receivers):
-        vision_module_names_senders = eval(opts.vision_module_names.replace("#", '"'))
-        vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
-
-    print(vision_module_names_senders)
-    print(vision_module_names_receivers)
+    # We don't do the single module thing here
+    # if not (vision_model_names_senders and vision_model_names_receiver):
+    #     vision_module_names_senders = eval(opts.vision_module_names.replace("#", '"'))
+    #     vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
 
     vision_modules_senders = [
-        initialize_vision_module(name=vision_module_names_senders[i], pretrained=True)
-        for i in range(opts.n_senders)
+        initialize_vision_module(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
+        for i in range(len(vision_model_names_senders))
     ]
     vision_modules_receivers = [
-        initialize_vision_module(name=vision_module_names_receivers[i], pretrained=True)
-        for i in range(opts.n_recvs)
+        initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision)
+        for i in range(len(vision_model_names_receiver))
     ]
 
     senders = [
@@ -69,13 +66,13 @@ def build_game(opts):
                 vision_module=vision_modules_senders[i][0],
                 input_dim=vision_modules_senders[i][1],
                 vocab_size=opts.vocab_size,
-                name=vision_module_names_senders[i],
+                name=vision_model_names_senders[i],
             ),
             temperature=opts.gs_temperature,
             trainable_temperature=opts.train_gs_temperature,
             straight_through=opts.straight_through,
         )
-        for i in range(opts.n_senders)
+        for i in range(len(vision_model_names_senders))
     ]
     receivers = [
         SymbolReceiverWrapper(
@@ -85,165 +82,25 @@ def build_game(opts):
                 hidden_dim=opts.recv_hidden_dim,
                 output_dim=opts.recv_output_dim,
                 temperature=opts.recv_temperature,
-                name=vision_module_names_receivers[i],
+                name=vision_model_names_receiver[i],
             ),
             opts.vocab_size,
             opts.recv_output_dim,
         )
-        for i in range(opts.n_recvs)
+        for i in range(len(vision_model_names_receiver))
     ]
+    print(vision_model_names_senders)
+    print(vision_model_names_receiver)
+    return senders, receivers
 
-    # else:
-    #     vision_module, input_dim, name = initialize_vision_module(
-    #         name=opts.vision_model_name, pretrained=True
-    #     )
-    #     senders = [
-    #         GumbelSoftmaxWrapper(
-    #             Sender(
-    #                 vision_module=vision_module,
-    #                 input_dim=input_dim,
-    #                 vocab_size=opts.vocab_size,
-    #                 name=name,
-    #             ),
-    #             temperature=opts.gs_temperature,
-    #             trainable_temperature=opts.train_gs_temperature,
-    #             straight_through=opts.straight_through,
-    #         )
-    #         for _ in range(opts.n_senders)
-    #     ]
-    #     receivers = [
-    #         SymbolReceiverWrapper(
-    #             Receiver(
-    #                 vision_module=vision_module,
-    #                 input_dim=input_dim,
-    #                 hidden_dim=opts.recv_hidden_dim,
-    #                 output_dim=opts.recv_output_dim,
-    #                 temperature=opts.recv_temperature,
-    #                 name=name,
-    #             ),
-    #             opts.vocab_size,
-    #             opts.recv_output_dim,
-    #         )
-    #         for _ in range(opts.n_recvs)
-    #     ]
-
-    agents_loss_sampler = AgentSampler(
-        senders,
-        receivers,
-        [loss],
-    )
-
-    game = Game(
-        train_logging_strategy=train_logging_strategy,
-        test_logging_strategy=test_logging_strategy,
-    )
-
-    game = PopulationGame(game, agents_loss_sampler)
-
-    if opts.distributed_context.is_distributed:
-        game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
-
-    return game
-
-
-def _build_second_game(opts):
-    """temporary version of build_game, train a new receiver with a pretrained sender
-    (might end up using checkpoints instead...)
-    """
+def build_game(opts):
 
     train_logging_strategy = LoggingStrategy(
         False, False, False, False, False, False, False
     )
     test_logging_strategy = LoggingStrategy(False, False, True, True, True, True, False)
 
-    if (
-        opts.use_different_architectures
-    ):  # Mat : Nearly forgot that one twice. Maybe refactor the opts
-        vision_module_names_senders = eval(
-            opts.vision_model_names_senders.replace("#", '"')
-        )
-        vision_module_names_receivers = eval(
-            opts.vision_model_names_recvs.replace("#", '"')
-        )
-
-        print(vision_module_names_senders)
-        print(vision_module_names_receivers)
-
-        vision_modules_senders = [  # Mat : input are paths to pretrained models
-            torch.load(vision_module_names_senders[i]) for i in range(opts.n_senders)
-        ]
-        vision_modules_receivers = [
-            initialize_vision_module(
-                name=vision_module_names_receivers[i], pretrained=True
-            )
-            for i in range(opts.n_recvs)
-        ]
-
-        senders = [
-            GumbelSoftmaxWrapper(
-                # Mat : do smthing here
-                Sender(
-                    vision_module=vision_modules_senders[i][0],
-                    input_dim=vision_modules_senders[i][1],
-                    vocab_size=opts.vocab_size,
-                    name=vision_module_names_senders[i],
-                ),
-                temperature=opts.gs_temperature,
-                trainable_temperature=opts.train_gs_temperature,
-                straight_through=opts.straight_through,
-            )
-            for i in range(opts.n_senders)
-        ]
-        receivers = [
-            SymbolReceiverWrapper(
-                Receiver(
-                    vision_module=vision_modules_receivers[i][0],
-                    input_dim=vision_modules_receivers[i][1],
-                    hidden_dim=opts.recv_hidden_dim,
-                    output_dim=opts.recv_output_dim,
-                    temperature=opts.recv_temperature,
-                    name=vision_module_names_receivers[i],
-                ),
-                opts.vocab_size,
-                opts.recv_output_dim,
-            )
-            for i in range(opts.n_recvs)
-        ]
-
-    else:
-        vision_module, input_dim, name = initialize_vision_module(
-            name=opts.vision_model_name, pretrained=True
-        )
-        senders = [
-            GumbelSoftmaxWrapper(
-                Sender(
-                    vision_module=vision_module,
-                    input_dim=input_dim,
-                    vocab_size=opts.vocab_size,
-                    name=name,
-                ),
-                temperature=opts.gs_temperature,
-                trainable_temperature=opts.train_gs_temperature,
-                straight_through=opts.straight_through,
-            )
-            for _ in range(opts.n_senders)
-        ]
-        receivers = [
-            SymbolReceiverWrapper(
-                Receiver(
-                    vision_module=vision_module,
-                    input_dim=input_dim,
-                    hidden_dim=opts.recv_hidden_dim,
-                    output_dim=opts.recv_output_dim,
-                    temperature=opts.recv_temperature,
-                    name=name,
-                ),
-                opts.vocab_size,
-                opts.recv_output_dim,
-            )
-            for _ in range(opts.n_recvs)
-        ]
-
+    senders, receivers = build_senders_receivers(opts)
     agents_loss_sampler = AgentSampler(
         senders,
         receivers,
@@ -261,3 +118,24 @@ def _build_second_game(opts):
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
 
     return game
+
+
+def build_second_game(opts):
+    """temporary version of build_game, train a new receiver with a pretrained sender
+    (might end up using checkpoints instead...)
+    """
+
+    pop_game = build_game(opts)
+    load_from_latest(pop_game, opts.base_checkpoint_path)
+    new_senders, new_receivers = build_senders_receivers(opts, opts.additional_senders, opts.additional_recvs)
+    pop_game.agents_loss_sampler.add_senders(new_senders)
+    pop_game.agents_loss_sampler.add_receivers(new_receivers)
+
+    # if opts.distributed_context.is_distributed:
+    #     game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
+
+    return pop_game
+
+
+
+    

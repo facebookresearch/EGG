@@ -39,11 +39,5 @@
     ],
     "image_size": [
         384
-    ],
-    "n_recvs": [
-        1
-    ],
-    "n_senders": [
-        3
     ]
 }

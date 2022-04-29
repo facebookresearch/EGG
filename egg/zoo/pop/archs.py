@@ -194,6 +194,23 @@ class AgentSampler(nn.Module):
 
         self.reset_order()
 
+    def add_senders(self,new_senders):
+        """
+        Used to measure the ease of learning of a new agent
+        adds a new sender to those available
+        """
+        self.senders += new_senders
+        self.senders_order = list(range(len(self.senders)))
+        self.reset_order()
+
+
+    def add_receivers(self, new_receivers):
+        self.receivers += new_receivers
+        self.receivers_order = list(range(len(self.receivers)))
+        self.reset_order()
+
+    
+
     def reset_order(self):
         self.iterator = itertools.product(
             self.senders_order, self.receivers_order, self.losses_order

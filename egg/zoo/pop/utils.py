@@ -6,6 +6,8 @@
 import argparse
 
 import egg.core as core
+import torch
+import os
 
 
 def get_data_opts(parser):
@@ -88,10 +90,10 @@ def get_vision_module_opts(parser):
         help="Model name for the encoder",
     )
     group.add_argument(
-        "--pretrain_vision",
+        "--retrain_vision",
         default=False,
         action="store_true",
-        help="If set, pretrained vision modules will be used",
+        help="by default pretrained vision modules will be used, otherwise they will be trained from scratch",
     )
     group.add_argument(
         "--vision_model_names",
@@ -99,12 +101,12 @@ def get_vision_module_opts(parser):
         default="[]",
         help="Model names for the encoder of senders and receivers.",
     )
-    group.add_argument(
-        "--vision_model_names_senders",
-        type=str,
-        default="[]",
-        help="Model names for the encoder of senders.",
-    )
+    # group.add_argument(
+    #     "--vision_model_names_senders",
+    #     type=str,
+    #     default="[]",
+    #     help="Model names for the encoder of senders.",
+    # )
     group.add_argument(
         "--vision_model_names_recvs",
         type=str,
@@ -119,14 +121,36 @@ def get_vision_module_opts(parser):
     )
 
 
+def get_new_agents_opts(parser):
+    group = parser.add_argument_group("language transmission")
+    group.add_argument(
+        "--base_checkpoint_path",
+        type=str,
+        default="",
+        help="in the ease of transmission experiments, where to get the basic experiment weights",
+    )
+    group.add_argument(
+        "--additional_recvs",
+        type=str,
+        default="[]",
+        help="Model names for the encoders of receivers added to the experiment after training",
+    )
+    group.add_argument(
+        "--additional_senders",
+        type=str,
+        default="[]",
+        help="Model names for the encoders of senders added to the experiment after training to measure language transmission",
+    )
+
+
 def get_game_arch_opts(parser):
     group = parser.add_argument_group("game architecture")
-    group.add_argument(
-        "--n_senders", type=int, default=1, help="Number of senders in the population"
-    )
-    group.add_argument(
-        "--n_recvs", type=int, default=1, help="Number of receivers in the population"
-    )
+    # group.add_argument(
+    #     "--n_senders", type=int, default=1, help="Number of senders in the population"
+    # )
+    # group.add_argument(
+    #     "--n_recvs", type=int, default=1, help="Number of receivers in the population"
+    # )
     group.add_argument(
         "--recv_temperature",
         type=float,
@@ -172,6 +196,38 @@ def get_common_opts(params):
 
     opts = core.init(arg_parser=parser, params=params)
     return opts
+
+
+def load(game, checkpoint):
+    game.load_state_dict(checkpoint.model_state_dict)
+    game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+    if checkpoint.optimizer_scheduler_state_dict:
+        game.optimizer_scheduler.load_state_dict(
+            checkpoint.optimizer_scheduler_state_dict
+        )
+    game.start_epoch = checkpoint.epoch
+
+
+def load_from_checkpoint(game, path):
+    """
+    Loads the game, agents, and optimizer state from a file
+    :param path: Path to the file
+    """
+    print(f"# loading trainer state from {path}")
+    checkpoint = torch.load(path)
+    load(game, checkpoint)
+
+
+def load_from_latest(game, path):
+    latest_file, latest_time = None, None
+
+    for file in path.glob("*.tar"):
+        creation_time = os.stat(file).st_ctime
+        if latest_time is None or creation_time > latest_time:
+            latest_file, latest_time = file, creation_time
+
+    if latest_file is not None:
+        load_from_checkpoint(game, latest_file)
 
 
 def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
