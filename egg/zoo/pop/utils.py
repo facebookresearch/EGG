@@ -95,18 +95,18 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="by default pretrained vision modules will be used, otherwise they will be trained from scratch",
     )
-    group.add_argument(
-        "--vision_model_names",
-        type=str,
-        default="[]",
-        help="Model names for the encoder of senders and receivers.",
-    )
     # group.add_argument(
-    #     "--vision_model_names_senders",
+    #     "--vision_model_names",
     #     type=str,
     #     default="[]",
-    #     help="Model names for the encoder of senders.",
+    #     help="Model names for the encoder of senders and receivers.",
     # )
+    group.add_argument(
+        "--vision_model_names_senders",
+        type=str,
+        default="[]",
+        help="Model names for the encoder of senders.",
+    )
     group.add_argument(
         "--vision_model_names_recvs",
         type=str,
