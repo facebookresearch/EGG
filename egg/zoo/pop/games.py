@@ -126,7 +126,8 @@ def build_second_game(opts):
     """
 
     pop_game = build_game(opts)
-    load_from_latest(pop_game, opts.base_checkpoint_path)
+    with open(opts.base_checkpoint_path) as _path:
+        load_from_latest(pop_game, _path)
     new_senders, new_receivers = build_senders_receivers(opts, opts.additional_senders, opts.additional_recvs)
     pop_game.agents_loss_sampler.add_senders(new_senders)
     pop_game.agents_loss_sampler.add_receivers(new_receivers)
