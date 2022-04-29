@@ -201,12 +201,12 @@ def get_common_opts(params):
 
 def load(game, checkpoint):
     game.load_state_dict(checkpoint.model_state_dict)
-    game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+    # game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
     # if checkpoint.optimizer_scheduler_state_dict:
     #     game.optimizer_scheduler.load_state_dict(
     #         checkpoint.optimizer_scheduler_state_dict
     #     )
-    game.start_epoch = checkpoint.epoch
+    # game.start_epoch = checkpoint.epoch
 
 
 def load_from_checkpoint(game, path):
