@@ -193,6 +193,7 @@ def get_common_opts(params):
     get_gs_opts(parser)
     get_vision_module_opts(parser)
     get_game_arch_opts(parser)
+    get_new_agents_opts(parser)
 
     opts = core.init(arg_parser=parser, params=params)
     return opts

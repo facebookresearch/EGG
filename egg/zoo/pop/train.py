@@ -18,7 +18,7 @@ from egg.zoo.pop.game_callbacks import (
     DistributedSamplerEpochSetter,
     WandbLogger,
 )
-from egg.zoo.pop.games import build_game
+from egg.zoo.pop.games import build_game, build_second_game
 from egg.zoo.pop.LARC import LARC
 from egg.zoo.pop.utils import add_weight_decay, get_common_opts
 import os
@@ -51,7 +51,9 @@ def main(params):
         split_set=True,
     )
 
-    game = build_game(opts)
+    game = (
+        build_game(opts) if opts.base_checkpoint_path == "" else build_second_game(opts)
+    )
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")
 
