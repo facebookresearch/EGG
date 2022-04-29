@@ -5,7 +5,7 @@
 
 import torch
 import torch.nn.functional as F
-from utils import load_from_latest
+from egg.zoo.pop.utils import load_from_latest
 from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.pop.archs import (
