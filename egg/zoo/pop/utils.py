@@ -202,10 +202,10 @@ def get_common_opts(params):
 def load(game, checkpoint):
     game.load_state_dict(checkpoint.model_state_dict)
     game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
-    if checkpoint.optimizer_scheduler_state_dict:
-        game.optimizer_scheduler.load_state_dict(
-            checkpoint.optimizer_scheduler_state_dict
-        )
+    # if checkpoint.optimizer_scheduler_state_dict:
+    #     game.optimizer_scheduler.load_state_dict(
+    #         checkpoint.optimizer_scheduler_state_dict
+    #     )
     game.start_epoch = checkpoint.epoch
 
 
@@ -217,6 +217,7 @@ def load_from_checkpoint(game, path):
     print(f"# loading trainer state from {path}")
     checkpoint = torch.load(path)
     load(game, checkpoint)
+
 
 def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
     decay = []
