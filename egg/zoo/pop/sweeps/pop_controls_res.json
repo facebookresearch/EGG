@@ -34,9 +34,6 @@
         "['resnet152','resnet152','resnet152', 'resnet152']",
         "['resnet152']"
     ],
-    "pretrain_vision": [
-        true
-    ],
     "image_size": [
         384
     ]

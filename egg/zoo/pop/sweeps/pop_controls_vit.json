@@ -34,9 +34,6 @@
         "['vit','vit','vit', 'vit']",
         "['vit']"
     ],
-    "pretrain_vision": [
-        true
-    ],
     "image_size": [
         384
     ]

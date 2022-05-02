@@ -34,9 +34,6 @@
         "['inception','inception','inception', 'inception']",
         "['inception']"
     ],
-    "pretrain_vision": [
-        true
-    ],
     "image_size": [
         384
     ]

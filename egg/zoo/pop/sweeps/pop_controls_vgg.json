@@ -34,9 +34,6 @@
         "['vgg11','vgg11','vgg11', 'vgg11']",
         "['vgg11']"
     ],
-    "pretrain_vision": [
-        true
-    ],
     "image_size": [
         384
     ]
