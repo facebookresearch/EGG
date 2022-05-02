@@ -130,7 +130,7 @@ def get_new_agents_opts(parser):
         help="in the ease of transmission experiments, where to get the basic experiment weights",
     )
     group.add_argument(
-        "--additional_recvs",
+        "--additional_receivers",
         type=str,
         default="[]",
         help="Model names for the encoders of receivers added to the experiment after training",
