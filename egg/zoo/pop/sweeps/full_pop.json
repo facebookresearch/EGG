@@ -32,9 +32,6 @@
     "vision_model_names_senders": [
         "['vgg11','vit','resnet152', 'inception']"
     ],
-    "pretrain_vision": [
-        true
-    ],
     "image_size": [
         384
     ]
