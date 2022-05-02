@@ -44,12 +44,6 @@
         "['inception']",
         "['vgg11']"
     ],
-    "additional_receivers": [
-        "['resnet152']",
-        "['vit']",
-        "['inception']",
-        "['vgg11']"
-    ],
     "base_checkpoint_path": [
         "/shared/mateo/logs/full_pop/344_0/25.tar"
     ]
