@@ -27,21 +27,12 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','inception','resnet152']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','inception','resnet152']"
     ],
     "image_size": [
         384
-    ],
-    "additional_sender": [
-        "['resnet152']",
-        "['vit']",
-        "['inception']",
-        "['vgg11']"
-    ],
-    "base_checkpoint_path": [
-        "/shared/mateo/logs/full_pop/344_0/25.tar"
     ]
 }
