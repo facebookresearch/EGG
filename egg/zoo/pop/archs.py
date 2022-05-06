@@ -223,6 +223,7 @@ class AgentSampler(nn.Module):
             list(range(self.receiver_lock_idx, len(self.receivers))),
             list(range(len(self.losses))),
         )
+        
         # adding new-old pairs
         self.iterator = itertools.chain(
             [
@@ -237,6 +238,7 @@ class AgentSampler(nn.Module):
         self.available_indexes = list(self.iterator)
 
     def forward(self):
+        print(f"----------------- size {self.available_indexes} "-----------------")
         if self.training:
             sender_idx, recv_idx, loss_idx = np.random.choice(
                 self.available_indexes, 1
