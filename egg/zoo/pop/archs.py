@@ -11,7 +11,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torchvision
-import random
 from egg.core.interaction import LoggingStrategy
 
 
@@ -190,6 +189,7 @@ class AgentSampler(nn.Module):
         self.sender_lock_idx = 0
         self.receiver_lock_idx = 0
         self.reset_order()
+        self.available_indexes = list(self.iterator)
 
     def avoid_training_old(self):
         """
@@ -208,11 +208,13 @@ class AgentSampler(nn.Module):
         self.senders += new_senders
         self.senders_order = list(range(len(self.senders)))
         self.reset_order()
+        self.available_indexes = list(self.iterator)
 
     def add_receivers(self, new_receivers):
         self.receivers += new_receivers
         self.receivers_order = list(range(len(self.receivers)))
         self.reset_order()
+        self.available_indexes = list(self.iterator)
 
     def reset_order(self):
         # old - new pairs and new - new pairs
@@ -232,10 +234,13 @@ class AgentSampler(nn.Module):
                 ),
             ]
         )
+        self.available_indexes = list(self.iterator)
 
     def forward(self):
         if self.training:
-            sender_idx, recv_idx, loss_idx = random.sample(self.iterator, 1)[0]
+            sender_idx, recv_idx, loss_idx = np.random.choice(
+                self.available_indexes, 1
+            )[0]
         else:
             try:
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
