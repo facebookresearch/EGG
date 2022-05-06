@@ -127,7 +127,16 @@ def build_second_game(opts):
 
     pop_game = build_game(opts)
     load_from_checkpoint(pop_game, opts.base_checkpoint_path)
+
+    for old_sender in  pop_game.agents_loss_sampler.senders:
+        for param in old_sender.parameters():
+            param.requires_grad = False
+    for old_receiver in  pop_game.agents_loss_sampler.receiver:
+        for param in old_receiver.parameters():
+            param.requires_grad = False
+
     new_senders, new_receivers = build_senders_receivers(opts, opts.additional_senders, opts.additional_receivers)
+    pop_game.agents_loss_sampler.avoid_training_old()
     pop_game.agents_loss_sampler.add_senders(new_senders)
     pop_game.agents_loss_sampler.add_receivers(new_receivers)
 

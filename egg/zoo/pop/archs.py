@@ -11,9 +11,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torchvision
-
+import random
 from egg.core.interaction import LoggingStrategy
-from egg.core.util import move_to
 
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
@@ -188,13 +187,20 @@ class AgentSampler(nn.Module):
         self.receivers = nn.ModuleList(receivers)
         self.losses = list(losses)
 
-        self.senders_order = list(range(len(self.senders)))
-        self.receivers_order = list(range(len(self.receivers)))
-        self.losses_order = list(range(len(self.losses)))
-
+        self.sender_lock_idx = 0
+        self.receiver_lock_idx = 0
         self.reset_order()
 
-    def add_senders(self,new_senders):
+    def avoid_training_old(self):
+        """
+        all available senders and receivers are considered 'old', and will not be trained anymore
+        Warning : After using this function, new senders and receivers must be added otherwise the sampler
+        will not select any sender receiver pairs
+        """
+        self.sender_lock_idx = len(self.senders)
+        self.receiver_lock_idx = len(self.receivers)
+
+    def add_senders(self, new_senders):
         """
         Used to measure the ease of learning of a new agent
         adds a new sender to those available
@@ -203,26 +209,33 @@ class AgentSampler(nn.Module):
         self.senders_order = list(range(len(self.senders)))
         self.reset_order()
 
-
     def add_receivers(self, new_receivers):
         self.receivers += new_receivers
         self.receivers_order = list(range(len(self.receivers)))
         self.reset_order()
 
-    
-
     def reset_order(self):
-        self.iterator = itertools.product(
-            self.senders_order, self.receivers_order, self.losses_order
+        # old - new pairs and new - new pairs
+        _iterator = itertools.product(
+            list(range(len(self.senders))),
+            list(range(self.receiver_lock_idx, len(self.receivers))),
+            list(range(len(self.losses))),
+        )
+        # adding new-old pairs
+        self.iterator = itertools.chain(
+            [
+                _iterator,
+                itertools.product(
+                    list(range(self.sender_lock_idx, len(self.senders))),
+                    list(range(self.receiver_lock_idx)),
+                    list(range(len(self.losses))),
+                ),
+            ]
         )
 
     def forward(self):
         if self.training:
-            sender_idx, recv_idx, loss_idx = (
-                np.random.choice(len(self.senders)),
-                np.random.choice(len(self.receivers)),
-                np.random.choice(len(self.losses)),
-            )
+            sender_idx, recv_idx, loss_idx = random.sample(self.iterator)
         else:
             try:
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
@@ -314,7 +327,7 @@ class PopulationGame(nn.Module):
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
-        # TODO : Mat : this should be in sync with thatever the opts selected
+        # TODO : Mat : this should be in sync with whatever the opts selected
         self.device = "cuda"
 
     def forward(self, *args, **kwargs):
@@ -327,13 +340,9 @@ class PopulationGame(nn.Module):
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
         }
-        # args = move_to(args, self.device)
+
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
-        # sender.to("cpu")
-        # receiver.to("cpu")
-        # return mean_loss.to("cpu"), interactions  # sent to cpu in trainer
-        return mean_loss, interactions  # sent to cpu in trainer
 
-        # return self.game(sender, receiver, loss, *args, **kwargs)
+        return mean_loss, interactions  # sent to cpu in trainer
