@@ -30,7 +30,7 @@
         "['vgg11','vit','inception']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','inception','resnet152']"
+        "['vgg11','vit','inception']"
     ],
     "image_size": [
         384
