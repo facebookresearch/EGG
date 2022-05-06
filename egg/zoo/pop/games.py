@@ -131,7 +131,7 @@ def build_second_game(opts):
     for old_sender in  pop_game.agents_loss_sampler.senders:
         for param in old_sender.parameters():
             param.requires_grad = False
-    for old_receiver in  pop_game.agents_loss_sampler.receiver:
+    for old_receiver in  pop_game.agents_loss_sampler.receivers:
         for param in old_receiver.parameters():
             param.requires_grad = False
 

@@ -39,6 +39,6 @@
         "['inception']"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/partial_pop/404_0/final.tar"
+        "/shared/mateo/logs/partial_pops/404_0/final.tar"
     ]
 }

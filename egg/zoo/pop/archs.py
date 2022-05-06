@@ -235,7 +235,7 @@ class AgentSampler(nn.Module):
 
     def forward(self):
         if self.training:
-            sender_idx, recv_idx, loss_idx = random.sample(self.iterator)
+            sender_idx, recv_idx, loss_idx = random.sample(self.iterator, 1)[0]
         else:
             try:
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
