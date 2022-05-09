@@ -188,8 +188,8 @@ class AgentSampler(nn.Module):
 
         self.sender_lock_idx = 0
         self.receiver_lock_idx = 0
-        self.reset_order()
-        self.available_indexes = list(self.iterator)
+        self.iterator = self.reset_order()
+        self.available_indexes = list(self.reset_order())
 
     def avoid_training_old(self):
         """
@@ -207,14 +207,14 @@ class AgentSampler(nn.Module):
         """
         self.senders += new_senders
         self.senders_order = list(range(len(self.senders)))
-        self.reset_order()
-        self.available_indexes = list(self.iterator)
+        self.iterator = self.reset_order()
+        self.available_indexes = list(self.reset_order())
 
     def add_receivers(self, new_receivers):
         self.receivers += new_receivers
         self.receivers_order = list(range(len(self.receivers)))
-        self.reset_order()
-        self.available_indexes = list(self.iterator)
+        self.iterator = self.reset_order()
+        self.available_indexes = list(self.reset_order())
 
     def reset_order(self):
         # old - new pairs and new - new pairs
@@ -223,9 +223,9 @@ class AgentSampler(nn.Module):
             list(range(self.receiver_lock_idx, len(self.receivers))),
             list(range(len(self.losses))),
         )
-        print(f"----------------- size {list(_iterator)} -----------------")
+
         # adding new-old pairs
-        self.iterator = itertools.chain(
+        _chained_iterator = itertools.chain(
             _iterator,
             itertools.product(
                 list(range(self.sender_lock_idx, len(self.senders))),
@@ -233,8 +233,7 @@ class AgentSampler(nn.Module):
                 list(range(len(self.losses))),
             ),
         )
-        self.available_indexes = list(self.iterator)
-        print(f"----------------- size {self.available_indexes} -----------------")
+        return _chained_iterator
 
     def forward(self):
         print(f"----------------- size {self.available_indexes} -----------------")
@@ -246,7 +245,7 @@ class AgentSampler(nn.Module):
             try:
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
             except StopIteration:
-                self.reset_order()
+                self.iterator = itertools.chain(self.available_indexes)
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
 
         return (
