@@ -236,11 +236,10 @@ class AgentSampler(nn.Module):
         return _chained_iterator
 
     def forward(self):
-        print(f"----------------- size {self.available_indexes} -----------------")
         if self.training:
-            sender_idx, recv_idx, loss_idx = np.random.choice(
-                self.available_indexes, 1
-            )[0]
+            sender_idx, recv_idx, loss_idx = self.available_indexes[
+                np.random.randint(0, len(self.available_indexes))
+            ]
         else:
             try:
                 sender_idx, recv_idx, loss_idx = next(self.iterator)
