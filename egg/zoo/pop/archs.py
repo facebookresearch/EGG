@@ -223,17 +223,15 @@ class AgentSampler(nn.Module):
             list(range(self.receiver_lock_idx, len(self.receivers))),
             list(range(len(self.losses))),
         )
-        print(f"----------------- size {[list(_iterator)]} -----------------")
+        print(f"----------------- size {list(_iterator)} -----------------")
         # adding new-old pairs
         self.iterator = itertools.chain(
-            [
-                _iterator,
-                itertools.product(
-                    list(range(self.sender_lock_idx, len(self.senders))),
-                    list(range(self.receiver_lock_idx)),
-                    list(range(len(self.losses))),
-                ),
-            ]
+            _iterator,
+            itertools.product(
+                list(range(self.sender_lock_idx, len(self.senders))),
+                list(range(self.receiver_lock_idx)),
+                list(range(len(self.losses))),
+            ),
         )
         self.available_indexes = list(self.iterator)
         print(f"----------------- size {self.available_indexes} -----------------")
