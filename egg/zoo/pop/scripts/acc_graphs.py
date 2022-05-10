@@ -406,7 +406,6 @@ def all_one_on_one(
     # adding slightly different colours for the different elements
 
     colours = []
-    linestyles = []
     for l in labels:
         # # receiver
         # if "--> vgg1" in l:
@@ -460,7 +459,6 @@ def all_one_on_one(
         title=graph_title,
         legend_title="sender --> receiver",
         colours=colours,
-        linestyles=linestyles,
     )
 
 
