@@ -317,7 +317,12 @@ def one_architecture_all_exps(
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
-            names=["vision_model_names_senders", "vision_model_names_recvs","additional_sender","additional_receiver"],
+            names=[
+                "vision_model_names_senders",
+                "vision_model_names_recvs",
+                "additional_sender",
+                "additional_receiver",
+            ],
             values=[
                 [["vgg11", "vit", "resnet152", "inception"]],
                 [["vgg11", "vit", "resnet152", "inception"]],
@@ -400,41 +405,41 @@ def all_one_on_one(
     # correcting and simplifying labels on a case by case basis
     # adding slightly different colours for the different elements
 
-    _labels = []
     colours = []
     linestyles = []
     for l in labels:
-        # receiver
-        if "--> vgg1" in l:
-            linestyles.append("-.")
-        elif "--> vit" in l:
-            linestyles.append("--")
-        elif "--> resnet152" in l:
-            linestyles.append("-")
-        elif "--> inception" in l:
-            linestyles.append(":")
+        # # receiver
+        # if "--> vgg1" in l:
+        #     linestyles.append("-.")
+        # elif "--> vit" in l:
+        #     linestyles.append("--")
+        # elif "--> resnet152" in l:
+        #     linestyles.append("-")
+        # elif "--> inception" in l:
+        #     linestyles.append(":")
         # sender
         if "vgg11 -->" in l:
-            _l = "vgg"
             colours.append("r")
         elif "vit -->" in l:
-            _l = "vit"
             colours.append("limegreen")
         elif "resnet152 -->" in l:
-            _l = "resnet"
             colours.append("b")
         elif "inception -->" in l:
-            _l = l
             colours.append("purple")
-        _labels.append(_l)
-    labels = _labels
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
-            names=["vision_model_names_senders", "vision_model_names_recvs"],
+            names=[
+                "vision_model_names_senders",
+                "vision_model_names_recvs",
+                "additional_sender",
+                "additional_receiver",
+            ],
             values=[
                 [["vgg11", "vit", "resnet152", "inception"]],
                 [["vgg11", "vit", "resnet152", "inception"]],
+                [],
+                [],
             ],
             verbose=verbose,
         )
