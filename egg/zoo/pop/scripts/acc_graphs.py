@@ -221,7 +221,7 @@ def acc_graph(
             ys[i],
             label=labels[i],
             c=colours[i] if colours is not None else None,
-            linestyles=linestyles[i] if linestyles is not None else None,
+            linestyle=linestyles[i] if linestyles is not None else None,
         )
         plt.legend(title=legend_title)
         plt.title(title)
@@ -344,8 +344,6 @@ def one_architecture_all_exps(
 
 
 def all_one_on_one(
-    arch_name="inception",
-    arch_as_sender=True,
     baselines=True,
     verbose=False,
     save_path="/shared/mateo/logs/",
@@ -401,8 +399,6 @@ def all_one_on_one(
     # adding slightly different colours for the different elements
 
     _labels = []
-    _nothing_labeled = True
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 1, 4)))
     colours = []
     linestyles = []
     for l in labels:
@@ -454,7 +450,7 @@ def all_one_on_one(
         save_path,
         verbose,
         name=graph_name,
-        title=arch_name if graph_title is None else graph_title,
+        title=graph_title,
         legend_title="sender --> receiver",
         colours=colours,
         linestyles=linestyles,
