@@ -447,7 +447,7 @@ def all_one_on_one(
         ys += _ys
         labels += _labels
         colours += ["g"] * len(_xs)  # one specific colour
-        linestyles += ["-"] * len(_xs)
+        # linestyles += ["-"] * len(_xs)
 
     # plot all aquired data
     acc_graph(
