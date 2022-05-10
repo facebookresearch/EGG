@@ -209,6 +209,7 @@ def acc_graph(
     title="train_acc",
     legend_title=None,
     colours=None,
+    linestyles=None,
 ):
     # TODO : add a better file naming system, preventing overwrite
     assert len(xs) == len(ys) == len(labels)
@@ -216,7 +217,11 @@ def acc_graph(
         if verbose:
             print(f"adding {labels[i]} to graph")
         plt.plot(
-            xs[i], ys[i], label=labels[i], c=colours[i] if colours is not None else None
+            xs[i],
+            ys[i],
+            label=labels[i],
+            c=colours[i] if colours is not None else None,
+            linestyles=linestyles[i] if linestyles is not None else None,
         )
         plt.legend(title=legend_title)
         plt.title(title)
@@ -335,6 +340,124 @@ def one_architecture_all_exps(
         title=arch_name if graph_title is None else graph_title,
         legend_title="sender --> receiver",
         colours=colours,
+    )
+
+
+def all_one_on_one(
+    arch_name="inception",
+    arch_as_sender=True,
+    baselines=True,
+    verbose=False,
+    save_path="/shared/mateo/logs/",
+    graph_name="arch_graph",
+    graph_title=None,
+):
+    """
+    params
+    ------
+    arch_name : string, {'vgg11', 'vit', 'inception', 'resnet152'}
+        which architecture's data will be used in the graph
+    baselines : bool
+        whether baselines are also to be plotted (for now, only the full population baseline is available)
+    """
+
+    # xmin, xmax, ymin, ymax = axis()
+    # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
+
+    # sender graph
+    xs, ys, labels = nest_graph_collector(
+        names=[
+            "vision_model_names_senders",
+            "vision_model_names_recvs",
+            "recv_hidden_dim",
+            "lr",
+            "recv_output_dim",
+            "n_epochs",
+            "batch_size",
+        ],
+        values=[
+            [
+                ["resnet152"],
+                ["vit"],
+                ["inception"],
+                ["vgg11"],
+            ],
+            [
+                ["resnet152"],
+                ["vit"],
+                ["inception"],
+                ["vgg11"],
+            ],
+            [2048],
+            [0.0001],
+            [512],
+            [25],
+            [64],
+        ],
+        verbose=verbose,
+    )
+
+    # correcting and simplifying labels on a case by case basis
+    # adding slightly different colours for the different elements
+
+    _labels = []
+    _nothing_labeled = True
+    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 1, 4)))
+    colours = []
+    linestyles = []
+    for l in labels:
+        # receiver
+        if "--> vgg1" in l:
+            linestyles.append("-.")
+        elif "--> vit" in l:
+            linestyles.append("--")
+        elif "--> resnet152" in l:
+            linestyles.append("-")
+        elif "--> inception" in l:
+            linestyles.append(":")
+        # sender
+        if "vgg11 -->" in l:
+            _l = "vgg"
+            colours.append("r")
+        elif "vit -->" in l:
+            _l = "vit"
+            colours.append("limegreen")
+        elif "resnet152 -->" in l:
+            _l = "resnet"
+            colours.append("b")
+        elif "inception -->" in l:
+            _l = l
+            colours.append("purple")
+        _labels.append(_l)
+    labels = _labels
+
+    if baselines:
+        _xs, _ys, _labels = nest_graph_collector(
+            names=["vision_model_names_senders", "vision_model_names_recvs"],
+            values=[
+                [["vgg11", "vit", "resnet152", "inception"]],
+                [["vgg11", "vit", "resnet152", "inception"]],
+            ],
+            verbose=verbose,
+        )
+        xs += _xs
+        ys += _ys
+        labels += _labels
+        colours += ["g"] * len(_xs)  # one specific colour
+        linestyles += ["-"] * len(_xs)
+
+    # plot all aquired data
+    acc_graph(
+        xs,
+        ys,
+        labels,
+        save_path,
+        verbose,
+        name=graph_name,
+        title=arch_name if graph_title is None else graph_title,
+        legend_title="sender --> receiver",
+        colours=colours,
+        linestyles=linestyles,
     )
 
 
