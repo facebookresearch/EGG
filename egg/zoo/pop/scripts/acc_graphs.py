@@ -317,10 +317,12 @@ def one_architecture_all_exps(
 
     if baselines:
         _xs, _ys, _labels = nest_graph_collector(
-            names=["vision_model_names_senders", "vision_model_names_recvs"],
+            names=["vision_model_names_senders", "vision_model_names_recvs","additional_sender","additional_receiver"],
             values=[
                 [["vgg11", "vit", "resnet152", "inception"]],
                 [["vgg11", "vit", "resnet152", "inception"]],
+                [],
+                [],
             ],
             verbose=verbose,
         )
