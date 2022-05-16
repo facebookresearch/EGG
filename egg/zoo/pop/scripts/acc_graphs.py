@@ -251,7 +251,7 @@ def one_architecture_all_exps(
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
 
     # sender graph
-    xs, ys, labels = nest_graph_collector(
+    xs, ys, labels = graph_collector(
         names=[
             "vision_model_names_senders"
             if arch_as_sender
@@ -273,7 +273,7 @@ def one_architecture_all_exps(
                 ["inception"],
                 ["vgg11"],
                 ["vgg11", "vit", "resnet152", "inception"],
-                ['vgg11', 'inception', 'vit', 'resnet152'],
+                ["vgg11", "inception", "vit", "resnet152"],
                 # ["vit", "vit", "vit", "vit"]
             ],
             [2048],
@@ -317,7 +317,7 @@ def one_architecture_all_exps(
     labels = _labels
 
     if baselines:
-        _xs, _ys, _labels = nest_graph_collector(
+        _xs, _ys, _labels = graph_collector(
             names=[
                 "vision_model_names_senders",
                 "vision_model_names_recvs",
@@ -371,7 +371,7 @@ def all_one_on_one(
     # xmin, xmax, ymin, ymax = axis([xmin, xmax, ymin, ymax])
 
     # sender graph
-    xs, ys, labels = nest_graph_collector(
+    xs, ys, labels = graph_collector(
         names=[
             "vision_model_names_senders",
             "vision_model_names_recvs",
@@ -428,7 +428,7 @@ def all_one_on_one(
             colours.append("purple")
 
     if baselines:
-        _xs, _ys, _labels = nest_graph_collector(
+        _xs, _ys, _labels = graph_collector(
             names=[
                 "vision_model_names_senders",
                 "vision_model_names_recvs",
@@ -463,7 +463,7 @@ def all_one_on_one(
     )
 
 
-def nest_graph_collector(
+def graph_collector(
     path="/shared/mateo/logs/",
     names=[],
     values=[],
@@ -485,7 +485,7 @@ def nest_graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "/*/*.out")
+    files = glob.glob(path + "/*/*.out") + glob.glob(path + "/*/*/*/*/*.log")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
@@ -503,7 +503,11 @@ def nest_graph_collector(
                 with open(file_path) as f:
                     if verbose:
                         print(file_path)
-                    params = metadata_opener(f, "nest", verbose=verbose)
+                    params = metadata_opener(
+                        f,
+                        "nest" if file_path[-4:] == ".out" else "wandb",
+                        verbose=verbose,
+                    )
 
                     # generate labels
                     if get_labels:
