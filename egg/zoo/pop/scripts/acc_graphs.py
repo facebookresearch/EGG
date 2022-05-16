@@ -326,8 +326,8 @@ def one_architecture_all_exps(
             values=[
                 [["vgg11", "vit", "resnet152", "inception"]],
                 [["vgg11", "vit", "resnet152", "inception"]],
-                [],
-                [],
+                [None],
+                [None],
             ],
             verbose=verbose,
         )
