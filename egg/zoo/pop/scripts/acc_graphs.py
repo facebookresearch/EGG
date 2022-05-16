@@ -268,12 +268,12 @@ def one_architecture_all_exps(
         values=[
             [[arch_name]],
             [
-                # ["resnet152"],
-                # ["vit"],
-                # ["inception"],
-                # ["vgg11"],
-                # ["vgg11", "vit", "resnet152", "inception"],
-                ["vit", "vit", "vit", "vit"]
+                ["resnet152"],
+                ["vit"],
+                ["inception"],
+                ["vgg11"],
+                ["vgg11", "vit", "resnet152", "inception"],
+                # ["vit", "vit", "vit", "vit"]
             ],
             [2048],
             [0.0001],
