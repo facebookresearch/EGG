@@ -500,7 +500,11 @@ def graph_collector(
             ):
                 label = ""
                 # collect data
-                with open(file_path) as f:
+                with open(
+                    file_path
+                    if file_path[-4:] == ".out"
+                    else file_path[:-10] + "wandb-metadata.json"
+                ) as f:
                     if verbose:
                         print(file_path)
                     params = metadata_opener(
