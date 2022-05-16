@@ -273,6 +273,7 @@ def one_architecture_all_exps(
                 ["inception"],
                 ["vgg11"],
                 ["vgg11", "vit", "resnet152", "inception"],
+                ['vgg11', 'inception', 'vit', 'resnet152'],
                 # ["vit", "vit", "vit", "vit"]
             ],
             [2048],
