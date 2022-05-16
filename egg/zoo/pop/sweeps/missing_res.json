@@ -27,12 +27,11 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['resnet152']"
-    ],
-    "vision_model_names_senders": [
-        "['resnet152']",
         "['vit']",
         "['vgg11']"
+    ],
+    "vision_model_names_senders": [
+        "['resnet152']"
     ],
     "image_size": [
         384
