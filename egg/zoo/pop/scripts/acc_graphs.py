@@ -471,6 +471,7 @@ def graph_collector(
     mode="test",
     epoch_limit=None,
     get_labels=True,
+    get_wandb=False,
 ):
     """
     redoing this for a specific graph format. This has been decommented, but todos have not been dealt with
@@ -485,7 +486,9 @@ def graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "/*/*.out") + glob.glob(path + "/*/*/*/files/output.log")
+    files = glob.glob(path + "/*/*.out")
+    if get_wandb:
+        files += glob.glob(path + "/*/*/*/files/output.log")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
