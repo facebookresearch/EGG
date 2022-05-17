@@ -52,4 +52,5 @@ def ls_graph(
         title=graph_title,
         legend_title="additional_s --> additional_r",
         colours=colours,
+        get_labels=False,
     )
