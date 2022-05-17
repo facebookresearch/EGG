@@ -2,7 +2,6 @@ from egg.zoo.pop.scripts.acc_graphs import graph_collector, acc_graph
 
 
 def ls_graph(
-    baselines=True,
     verbose=False,
     save_path="/shared/mateo/logs/",
     graph_name="arch_graph",
@@ -26,8 +25,8 @@ def ls_graph(
         names=[
             "vision_model_names_senders",
             "vision_model_names_recvs",
-            "additional_sender",
-            "additional_receiver",
+            # "additional_sender",
+            # "additional_receiver",
         ],
         values=[
             [["vgg11", "vit", "resnet152", "inception"]],
