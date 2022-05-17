@@ -21,7 +21,7 @@ def ls_graph(
 
     # sender graph
 
-    _xs, _ys, _labels = graph_collector(
+    xs, ys, labels = graph_collector(
         names=[
             "vision_model_names_senders",
             "vision_model_names_recvs",
@@ -36,10 +36,7 @@ def ls_graph(
         # label_names=["additional_sender", "additional_sender"],
         get_labels=False,
     )
-    xs += _xs
-    ys += _ys
-    labels += _labels
-    colours += ["g"] * len(_xs)  # one specific colour
+    colours += ["g"] * len(xs)  # one specific colour
     # linestyles += ["-"] * len(_xs)
 
     # plot all aquired data
