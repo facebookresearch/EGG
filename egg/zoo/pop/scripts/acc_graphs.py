@@ -325,8 +325,8 @@ def one_architecture_all_exps(
                 "additional_receiver",
             ],
             values=[
-                [["vgg11", "vit", "resnet152", "inception"]],
-                [["vgg11", "vit", "resnet152", "inception"]],
+                [["vgg11", "inception", "vit", "resnet152"]],
+                [["vgg11", "inception", "vit", "resnet152"]],
                 [None],
                 [None],
             ],
