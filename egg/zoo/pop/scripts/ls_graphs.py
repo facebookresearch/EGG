@@ -29,8 +29,8 @@ def ls_graph(
             # "additional_receiver",
         ],
         values=[
-            [["vgg11", "vit", "resnet152"]],
-            [["vgg11", "vit", "resnet152"]],
+            [["vgg11", "vit", "inception"]],
+            [["vgg11", "vit", "inception"]],
         ],
         verbose=verbose,
         # label_names=["additional_sender", "additional_sender"],
