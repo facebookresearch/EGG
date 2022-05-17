@@ -290,7 +290,7 @@ def one_architecture_all_exps(
 
     _labels = []
     _nothing_labeled = True
-    colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.2, len(xs) + 1)))
+    # colour_iterator = iter(plt.cm.rainbow(np.linspace(0, 0.2, len(xs) + 1)))
     colours = []
     for l in labels:
         if l == f"{arch_name} --> {arch_name}":
@@ -485,7 +485,7 @@ def graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "/*/*.out") + glob.glob(path + "/*/*/*/*/*.log")
+    files = glob.glob(path + "/*/*.out") + glob.glob(path + "/*/*/*/files/output.log")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
