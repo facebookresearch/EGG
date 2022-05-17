@@ -309,10 +309,10 @@ def one_architecture_all_exps(
                 else f"other architecture --> {arch_name}"
             )
             _nothing_labeled = False
-            colours.append(next(colour_iterator))
+            colours.append("purple")
         else:
             _l = None
-            colours.append(next(colour_iterator))
+            colours.append("purple")
         _labels.append(_l)
     labels = _labels
 
@@ -491,9 +491,10 @@ def graph_collector(
 
     # select desired files
     for file_path in files:
+        is_nest_data = file_path[-4:] == ".out"
         if os.path.exists(file_path):
             if check_constraints(
-                file_path,
+                file_path if is_nest_data else file_path[:-10] + "wandb-metadata.json",
                 names,
                 values,
                 verbose,
@@ -509,7 +510,7 @@ def graph_collector(
                         print(file_path)
                     params = metadata_opener(
                         f,
-                        "nest" if file_path[-4:] == ".out" else "wandb",
+                        "nest" if is_nest_data else "wandb",
                         verbose=verbose,
                     )
 
