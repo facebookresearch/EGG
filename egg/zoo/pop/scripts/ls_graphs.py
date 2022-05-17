@@ -33,7 +33,8 @@ def ls_graph(
             [["vgg11", "vit", "resnet152", "inception"]],
         ],
         verbose=verbose,
-        label_names=["additional_sender", "additional_sender"],
+        # label_names=["additional_sender", "additional_sender"],
+        get_labels=False,
     )
     xs += _xs
     ys += _ys
@@ -52,5 +53,4 @@ def ls_graph(
         title=graph_title,
         legend_title="additional_s --> additional_r",
         colours=colours,
-        get_labels=False,
     )
