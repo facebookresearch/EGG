@@ -72,7 +72,7 @@ def check_constraints(path, names=[], values=[], verbose=False):
             )
             for i in range(len(values)):
                 _ep = extract_param(names[i], params, verbose=False)
-                if _ep is not None:
+                if _ep != "":
                     _ep = eval(_ep)
                 if verbose:
                     print(f"{_ep} in {values[i]} --> {_ep in values[i]} ")
