@@ -36,7 +36,7 @@
         384
     ],
     "additional_receiver": [
-        "['vgg']"
+        "['vgg11']"
     ],
     "base_checkpoint_path": [
         "/shared/mateo/logs/pop_ctrl_vit/377_0/final.tar"
