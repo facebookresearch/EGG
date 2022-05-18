@@ -34,7 +34,6 @@ def ls_graph(
         ],
         verbose=verbose,
         label_names=["additional_sender", "additional_sender"],
-        get_labels=False,
     )
     colours = ["g"] * len(xs)  # one specific colour
     # linestyles += ["-"] * len(_xs)
