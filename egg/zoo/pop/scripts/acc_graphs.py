@@ -285,25 +285,21 @@ def graph_collector(
 
                     # generate labels
                     if get_labels:
-                        _sender_label = eval(
-                            extract_param(label_names[0], params, verbose=False)
-                        )
-                        _recv_label = eval(
-                            extract_param(label_names[1], params, verbose=False)
-                        )
+                        for _l in label_names:
+                            label += extract_param(_l, params, verbose=False)
 
-                        _sender_label = (
-                            "diverse population"
-                            if len(_sender_label) > 1
-                            else _sender_label[0]
-                        )
-                        _recv_label = (
-                            "diverse population"
-                            if len(_recv_label) > 1
-                            else _recv_label[0]
-                        )
+                        # _sender_label = (
+                        #     "diverse population"
+                        #     if len(_sender_label) > 1
+                        #     else _sender_label[0]
+                        # )
+                        # _recv_label = (
+                        #     "diverse population"
+                        #     if len(_recv_label) > 1
+                        #     else _recv_label[0]
+                        # )
 
-                        label = f"{_sender_label} --> {_recv_label}"
+                        # label = f"{_sender_label} --> {_recv_label}"
                     else:
                         label = None
 

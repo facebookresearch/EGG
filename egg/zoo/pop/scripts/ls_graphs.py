@@ -33,7 +33,7 @@ def ls_graph(
             [["vgg11", "inception", "resnet152"]],
         ],
         verbose=verbose,
-        # label_names=["additional_sender", "additional_sender"],
+        label_names=["additional_sender", "additional_sender"],
         get_labels=False,
     )
     colours = ["g"] * len(xs)  # one specific colour
