@@ -286,7 +286,7 @@ def graph_collector(
                     # generate labels
                     if label_names is not None and label_names != []:
                         for _l in label_names:
-                            label += extract_param(_l, params, verbose=False)
+                            label += str(_l) + extract_param(_l, params, verbose=False)
 
                         # _sender_label = (
                         #     "diverse population"
