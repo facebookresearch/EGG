@@ -236,7 +236,6 @@ def graph_collector(
     verbose=False,
     mode="test",
     epoch_limit=None,
-    get_labels=True,
     get_wandb=False,
     label_names=["vision_model_names_senders", "vision_model_names_recvs"],
 ):
@@ -284,7 +283,7 @@ def graph_collector(
                     )
 
                     # generate labels
-                    if get_labels:
+                    if label_names is not None and label_names != []:
                         for _l in label_names:
                             label += extract_param(_l, params, verbose=False)
 
