@@ -95,6 +95,7 @@ def extract_param(param_name, params, verbose=False):
         print(
             f"{param_name} was not found amongst parameters"
         )  # Mat : is it a Keyerror tho ?
+    return ""
 
 
 def text_to_acc(file_path, mode="test", verbose=False):  # Mat : going through console
