@@ -5,7 +5,7 @@ def ls_graph(
     verbose=False,
     save_path="/shared/mateo/logs/",
     graph_name="arch_graph",
-    graph_title=None,
+    graph_title="no_vgg",
 ):
     """
     params
@@ -29,8 +29,8 @@ def ls_graph(
             # "additional_receiver",
         ],
         values=[
-            [["vgg11", "inception", "resnet152"]],
-            [["vgg11", "inception", "resnet152"]],
+            [["inception", "vit", "resnet152"]],
+            [["inception", "vit", "resnet152"]],
         ],
         verbose=verbose,
         label_names=["additional_sender", "additional_receiver"],
@@ -47,6 +47,6 @@ def ls_graph(
         verbose,
         name=graph_name,
         title=graph_title,
-        legend_title="additional_s --> additional_r",
+        legend_title="add_sender - add_receiver",
         # colours=colours,
     )

@@ -286,7 +286,7 @@ def graph_collector(
                     # generate labels
                     if label_names is not None and label_names != []:
                         for _l in label_names:
-                            label += str(_l) + extract_param(_l, params, verbose=False)
+                            label += extract_param(_l, params, verbose=False) + "-"
 
                         # _sender_label = (
                         #     "diverse population"
@@ -307,6 +307,8 @@ def graph_collector(
                 if len(x) > 0:
                     xs.append(x if epoch_limit is None else x[:epoch_limit])
                     ys.append(y if epoch_limit is None else y[:epoch_limit])
-                    labels.append(label)
+                    labels.append(
+                        label[:-1]
+                    )  # removing the extra dash added by the final loop
 
     return xs, ys, labels
