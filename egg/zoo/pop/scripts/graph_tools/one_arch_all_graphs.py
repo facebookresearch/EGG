@@ -1,7 +1,7 @@
 from egg.zoo.pop.scripts.graph_tools.acc_graphs import graph_collector, acc_graph
 
 
-def one_architecture_all_exps(
+def one_arch_all_graphs(
     arch_name="inception",
     arch_as_sender=True,
     baselines=True,
