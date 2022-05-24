@@ -218,20 +218,25 @@ class AgentSampler(nn.Module):
 
     def reset_order(self):
         # old - new pairs and new - new pairs
-        _iterator = itertools.product(
-            list(range(len(self.senders))),
-            list(range(self.receiver_lock_idx, len(self.receivers))),
-            list(range(len(self.losses))),
-        )
+        # _iterator = itertools.product(
+        #     list(range(len(self.senders))),
+        #     list(range(self.receiver_lock_idx, len(self.receivers))),
+        #     list(range(len(self.losses))),
+        # )
 
-        # adding new-old pairs
-        _chained_iterator = itertools.chain(
-            _iterator,
-            itertools.product(
-                list(range(self.sender_lock_idx, len(self.senders))),
-                list(range(self.receiver_lock_idx)),
-                list(range(len(self.losses))),
-            ),
+        # # adding new-old pairs
+        # _chained_iterator = itertools.chain(
+        #     _iterator,
+        #     itertools.product(
+        #         list(range(self.sender_lock_idx, len(self.senders))),
+        #         list(range(self.receiver_lock_idx)),
+        #         list(range(len(self.losses))),
+        #     ),
+        # )
+        _chained_iterator = itertools.product(
+            list(range(len(self.senders))),
+            list(range(len(self.receivers))),
+            list(range(len(self.losses))),
         )
         return _chained_iterator
 
