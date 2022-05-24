@@ -45,7 +45,8 @@ def main(params):
         batch_size=opts.batch_size,
         num_workers=opts.num_workers,
         is_distributed=opts.distributed_context.is_distributed,
-        seed=opts.random_seed,
+        seed=111,  # seed for data is hard coded. Everyone is evaluated on the same data
+        # Might cause problems for cross GPU version
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
         split_set=True,
