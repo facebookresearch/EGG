@@ -1,5 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
@@ -14,6 +12,7 @@ from egg.zoo.pop.archs import (
     PopulationGame,
     Receiver,
     Sender,
+    ContinuousSender,
     initialize_vision_module,
 )
 
@@ -31,9 +30,7 @@ def loss(
     loss = F.cross_entropy(receiver_output, labels, reduction="none")
     return loss, {"acc": acc}
 
-
 def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
-    # In the case of the second game (TODO: rename it more explicitly) used to measure learning speed, then we need to make senders that are from elsewhere in the options 
     if vision_model_names_senders is None:
         vision_model_names_senders = opts.vision_model_names_senders
     if vision_model_names_receiver is None:
@@ -59,36 +56,60 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
         initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision)
         for i in range(len(vision_model_names_receiver))
     ]
-
-    senders = [
-        GumbelSoftmaxWrapper(
-            Sender(
+    if opts.continuous_com:
+        senders = [
+            ContinuousSender(
                 vision_module=vision_modules_senders[i][0],
                 input_dim=vision_modules_senders[i][1],
                 vocab_size=opts.vocab_size,
                 name=vision_model_names_senders[i],
-            ),
-            temperature=opts.gs_temperature,
-            trainable_temperature=opts.train_gs_temperature,
-            straight_through=opts.straight_through,
-        )
-        for i in range(len(vision_model_names_senders))
-    ]
-    receivers = [
-        SymbolReceiverWrapper(
-            Receiver(
+                non_linearity=opts.non_linearity,
+                force_gumbel=opts.force_gumbel,
+                forced_gumbel_temperature=opts.gs_temperature,
+            )
+            for i in range(len(vision_model_names_senders))
+        ]
+        receivers = [
+                Receiver(
                 vision_module=vision_modules_receivers[i][0],
                 input_dim=vision_modules_receivers[i][1],
                 hidden_dim=opts.recv_hidden_dim,
                 output_dim=opts.recv_output_dim,
                 temperature=opts.recv_temperature,
                 name=vision_model_names_receiver[i],
-            ),
-            opts.vocab_size,
-            opts.recv_output_dim,
-        )
-        for i in range(len(vision_model_names_receiver))
-    ]
+            )
+            for i in range(len(vision_model_names_receiver))
+        ]
+    else:
+        senders = [
+            GumbelSoftmaxWrapper(
+                Sender(
+                    vision_module=vision_modules_senders[i][0],
+                    input_dim=vision_modules_senders[i][1],
+                    vocab_size=opts.vocab_size,
+                    name=vision_model_names_senders[i],
+                ),
+                temperature=opts.gs_temperature,
+                trainable_temperature=opts.train_gs_temperature,
+                straight_through=opts.straight_through,
+            )
+            for i in range(len(vision_model_names_senders))
+        ]
+        receivers = [
+            SymbolReceiverWrapper(
+                Receiver(
+                    vision_module=vision_modules_receivers[i][0],
+                    input_dim=vision_modules_receivers[i][1],
+                    hidden_dim=opts.recv_hidden_dim,
+                    output_dim=opts.recv_output_dim,
+                    temperature=opts.recv_temperature,
+                    name=vision_model_names_receiver[i],
+                ),
+                opts.vocab_size,
+                opts.recv_output_dim,
+            )
+            for i in range(len(vision_model_names_receiver))
+        ]
     print(vision_model_names_senders)
     print(vision_model_names_receiver)
     return senders, receivers

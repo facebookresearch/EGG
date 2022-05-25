@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+from xmlrpc.client import Boolean
 
 import egg.core as core
 import torch
@@ -116,7 +117,7 @@ def get_vision_module_opts(parser):
     group.add_argument(
         "--use_different_architectures",
         default=True,
-        action="store_true",
+        action="store_true",  # what's this ? shouldn't it be the opposite
         help="Population game with different architectures.",
     )
 
@@ -168,6 +169,25 @@ def get_game_arch_opts(parser):
         type=int,
         default=2048,
         help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
+    )
+    group.add_argument(
+        "--non_linearity",
+        type=str,
+        default=None,
+        choices=["sigmoid", "softmax"],
+        help="non_linearity for the continuous sender",
+    )
+    group.add_argument(
+        "--continuous_com",
+        type=Boolean,
+        default=False,
+        help="activates the continuous sender",
+    )
+    group.add_argument(
+        "--force_gumbel",
+        type=Boolean,
+        default=False,
+        help="force non_discretised gumbel messages for both training and testing (only for continuous) ",
     )
 
 

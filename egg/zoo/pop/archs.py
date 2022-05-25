@@ -5,6 +5,7 @@
 
 import itertools
 from typing import Optional, Union
+from xmlrpc.client import Boolean
 
 import timm
 import numpy as np
@@ -12,7 +13,13 @@ import torch
 import torch.nn as nn
 import torchvision
 from egg.core.interaction import LoggingStrategy
+from egg.core.gs_wrappers import gumbel_softmax_sample
 
+def get_non_linearity(name):
+    if name=='softmax':
+        return nn.Softmax
+    elif name=='sigmoid':
+        return nn.Sigmoid
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     print("initialize module", name)
@@ -111,6 +118,42 @@ class Sender(nn.Module):
         #     vision_module_out = vision_module_out.logits
 
         return self.fc(vision_module_out)
+
+
+class ContinuousSender(Sender):
+    def __init__(
+        self,
+        vision_module: Union[nn.Module, str],
+        input_dim: Optional[int],
+        name: str = "resnet50",
+        vocab_size: int = 2048,
+        non_linearity: nn.Module = None,
+        force_gumbel: Boolean = False,
+        forced_gumbel_temperature=5,
+    ):
+        super(Sender, self).__init__()
+        self.name = name
+        self.init_vision_module(vision_module, input_dim)
+        self.init_com_layer(input_dim, vocab_size, non_linearity)
+        self.force_gumbel = force_gumbel
+        self.forced_gumbel_temperature = forced_gumbel_temperature
+
+    def init_com_layer(self, input_dim, vocab_size, non_linearity: nn.Module = None):
+        self.fc = nn.Sequential(
+            nn.Linear(input_dim, vocab_size),
+            nn.BatchNorm1d(vocab_size),
+            non_linearity if non_linearity is not None else None,
+        )
+        pass
+
+    def forward(self, x, aux_input=None):
+        vision_module_out = self.vision_module(x)
+        if self.force_gumbel:
+            return gumbel_softmax_sample(
+                self.fc(vision_module_out), temperature=self.forced_gumbel_temperature
+            )
+        else:
+            return self.fc(vision_module_out)
 
 
 class Receiver(nn.Module):
