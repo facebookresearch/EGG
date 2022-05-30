@@ -144,7 +144,7 @@ class ContinuousSender(Sender):
         self.fc = nn.Sequential(
             nn.Linear(input_dim, vocab_size),
             nn.BatchNorm1d(vocab_size),
-            non_linearity if non_linearity is not None else None,
+            non_linearity() if non_linearity is not None else None,
         )
         pass
 
