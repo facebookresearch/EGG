@@ -8,7 +8,7 @@
     "lr": [
         0.0001
     ],
-    "continuous": [
+    "continuous_com": [
         true
     ],
     "non_linearity": [
@@ -40,16 +40,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['resnet152']",
-        "['vit']",
-        "['inception']",
-        "['vgg11']"
+        "['inception']"
     ],
     "vision_model_names_senders": [
-        "['resnet152']",
-        "['vit']",
-        "['inception']",
-        "['vgg11']"
+        "['inception']"
     ],
     "image_size": [
         384
