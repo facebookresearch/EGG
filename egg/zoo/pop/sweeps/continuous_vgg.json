@@ -15,7 +15,7 @@
         "softmax",
         "sigmoid"
     ],
-    "forced_gumbel": [
+    "force_gumbel": [
         true,
         false
     ],
