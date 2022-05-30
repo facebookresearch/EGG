@@ -117,7 +117,7 @@ def get_vision_module_opts(parser):
     group.add_argument(
         "--use_different_architectures",
         default=True,
-        action="store_true",  # what's this ? shouldn't it be the opposite
+        action="store_false",  # what's this ? shouldn't it be the opposite
         help="Population game with different architectures.",
     )
 
@@ -181,12 +181,14 @@ def get_game_arch_opts(parser):
         "--continuous_com",
         type=Boolean,
         default=False,
+        action="store_true",
         help="activates the continuous sender",
     )
     group.add_argument(
         "--force_gumbel",
         type=Boolean,
         default=False,
+        action="store_true",
         help="force non_discretised gumbel messages for both training and testing (only for continuous) ",
     )
 
