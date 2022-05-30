@@ -179,14 +179,12 @@ def get_game_arch_opts(parser):
     )
     group.add_argument(
         "--continuous_com",
-        type=Boolean,
         default=False,
         action="store_true",
         help="activates the continuous sender",
     )
     group.add_argument(
         "--force_gumbel",
-        type=Boolean,
         default=False,
         action="store_true",
         help="force non_discretised gumbel messages for both training and testing (only for continuous) ",
