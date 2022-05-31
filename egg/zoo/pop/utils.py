@@ -164,12 +164,13 @@ def get_game_arch_opts(parser):
         default=2048,
         help="Hidden dim of the non-linear projection of the distractors",
     )
-    group.add_argument(
-        "--recv_output_dim",
-        type=int,
-        default=2048,
-        help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
-    )
+    # Removed as it HAS to be the same as vocab_size so as to be able to apply cosine similarity
+    # group.add_argument(
+    #     "--recv_output_dim",
+    #     type=int,
+    #     default=2048,
+    #     help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
+    # )
     group.add_argument(
         "--non_linearity",
         type=str,

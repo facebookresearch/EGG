@@ -74,7 +74,7 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                 vision_module=vision_modules_receivers[i][0],
                 input_dim=vision_modules_receivers[i][1],
                 hidden_dim=opts.recv_hidden_dim,
-                output_dim=opts.recv_output_dim,
+                output_dim=opts.vocab_size,
                 temperature=opts.recv_temperature,
                 name=vision_model_names_receiver[i],
             )
@@ -101,12 +101,12 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                     vision_module=vision_modules_receivers[i][0],
                     input_dim=vision_modules_receivers[i][1],
                     hidden_dim=opts.recv_hidden_dim,
-                    output_dim=opts.recv_output_dim,
+                    output_dim=opts.vocab_size,
                     temperature=opts.recv_temperature,
                     name=vision_model_names_receiver[i],
                 ),
                 opts.vocab_size,
-                opts.recv_output_dim,
+                opts.vocab_size, # probably useless ? ask Roberto
             )
             for i in range(len(vision_model_names_receiver))
         ]

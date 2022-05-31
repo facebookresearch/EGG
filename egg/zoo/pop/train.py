@@ -21,7 +21,6 @@ from egg.zoo.pop.game_callbacks import (
 from egg.zoo.pop.games import build_game, build_second_game
 from egg.zoo.pop.LARC import LARC
 from egg.zoo.pop.utils import add_weight_decay, get_common_opts
-import os
 
 
 def main(params):
