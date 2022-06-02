@@ -97,7 +97,7 @@ def build_and_test_game(opts, exp_name, dump_dir):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        interactions.append(eval(pop_game.game, sender, receiver, loss, val_loader))
+        interactions.append(eval(sender, receiver, loss, pop_game.game, val_loader))
 
     # save data
     dump_interactions(
