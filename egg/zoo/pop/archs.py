@@ -114,7 +114,7 @@ class Sender(nn.Module):
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
-        # if not self.training: # this is commented because with pops of agents each visiion module has a different size and interactions can't concat
+        # if not self.training: # this is commented because with pops of agents each vision module has a different size and interactions can't concat
         #     aux_input["resnet_output_sender"] = vision_module_out.detach()
         # elif self.name == "inception": # This is commented because incep is set not to have logits in the setting where models are pretrained
         #     vision_module_out = vision_module_out.logits
@@ -144,7 +144,7 @@ class ContinuousSender(Sender):
         self.fc = nn.Sequential(
             nn.Linear(input_dim, vocab_size),
             nn.BatchNorm1d(vocab_size),
-            non_linearity() if non_linearity is not None else None,
+            non_linearity() if non_linearity is not None else nn.Identity(),
         )
         pass
 
@@ -263,26 +263,27 @@ class AgentSampler(nn.Module):
 
     def reset_order(self):
         # old - new pairs and new - new pairs
-        # _iterator = itertools.product(
-        #     list(range(len(self.senders))),
-        #     list(range(self.receiver_lock_idx, len(self.receivers))),
-        #     list(range(len(self.losses))),
-        # )
-
-        # # adding new-old pairs
-        # _chained_iterator = itertools.chain(
-        #     _iterator,
-        #     itertools.product(
-        #         list(range(self.sender_lock_idx, len(self.senders))),
-        #         list(range(self.receiver_lock_idx)),
-        #         list(range(len(self.losses))),
-        #     ),
-        # )
-        _chained_iterator = itertools.product(
+        _iterator = itertools.product(
             list(range(len(self.senders))),
-            list(range(len(self.receivers))),
+            list(range(self.receiver_lock_idx, len(self.receivers))),
             list(range(len(self.losses))),
         )
+
+        # adding new-old pairs
+        _chained_iterator = itertools.chain(
+            _iterator,
+            itertools.product(
+                list(range(self.sender_lock_idx, len(self.senders))),
+                list(range(self.receiver_lock_idx)),
+                list(range(len(self.losses))),
+            ),
+        )
+        # Old method, trains everyone
+        # _chained_iterator = itertools.product(
+        #     list(range(len(self.senders))),
+        #     list(range(len(self.receivers))),
+        #     list(range(len(self.losses))),
+        # )
         return _chained_iterator
 
     def forward(self):
