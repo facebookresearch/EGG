@@ -1,3 +1,5 @@
+# BEWARE cuda is an uncontrolled mess
+
 from egg.zoo.pop.games import build_game
 from egg.zoo.pop.utils import load_from_checkpoint
 
@@ -26,7 +28,7 @@ def path_to_parameters():
 
 
 # Taken from core.trainers.py and modified
-def eval(sender, receiver, loss, game, data=None):
+def eval(sender, receiver, loss, game, data=None, aux_input=None):
     interactions = []
     n_batches = 0
     validation_data = data
@@ -35,7 +37,7 @@ def eval(sender, receiver, loss, game, data=None):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to("cuda")
-            _, interaction = game(sender, receiver, loss, *batch)
+            _, interaction = game(sender, receiver, loss, *batch, aux_input=aux_input)
             interaction = interaction.to("cpu")
             game.to("cpu")
             interactions.append(interaction)
@@ -97,9 +99,19 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
+        aux_input = {
+            "sender_idx": sender_idx,
+            "recv_idx": recv_idx,
+            "loss_idx": loss_idx,
+        }
         interactions.append(
             eval(
-                sender.to(device), receiver.to(device), loss, pop_game.game, val_loader
+                sender.to(device),
+                receiver.to(device),
+                loss,
+                pop_game.game,
+                val_loader,
+                aux_input,
             )
         )
 
