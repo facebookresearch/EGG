@@ -96,8 +96,14 @@ def build_and_test_game(opts, exp_name, dump_dir):
     )
 
 
-if __name__ == "__main__":
+def main():
     torch.autograd.set_detect_anomaly(True)
-    # quick temporary hack : write exp name and dump dir before all the options
     opts = get_common_opts(params=sys.argv[1:])
     build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
+
+
+# if __name__ == "__main__":
+#     torch.autograd.set_detect_anomaly(True)
+#     # quick temporary hack : write exp name and dump dir before all the options
+#     opts = get_common_opts(params=sys.argv[3:])
+#     build_and_test_game(opts, exp_name=sys.argv[1], dump_dir=sys.argv[2])
