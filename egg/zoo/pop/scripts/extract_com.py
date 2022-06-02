@@ -11,8 +11,9 @@ from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.utils import get_common_opts
 
 
-def main(opts):
+def main(params):
     torch.autograd.set_detect_anomaly(True)
+    opts = get_common_opts(params)
     build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
 
 
