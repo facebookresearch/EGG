@@ -11,9 +11,8 @@ from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.utils import get_common_opts
 
 
-def main():
+def main(opts):
     torch.autograd.set_detect_anomaly(True)
-    opts = get_common_opts(params=sys.argv[1:])
     build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
 
 
@@ -37,16 +36,10 @@ def eval(game, data=None):
             batch = batch.to("cuda")
             _, interaction = game(*batch)
             interaction = interaction.to("cpu")
-            # mean_loss += optimized_loss  # not gonna lie, not sure I care
             game.to("cpu")
-            # interaction_callback.on_batch_end(
-            #         interaction, optimized_loss, n_batches, is_training=False
-            #     )
-
             interactions.append(interaction)
             n_batches += 1
 
-    # mean_loss /= n_batches
     full_interaction = Interaction.from_iterable(interactions)
 
     return full_interaction
@@ -76,8 +69,7 @@ def build_and_test_game(opts, exp_name, dump_dir):
         param.requires_grad = False
     pop_game.eval()
 
-    # get interactions callback running
-    # get test data / validation data ?
+    # get validation data
     val_loader, _ = get_dataloader(
         dataset_dir=opts.dataset_dir,
         dataset_name=opts.dataset_name,
@@ -94,7 +86,10 @@ def build_and_test_game(opts, exp_name, dump_dir):
     # We choose the pair and evaluate it on all batches
     interactions = []
     for sender, receiver, loss in pop_game.agents_loss_sampler:
+        # run inference
         interactions.append(eval(pop_game.game(sender, receiver, loss), val_loader))
+
+    # save data
     dump_interactions(
         Interaction.from_iterable(interactions),
         exp_name if exp_name is not None else "interactions",
