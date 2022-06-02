@@ -58,7 +58,7 @@ def dump_interactions(
 
 
 # buids a game using the usual pop parameters, perfroms evaluations, saves interactions
-def build_and_test_game(opts, exp_name, dump_dir):
+def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     """
     From an existing game run some tests
     """
@@ -97,7 +97,11 @@ def build_and_test_game(opts, exp_name, dump_dir):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        interactions.append(eval(sender, receiver, loss, pop_game.game, val_loader))
+        interactions.append(
+            eval(
+                sender.to(device), receiver.to(device), loss, pop_game.game, val_loader
+            )
+        )
 
     # save data
     dump_interactions(
