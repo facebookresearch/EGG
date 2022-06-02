@@ -11,6 +11,12 @@ from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.utils import get_common_opts
 
 
+def main():
+    torch.autograd.set_detect_anomaly(True)
+    opts = get_common_opts(params=sys.argv[1:])
+    build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
+
+
 def path_to_parameters():
     # WIP... this is mainly convenience
 
@@ -94,12 +100,6 @@ def build_and_test_game(opts, exp_name, dump_dir):
         exp_name if exp_name is not None else "interactions",
         dump_dir,
     )
-
-
-def main():
-    torch.autograd.set_detect_anomaly(True)
-    opts = get_common_opts(params=sys.argv[1:])
-    build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
 
 
 # if __name__ == "__main__":
