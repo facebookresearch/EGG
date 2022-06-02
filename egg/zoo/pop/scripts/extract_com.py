@@ -26,7 +26,7 @@ def path_to_parameters():
 
 
 # Taken from core.trainers.py and modified
-def eval(game, data=None):
+def eval(sender, receiver, loss, game, data=None):
     interactions = []
     n_batches = 0
     validation_data = data
@@ -35,7 +35,7 @@ def eval(game, data=None):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to("cuda")
-            _, interaction = game(*batch)
+            _, interaction = game(sender, receiver, loss, *batch)
             interaction = interaction.to("cpu")
             game.to("cpu")
             interactions.append(interaction)
@@ -97,7 +97,7 @@ def build_and_test_game(opts, exp_name, dump_dir):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        interactions.append(eval(pop_game.game(sender, receiver, loss), val_loader))
+        interactions.append(eval(pop_game.game, sender, receiver, loss, val_loader))
 
     # save data
     dump_interactions(
