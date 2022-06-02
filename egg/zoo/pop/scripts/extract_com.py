@@ -86,8 +86,17 @@ def build_and_test_game(opts, exp_name, dump_dir):
     # Instead of letting the population game use the agent sampler to select a different pair for every batch
     # We choose the pair and evaluate it on all batches
     interactions = []
-    for sender, receiver, loss in pop_game.agents_loss_sampler:
+
+    for (
+        sender_idx,
+        recv_idx,
+        loss_idx,
+    ) in pop_game.agents_loss_sampler.available_indexes:
         # run inference
+        # I feel like this is sort of evil and if it was not python I would definently not get away with this sort of meddling with inner parameters from outside
+        sender = pop_game.agents_loss_sampler.senders[sender_idx]
+        receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
+        loss = pop_game.agents_loss_sampler.losses[loss_idx]
         interactions.append(eval(pop_game.game(sender, receiver, loss), val_loader))
 
     # save data
