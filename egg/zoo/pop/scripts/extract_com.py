@@ -39,8 +39,14 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
 
             batch = batch.to("cuda")
             _, interaction = game(
-                sender, receiver, loss, *batch[:2], aux_input=aux_input
-            )  # pb with batch updates deal with that
+                sender,
+                receiver,
+                loss,
+                batch[0],
+                batch[1],
+                batch[2],
+                aux_input=aux_input.update(batch[3]),
+            )
             interaction = interaction.to("cpu")
             game.to("cpu")
             interactions.append(interaction)
