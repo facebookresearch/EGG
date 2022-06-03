@@ -43,7 +43,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
         for batch in validation_data:
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
-
+            aux_input["batch_number"] = n_batches
             batch = batch.to("cuda")
             _, interaction = game(
                 sender,
@@ -52,16 +52,16 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 batch[0],
                 batch[1],
                 batch[2],
-                {},
+                aux_input,
             )
             interaction = interaction.to("cpu")
             game.to("cpu")
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
 
-            for key in aux_input:
-                interaction.aux_input[key] = [aux_input[key]] * 64
-            interaction.aux_input["batch_number"] = [n_batches] * 64
+            # for key in aux_input:
+            #     interaction.aux_input[key] = [aux_input[key]] * 64
+            # interaction.aux_input["batch_number"] = [n_batches] * 64
             interactions.append(interaction)
             n_batches += 1
     # print("DEBUG : ", n_batches)
@@ -124,11 +124,13 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        aux_input = {
-            "sender_idx": sender_idx,
-            "recv_idx": recv_idx,
-            "loss_idx": loss_idx,
-        }
+        aux_input = torch.tensor(
+            {
+                "sender_idx": sender_idx,
+                "recv_idx": recv_idx,
+                "loss_idx": loss_idx,
+            }
+        )
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
