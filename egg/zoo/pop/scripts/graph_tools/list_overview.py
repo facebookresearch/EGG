@@ -31,4 +31,4 @@ def list_results(
             if len(accs) != 0:
                 for n in epoch_numbers:
                     results.append(accs[n - 1])
-            print(("{: >5} " * len(results)).format(*results))
+            print(("{:.3f <5} " * len(results)).format(*results))
