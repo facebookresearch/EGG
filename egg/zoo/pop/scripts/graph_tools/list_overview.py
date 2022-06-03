@@ -36,6 +36,6 @@ def list_results(
             _, accs = text_to_acc(file)
             if len(accs) != 0:
                 for n in epoch_numbers:
-                    results[str(epoch_numbers)].append(accs[n - 1])
+                    results[str(epoch_numbers)] = accs[n - 1]
             results.append(result)
     print(results)
