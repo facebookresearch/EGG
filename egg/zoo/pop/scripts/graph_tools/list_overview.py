@@ -4,6 +4,7 @@ from egg.zoo.pop.scripts.graph_tools.acc_graphs import (
     extract_param,
     text_to_acc,
 )
+import pandas as pd
 
 # from base dir, extract a few params and 2 of the accs
 # print
@@ -19,16 +20,22 @@ def list_results(
     ],
     epoch_numbers=[1, 25],
 ):
+    results = pd.DataFrame()
+    for column in param_names + epoch_numbers:
+        results[str(column)] = []
+
     file_paths = glob.glob(path + "*.out")
     for file_path in file_paths:
         with open(file_path) as file:
             # lets get reading
-            results = [
-                extract_param(param, metadata_opener(file, "nest"))
-                for param in param_names
-            ]
+            result = pd.DataFrame()
+            for param in param_names:
+                result[param_names] = extract_param(
+                    param, metadata_opener(file, "nest")
+                )
             _, accs = text_to_acc(file)
             if len(accs) != 0:
                 for n in epoch_numbers:
-                    results.append(accs[n - 1])
-            print(("{:.3f <5} " * len(results)).format(*results))
+                    results[str(epoch_numbers)].append(accs[n - 1])
+            results.append(result)
+    print(results)
