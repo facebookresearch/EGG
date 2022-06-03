@@ -98,22 +98,21 @@ def extract_param(param_name, params, verbose=False):
     return ""
 
 
-def text_to_acc(file_path, mode="test", verbose=False):  # Mat : going through console
-    with open(file_path) as f:
-        x = []
-        y = []
-        lines = f.readlines()
-        for line in lines:
-            if "{" in line:
-                _dict = json.loads(line)
-                if _dict["mode"] == mode:
-                    if verbose:
-                        print(_dict)
-                    x.append(_dict["epoch"])
-                    y.append(_dict["acc"])
-        if verbose and x == []:
-            print("file opened but no data was available")
-        return x, y
+def text_to_acc(file, mode="test", verbose=False):  # Mat : going through console
+    x = []
+    y = []
+    lines = file.readlines()
+    for line in lines:
+        if "{" in line:
+            _dict = json.loads(line)
+            if _dict["mode"] == mode:
+                if verbose:
+                    print(_dict)
+                x.append(_dict["epoch"])
+                y.append(_dict["acc"])
+    if verbose and x == []:
+        print("file opened but no data was available")
+    return x, y
 
 
 ##
@@ -303,7 +302,7 @@ def graph_collector(
                     else:
                         label = None
 
-                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
+                    x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
                 if len(x) > 0:
                     xs.append(x if epoch_limit is None else x[:epoch_limit])
                     ys.append(y if epoch_limit is None else y[:epoch_limit])
