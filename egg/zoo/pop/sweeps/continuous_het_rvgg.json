@@ -12,16 +12,13 @@
         true
     ],
     "non_linearity": [
-        "softmax",
         "sigmoid"
     ],
     "force_gumbel": [
         false
     ],
     "vocab_size": [
-        64,
-        32,
-        16
+        128
     ],
     "random_seed": [
         111
@@ -36,10 +33,13 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['inception']"
+        "['vgg11']"
     ],
     "vision_model_names_senders": [
-        "['inception']"
+        "['vgg11']",
+        "['inception']",
+        "['resnet152']",
+        "['vit']"
     ],
     "image_size": [
         384
