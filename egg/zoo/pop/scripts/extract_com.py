@@ -1,10 +1,9 @@
 # BEWARE cuda is an uncontrolled mess
-
+# This script loads games that have been trained for communication, then runs and saves communication for all available agent pairs
 from egg.zoo.pop.games import build_game
 from egg.zoo.pop.utils import load_from_checkpoint
 
-# from egg.core.callbacks import InteractionSaver
-import sys
+# import sys
 import pathlib
 import torch
 from egg.core.batch import Batch
@@ -14,6 +13,10 @@ from egg.zoo.pop.utils import get_common_opts
 
 
 def main(params):
+    """
+    starting point if script is executed from submitit or slurm with normal EGG parameters
+    TODO : allow simpler loading, from a path, or by searching for a few parameters
+    """
     torch.autograd.set_detect_anomaly(True)
     opts = get_common_opts(params)
     build_and_test_game(opts, exp_name=None, dump_dir=opts.checkpoint_dir)
@@ -27,8 +30,12 @@ def path_to_parameters():
     pass
 
 
-# Taken from core.trainers.py and modified
+#
 def eval(sender, receiver, loss, game, data=None, aux_input=None):
+    """
+    Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
+    runs each batch as a forward pass through the game, returns the interactions that occured
+    """
     interactions = []
     n_batches = 0
     validation_data = data
@@ -52,9 +59,10 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
             interactions.append(interaction)
             n_batches += 1
 
-    full_interaction = Interaction.from_iterable(interactions)
+    # full_interaction = Interaction.from_iterable(interactions)
 
-    return full_interaction
+    # return full_interaction
+    return interactions
 
 
 # Taken from core.callbacks.InteractionSaver and modified
@@ -63,6 +71,9 @@ def dump_interactions(
     exp_name: str = "interaction_file",
     dump_dir: str = "./interactions",
 ):
+    """
+    Used to save interactions in a specified directory
+    """
     dump_dir = pathlib.Path(dump_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
     torch.save(logs, dump_dir / exp_name)
@@ -71,7 +82,8 @@ def dump_interactions(
 # buids a game using the usual pop parameters, perfroms evaluations, saves interactions
 def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     """
-    From an existing game run some tests
+    From an existing game save interactions of each possible agent pair
+    Each agent pairs plays on the whole validation set
     """
 
     pop_game = build_game(opts)
@@ -113,6 +125,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
         }
+        # run evaluation, collect resulting interactions
         interactions.append(
             eval(
                 sender.to(device),
