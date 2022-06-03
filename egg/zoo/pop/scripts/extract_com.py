@@ -36,7 +36,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
     runs each batch as a forward pass through the game, returns the interactions that occured
     """
-    interactions = []
+    interactions = torch.tensor([])
     n_batches = 0
     validation_data = data
     with torch.no_grad():
