@@ -9,7 +9,7 @@ def list_results(path="/shared/mateo/logs/continuous_hyp_2/",param_names=['visio
         # we're looking for this :
         with open(file_path) as file:
             # lets get reading
-            params = [extract_param(param, metadata_opener(file)) for param in param_names]
+            params = [extract_param(param, metadata_opener(file, 'nest')) for param in param_names]
             accuracies = [text_to_acc(file)[1][i] for i in epoch_numbers]
             print(accuracies, params)
             
