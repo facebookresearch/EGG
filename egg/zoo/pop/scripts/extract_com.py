@@ -52,19 +52,21 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 batch[0],
                 batch[1],
                 batch[2],
-                aux_input,
+                {},
             )
             interaction = interaction.to("cpu")
             game.to("cpu")
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
-            interactions = (
-                interactions + interaction if interactions is not None else interaction
-            )
+
+            for key in aux_input:
+                interaction.aux_input[key] = [aux_input[key]] * 64
+            interaction.aux_input["batch_number"] = [n_batches] * 64
+            interactions.append(interaction)
             n_batches += 1
     # print("DEBUG : ", n_batches)
-    # full_interaction = Interaction.from_iterable(interactions)
-    return interactions
+    full_interaction = Interaction.from_iterable(interactions)
+    return full_interaction
 
 
 # Taken from core.callbacks.InteractionSaver and modified
