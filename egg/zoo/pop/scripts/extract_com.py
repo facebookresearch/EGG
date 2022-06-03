@@ -45,7 +45,9 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
                 batch[0],
                 batch[1],
                 batch[2],
-                aux_input=aux_input.update(batch[3]),
+                aux_input=aux_input.update(batch[3])
+                if batch[3] is not None
+                else aux_input,
             )
             interaction = interaction.to("cpu")
             game.to("cpu")
