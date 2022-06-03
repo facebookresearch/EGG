@@ -36,4 +36,4 @@ def list_results(
                 for n in epoch_numbers:
                     result[str(n)] = [accs[n - 1]]
             results = pd.concat((results, result), axis=0)
-    print(results)
+    return results

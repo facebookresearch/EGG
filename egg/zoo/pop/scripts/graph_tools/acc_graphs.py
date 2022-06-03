@@ -88,6 +88,8 @@ def extract_param(param_name, params, verbose=False):
     for param in params:
         if param_name in param:
             result = param[len(param_name) + 3 : len(param)]
+            if result == "":
+                result = True
             if verbose:
                 print(result)
             return result
