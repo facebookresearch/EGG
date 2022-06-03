@@ -30,12 +30,10 @@ def list_results(
             # lets get reading
             result = pd.DataFrame()
             for param in param_names:
-                result[param_names] = extract_param(
-                    param, metadata_opener(file, "nest")
-                )
+                result[param] = extract_param(param, metadata_opener(file, "nest"))
             _, accs = text_to_acc(file)
             if len(accs) != 0:
                 for n in epoch_numbers:
-                    results[str(epoch_numbers)] = accs[n - 1]
+                    result[str(n)] = accs[n - 1]
             pd.concat((results, result), axis=0)
     print(results)
