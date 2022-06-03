@@ -13,6 +13,6 @@ def list_results(path="/shared/mateo/logs/continuous_hyp_2/",param_names=['visio
             if len(accs) != 0:
                 for n in epoch_numbers:
                     results.append(accs[n-1])
-            print(results)
+            print("{: >15} {: >15} {: >15}".format(*results))
             
                     
