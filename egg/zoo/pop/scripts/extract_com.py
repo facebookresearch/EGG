@@ -58,11 +58,9 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
             game.to("cpu")
             interactions.append(interaction)
             n_batches += 1
-
-    # full_interaction = Interaction.from_iterable(interactions)
-
-    # return full_interaction
-    return interactions
+    print("DEBUG : ", n_batches)
+    full_interaction = Interaction.from_iterable(interactions)
+    return full_interaction
 
 
 # Taken from core.callbacks.InteractionSaver and modified
