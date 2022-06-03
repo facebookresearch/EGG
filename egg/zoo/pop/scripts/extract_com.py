@@ -36,8 +36,11 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
         for batch in validation_data:
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
+
             batch = batch.to("cuda")
-            _, interaction = game(sender, receiver, loss, *batch, aux_input=aux_input)
+            _, interaction = game(
+                sender, receiver, loss, *batch[:2], aux_input=aux_input
+            )  # pb with batch updates deal with that
             interaction = interaction.to("cpu")
             game.to("cpu")
             interactions.append(interaction)
