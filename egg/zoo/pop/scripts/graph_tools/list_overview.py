@@ -9,10 +9,10 @@ def list_results(path="/shared/mateo/logs/continuous_hyp_2/",param_names=['visio
         with open(file_path) as file:
             # lets get reading
             results = [extract_param(param, metadata_opener(file, 'nest')) for param in param_names]
-            x, accs = text_to_acc(file,verbose=True)
+            _, accs = text_to_acc(file)
             if len(accs) != 0:
                 for n in epoch_numbers:
                     results.append(accs[n-1])
-            print(results)
+            return results
             
                     

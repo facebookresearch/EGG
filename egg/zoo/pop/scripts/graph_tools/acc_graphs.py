@@ -26,6 +26,7 @@ def metadata_opener(file, data_type: str, verbose=False):
         # All other parameters will be set to default values but will not appear here
         # A future version of this opener should take into account the Namespace object on the following line
         lines = file.readlines()
+        file.seek(0)  # reset file
         for i in range(len(lines)):
             if lines[i][0] == "#":
                 params = eval(lines[i][12:])  # Mat : injection liability
@@ -112,6 +113,7 @@ def text_to_acc(file, mode="test", verbose=False):  # Mat : going through consol
                 y.append(_dict["acc"])
     if verbose and x == []:
         print("file opened but no data was available")
+    file.seek(0)  #  reset cursor
     return x, y
 
 
@@ -169,7 +171,7 @@ def nest_graph(
                         label += str(extract_param(_ln, params, verbose=False))
                     # data is added to those needing to be plotted when it respects the constraints
                     labels.append(label)
-                x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
+                x, y = text_to_acc(f, verbose=verbose, mode=mode)
                 xs.append(x if epoch_limit is None else x[:epoch_limit])
                 ys.append(y if epoch_limit is None else y[:epoch_limit])
 
@@ -302,7 +304,7 @@ def graph_collector(
                     else:
                         label = None
 
-                    x, y = text_to_acc(file_path, verbose=verbose, mode=mode)
+                    x, y = text_to_acc(f, verbose=verbose, mode=mode)
                 if len(x) > 0:
                     xs.append(x if epoch_limit is None else x[:epoch_limit])
                     ys.append(y if epoch_limit is None else y[:epoch_limit])
