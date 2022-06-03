@@ -37,5 +37,5 @@ def list_results(
             if len(accs) != 0:
                 for n in epoch_numbers:
                     results[str(epoch_numbers)] = accs[n - 1]
-            results.append(result)
+            pd.concat((results, result), axis=0)
     print(results)
