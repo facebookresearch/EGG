@@ -31,7 +31,7 @@ def path_to_parameters():
 
 
 #
-def eval(sender, receiver, loss, game, data=None, aux_input=None):
+def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
     """
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
     runs each batch as a forward pass through the game, returns the interactions that occured
@@ -56,11 +56,15 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None):
             )
             interaction = interaction.to("cpu")
             game.to("cpu")
-            interactions.append(interaction)
+            if gs:
+                interaction.message = interaction.message.argmax(dim=-1)
+            interactions = (
+                interactions + interaction if interactions is not None else interaction
+            )
             n_batches += 1
-    print("DEBUG : ", n_batches)
-    full_interaction = Interaction.from_iterable(interactions)
-    return full_interaction
+    # print("DEBUG : ", n_batches)
+    # full_interaction = Interaction.from_iterable(interactions)
+    return interactions
 
 
 # Taken from core.callbacks.InteractionSaver and modified
