@@ -36,7 +36,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
     runs each batch as a forward pass through the game, returns the interactions that occured
     """
-    interactions = torch.tensor([])
+    interactions = []
     n_batches = 0
     validation_data = data
     with torch.no_grad():
@@ -124,13 +124,11 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        aux_input = torch.tensor(
-            {
-                "sender_idx": sender_idx,
-                "recv_idx": recv_idx,
-                "loss_idx": loss_idx,
-            }
-        )
+        aux_input = {
+            "sender_idx": sender_idx,
+            "recv_idx": recv_idx,
+            "loss_idx": loss_idx,
+        }
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
