@@ -19,9 +19,9 @@
         false
     ],
     "vocab_size": [
-        64,
-        32,
-        16
+        8,
+        4,
+        2
     ],
     "random_seed": [
         111
