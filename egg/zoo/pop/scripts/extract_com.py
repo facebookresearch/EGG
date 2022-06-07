@@ -55,10 +55,10 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 aux_input,
             )
             interaction = interaction.to("cpu")
-            game.to("cpu")
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
-
+            print(interaction.aux_input)
+            game.to("cpu")
             # for key in aux_input:
             #     interaction.aux_input[key] = [aux_input[key]] * 64
             # interaction.aux_input["batch_number"] = [n_batches] * 64
