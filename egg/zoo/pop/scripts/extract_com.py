@@ -45,6 +45,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 batch = Batch(*batch)
             aux_input["batch_number"] = torch.Tensor(n_batches).int()
             batch = batch.to("cuda")
+
             _, interaction = game(
                 sender,
                 receiver,
@@ -58,12 +59,10 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
             game.to("cpu")
-            # for key in aux_input:
-            #     interaction.aux_input[key] = [aux_input[key]] * 64
-            # interaction.aux_input["batch_number"] = [n_batches] * 64
             interactions.append(interaction)
+
             n_batches += 1
-    # print("DEBUG : ", n_batches)
+            
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
 
