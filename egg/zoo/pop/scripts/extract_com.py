@@ -123,11 +123,13 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
-        aux_input = {
-            "sender_idx": torch.Tensor([sender_idx]),
-            "recv_idx": torch.Tensor([recv_idx]),
-            "loss_idx": torch.Tensor([loss_idx]),
-        }
+        aux_input = torch.Tensor(
+            {
+                "sender_idx": torch.Tensor([sender_idx]).int(),
+                "recv_idx": torch.Tensor([recv_idx]).int(),
+                "loss_idx": torch.Tensor([loss_idx]).int(),
+            }
+        )
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
