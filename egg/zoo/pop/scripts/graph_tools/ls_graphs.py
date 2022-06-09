@@ -2,10 +2,10 @@ from egg.zoo.pop.scripts.graph_tools.acc_graphs import graph_collector, acc_grap
 
 
 def ls_graph(
-    verbose=False,
     save_path="/shared/mateo/logs/",
     graph_name="arch_graph",
     graph_title="no_inception",
+    verbose=False,
 ):
     """
     params
