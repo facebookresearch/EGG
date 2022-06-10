@@ -31,7 +31,9 @@ def path_to_parameters():
 
 
 #
-def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
+def eval(
+    sender, receiver, loss, game, data=None, aux_input=None, gs=True, batch_size=64
+):
     """
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
     runs each batch as a forward pass through the game, returns the interactions that occured
@@ -43,7 +45,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
         for batch in validation_data:
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
-            aux_input["batch_number"] = torch.Tensor([n_batches]).int()
+            aux_input["batch_number"] = torch.Tensor([n_batches] * batch_size).int()
             batch = batch.to("cuda")
 
             _, interaction = game(
@@ -123,9 +125,9 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
         aux_input = {
-            "sender_idx": torch.Tensor([sender_idx]).int(),
-            "recv_idx": torch.Tensor([recv_idx]).int(),
-            "loss_idx": torch.Tensor([loss_idx]).int(),
+            "sender_idx": torch.Tensor([sender_idx] * opts.batch_size).int(),
+            "recv_idx": torch.Tensor([recv_idx] * opts.batch_size).int(),
+            "loss_idx": torch.Tensor([loss_idx] * opts.batch_size).int(),
         }
 
         # run evaluation, collect resulting interactions
@@ -137,6 +139,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
                 pop_game.game,
                 val_loader,
                 aux_input,
+                opts.batch_size,
             )
         )
 
