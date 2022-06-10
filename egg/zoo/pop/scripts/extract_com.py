@@ -53,7 +53,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 batch[0],
                 batch[1],
                 batch[2],
-                aux_input,
+                aux_input.copy(),
             )
             interaction = interaction.to("cpu")
             if gs:
@@ -62,7 +62,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
             interactions.append(interaction)
 
             n_batches += 1
-            
+
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
 
@@ -147,6 +147,9 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         dump_dir,
     )
 
+
+# check same message gives same image
+# check same image gives same message
 
 # if __name__ == "__main__":
 #     torch.autograd.set_detect_anomaly(True)
