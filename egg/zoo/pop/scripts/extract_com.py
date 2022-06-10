@@ -43,7 +43,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
         for batch in validation_data:
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
-            aux_input["batch_number"] = torch.Tensor(n_batches).int()
+            aux_input["batch_number"] = torch.Tensor([n_batches]).int()
             batch = batch.to("cuda")
 
             _, interaction = game(

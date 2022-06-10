@@ -52,7 +52,7 @@ def get_dataloader(
     if split_set:
         test_dataset, train_dataset = torch.utils.data.random_split(
             train_dataset,
-            [len(train_dataset) // 100, len(train_dataset) // 100 * 99],
+            [len(train_dataset) // 10, len(train_dataset) // 10 * 9],
             torch.Generator().manual_seed(seed),
         )
         test_loader = torch.utils.data.DataLoader(
