@@ -214,6 +214,7 @@ class Receiver(nn.Module):
         )
 
         if not self.training:
+            print(aux_input)
             aux_input["receiver_message_embedding"] = message.detach()
 
         return similarity_scores

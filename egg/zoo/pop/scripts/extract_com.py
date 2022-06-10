@@ -53,7 +53,7 @@ def eval(sender, receiver, loss, game, data=None, aux_input=None, gs=True):
                 batch[0],
                 batch[1],
                 batch[2],
-                aux_input.copy(),
+                aux_input,
             )
             interaction = interaction.to("cpu")
             if gs:
