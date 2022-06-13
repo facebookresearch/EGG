@@ -214,7 +214,6 @@ class Receiver(nn.Module):
         )
 
         if not self.training:
-            print(aux_input)
             aux_input["receiver_message_embedding"] = message.detach()
 
         return similarity_scores
@@ -360,7 +359,7 @@ class Game(nn.Module):
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
         )
-
+        print(aux_input)
         interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
@@ -374,6 +373,7 @@ class Game(nn.Module):
         # if not self.training:
         # sender.to("cpu")
         # receiver.to("cpu")
+        print(interaction.aux_input)
         return loss.mean(), interaction
 
 
