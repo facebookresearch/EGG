@@ -46,7 +46,7 @@ def eval(
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             aux_input["batch_number"] = (
-                torch.range(0, batch_size, 1) + batch_size * n_batches
+                torch.range(0, batch_size - 1, 1, dtype=int) + batch_size * n_batches
             )
             batch = batch.to("cuda")
 
