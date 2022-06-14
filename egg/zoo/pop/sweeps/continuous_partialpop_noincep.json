@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        5
     ],
     "batch_size": [
         64
@@ -25,9 +25,6 @@
     ],
     "recv_hidden_dim": [
         2048
-    ],
-    "recv_output_dim": [
-        512
     ],
     "dataset_name": [
         "cifar100"
