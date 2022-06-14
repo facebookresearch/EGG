@@ -199,7 +199,7 @@ class Trainer:
 
         return mean_loss.item(), full_interaction
 
-    def train_epoch(self):
+    def train_epoch(self, epoch=None):
         mean_loss = 0
         n_batches = 0
         interactions = []
@@ -260,6 +260,14 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
+            for callback in self.callbacks:
+                callback.on_validation_begin(epoch + 1)
+                validation_loss, validation_interaction = self.eval()
+
+                for callback in self.callbacks:
+                    callback.on_validation_end(
+                        validation_loss, validation_interaction, epoch + 1
+                    )
 
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
@@ -276,25 +284,25 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_begin(epoch + 1)
 
-            train_loss, train_interaction = self.train_epoch()
+            train_loss, train_interaction = self.train_epoch(epoch=epoch)
 
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_interaction, epoch + 1)
-
+            # We will now be considering evaluation on a batch per batch level, continuous experiments giving such rapid results
             validation_loss = validation_interaction = None
-            if (
-                self.validation_data is not None
-                and self.validation_freq > 0
-                and (epoch + 1) % self.validation_freq == 0
-            ):
-                for callback in self.callbacks:
-                    callback.on_validation_begin(epoch + 1)
-                validation_loss, validation_interaction = self.eval()
+            # if (
+            #     self.validation_data is not None
+            #     and self.validation_freq > 0
+            #     and (epoch + 1) % self.validation_freq == 0
+            # ):
+            #     for callback in self.callbacks:
+            #         callback.on_validation_begin(epoch + 1)
+            #     validation_loss, validation_interaction = self.eval()
 
-                for callback in self.callbacks:
-                    callback.on_validation_end(
-                        validation_loss, validation_interaction, epoch + 1
-                    )
+            #     for callback in self.callbacks:
+            #         callback.on_validation_end(
+            #             validation_loss, validation_interaction, epoch + 1
+            #         )
 
             if self.should_stop:
                 for callback in self.callbacks:
