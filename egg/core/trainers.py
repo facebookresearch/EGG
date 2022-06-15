@@ -260,6 +260,7 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
+            validation_loss = validation_interaction = None
             if batch_id % 10 == 0: # this needs to be a changeable param
                 for callback in self.callbacks:
                     callback.on_validation_begin(epoch + 1)

@@ -10,3 +10,4 @@ scikit-learn
 wandb
 submitit
 timm
+pandas
