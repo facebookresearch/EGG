@@ -260,14 +260,15 @@ class Trainer:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
-            for callback in self.callbacks:
-                callback.on_validation_begin(epoch + 1)
-                validation_loss, validation_interaction = self.eval()
-
+            if batch_id % 10 == 0: # this needs to be a changeable param
                 for callback in self.callbacks:
-                    callback.on_validation_end(
-                        validation_loss, validation_interaction, epoch + 1
-                    )
+                    callback.on_validation_begin(epoch + 1)
+                    validation_loss, validation_interaction = self.eval()
+
+                    for callback in self.callbacks:
+                        callback.on_validation_end(
+                            validation_loss, validation_interaction, epoch + 1
+                        )
 
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
