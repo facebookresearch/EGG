@@ -1,0 +1,15 @@
+{
+    "n_attributes": [2],
+    "n_values": [100],
+    "vocab_size" : [100],
+    "max_len" : [5],
+    "model": ["OrigSenderDeterministic", "ModifSender"],
+    "archpart": ["sender"],
+    "batch_size" : [32],
+    "n_epochs": [500],
+    "random_seed": [724, 606,  27, 844, 121, 267, 673, 356, 454, 365, 216, 902,  17, 430, 392, 428, 981,  32,  28,  84],
+    "hidden": [500],
+    "lr": [0.001],
+    "receiver_emb": [30],
+    "sender_emb": [5]
+}

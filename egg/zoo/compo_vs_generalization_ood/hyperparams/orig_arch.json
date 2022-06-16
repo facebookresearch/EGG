@@ -1,0 +1,17 @@
+{
+    "n_attributes": [2],
+    "n_values": [100],
+    "vocab_size" : [100],
+    "max_len" : [3],
+    "sender": ["OrigSender"],
+    "receiver": ["OrigReceiver"],
+    "batch_size" : [5120],
+    "n_epochs": [2000],
+    "random_seed": [724, 606,  27, 844, 121, 267, 673, 356, 454, 365, 216, 902,  17, 430, 392, 428, 981,  32,  28,  84],
+    "hidden": [500],
+    "lr": [0.001],
+    "data_scaler": [60],
+    "sender_entropy_coeff": [0.5],
+    "receiver_emb": [30],
+    "sender_emb": [5]
+}
