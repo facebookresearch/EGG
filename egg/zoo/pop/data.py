@@ -63,7 +63,7 @@ def get_dataloader(
     elif dataset_name == "gaussian_noise":
         # Note : augmentations on gaussian noise make little sense, transformations are ignored
         train_dataset=Gaussian_noise_dataset(
-            n_images=100, # 50000 # matching cifar100
+            n_images=640, # 50000 # matching cifar100
             image_size=image_size,
             n_labels=100, # matching cifar100
             seed = seed
