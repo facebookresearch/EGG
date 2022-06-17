@@ -29,7 +29,7 @@ class Gaussian_noise_dataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         if idx <= self.n_images:
-            gaussian_noise = torch.randn([self.image_size, self.image_size,3],generator = torch.Generator().manual_seed(idx)) # ,torch.Generator().manual_seed(self.seed)
+            gaussian_noise = torch.randn([3, self.image_size, self.image_size],generator = torch.Generator().manual_seed(idx)) # ,torch.Generator().manual_seed(self.seed)
             label = torch.randint(0,self.n_labels,[1],generator = torch.Generator().manual_seed(idx)).item()
             return [gaussian_noise, gaussian_noise], label
         else:
