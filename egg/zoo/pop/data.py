@@ -8,7 +8,9 @@ from typing import Optional
 
 import torch
 from PIL import ImageFilter
+from sklearn import gaussian_process
 from torchvision import datasets, transforms
+from torchvision import transforms
 
 
 def collate_fn(batch):
@@ -18,6 +20,23 @@ def collate_fn(batch):
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
     )
 
+class Gaussian_noise_dataset(torch.utils.data.Dataset):
+    def __init__(self, n_images, image_size, n_labels, seed):
+        self.n_images = n_images
+        self.image_size= image_size
+        self.n_labels = n_labels
+        self.seed = seed
+
+    def __getitem__(self, idx):
+        if idx <= self.n_images:
+            gaussian_noise = torch.randn([self.image_size, self.image_size],generator = torch.Generator().manual_seed(idx)) # ,torch.Generator().manual_seed(self.seed)
+            label = torch.randint(0,self.n_labels,[1],generator = torch.Generator().manual_seed(idx)).item()
+            return [gaussian_noise, gaussian_noise], label
+        else:
+            raise 
+    
+    def __len__(self):
+        return self.n_images
 
 def get_dataloader(
     dataset_dir: str,
@@ -41,6 +60,14 @@ def get_dataloader(
         train_dataset = datasets.CIFAR100(
             root="./data", download=True, transform=transformations
         )
+    elif dataset_name == "gaussian_noise":
+        # Note : augmentations on gaussian noise make little sense, transformations are ignored
+        train_dataset=Gaussian_noise_dataset(
+            n_images=100, # 50000 # matching cifar100
+            image_size=image_size,
+            n_labels=100, # matching cifar100
+            seed = seed
+            )
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
@@ -52,7 +79,7 @@ def get_dataloader(
     if split_set:
         test_dataset, train_dataset = torch.utils.data.random_split(
             train_dataset,
-            [len(train_dataset) // 100, len(train_dataset) // 100 * 99],
+            [len(train_dataset) // 10, len(train_dataset) - (len(train_dataset) // 10)],
             torch.Generator().manual_seed(seed),
         )
         test_loader = torch.utils.data.DataLoader(

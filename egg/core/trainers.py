@@ -261,7 +261,7 @@ class Trainer:
 
             interactions.append(interaction)
             validation_loss = validation_interaction = None
-            if batch_id % 10 == 0: # this needs to be a changeable param
+            if batch_id % 100 == 0: # this needs to be a changeable param
                 for callback in self.callbacks:
                     callback.on_validation_begin(epoch + 1)
                     validation_loss, validation_interaction = self.eval()
@@ -291,7 +291,7 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_interaction, epoch + 1)
             # We will now be considering evaluation on a batch per batch level, continuous experiments giving such rapid results
-            validation_loss = validation_interaction = None
+            # validation_loss = validation_interaction = None
             # if (
             #     self.validation_data is not None
             #     and self.validation_freq > 0
@@ -306,16 +306,16 @@ class Trainer:
             #             validation_loss, validation_interaction, epoch + 1
             #         )
 
-            if self.should_stop:
-                for callback in self.callbacks:
-                    callback.on_early_stopping(
-                        train_loss,
-                        train_interaction,
-                        epoch + 1,
-                        validation_loss,
-                        validation_interaction,
-                    )
-                break
+            # if self.should_stop:
+            #     for callback in self.callbacks:
+            #         callback.on_early_stopping(
+            #             train_loss,
+            #             train_interaction,
+            #             epoch + 1,
+            #             validation_loss,
+            #             validation_interaction,
+            #         )
+            #     break
 
         for callback in self.callbacks:
             callback.on_train_end()
