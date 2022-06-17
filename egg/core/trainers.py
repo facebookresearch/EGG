@@ -265,7 +265,7 @@ class Trainer:
                 for callback in self.callbacks:
                     callback.on_validation_begin(epoch + 1)
                     validation_loss, validation_interaction = self.eval()
-
+                    self.game.train()
                     for callback in self.callbacks:
                         callback.on_validation_end(
                             validation_loss, validation_interaction, epoch + 1
