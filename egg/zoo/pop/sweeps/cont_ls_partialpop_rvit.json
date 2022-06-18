@@ -45,6 +45,6 @@
         "['vit']"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/continuous_partialpop/1077/final.tar"
+        "/shared/mateo/logs/continuous_partialpop/1077_0/final.tar"
     ]
 }
