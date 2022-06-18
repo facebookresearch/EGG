@@ -45,6 +45,6 @@
         "['resnet152']"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/partial_pops/1078/final.tar"
+        "/shared/mateo/logs/continuous_partialpops/1078/final.tar"
     ]
 }
