@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        5
     ],
     "batch_size": [
         64
@@ -10,6 +10,9 @@
     ],
     "continuous_com": [
         true
+    ],
+    "non_linearity": [
+        "sigmoid"
     ],
     "force_gumbel": [
         false
@@ -24,16 +27,16 @@
         2048
     ],
     "dataset_name": [
-        "gaussian_noise"
+        "cifar100"
     ],
     "gs_temperature": [
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11']","['vit']","['resnet152']","['inception']"
+        "['vgg11','vgg11','vgg11']"
     ],
     "vision_model_names_senders": [
-        "['vgg11']","['vit']","['resnet152']","['inception']"
+        "['vgg11','vgg11','vgg11']"
     ],
     "image_size": [
         384

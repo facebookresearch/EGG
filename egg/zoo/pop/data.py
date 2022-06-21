@@ -16,7 +16,7 @@ from torchvision import transforms
 def collate_fn(batch):
     return (
         torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
-        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),  # labels
+        torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),  # labels (original classes, not used in emecom_game)
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
     )
 
@@ -30,7 +30,7 @@ class Gaussian_noise_dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         if idx <= self.n_images:
             gaussian_noise = torch.randn([3, self.image_size, self.image_size],generator = torch.Generator().manual_seed(idx)) # ,torch.Generator().manual_seed(self.seed)
-            label = torch.randint(0,self.n_labels,[1],generator = torch.Generator().manual_seed(idx)).item()
+            label = torch.randint(0,self.n_labels,[1],generator = torch.Generator().manual_seed(idx)).item() # random value, not used in com game
             return [gaussian_noise, gaussian_noise], label
         else:
             raise 
@@ -63,9 +63,9 @@ def get_dataloader(
     elif dataset_name == "gaussian_noise":
         # Note : augmentations on gaussian noise make little sense, transformations are ignored
         train_dataset=Gaussian_noise_dataset(
-            n_images=50000, # matching cifar100
+            n_images=204800, # matching cifar100
             image_size=image_size,
-            n_labels=100, # matching cifar100
+            n_labels=100, # matching cifar100, does not matter as random
             seed = seed
             )
     else:
