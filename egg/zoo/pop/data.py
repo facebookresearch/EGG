@@ -199,6 +199,6 @@ class ImageTransformation:
         x_i, x_j = self.transform(x), self.transform(x)
         if self.return_original_image:
             return x_i, x_j, self.original_image_transform(x)
-        if self.atck_distractors:
+        if self.test_attack:
             return self.original_image_transform(x), x_j
         return x_i, x_j
