@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        5
     ],
     "batch_size": [
         64
@@ -8,17 +8,23 @@
     "lr": [
         0.0001
     ],
+    "continuous_com": [
+        true
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "force_gumbel": [
+        false
+    ],
     "vocab_size": [
-        512
+        16
     ],
     "random_seed": [
         111
     ],
     "recv_hidden_dim": [
         2048
-    ],
-    "recv_output_dim": [
-        512
     ],
     "dataset_name": [
         "cifar100"
@@ -27,10 +33,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['inception','vit','resnet152']"
+        "['inception','inception','inception']"
     ],
     "vision_model_names_senders": [
-        "['inception','vit','resnet152']"
+        "['inception','inception','inception']"
     ],
     "image_size": [
         384
@@ -39,6 +45,6 @@
         "['vgg11']"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/partial_pops/403_0/final.tar"
+        "/shared/mateo/logs/continuous_ctrl/1135_0/final.tar"
     ]
 }

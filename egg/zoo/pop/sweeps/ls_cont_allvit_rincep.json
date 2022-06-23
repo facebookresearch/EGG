@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        5
     ],
     "batch_size": [
         64
@@ -8,17 +8,23 @@
     "lr": [
         0.0001
     ],
+    "continuous_com": [
+        true
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "force_gumbel": [
+        false
+    ],
     "vocab_size": [
-        512
+        16
     ],
     "random_seed": [
         111
     ],
     "recv_hidden_dim": [
         2048
-    ],
-    "recv_output_dim": [
-        512
     ],
     "dataset_name": [
         "cifar100"
@@ -27,14 +33,18 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['resnet152','resnet152','resnet152', 'resnet152']",
-        "['resnet152']"
+        "['vit','vit','vit']"
     ],
     "vision_model_names_senders": [
-        "['resnet152','resnet152','resnet152', 'resnet152']",
-        "['resnet152']"
+        "['vit','vit','vit']"
     ],
     "image_size": [
         384
+    ],
+    "additional_receiver": [
+        "['inception']"
+    ],
+    "base_checkpoint_path": [
+        "/shared/mateo/logs/continuous_ctrl/1134_0/final.tar"
     ]
 }

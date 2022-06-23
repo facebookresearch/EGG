@@ -3,6 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from cgi import test
+from optparse import Option
 import random
 from typing import Optional
 
@@ -12,6 +14,8 @@ from sklearn import gaussian_process
 from torchvision import datasets, transforms
 from torchvision import transforms
 
+def get_test_attack(attck_name:str):
+    pass
 
 def collate_fn(batch):
     return (
@@ -144,8 +148,8 @@ class ImageTransformation:
         augmentation: bool = False,
         return_original_image: bool = False,
         dataset_name: Optional[str] = None,
+        test_attack=None,
     ):
-
         if augmentation:
             s = 1
             color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
@@ -156,6 +160,11 @@ class ImageTransformation:
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
+        # elif test_attack is not None:
+        #     transformations = [
+        #         transforms.Resize(size=(size, size)),
+        #         test_attack
+        #     ]
         else:
             transformations = [
                 transforms.Resize(size=(size, size)),
@@ -178,7 +187,7 @@ class ImageTransformation:
             )
 
         self.transform = transforms.Compose(transformations)
-
+        self.test_attack = test_attack is not None
         self.return_original_image = return_original_image
         if self.return_original_image:
             self.original_image_transform = transforms.Compose(
@@ -189,4 +198,6 @@ class ImageTransformation:
         x_i, x_j = self.transform(x), self.transform(x)
         if self.return_original_image:
             return x_i, x_j, self.original_image_transform(x)
+        if self.test_attack:
+            return self.original_image_transform(x), x_j
         return x_i, x_j

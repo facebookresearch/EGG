@@ -40,5 +40,11 @@
     ],
     "image_size": [
         384
+    ],
+    "additional_receiver": [
+        "['vit']"
+    ],
+    "base_checkpoint_path": [
+        "/shared/mateo/logs/continuous_ctrl/1136_0/final.tar"
     ]
 }
