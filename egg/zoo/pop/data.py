@@ -149,7 +149,7 @@ class ImageTransformation:
         augmentation: bool = False,
         return_original_image: bool = False,
         dataset_name: Optional[str] = None,
-        test_attack=None,
+        test_attack=False,
     ):
         if augmentation:
             s = 1
@@ -188,7 +188,7 @@ class ImageTransformation:
             )
 
         self.transform = transforms.Compose(transformations)
-        self.test_attack = test_attack is not None
+        self.test_attack = test_attack
         self.return_original_image = return_original_image
         if self.return_original_image or self.test_attack:
             self.original_image_transform = transforms.Compose(
