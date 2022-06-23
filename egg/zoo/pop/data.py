@@ -190,7 +190,7 @@ class ImageTransformation:
         self.transform = transforms.Compose(transformations)
         self.test_attack = test_attack is not None
         self.return_original_image = return_original_image
-        if self.return_original_image:
+        if self.return_original_image or self.test_attack:
             self.original_image_transform = transforms.Compose(
                 [transforms.Resize(size=(size, size)), transforms.ToTensor()]
             )
