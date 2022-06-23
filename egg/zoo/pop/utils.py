@@ -39,6 +39,12 @@ def get_data_opts(parser):
         default=False,
         help="Dataloader will yield also the non-augmented version of the input images",
     )
+    group.add_argument(
+        "--test_time_augment",
+        action="store_true",
+        default=False,
+        help="augmentations will be applied to the distractors, but not to the sender input",
+    )
 
 
 def get_gs_opts(parser):

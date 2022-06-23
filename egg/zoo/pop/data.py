@@ -53,11 +53,12 @@ def get_dataloader(
     return_original_image: bool = False,
     seed: int = 111,
     split_set: bool = True,
+    test_time_distractor_augmentation:bool=False
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
 
     transformations = ImageTransformation(
-        image_size, use_augmentations, return_original_image, dataset_name
+        image_size, use_augmentations, return_original_image, dataset_name,test_time_distractor_augmentation,
     )
 
     if dataset_name == "cifar100":
@@ -198,6 +199,6 @@ class ImageTransformation:
         x_i, x_j = self.transform(x), self.transform(x)
         if self.return_original_image:
             return x_i, x_j, self.original_image_transform(x)
-        if self.test_attack:
+        if self.atck_distractors:
             return self.original_image_transform(x), x_j
         return x_i, x_j
