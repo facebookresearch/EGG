@@ -33,15 +33,15 @@
         true
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11']"
     ],
     "image_size": [
         384
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/continuous_het_pop/1047_0/final.tar"
+        "/shared/mateo/logs/continuous_het_rvgg/1022_0/final.tar"
     ]
 }
