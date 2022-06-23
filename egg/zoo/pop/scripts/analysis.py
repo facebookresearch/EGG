@@ -1,3 +1,5 @@
+import pandas as pd
+
 def interaction_to_dataframe(interaction):
     """
     Function to turn the Interaction file into a pandas DataFrame which is covered with syntaxic sugar so easy to use
