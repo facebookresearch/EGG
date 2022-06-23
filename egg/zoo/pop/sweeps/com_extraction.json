@@ -29,7 +29,7 @@
     "gs_temperature": [
         5.0
     ],
-    "test_time_augment":[
+    "data_augmentation":[
         true
     ],
     "vision_model_names_recvs": [
