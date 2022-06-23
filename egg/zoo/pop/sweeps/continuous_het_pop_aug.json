@@ -1,0 +1,47 @@
+{
+    "n_epochs": [
+        25
+    ],
+    "batch_size": [
+        64
+    ],
+    "lr": [
+        0.0001
+    ],
+    "continuous_com": [
+        true
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "force_gumbel": [
+        false
+    ],
+    "vocab_size": [
+        16
+    ],
+    "random_seed": [
+        111
+    ],
+    "recv_hidden_dim": [
+        2048
+    ],
+    "use_augmentations":[
+        true
+    ],
+    "dataset_name": [
+        "cifar100"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "vision_model_names_senders": [
+        "['vgg11','vit','resnet152', 'inception']"
+    ],
+    "vision_model_names_recvs": [
+        "['vgg11','vit','resnet152', 'inception']"
+    ],
+    "image_size": [
+        384
+    ]
+}
