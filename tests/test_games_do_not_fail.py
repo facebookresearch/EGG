@@ -89,6 +89,38 @@ def test_compo_generalization():
     )
 
 
+def test_compo_generalization_ood():
+    run_game(
+        "egg.zoo.compo_vs_generalization_ood.train",
+        dict(
+            n_values=10,
+            n_epochs=1,
+            n_attributes=2,
+            vocab_size=20,
+            max_len=2,
+            batch_size=5120,
+            random_seed=1,
+            sender="ModifSender",
+            receiver="ModifReceiver",
+        ),
+    )
+    run_game(
+        "egg.zoo.compo_vs_generalization_ood.learning_alone.train",
+        dict(
+            n_values=10,
+            n_epochs=1,
+            n_attributes=2,
+            vocab_size=20,
+            max_len=5,
+            batch_size=5120,
+            random_seed=1,
+            archpart="sender",
+            model="OrigSenderDeterministic",
+            hidden=30,
+        ),
+    )
+
+
 def test_compositional_efficiency():
     run_game(
         "egg.zoo.compositional_efficiency.discrete",
