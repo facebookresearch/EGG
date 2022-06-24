@@ -1,3 +1,8 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 """
 this script is a modification of `compo_vs_generalization/train.py`
 """
@@ -26,18 +31,38 @@ def get_params(params):
     parser.add_argument("--n_values", type=int, default=4, help="")
     parser.add_argument("--data_scaler", type=int, default=100)
     parser.add_argument("--stats_freq", type=int, default=0)
-    parser.add_argument("--hidden", type=int, default=50,
-                        help="Size of the hidden layer of Sender (default: 10)",)
-    parser.add_argument("--sender_entropy_coeff", type=float, default=1e-2,
-                        help="Entropy regularisation coeff for Sender (default: 1e-2)",)
+    parser.add_argument(
+        "--hidden",
+        type=int,
+        default=50,
+        help="Size of the hidden layer of Sender (default: 10)",
+    )
+    parser.add_argument(
+        "--sender_entropy_coeff",
+        type=float,
+        default=1e-2,
+        help="Entropy regularisation coeff for Sender (default: 1e-2)",
+    )
     parser.add_argument("--sender", type=str)
     parser.add_argument("--receiver", type=str)
-    parser.add_argument("--sender_emb", type=int, default=10,
-                        help="Size of the embeddings of Sender (default: 10)",)
-    parser.add_argument("--receiver_emb", type=int, default=10,
-                        help="Size of the embeddings of Receiver (default: 10)",)
-    parser.add_argument("--early_stopping_thr", type=float, default=0.99999,
-                        help="Early stopping threshold on accuracy (defautl: 0.99999)",)
+    parser.add_argument(
+        "--sender_emb",
+        type=int,
+        default=10,
+        help="Size of the embeddings of Sender (default: 10)",
+    )
+    parser.add_argument(
+        "--receiver_emb",
+        type=int,
+        default=10,
+        help="Size of the embeddings of Receiver (default: 10)",
+    )
+    parser.add_argument(
+        "--early_stopping_thr",
+        type=float,
+        default=0.99999,
+        help="Early stopping threshold on accuracy (defautl: 0.99999)",
+    )
 
     args = core.init(arg_parser=parser, params=params)
     return args
@@ -60,7 +85,8 @@ def get_data(opts):
     assert opts.n_attributes == 2
     additional_training_pairs = [(0, 0), (0, 1), (1, 0)]
     train = additional_training_pairs + train
-    for pair in additional_training_pairs[1:]:  # (0 , 0) is not in generalization_holdout
+    for pair in additional_training_pairs[1:]:
+        # (0 , 0) is not in generalization_holdout
         generalization_holdout.remove(pair)
     return full_data, train, uniform_holdout, generalization_holdout
 
@@ -130,7 +156,7 @@ def main(params):
         (
             "generalization hold out",
             generalization_holdout_loader,
-            #DiffLoss(opts.n_attributes, opts.n_values, generalization=True),
+            # DiffLoss(opts.n_attributes, opts.n_values, generalization=True),
             # we don't want to ignore zeros:
             DiffLoss(opts.n_attributes, opts.n_values, generalization=False),
         )

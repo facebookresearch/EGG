@@ -1,3 +1,8 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import argparse
 import json
 import torch
@@ -27,9 +32,14 @@ def get_n_correct_ignore_tail(preds, trues):
     sequence; used for evaluating encoder (i.e. producing longer, variable-length messages from
     shorter input)
     """
-    mask = torch.cat([torch.ones(trues.size(0), 1, dtype=torch.bool,
-                                 device=trues.device), trues > 0],-1)[:,:-1]
-    return ((((preds == trues)*mask).sum(dim=-1) == mask.sum(-1))).sum().item()
+    mask = torch.cat(
+        [
+            torch.ones(trues.size(0), 1, dtype=torch.bool, device=trues.device),
+            trues > 0,
+        ],
+        -1,
+    )[:, :-1]
+    return ((((preds == trues) * mask).sum(dim=-1) == mask.sum(-1))).sum().item()
 
 
 def get_n_correct_exactmatch(preds, trues):
@@ -45,39 +55,50 @@ def repackage(orig_model_class, opts):
     i.e, concatenation of one-hot encodings (e.g. [0, 0, 1, 0, ..., 1, 0, 0, 0, ...]).
     The "learning alone" data are in the form of vector of indices (e.g. [2, 0])
     """
-    if opts.archpart == 'receiver':
+    if opts.archpart == "receiver":
+
         class Receiver(orig_model_class):
             """
             model output: [0, 0, 1, 0, ..., 1, 0, 0, 0, ...] -> [2, 0]
             """
+
             def forward(self, message, input=None, aux_input=None, lengths=None):
                 message.masked_fill_(message == data.PAD_TOKEN, data.EOS_TOKEN)
-                per_step_logits, _, _ = super(Receiver, self).forward(message, input, aux_input,
-                                                                      lengths)
-                return per_step_logits.view(-1, opts.n_attributes, opts.n_values), None, None
+                per_step_logits, _, _ = super(Receiver, self).forward(
+                    message, input, aux_input, lengths
+                )
+                return (
+                    per_step_logits.view(-1, opts.n_attributes, opts.n_values),
+                    None,
+                    None,
+                )
+
         model = Receiver(opts)
         get_n_correct = get_n_correct_exactmatch
     else:
-        if opts.model == 'OrigSenderDeterministic':
+        if opts.model == "OrigSenderDeterministic":
             opts_dict = vars(opts)
-            opts_dict['vocab_size'] = opts.vocab_size + 1
+            opts_dict["vocab_size"] = opts.vocab_size + 1
+
         class Sender(orig_model_class):
             """
             model input: [2, 0] -> [0, 0, 1, 0, ..., 1, 0, 0, 0, ...]
             """
+
             def forward(self, x, aux_input=None):
-                x = torch.nn.functional.one_hot(x, opts.n_values).view(-1, opts.n_attributes *
-                                                                       (opts.n_values))
-                if opts.model == 'OrigSenderDeterministic':
+                x = torch.nn.functional.one_hot(x, opts.n_values).view(
+                    -1, opts.n_attributes * (opts.n_values)
+                )
+                if opts.model == "OrigSenderDeterministic":
                     return super(Sender, self).forward(x.float())
                 return super(Sender, self).forward(x, deterministic=True)
+
         model = Sender(opts)
         get_n_correct = get_n_correct_ignore_tail
     return model, get_n_correct
 
 
 def main(params):
-
     opts = get_params(params)
     print(opts)
 
@@ -89,7 +110,7 @@ def main(params):
     model, get_n_correct = repackage(model_cls, opts)
 
     opt = torch.optim.Adam(model.parameters())
-    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=data.PAD_TOKEN, reduction='none')
+    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=data.PAD_TOKEN, reduction="none")
 
     def evaluate(dataset):
         with torch.no_grad():
@@ -109,12 +130,12 @@ def main(params):
     for epoch in range(opts.n_epochs):
         model.train()
         acc, n = 0, 0
-        for b in dataset['train']:
+        for b in dataset["train"]:
             opt.zero_grad()
             x, y = b
             logits, _, _ = model(x)
-            l = loss_fn(logits.transpose(2, 1), y).mean()
-            l.backward()
+            loss = loss_fn(logits.transpose(2, 1), y).mean()
+            loss.backward()
             opt.step()
 
             with torch.no_grad():
@@ -123,16 +144,16 @@ def main(params):
                 n += x.size(0)
 
         model.eval()
-        print(json.dumps(dict(acc=acc/n, loss=l.mean().item(), epoch=epoch)))
+        print(json.dumps(dict(acc=acc / n, loss=loss.mean().item(), epoch=epoch)))
         res = {
             "generalization hold out": {},
             "uniform holdout": {},
         }
-        l, acc = evaluate(dataset['test_unif'])
-        res["uniform holdout"]["loss"] = l
+        loss, acc = evaluate(dataset["test_unif"])
+        res["uniform holdout"]["loss"] = loss
         res["uniform holdout"]["acc"] = acc
-        l, acc = evaluate(dataset['test_ood'])
-        res["generalization hold out"]["loss"] = l
+        loss, acc = evaluate(dataset["test_ood"])
+        res["generalization hold out"]["loss"] = loss
         res["generalization hold out"]["acc"] = acc
         print(json.dumps(res))
 

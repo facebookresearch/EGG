@@ -1,3 +1,8 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import torch
 from torch.utils.data import DataLoader
 from egg.zoo.compo_vs_generalization_ood.train import get_data as get_data_splits
@@ -30,23 +35,29 @@ def remap_batch(batch, mapping, device, swap_xy=False):
             new_row.append(val.item())
             if val % 2 == 0:
                 new_row.append(val.item())
-        rows.append(new_row + [EOS_TOKEN] + [PAD_TOKEN] * (2 * b.shape[1] - len(new_row)))
+        rows.append(
+            new_row + [EOS_TOKEN] + [PAD_TOKEN] * (2 * b.shape[1] - len(new_row))
+        )
     new_b = torch.LongTensor(rows).to(device)
     return (b, new_b) if not swap_xy else (new_b, b)  # sender vs receiver test
 
 
 def datasetify(examples, opts, mapping, swap=False, shuffle=False):  # list of tuples
     data = torch.LongTensor(examples)
-    return DataLoader(data, batch_size=opts.batch_size,
-                      collate_fn=lambda x: remap_batch(x, mapping,opts.device, swap),
-                      shuffle=shuffle)
+    return DataLoader(
+        data,
+        batch_size=opts.batch_size,
+        collate_fn=lambda x: remap_batch(x, mapping, opts.device, swap),
+        shuffle=shuffle,
+    )
+
 
 def get_data(opts):
-    swap = opts.archpart == 'receiver'
+    swap = opts.archpart == "receiver"
     _, train, uniform_holdout, generalization_holdout = get_data_splits(opts)
     mapping = torch.randperm(opts.n_values)
     return {
-        'train': datasetify(train, opts, mapping, swap, shuffle=True),
-        'test_unif': datasetify(uniform_holdout, opts, mapping, swap),
-        'test_ood': datasetify(generalization_holdout, opts, mapping, swap),
+        "train": datasetify(train, opts, mapping, swap, shuffle=True),
+        "test_unif": datasetify(uniform_holdout, opts, mapping, swap),
+        "test_ood": datasetify(generalization_holdout, opts, mapping, swap),
     }
