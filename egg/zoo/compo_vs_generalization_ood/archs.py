@@ -7,8 +7,9 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.distributions import Categorical
+
 from egg import core
-from egg.zoo.compo_vs_generalization.archs import Receiver, Sender, PlusOneWrapper
+from egg.zoo.compo_vs_generalization.archs import PlusOneWrapper, Receiver, Sender
 
 
 class BaseEncoder(nn.Module):

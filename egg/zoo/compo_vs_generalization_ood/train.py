@@ -8,12 +8,13 @@ this script is a modification of `compo_vs_generalization/train.py`
 """
 
 import argparse
+
 import torch
 from torch.utils.data import DataLoader
 
+import egg.zoo.compo_vs_generalization_ood.archs
 from egg import core
 from egg.core import EarlyStopperAccuracy
-from egg.zoo.compo_vs_generalization.train import DiffLoss
 from egg.zoo.compo_vs_generalization.data import (
     ScaledDataset,
     enumerate_attribute_value,
@@ -22,7 +23,7 @@ from egg.zoo.compo_vs_generalization.data import (
     split_train_test,
 )
 from egg.zoo.compo_vs_generalization.intervention import Evaluator, Metrics
-import egg.zoo.compo_vs_generalization_ood.archs
+from egg.zoo.compo_vs_generalization.train import DiffLoss
 
 
 def get_params(params):

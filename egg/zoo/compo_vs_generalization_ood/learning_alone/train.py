@@ -5,11 +5,12 @@
 
 import argparse
 import json
+
 import torch
 
-from egg.zoo.compo_vs_generalization_ood.learning_alone import data
 import egg.zoo.compo_vs_generalization_ood.archs
 from egg import core
+from egg.zoo.compo_vs_generalization_ood.learning_alone import data
 
 
 def get_params(params):

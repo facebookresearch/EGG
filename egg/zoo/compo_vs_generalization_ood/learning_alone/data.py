@@ -5,6 +5,7 @@
 
 import torch
 from torch.utils.data import DataLoader
+
 from egg.zoo.compo_vs_generalization_ood.train import get_data as get_data_splits
 
 EOS_TOKEN = 0
