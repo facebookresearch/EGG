@@ -67,8 +67,8 @@ def initialize_classifiers(name: str = "resnet50", pretrained: bool = False):
 
     return model, n_features, name
 
-def add_noise(message, variance=0.1):
-    noisy_message = message + (variance**0.5)*torch.randn(message.shape)
+def add_noise(message, variance=0.1,device="cuda"):
+    noisy_message = message + (variance**0.5)*torch.randn(message.shape).to(device)
     return noisy_message
 
 class Game(nn.Module):
