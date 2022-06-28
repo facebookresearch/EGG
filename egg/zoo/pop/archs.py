@@ -25,6 +25,7 @@ def get_non_linearity(name):
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
     print("initialize module", name)
+    # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),

@@ -45,6 +45,6 @@
         "['vgg11']"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/continuous_ctrl/1135_0/final.tar"
+        "/shared/mateo/logs/continuous_ctrl/1137_0/final.tar"
     ]
 }
