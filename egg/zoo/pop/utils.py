@@ -197,6 +197,12 @@ def get_game_arch_opts(parser):
         help="variance of gaussian noise to add to the communication channel. If none is given, then no noise will be added",
     )
     group.add_argument(
+        "--keep_classification_layer",
+        default=False,
+        action="store_true",
+        help="instead of the finale layer's representation, use the pretrained architecture's chosen class as image encoders",
+    )
+    group.add_argument(
         "--force_gumbel",
         default=False,
         action="store_true",

@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn.functional as F
+from egg.zoo.pop.scripts.analysis_tools.test_game import initialize_classifiers
 from egg.zoo.pop.utils import load_from_checkpoint
 from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
 from egg.core.interaction import LoggingStrategy
@@ -50,10 +51,12 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
 
     vision_modules_senders = [
         initialize_vision_module(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
+        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
         for i in range(len(vision_model_names_senders))
     ]
     vision_modules_receivers = [
         initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision)
+        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
         for i in range(len(vision_model_names_receiver))
     ]
     if opts.continuous_com:
