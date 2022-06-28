@@ -14,6 +14,7 @@ import torch.nn as nn
 import torchvision
 from egg.core.interaction import LoggingStrategy
 from egg.core.gs_wrappers import gumbel_softmax_sample
+from egg.zoo.pop.scripts.analysis_tools.test_game import add_noise
 
 
 def get_non_linearity(name):
@@ -316,9 +317,10 @@ class Game(nn.Module):
         self,
         train_logging_strategy: Optional[LoggingStrategy] = None,
         test_logging_strategy: Optional[LoggingStrategy] = None,
+        noisy=None
     ):
         super(Game, self).__init__()
-
+        self.noisy=noisy
         self.train_logging_strategy = (
             LoggingStrategy()
             if train_logging_strategy is None
@@ -347,7 +349,7 @@ class Game(nn.Module):
         # receiver_input = receiver_input.to("cuda")
 
         message = sender(sender_input, aux_input)
-        receiver_output = receiver(message, receiver_input, aux_input)
+        receiver_output = receiver(message if self.noisy is None else add_noise(message, self.noisy), receiver_input, aux_input)
 
         loss, aux_info = loss(
             sender_input,

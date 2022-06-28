@@ -191,6 +191,12 @@ def get_game_arch_opts(parser):
         help="activates the continuous sender",
     )
     group.add_argument(
+        "--noisy_channel",
+        type=float,
+        default=None,
+        help="variance of gaussian noise to add to the communication channel. If none is given, then no noise will be added",
+    )
+    group.add_argument(
         "--force_gumbel",
         default=False,
         action="store_true",

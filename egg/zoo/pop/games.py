@@ -115,7 +115,6 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
     return senders, receivers
 
 def build_game(opts):
-
     train_logging_strategy = LoggingStrategy(
         False, False, False, False, False, False, False
     )
@@ -131,6 +130,7 @@ def build_game(opts):
     game = Game(
         train_logging_strategy=train_logging_strategy,
         test_logging_strategy=test_logging_strategy,
+        noisy=opts.noisy_channel,
     )
 
     game = PopulationGame(game, agents_loss_sampler)

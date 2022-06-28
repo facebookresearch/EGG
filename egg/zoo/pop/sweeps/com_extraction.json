@@ -29,8 +29,8 @@
     "gs_temperature": [
         5.0
     ],
-    "use_augmentations":[
-        true
+    "noisy_channel":[
+        0.01, 0.1, 0.3, 1
     ],
     "vision_model_names_recvs": [
         "['vgg11','vit','resnet152', 'inception']"
