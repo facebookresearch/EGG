@@ -32,7 +32,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=False
+            pretrained=pretrained, aux_logits=True
         ),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
@@ -65,7 +65,6 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
             param.requires_grad = False
         if name == "inception":
             model.aux_logits = False
-        # TODO : verify that this is not mistakenly turned back on
         model = (
             model.eval()
         )  # Mat : --> dropout blocked, as well as all other training dependant behaviors
