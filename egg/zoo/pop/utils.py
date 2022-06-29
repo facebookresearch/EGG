@@ -185,6 +185,13 @@ def get_game_arch_opts(parser):
         help="non_linearity for the continuous sender",
     )
     group.add_argument(
+        "--augmentation_type",
+        type=str,
+        default=None,
+        choices=["resize","color_jitter", "grayscale","gaussian_blur"],
+        help="non_linearity for the continuous sender",
+    )
+    group.add_argument(
         "--continuous_com",
         default=False,
         action="store_true",
