@@ -14,8 +14,18 @@ from sklearn import gaussian_process
 from torchvision import datasets, transforms
 from torchvision import transforms
 
-def get_test_attack(attck_name:str):
-    pass
+def get_augmentation(attck_name:str, size=384):
+    s = 1
+    if attck_name is None:
+        return
+    transformations = {
+        "resize":transforms.RandomResizedCrop(size=size),
+        "color_jitter":transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s),
+        "gray_scale":transforms.Grayscale(p=0.2),
+        "gaussian_blur":GaussianBlur([0.1, 2.0]),
+        # "flip":transforms.RandomHorizontalFlip(),  # with 0.5 probability
+    }
+    return transformations[attck_name]
 
 def collate_fn(batch):
     return (
@@ -53,12 +63,12 @@ def get_dataloader(
     return_original_image: bool = False,
     seed: int = 111,
     split_set: bool = True,
-    test_time_distractor_augmentation:bool=False
+    augmentation_type= None
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
 
     transformations = ImageTransformation(
-        image_size, use_augmentations, return_original_image, dataset_name,test_time_distractor_augmentation,
+        image_size, use_augmentations, return_original_image, dataset_name,get_augmentation(augmentation_type),
     )
 
     if dataset_name == "cifar100":
@@ -149,7 +159,7 @@ class ImageTransformation:
         augmentation: bool = False,
         return_original_image: bool = False,
         dataset_name: Optional[str] = None,
-        test_attack=False,
+        test_attack=None,
     ):
         if augmentation:
             s = 1
@@ -161,11 +171,11 @@ class ImageTransformation:
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
-        # elif test_attack is not None:
-        #     transformations = [
-        #         transforms.Resize(size=(size, size)),
-        #         test_attack
-        #     ]
+        elif test_attack is not None:
+            transformations = [
+                transforms.Resize(size=(size, size)),
+                test_attack
+            ]
         else:
             transformations = [
                 transforms.Resize(size=(size, size)),
@@ -188,7 +198,7 @@ class ImageTransformation:
             )
 
         self.transform = transforms.Compose(transformations)
-        self.test_attack = test_attack
+        self.test_attack = test_attack is None
         self.return_original_image = return_original_image
         if self.return_original_image or self.test_attack:
             self.original_image_transform = transforms.Compose(

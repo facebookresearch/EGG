@@ -75,7 +75,7 @@ def eval(
 def dump_interactions(
     logs: Interaction,
     exp_name: str = "interaction_file",
-    dump_dir: str = "./interactions",
+    dump_dir: str = "./%j_interactions",
 ):
     """
     Used to save interactions in a specified directory
@@ -111,6 +111,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
         split_set=True,
+        augmentation_type=opts.augmentation_type
     )
     # Instead of letting the population game use the agent sampler to select a different pair for every batch
     # We choose the pair and evaluate it on all batches
