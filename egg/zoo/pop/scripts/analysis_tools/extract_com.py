@@ -97,7 +97,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     # make everything go to evaluation mode (non-trainable, no training behaviour of any layers)
     for param in pop_game.parameters():
         param.requires_grad = False
-    pop_game.eval()
+    pop_game.train(False)
 
     # get validation data
     val_loader, _ = get_dataloader(
