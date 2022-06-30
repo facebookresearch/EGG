@@ -1,0 +1,47 @@
+{
+    "n_epochs": [
+        5
+    ],
+    "batch_size": [
+        64
+    ],
+    "lr": [
+        0.0001
+    ],
+    "continuous_com": [
+        true
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "vocab_size": [
+        16
+    ],
+    "random_seed": [
+        111
+    ],
+    "recv_hidden_dim": [
+        2048
+    ],
+    "dataset_name": [
+        "imagenet"
+    ],
+    "dataset_dir":[
+        "/datasets/COLT/imagenet21k_val"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "vision_model_names_recvs": [
+        "['vgg11','vit','resnet152', 'inception']"
+    ],
+    "vision_model_names_senders": [
+        "['vgg11','vit','resnet152', 'inception']"
+    ],
+    "image_size": [
+        384
+    ],
+    "base_checkpoint_path": [
+        "/homedtcl/mmahaut/projects/experiments/continuous_het_pop/1047_0/final.tar"
+    ]
+}
