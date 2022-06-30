@@ -74,8 +74,8 @@ def eval(
 # Taken from core.callbacks.InteractionSaver and modified
 def dump_interactions(
     logs: Interaction,
-    exp_name: str = "interaction_file",
-    dump_dir: str = "./%j_interactions",
+    exp_name: str = "%j_interactions",
+    dump_dir: str = "./interactions",
 ):
     """
     Used to save interactions in a specified directory
@@ -150,7 +150,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     # save data
     dump_interactions(
         Interaction.from_iterable(interactions),
-        exp_name if exp_name is not None else "interactions",
+        exp_name if exp_name is not None else "%j_interactions",
         dump_dir,
     )
 
