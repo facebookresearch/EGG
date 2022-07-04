@@ -19,7 +19,7 @@ def main(params):
     """
     torch.autograd.set_detect_anomaly(True)
     opts = get_common_opts(params)
-    build_and_test_game(opts, exp_name=opts.noisy_channel, dump_dir=opts.checkpoint_dir)
+    build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
 
 
 def path_to_parameters():
