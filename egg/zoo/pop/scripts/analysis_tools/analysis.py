@@ -20,35 +20,6 @@ def interaction_to_dataframe(interaction):
 
     return df
 
-class LinearClassifier(torch.nn.Module):
-  def __init__(self, input_dim=2, output_dim=3):
-    super(LinearClassifier, self).__init__()
-    self.linear = torch.nn.Linear(input_dim, output_dim)
 
-  def forward(self, x):
-    x = self.linear(x)
-    return x
-
-def train_diagnostic_classifier(train_messages, train_labels,n_epochs=10000,lr=0.01):
-    # a linear neural network. Takes a message as input, and has to learn to find the cifar class in there.
-    model = LinearClassifier()
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters, lr=lr)
-    all_loss=[]
-    for _ in range(n_epochs):
-        output = model(train_messages)
-
-        loss = criterion(output, train_labels.view(-1))
-        all_loss.append(loss.item())
-        loss.backward()
-
-        optimizer.step()
-        optimizer.zero_grad()
-    return model
-
-def test_diagnostic_classifier(model, test_messages, test_labels):
-    assert len(test_messages) == len(test_labels), f"We need one label for every message instead got {len(test_messages)} messages and {len(test_labels)} labels"
-    predictions = model(test_messages)
-    return sum(predictions==test_labels)/len(test_messages)
 
 
