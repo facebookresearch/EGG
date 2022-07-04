@@ -31,9 +31,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
-        "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=False
-        ),
+        "inception": torchvision.models.inception_v3(pretrained=pretrained),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
     }
