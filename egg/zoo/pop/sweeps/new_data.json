@@ -27,7 +27,7 @@
         "imagenet"
     ],
     "dataset_dir":[
-        "/datasets/COLT/imagenet21k_val"
+        "/datasets/COLT/imagenet21k_resized"
     ],
     "gs_temperature": [
         5.0

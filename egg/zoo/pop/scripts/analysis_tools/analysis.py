@@ -29,13 +29,13 @@ class LinearClassifier(torch.nn.Module):
     x = self.linear(x)
     return x
 
-def train_diagnostic_classifier(train_messages, train_labels):
+def train_diagnostic_classifier(train_messages, train_labels,n_epochs=10000):
     # a linear neural network. Takes a message as input, and has to learn to find the cifar class in there.
     model = LinearClassifier()
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01) # Adam no ?
     all_loss=[]
-    for epoch in range(10000):
+    for _ in range(n_epochs):
         output = model(train_messages)
 
         loss = criterion(output, train_labels.view(-1))
