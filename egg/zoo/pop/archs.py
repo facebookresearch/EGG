@@ -24,7 +24,7 @@ def get_non_linearity(name):
         return nn.Sigmoid
 
 
-def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
+def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
     print("initialize module", name)
     # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
     modules = {
@@ -32,7 +32,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False):
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=False
+            pretrained=pretrained, aux_logits=aux_logits
         ),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),

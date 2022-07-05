@@ -215,6 +215,12 @@ def get_game_arch_opts(parser):
         action="store_true",
         help="force non_discretised gumbel messages for both training and testing (only for continuous) ",
     )
+    group.add_argument(
+        "--remove_auxlogits",
+        default=False,
+        action="store_true",
+        help="forces the inception model to be lauded without the auxiliary loss channel. This is to handle retro_compatibility with past models trained this way.",
+    )
 
 
 def get_common_opts(params):

@@ -50,13 +50,13 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
     #     vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
 
     vision_modules_senders = [
-        initialize_vision_module(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
-        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
+        initialize_vision_module(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
         for i in range(len(vision_model_names_senders))
     ]
     vision_modules_receivers = [
-        initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision)
-        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision)
+        initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
         for i in range(len(vision_model_names_receiver))
     ]
     if opts.continuous_com:

@@ -20,14 +20,14 @@ import torchvision
 from egg.core.interaction import LoggingStrategy
 
 
-def initialize_classifiers(name: str = "resnet50", pretrained: bool = False):
+def initialize_classifiers(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
     print("initialize module", name)
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
         "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=not pretrained
+            pretrained=pretrained, aux_logits=aux_logits
         ),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
