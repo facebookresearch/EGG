@@ -26,7 +26,9 @@ def main(params):
 
     f = open(path_to_parameters(_path))
     print("params :", params, flush=True)
-    complete_params = metadata_opener(f, data_type="nest", verbose=True).append(params)
+    new_params = metadata_opener(f, data_type="nest", verbose=True)
+    print("new_params :", new_params, flush=True)
+    complete_params = new_params.append(params)
     print("complete_params :", complete_params, flush=True)
     opts = get_common_opts(complete_params)
 
