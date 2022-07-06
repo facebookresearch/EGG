@@ -1,11 +1,17 @@
 {
-    "dataset_name": [
-        "cifar100"
+    "n_epochs": [
+        5
     ],
     "noisy_channel":[
-        "0.1","0.5", "1","2"
+        "0.1","0.5"
     ],
     "base_checkpoint_path": [
-        "/shared/mateo/logs/continuous_het_pop/1047_0/final.tar"
+        "/shared/mateo/logs/continuous_het_rvgg/1022_0/final.tar",
+        "/shared/mateo/logs/continuous_het_rvgg/1023_0/final.tar",
+        "/shared/mateo/logs/continuous_het_rvgg/1024_0/final.tar",
+        "/shared/mateo/logs/continuous_het_rvgg/1025_0/final.tar",
+        "/shared/mateo/logs/continuous_het_svgg/1028_0/final.tar",
+        "/shared/mateo/logs/continuous_het_svgg/1029_0/final.tar",
+        "/shared/mateo/logs/continuous_het_svgg/1030_0/final.tar"
     ]
 }
