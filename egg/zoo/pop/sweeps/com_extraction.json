@@ -2,6 +2,12 @@
     "n_epochs": [
         5
     ],
+    "retrain_vision": [
+        true
+    ],
+    "remove_auxlogits": [
+        true
+    ],
     "noisy_channel":[
         "0.1","0.5"
     ],
