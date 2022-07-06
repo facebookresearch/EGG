@@ -23,7 +23,7 @@ def main(params):
         if "base_checkpoint_path" in param:
             _path = param.rpartition('=')[2]
     assert _path != '', "--base_checkpoint_path must be defined"
-    
+
     f = open(path_to_parameters(_path))
     opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True).append(params))
     build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
@@ -167,3 +167,8 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
 #     # quick temporary hack : write exp name and dump dir before all the options
 #     opts = get_common_opts(params=sys.argv[3:])
 #     build_and_test_game(opts, exp_name=sys.argv[1], dump_dir=sys.argv[2])
+if __name__ == "__main__":
+    torch.autograd.set_detect_anomaly(True)
+    import sys
+
+    main(sys.argv[1:])
