@@ -18,8 +18,13 @@ def main(params):
     TODO : allow simpler loading, from a path, or by searching for a few parameters
     """
     torch.autograd.set_detect_anomaly(True)
-    opts = get_common_opts(params)
-    f = open(path_to_parameters(opts.base_checkpoint_path))
+    _path = ''
+    for param in params:
+        if "base_checkpoint_path" in param:
+            _path = param.rpartition('=')[2]
+    assert _path != '', "--base_checkpoint_path must be defined"
+    
+    f = open(path_to_parameters(_path))
     opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True).append(params))
     build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
 
