@@ -25,14 +25,9 @@ def main(params):
     assert _path != '', "--base_checkpoint_path must be defined"
 
     f = open(path_to_parameters(_path))
-    print("params :", params, flush=True)
-    new_params = metadata_opener(f, data_type="nest", verbose=True)
-    print("new_params :", new_params, flush=True)
-    complete_params = new_params + params 
-    print("complete_params :", complete_params, flush=True)
-    opts = get_common_opts(complete_params)
+    opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
 
-    build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
+    build_and_test_game(opts, exp_name=str(opts.noisy_channel) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs), dump_dir=opts.checkpoint_dir)
 
 
 def path_to_parameters(path):
