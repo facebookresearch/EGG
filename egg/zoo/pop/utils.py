@@ -289,7 +289,7 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 def metadata_opener(file, data_type: str, verbose=False):
     """
     data_type : str in {"wandb", "nest"}
-    Mat : case match in python 3.10 will cover all of this in syntaxic sugar
+    Mat : case match in python 3.10 will cover all of this in syntactic sugar
     """
     if data_type == "wandb":  # TODO : move to the yaml file in the near future
         meta = json.load(file)
