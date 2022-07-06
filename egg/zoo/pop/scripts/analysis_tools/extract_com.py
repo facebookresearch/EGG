@@ -9,7 +9,7 @@ import torch
 from egg.core.batch import Batch
 from egg.core.interaction import Interaction
 from egg.zoo.pop.data import get_dataloader
-from egg.zoo.pop.utils import get_common_opts
+from egg.zoo.pop.utils import get_common_opts, metadata_opener
 
 
 def main(params):
@@ -19,16 +19,15 @@ def main(params):
     """
     torch.autograd.set_detect_anomaly(True)
     opts = get_common_opts(params)
+    f = open(path_to_parameters(opts.base_checkpoint_path))
+    opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True).append(params))
     build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
 
 
-def path_to_parameters():
-    # WIP... this is mainly convenience
-
-    # open the yaml file, look into it and get ALL the parameters.
-    # input them in the opts, instead of rebuilding the game (beware, if its a second game this might be tricky and require a bit of hacking)
-    pass
-
+def path_to_parameters(path):
+    old_game = pathlib.Path(path)
+    job_number = str(old_game.parents[0]).rpartition('\\')[2]
+    return old_game.parents[1] / (job_number + "_log.out")
 
 #
 def eval(

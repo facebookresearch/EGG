@@ -9,7 +9,7 @@ from xmlrpc.client import Boolean
 import egg.core as core
 import torch
 import os
-
+import json
 
 def get_data_opts(parser):
     group = parser.add_argument_group("data")
@@ -285,3 +285,32 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         {"params": no_decay, "weight_decay": 0.0},
         {"params": decay, "weight_decay": weight_decay},
     ]
+
+def metadata_opener(file, data_type: str, verbose=False):
+    """
+    data_type : str in {"wandb", "nest"}
+    Mat : case match in python 3.10 will cover all of this in syntaxic sugar
+    """
+    if data_type == "wandb":  # TODO : move to the yaml file in the near future
+        meta = json.load(file)
+        return meta["args"]
+
+    if data_type == "nest":
+        # in nest, metadata are written as comments on the first line of the .out file
+        # TODO: only parameters used in the sweep json file are available here.
+        # All other parameters will be set to default values but will not appear here
+        # A future version of this opener should take into account the Namespace object on the following line
+        lines = file.readlines()
+        file.seek(0)  # reset file
+        for i in range(len(lines)):
+            if lines[i][0] == "#":
+                params = eval(lines[i][12:])  # Mat : injection liability
+                return params
+        if verbose:
+            print("failed to find metadata in file")
+        return []
+
+    else:
+        raise KeyError(
+            f"{data_type} is not a valid type for data_type in metadata_opener"
+        )
