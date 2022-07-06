@@ -26,7 +26,7 @@ def main(params):
 
     f = open(path_to_parameters(_path))
     complete_params = metadata_opener(f, data_type="nest", verbose=True).append(params)
-    print(complete_params, flush=True)
+    print("params :", complete_params, flush=True)
     opts = get_common_opts(complete_params)
 
     build_and_test_game(opts, exp_name=str(opts.noisy_channel), dump_dir=opts.checkpoint_dir)
