@@ -137,7 +137,7 @@ class ContinuousSender(Sender):
         super(Sender, self).__init__()
         self.name = name
         self.init_vision_module(vision_module, input_dim)
-        self. (input_dim, vocab_size, get_non_linearity(non_linearity))
+        self.init_com_layer(input_dim, vocab_size, get_non_linearity(non_linearity))
         self.force_gumbel = force_gumbel
         self.forced_gumbel_temperature = forced_gumbel_temperature
 
