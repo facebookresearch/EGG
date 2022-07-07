@@ -26,7 +26,7 @@ def main(params):
 
     f = open(path_to_parameters(_path))
     opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
-
+    print(opts)
     build_and_test_game(opts, exp_name=str(opts.augmentation_type) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs), dump_dir=opts.checkpoint_dir)
 
 
