@@ -5,6 +5,11 @@
     "remove_auxlogits": [
         true
     ],
+    "augmentation_type":[
+        "resize",
+        "color_jitter",
+        "gaussian_blur"
+    ],
     "base_checkpoint_path": [
         "/shared/mateo/logs/continuous_het_rvgg/1022_0/final.tar",
         "/shared/mateo/logs/continuous_het_rvgg/1023_0/final.tar",
