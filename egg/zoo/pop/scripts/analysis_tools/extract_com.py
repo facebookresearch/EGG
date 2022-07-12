@@ -105,7 +105,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     pop_game.train(False)
 
     # get validation data
-    val_loader, _ = get_dataloader(
+    val_loader, train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
         dataset_name=opts.dataset_name,
         image_size=opts.image_size,
