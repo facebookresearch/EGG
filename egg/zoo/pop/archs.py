@@ -57,9 +57,11 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
             model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
 
-    else:  # vit
+    elif name == "vit":
         n_features = model.head.in_features
         model.head = nn.Identity()
+    
+    # Dino is already chopped and does not require removal of classif layer
 
     if pretrained:
         for param in model.parameters():
