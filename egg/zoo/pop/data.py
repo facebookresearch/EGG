@@ -22,8 +22,7 @@ def get_augmentation(attck_name:str, size=384):
         "resize":transforms.RandomResizedCrop(size=size),
         "color_jitter":transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s),
         "grayscale":transforms.Grayscale(),
-        "gaussian_blur":GaussianBlur([0.1, 2.0]),
-        # "flip":transforms.RandomHorizontalFlip(),  # with 0.5 probability
+        "gaussian_blur":GaussianBlur([0.1, 10.0]),
     }
     return transformations[attck_name]
 
