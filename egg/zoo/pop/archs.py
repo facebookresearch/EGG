@@ -64,7 +64,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
         model.head = nn.Identity()
 
     elif name == "dino":
-        n_features = 768 #... could go and get that somehow instead of hardcoding ?
+        n_features = 384 #... could go and get that somehow instead of hardcoding ?
         # Dino is already chopped and does not require removal of classif layer
 
     if pretrained:
