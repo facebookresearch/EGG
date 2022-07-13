@@ -1,0 +1,14 @@
+{
+    "n_epochs": [
+        5
+    ],
+    "remove_auxlogits": [
+        true
+    ],
+    "augmentation_type":[
+        "gaussian_blur"
+    ],
+    "base_checkpoint_path": [
+        "/shared/mateo/logs/cont_het/1606_0/final.tar"
+    ]
+}
