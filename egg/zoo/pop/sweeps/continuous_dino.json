@@ -39,7 +39,6 @@
         "['vgg11']",
         "['dino']",
         "['swin']"
-
         ],
     "vision_model_names_senders": [
         "['dino']",
