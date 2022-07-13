@@ -27,6 +27,7 @@ def get_non_linearity(name):
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
     print("initialize module", name)
     # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
+    # It also reloads all of them every time we pick one !
     modules = {
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
@@ -36,6 +37,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
         ),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
+        "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16')
     }
     if name not in modules:
