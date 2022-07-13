@@ -14,7 +14,7 @@ from sklearn import gaussian_process
 from torchvision import datasets, transforms
 from torchvision import transforms
 
-def get_augmentation(attck_name:str, size=384):
+def get_augmentation(attck_name:str, size:int):
     s = 1
     if attck_name is None:
         return
