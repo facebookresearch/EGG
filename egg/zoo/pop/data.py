@@ -67,7 +67,7 @@ def get_dataloader(
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
 
     transformations = ImageTransformation(
-        image_size, use_augmentations, return_original_image, dataset_name,get_augmentation(augmentation_type),
+        image_size, use_augmentations, return_original_image, dataset_name,get_augmentation(augmentation_type, image_size),
     )
 
     if dataset_name == "cifar100":
