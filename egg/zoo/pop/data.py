@@ -74,6 +74,10 @@ def get_dataloader(
         train_dataset = datasets.CIFAR100(
             root="./data", download=True, transform=transformations
         )
+    if dataset_name == "inaturalist":
+        train_dataset = datasets.INaturalist(
+            root="./data", download=True, transform=transformations
+        )
     elif dataset_name == "gaussian_noise":
         # Note : augmentations on gaussian noise make little sense, transformations are ignored
         train_dataset=Gaussian_noise_dataset(
@@ -191,7 +195,7 @@ class ImageTransformation:
                     transforms.CenterCrop(299),
                 ]
             )
-        elif dataset_name == "cifar100":
+        elif dataset_name in ["cifar100", "inaturalist"]:
             transformations.append(
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             )
