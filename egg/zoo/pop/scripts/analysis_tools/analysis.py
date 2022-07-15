@@ -1,5 +1,6 @@
 import pandas as pd
 import torch
+import scipy
 
 def interaction_to_dataframe(interaction):
     """
@@ -19,6 +20,12 @@ def interaction_to_dataframe(interaction):
     df["receiver_output"] = [i.argmax().item() for i in interaction.receiver_output]
 
     return df
+
+def paired_wilcoxon():
+    res = scipy.stats.wilcoxon(
+
+def paired_fischer():
+    pass
 
 
 
