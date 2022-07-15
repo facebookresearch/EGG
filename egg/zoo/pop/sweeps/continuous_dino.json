@@ -41,9 +41,12 @@
         "['swin']"
         ],
     "vision_model_names_senders": [
+        "['vit']",
+        "['inception']",
+        "['resnet152']",
+        "['vgg11']",
         "['dino']",
         "['swin']"
-
     ],
     "image_size": [
         384
