@@ -5,6 +5,9 @@
     "remove_auxlogits": [
         true
     ],
+    "noisy_channel":[
+        true
+    ],
     "base_checkpoint_path": [
         "/shared/mateo/logs/cont_het/1606_0/final.tar",
         "/shared/mateo/logs/cont_het/1607_0/final.tar",

@@ -74,7 +74,7 @@ def get_dataloader(
         train_dataset = datasets.CIFAR100(
             root="./data", download=True, transform=transformations
         )
-    if dataset_name == "inaturalist":
+    elif dataset_name == "inaturalist":
         train_dataset = datasets.INaturalist(
             root="./data", download=True, transform=transformations
         )

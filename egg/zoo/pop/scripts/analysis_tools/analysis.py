@@ -21,12 +21,6 @@ def interaction_to_dataframe(interaction):
 
     return df
 
-def paired_wilcoxon():
-    res = scipy.stats.wilcoxon(
-
-def paired_fischer():
-    pass
-
 
 
 
