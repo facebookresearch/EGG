@@ -221,6 +221,12 @@ def get_game_arch_opts(parser):
         action="store_true",
         help="forces the inception model to be lauded without the auxiliary loss channel. This is to handle retro_compatibility with past models trained this way.",
     )
+    group.add_argument(
+        "--block_com_layer",
+        default=False,
+        action="store_true",
+        help="blocks the communication layer from being used in the continuous sender and receiver (TODO, discrete sender). Used as baseline.",
+    )
 
 
 def get_common_opts(params):

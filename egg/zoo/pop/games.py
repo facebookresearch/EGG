@@ -69,6 +69,7 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                 non_linearity=opts.non_linearity,
                 force_gumbel=opts.force_gumbel,
                 forced_gumbel_temperature=opts.gs_temperature,
+                block_com_layer=opts.block_com_layer,
             )
             for i in range(len(vision_model_names_senders))
         ]
@@ -80,6 +81,8 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                 output_dim=opts.vocab_size,
                 temperature=opts.recv_temperature,
                 name=vision_model_names_receiver[i],
+                block_com_layer=opts.block_com_layer,
+
             )
             for i in range(len(vision_model_names_receiver))
         ]

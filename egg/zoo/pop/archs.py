@@ -141,16 +141,17 @@ class ContinuousSender(Sender):
         non_linearity: nn.Module = None,
         force_gumbel: Boolean = False,
         forced_gumbel_temperature=5,
+        block_com_layer: bool = False,
     ):
         super(Sender, self).__init__()
         self.name = name
         self.init_vision_module(vision_module, input_dim)
-        self.init_com_layer(input_dim, vocab_size, get_non_linearity(non_linearity))
+        self.init_com_layer(input_dim, vocab_size, get_non_linearity(non_linearity),block_com_layer)
         self.force_gumbel = force_gumbel
         self.forced_gumbel_temperature = forced_gumbel_temperature
 
-    def init_com_layer(self, input_dim, vocab_size, non_linearity: nn.Module = None):
-        self.fc = nn.Sequential(
+    def init_com_layer(self, input_dim, vocab_size, non_linearity: nn.Module = None,block_com_layer: bool = False):
+        self.fc = nn.Identity() if block_com_layer else nn.Sequential(
             nn.Linear(input_dim, vocab_size),
             nn.BatchNorm1d(vocab_size),
             non_linearity() if non_linearity is not None else nn.Identity(),
@@ -176,6 +177,7 @@ class Receiver(nn.Module):
         hidden_dim: int = 2048,
         output_dim: int = 2048,
         temperature: float = 1.0,
+        block_com_layer = False,
     ):
 
         super(Receiver, self).__init__()
@@ -189,7 +191,7 @@ class Receiver(nn.Module):
             self.vision_module, input_dim = initialize_vision_module(vision_module)
         else:
             raise RuntimeError("Unknown vision module for the Receiver")
-        self.fc = nn.Sequential(
+        self.fc = nn.Identity() if block_com_layer else nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
