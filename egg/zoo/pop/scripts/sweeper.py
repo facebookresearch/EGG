@@ -8,7 +8,7 @@ def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projec
         for _l in it.product(*(params[key] for key in params)):
             command=build_command(_l, params.keys())
             write_sbatch(command,jobname,sbatch_dir,partition,n_gpus,time,mem)
-            sbatch_file = os.path.join(sbatch_file, f"{jobname}.sh")
+            sbatch_file = os.path.join(sbatch_dir, f"{jobname}.sh")
             os.system(f"sbatch {sbatch_file}")
             
 
