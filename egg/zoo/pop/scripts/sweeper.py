@@ -3,13 +3,14 @@ import json
 import itertools as it
 import sys
 from pathlib import Path
+default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
 def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projects/manual_slurm", partition="alien",n_gpus=1,time="3-00:00:00",mem="8G"):
     with open(params_path, "r") as f:
         params = json.load(f)
         for _l in it.product(*(params[key] for key in params)):
             command=build_command(_l, params.keys())
-            checkpoint_dir = Path(params["checkpoint_dir"]) if "checkpoint_dir" in params else Path(sbatch_dir)
+            checkpoint_dir = Path(params["checkpoint_dir"]) if "checkpoint_dir" in params else Path(default_checkpoint_dir)/jobname
             write_sbatch(command,jobname,sbatch_dir,checkpoint_dir,partition,n_gpus,time,mem)
             sbatch_file = Path(sbatch_dir) / f"{jobname}.sh"
             os.system(f"sbatch {sbatch_file}")
