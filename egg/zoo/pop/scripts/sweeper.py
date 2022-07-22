@@ -28,7 +28,7 @@ def write_sbatch(command,jobname,sbatch_dir="/homedtcl/mmahaut/projects/manual_s
     """
     writes a sbatch file for the current job
     """
-    sbatch_path = os.path.join(os.path.dirname(sbatch_dir, f"{jobname}.sh")
+    sbatch_path = os.path.join(sbatch_dir, f"{jobname}.sh")
     with open(sbatch_path, "w") as f:
         f.write(
             f"""#!/bin/bash
