@@ -8,6 +8,8 @@ def write_and_run(params, keys, jobname="job",partition="alien",n_gpus=1,time="3
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
             command += f"--{key}=\"{params[i]}\" "
+        elif isinstance(params[i], bool):
+            command += f"--{key}" if params[i] else ""
         else:
             command += f"--{key}={params[i]} "
     print(command)
