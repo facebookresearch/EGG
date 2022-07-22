@@ -2,9 +2,16 @@ import os
 import json
 import itertools as it
 import sys
+def sweep_params(params_path,jobname="job",partition="alien",n_gpus=1,time="3-00:00:00",mem="8G"):
+    with open(params_path, "r") as f:
+        params = json.load(f)
+        for _l in it.product(*(params[key] for key in params)):
+            command=build_command(_l, params.keys())
+            write_sbatch(command,jobname,partition,n_gpus,time,mem)
+            os.system(f"sbatch {jobname}.sh")
 
-def write_and_run(params, keys, jobname="job",partition="alien",n_gpus=1,time="3-00:00:00",mem="8G"):
-    command=f"srun --job-name={jobname} --partition={partition} --gres=gpu:{n_gpus} --nodes=1 --ntasks-per-node=1 --time={time} --mem={mem} python -m egg.zoo.pop.train "
+def build_command(params, keys):
+    command=f"python -m egg.zoo.pop.train "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
             command += f"--{key}=\"{params[i]}\" "
@@ -12,14 +19,32 @@ def write_and_run(params, keys, jobname="job",partition="alien",n_gpus=1,time="3
             command += f"--{key} " if params[i] else ""
         else:
             command += f"--{key}={params[i]} "
-    print(command)
-    os.system(command)
+    return command
 
-def sweep_params(params_path,jobname="job",partition="alien",n_gpus=1,time="3-00:00:00",mem="8G"):
-    with open(params_path, "r") as f:
-        params = json.load(f)
-        for _l in it.product(*(params[key] for key in params)):
-            write_and_run(_l, [key for key in params],jobname,partition,n_gpus,time,mem)
+
+def write_sbatch(command,jobname,partition="alien",n_gpus=1,time="3-00:00:00",mem="8G"):
+    """
+    writes a sbatch file for the current job
+    """
+    sbatch_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"{jobname}.sh")
+    with open(sbatch_path, "w") as f:
+        f.write(
+            f"""#!/bin/bash
+#SBATCH --job-name={jobname}
+#SBATCH --partition={partition}
+#SBATCH --gres=gpu:{n_gpus}
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time={time}
+#SBATCH --mem={mem}
+#SBATCH --output={jobname}_%j.out
+#SBATCH --error={jobname}_%j.err
+
+{command}
+echo "done"
+"""
+        )
+        f.write("\n".join(sys.argv))
 
 if __name__ == "__main__":
     # this is not as clean as something like itertools, but it works for now
