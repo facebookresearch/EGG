@@ -11,6 +11,7 @@ def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projec
         for _l in it.product(*(params[key] for key in params)):
             command=build_command(_l, params.keys())
             checkpoint_dir = Path(params["checkpoint_dir"]) if "checkpoint_dir" in params else Path(default_checkpoint_dir)/jobname
+            checkpoint_dir.mkdir(parents=True, exist_ok=True)
             write_sbatch(command,jobname,sbatch_dir,checkpoint_dir,partition,n_gpus,time,mem)
             sbatch_file = Path(sbatch_dir) / f"{jobname}.sh"
             os.system(f"sbatch {sbatch_file}")
