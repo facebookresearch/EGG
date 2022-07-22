@@ -145,7 +145,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
                 receiver.to(device),
                 loss,
                 pop_game.game,
-                val_loader,
+                train_loader,
                 aux_input,
                 not opts.continuous_com,
                 opts.batch_size,

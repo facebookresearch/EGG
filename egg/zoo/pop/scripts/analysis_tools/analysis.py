@@ -17,10 +17,22 @@ def interaction_to_dataframe(interaction):
                 df[f"dim_{dim}"] = value
         else:
             df[key] = interaction.aux_input[key]
-    df["receiver_output"] = [i.argmax().item() for i in interaction.receiver_output]
+    df["receiver_output"] = interaction.receiver_output.argmax(dim=1)
 
     return df
 
+def name_to_idx(name):
+    """
+    Function to convert a name to the vision-module index
+    """
+    names = ['vgg11','vit','resnet152', 'inception']
+    assert name in names, f"{name} is not a valid vision-module name"
+    return names.index(name)
 
+def extract_name(name):
+    """
+    Function to extract the name of the vision-module from the interaction file name
+    """
+    return [i.replace("]","").replace("'","") for i in name.split('[')[1:]]
 
 
