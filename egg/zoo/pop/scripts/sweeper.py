@@ -3,23 +3,78 @@ import json
 import itertools as it
 import sys
 from pathlib import Path
+import argparse
+
 default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
-def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projects/manual_slurm", partition="alien",n_gpus=1,time="3-00:00:00",mem="32G",qos="alien"):
-    with open(params_path, "r") as f:
+
+def get_opts():
+    arg_parser = argparse.ArgumentParser()
+
+    arg_parser.add_argument(
+        "--params_path",
+        type=str,
+        help="path to the json file containing the parameters to sweep through",
+    )
+    arg_parser.add_argument(
+        "--memory",
+        type=int,
+        default="32G",
+        help="assigned memory in GB",
+    )
+    arg_parser.add_argument(
+        "--jobname",
+        type=str,
+        default="job",
+        help="name of the job. If no checkpoint_dir is given, this is used as the name of the folder in which the job is stored",
+    )
+    arg_parser.add_argument(
+        "--sbatch_dir",
+        type=str,
+        default="/homedtcl/mmahaut/projects/manual_slurm"
+        help="path to the directory where the sbatch file is stored",
+    )
+    arg_parser.add_argument(
+        "--partition",
+        type=str,
+        default="alien",
+        help="slurm partition on which the jobs are run",
+    )
+    arg_parser.add_argument(
+        "--n_gpus",
+        type=int,
+        default=1,
+        help="number of GPUs used per job. Should be 1.",
+    )
+    arg_parser.add_argument(
+        "--time",
+        type=str,
+        default="3-00:00:00",
+        help="time allocated for each job",
+    )
+    arg_parser.add_argument(
+        "--qos",
+        type=str,
+        default="alien",
+        help="slurm qos for each jobs",
+    )
+
+
+def sweep_params(opts):
+    with open(opts.params_path, "r") as f:
         params = json.load(f)
 
         if not "checkpoint_dir" in params :
-            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/jobname]
+            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.jobname]
         checkpoint_dir = Path(params["checkpoint_dir"][0])
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
             command=build_command(values, params.keys())
 
-            write_sbatch(command,jobname,sbatch_dir,checkpoint_dir,partition,n_gpus,time,mem,qos)
+            write_sbatch(command,opts.jobname,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.mem,opts.qos)
 
-            sbatch_file = Path(sbatch_dir) / f"{jobname}.sh"
+            sbatch_file = Path(opts.sbatch_dir) / f"{opts.jobname}.sh"
             os.system(f"sbatch {sbatch_file}")
             
 
@@ -60,5 +115,4 @@ echo "done"
         )
 
 if __name__ == "__main__":
-    # this is not as clean as something like itertools, but it works for now
-    sweep_params(params_path=sys.argv[1], jobname=sys.argv[2] if len(sys.argv)>2 else "job", sbatch_dir=sys.argv[3] if len(sys.argv)>3 else "/homedtcl/mmahaut/projects/manual_slurm", partition=sys.argv[4] if len(sys.argv)>4 else "alien",n_gpus=sys.argv[5] if len(sys.argv)>5 else 1,time=sys.argv[6] if len(sys.argv)>6 else "3-00:00:00",mem=sys.argv[7] if len(sys.argv)>7 else "32G")
+    sweep_params(get_opts(sys.argv[1:]))
