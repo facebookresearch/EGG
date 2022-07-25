@@ -18,7 +18,7 @@ def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projec
             
 
 def build_command(params, keys):
-    command=f"python -m egg.zoo.pop.scripts.analysis_tools.extract_com" "
+    command=f"python -m egg.zoo.pop.scripts.analysis_tools.extract_com"
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
             command += f"--{key}=\"{params[i]}\" "
