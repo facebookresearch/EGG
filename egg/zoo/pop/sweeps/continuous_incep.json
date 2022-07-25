@@ -1,0 +1,52 @@
+{
+    "n_epochs": [
+        5
+    ],
+    "remove_auxlogits": [
+        false
+    ],
+    "batch_size": [
+        64
+    ],
+    "lr": [
+        0.0001
+    ],
+    "continuous_com": [
+        true
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "force_gumbel": [
+        false
+    ],
+    "vocab_size": [
+        16
+    ],
+    "random_seed": [
+        111
+    ],
+    "recv_hidden_dim": [
+        2048
+    ],
+    "dataset_name": [
+        "cifar100"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "vision_model_names_recvs": [
+        "['inception']"
+        ],
+    "vision_model_names_senders": [
+        "['vit']",
+        "['inception']",
+        "['resnet152']",
+        "['vgg11']",
+        "['dino']",
+        "['swin']"
+    ],
+    "image_size": [
+        384
+    ]
+}
