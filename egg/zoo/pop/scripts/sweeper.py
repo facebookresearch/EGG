@@ -9,8 +9,8 @@ def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projec
     with open(params_path, "r") as f:
         params = json.load(f)
         if not "checkpoint_dir" in params :
-            params["checkpoint_dir"] = Path(default_checkpoint_dir)/jobname
-            
+            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/jobname]
+
         for values in it.product(*(params[key] for key in params)):
             command=build_command(values, params.keys())
 
