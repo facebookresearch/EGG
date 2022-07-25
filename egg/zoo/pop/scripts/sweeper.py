@@ -21,7 +21,7 @@ def get_opts(arguments):
         help="assigned memory in GB",
     )
     arg_parser.add_argument(
-        "--jobname",
+        "--job_name",
         type=str,
         default="job",
         help="name of the job. If no checkpoint_dir is given, this is used as the name of the folder in which the job is stored",
@@ -79,7 +79,7 @@ def sweep_params(opts):
         for values in it.product(*(params[key] for key in params)):
             command=build_command(opts.game, values, params.keys())
 
-            write_sbatch(command,opts.jobname,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.mem,opts.qos)
+            write_sbatch(command,opts.jobname,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.jobname}.sh"
             os.system(f"sbatch {sbatch_file}")
