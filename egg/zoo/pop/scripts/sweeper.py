@@ -31,7 +31,7 @@ def get_opts():
     arg_parser.add_argument(
         "--sbatch_dir",
         type=str,
-        default="/homedtcl/mmahaut/projects/manual_slurm"
+        default="/homedtcl/mmahaut/projects/manual_slurm",
         help="path to the directory where the sbatch file is stored",
     )
     arg_parser.add_argument(
