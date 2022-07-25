@@ -35,10 +35,10 @@
     "gs_temperature": [
         5.0
     ],
-    "vision_model_names_senders": [
+    "vision_model_names_recvs": [
         "['inception']"
         ],
-    "vision_model_names_recvs": [
+    "vision_model_names_senders": [
         "['vit']",
         "['inception']",
         "['resnet152']",
