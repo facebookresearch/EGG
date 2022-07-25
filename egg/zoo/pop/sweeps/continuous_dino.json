@@ -2,6 +2,9 @@
     "n_epochs": [
         5
     ],
+    "remove_auxlogits": [
+        false
+    ],
     "batch_size": [
         64
     ],
