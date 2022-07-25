@@ -8,14 +8,14 @@ default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 def sweep_params(params_path,jobname="job", sbatch_dir="/homedtcl/mmahaut/projects/manual_slurm", partition="alien",n_gpus=1,time="3-00:00:00",mem="32G",qos="alien"):
     with open(params_path, "r") as f:
         params = json.load(f)
+        
         if not "checkpoint_dir" in params :
             params["checkpoint_dir"] = [Path(default_checkpoint_dir)/jobname]
+        checkpoint_dir = Path(params["checkpoint_dir"])[0]
 
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
             command=build_command(values, params.keys())
-
-            checkpoint_dir = Path(params["checkpoint_dir"])
-            checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
             write_sbatch(command,jobname,sbatch_dir,checkpoint_dir,partition,n_gpus,time,mem,qos)
 
