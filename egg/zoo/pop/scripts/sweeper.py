@@ -59,8 +59,8 @@ def get_opts(arguments):
     arg_parser.add_argument(
         "--game",
         type=str,
-        default="egg/zoo/pop/scripts/analysis_tools/extract_com",
-        help="path to the game script",
+        default="egg.zoo.pop.scripts.analysis_tools.extract_com",
+        help="python module path to the game to run",
     )
 
     opts = arg_parser.parse_args(arguments)
