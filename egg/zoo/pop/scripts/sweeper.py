@@ -72,16 +72,16 @@ def sweep_params(opts):
         params = json.load(f)
 
         if not "checkpoint_dir" in params :
-            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.jobname]
+            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.job_name]
         checkpoint_dir = Path(params["checkpoint_dir"][0])
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
             command=build_command(opts.game, values, params.keys())
 
-            write_sbatch(command,opts.jobname,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
+            write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
 
-            sbatch_file = Path(opts.sbatch_dir) / f"{opts.jobname}.sh"
+            sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
             os.system(f"sbatch {sbatch_file}")
             
 
