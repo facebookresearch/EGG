@@ -58,6 +58,12 @@ def get_opts():
         default="alien",
         help="slurm qos for each jobs",
     )
+    arg_parser.add_argument(
+        "--game",
+        type=str,
+        default="egg/zoo/pop/scripts/analysis_tools/extract_com",
+        help="path to the game script",
+    )
 
 
 def sweep_params(opts):
@@ -70,7 +76,7 @@ def sweep_params(opts):
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
-            command=build_command(values, params.keys())
+            command=build_command(opts.game, values, params.keys())
 
             write_sbatch(command,opts.jobname,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.mem,opts.qos)
 
@@ -78,8 +84,8 @@ def sweep_params(opts):
             os.system(f"sbatch {sbatch_file}")
             
 
-def build_command(params, keys):
-    command=f"python -m egg.zoo.pop.scripts.analysis_tools.extract_com "
+def build_command(game, params, keys):
+    command=f"python -m {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
             command += f"--{key}=\"{params[i]}\" "
