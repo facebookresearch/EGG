@@ -7,10 +7,8 @@ import argparse
 
 default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
-
-def get_opts():
+def get_opts(arguments):
     arg_parser = argparse.ArgumentParser()
-
     arg_parser.add_argument(
         "--params_path",
         type=str,
@@ -64,6 +62,9 @@ def get_opts():
         default="egg/zoo/pop/scripts/analysis_tools/extract_com",
         help="path to the game script",
     )
+
+    opts = arg_parser.parse_args(arguments)
+    return opts
 
 
 def sweep_params(opts):
