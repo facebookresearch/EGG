@@ -5,7 +5,7 @@
     "remove_auxlogits": [
         false
     ],
-    "augmentation_type ": [
+    "augmentation_type": [
         "color_jitter",
         "gaussian_blur",
         "resize"
