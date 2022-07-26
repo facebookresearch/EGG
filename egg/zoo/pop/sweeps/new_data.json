@@ -24,7 +24,8 @@
         2048
     ],
     "dataset_name": [
-        "imagenet"
+        "imagenet",
+        "cifar100"
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"
@@ -33,10 +34,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','vit','resnet152', 'inception','swin','dino']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','vit','resnet152', 'inception''swin','dino']"
     ],
     "image_size": [
         384

@@ -25,7 +25,7 @@ def name_to_idx(name):
     """
     Function to convert a name to the vision-module index
     """
-    names = ['vgg11','vit','resnet152', 'inception']
+    names = ['vgg11','vit','resnet152', 'inception', "swin", "dino"]
     assert name in names, f"{name} is not a valid vision-module name"
     return names.index(name)
 
