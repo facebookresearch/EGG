@@ -44,7 +44,7 @@
     "image_size": [
         384
     ],
-    "--block_com_layer": [
+    "block_com_layer": [
         true
     ]
 }
