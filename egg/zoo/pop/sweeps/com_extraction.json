@@ -7,7 +7,7 @@
     ],
     "augmentation_type ": [
         "color_jitter",
-        "gaussiam_blur",
+        "gaussian_blur",
         "resize"
     ],
     "base_checkpoint_path": [

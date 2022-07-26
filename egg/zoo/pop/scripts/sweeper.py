@@ -89,11 +89,11 @@ def build_command(game, params, keys):
     command=f"python -m {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
-            command += f"--{key} \"{params[i]}\" "
+            command += f"--{key}=\"{params[i]}\" "
         elif isinstance(params[i], bool):
             command += f"--{key} " if params[i] else ""
         else:
-            command += f"--{key} {params[i]} "
+            command += f"--{key}={params[i]} "
     return command
 
 
