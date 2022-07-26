@@ -5,8 +5,12 @@
     "remove_auxlogits": [
         false
     ],
+    "augmentation_type ": [
+        "color_jitter",
+        "gaussiam_blur",
+        "resize"
+    ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/continuous_het_pop/1047_0/final.tar",
         "/homedtcl/mmahaut/projects/experiments/cont_het/1897_0/final.tar",
         "/homedtcl/mmahaut/projects/experiments/cont_het/1898_0/final.tar",
         "/homedtcl/mmahaut/projects/experiments/cont_het/1899_0/final.tar",
