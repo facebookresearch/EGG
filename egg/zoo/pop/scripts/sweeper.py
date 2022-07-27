@@ -16,8 +16,8 @@ def get_opts(arguments):
     )
     arg_parser.add_argument(
         "--memory",
-        type=int,
-        default=32,
+        type=str,
+        default="32G",
         help="assigned memory in GB",
     )
     arg_parser.add_argument(
