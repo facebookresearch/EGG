@@ -25,12 +25,11 @@ def ls_graph(
         path=save_path,
         names=[
             "vision_model_names_senders",
-            "vision_model_names_recvs",
+            # "vision_model_names_recvs",
             # "additional_sender",
             # "additional_receiver",
         ],
         values=[
-            [["vgg11", "vit", "inception", "resnet152"]],
             [["vgg11", "vit", "inception", "resnet152"]],
         ],
         verbose=verbose,
