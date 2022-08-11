@@ -233,7 +233,7 @@ def acc_graph(
 
 
 def graph_collector(
-    path="/shared/mateo/logs/",
+    path='/homedtcl/mmahaut/projects/experiments/',
     names=[],
     values=[],
     verbose=False,

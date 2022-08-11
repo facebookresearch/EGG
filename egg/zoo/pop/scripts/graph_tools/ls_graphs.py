@@ -2,7 +2,7 @@ from egg.zoo.pop.scripts.graph_tools.acc_graphs import graph_collector, acc_grap
 
 
 def ls_graph(
-    save_path="/shared/mateo/logs/",
+    save_path='/homedtcl/mmahaut/projects/experiments/',
     graph_name="arch_graph",
     graph_title="no_inception",
     verbose=False,
@@ -23,15 +23,15 @@ def ls_graph(
 
     xs, ys, labels = graph_collector(
         path=save_path,
-        names=[
-            "vision_model_names_senders",
+        # names=[
+        #     "vision_model_names_senders",
             # "vision_model_names_recvs",
             # "additional_sender",
             # "additional_receiver",
-        ],
-        values=[
-            [["vgg11", "vit", "inception", "resnet152"]],
-        ],
+        # ],
+        # values=[
+        #     [["vgg11", "vit", "inception", "resnet152"]],
+        # ],
         verbose=verbose,
         label_names=["additional_sender", "additional_receiver"],
     )
