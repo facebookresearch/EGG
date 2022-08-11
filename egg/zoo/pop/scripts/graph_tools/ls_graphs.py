@@ -22,6 +22,7 @@ def ls_graph(
     # sender graph
 
     xs, ys, labels = graph_collector(
+        path=save_path,
         names=[
             "vision_model_names_senders",
             "vision_model_names_recvs",
