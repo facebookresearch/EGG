@@ -4,7 +4,7 @@ from egg.zoo.pop.scripts.graph_tools.acc_graphs import graph_collector, acc_grap
 def all_one_on_one(
     baselines=True,
     verbose=False,
-    save_path="/shared/mateo/logs/",
+    save_path='/homedtcl/mmahaut/projects/experiments/',
     graph_name="arch_graph",
     graph_title=None,
 ):
