@@ -24,7 +24,6 @@
         2048
     ],
     "dataset_name": [
-        "imagenet",
         "cifar100"
     ],
     "dataset_dir":[
