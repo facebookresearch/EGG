@@ -86,6 +86,8 @@ def sweep_params(opts):
             
 def prep_checkpointdir(params, keys):
     """
+    --- Not used at the moment ---
+
     to avoid overwriting the weights by saving them all in the same checkpoint_dir,
     we create a subfolder for each parameter combination
     """
@@ -93,7 +95,6 @@ def prep_checkpointdir(params, keys):
     return [param if keys[i] != "checkpoint_dir" else param / job_id for i,param in enumerate(params)]
 
 def build_command(game, params, keys):
-    prep_checkpointdir()
     command=f"python -m {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
