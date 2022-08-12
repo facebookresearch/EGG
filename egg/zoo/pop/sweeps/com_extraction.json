@@ -11,21 +11,6 @@
         "resize"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/discrete_full_pop/374_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/88_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/90_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/91_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/92_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/93_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/94_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/95_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/96_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/98_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/99_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/100_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/102_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/477_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/478_0/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/discrete_het_nest/479_0/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/final.tar"
         ]
 }
