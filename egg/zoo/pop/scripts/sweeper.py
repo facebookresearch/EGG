@@ -76,11 +76,11 @@ def sweep_params(opts):
             params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.job_name]
         
 
-        checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for i, values in enumerate(it.product(*(params[key] for key in params))):
             # diferentiating the checkpoint_dir for each job to avoid overwriting
             params["checkpoint_dir"] = [params["checkpoint_dir"] / f"{i}"]
             checkpoint_dir = Path(params["checkpoint_dir"][0])
+            checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
             command=build_command(opts.game, values, params.keys())
             write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
