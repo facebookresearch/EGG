@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        5
     ],
     "batch_size": [
         64
@@ -27,7 +27,7 @@
         2048
     ],
     "use_augmentations":[
-        true
+        false
     ],
     "dataset_name": [
         "cifar100"
@@ -36,10 +36,10 @@
         5.0
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','vit','resnet152', 'inception','swin']"
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vgg11','vit','resnet152', 'inception','swin']"
     ],
     "image_size": [
         384

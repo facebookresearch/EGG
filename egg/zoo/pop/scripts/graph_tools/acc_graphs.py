@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import json
 import glob
 import os
-import numpy as np
+# import numpy as np
+from pathlib import Path
 
 # 1st Harvest data, either from wnb or from nest output. Then make a graph out of it
 

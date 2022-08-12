@@ -29,6 +29,7 @@ def main(params):
     opts = get_common_opts(params=params)
 
     # deal with opts issues due to submitit module being replaced by sweep.py
+    # all checkpoint_dirs from a sweep were stored in the same folder, causing overwriting
     # TODO : check for necessity before applying
     opts.checkpoint_dir = Path(opts.checkpoint_dir) / os.environ["SLURM_JOB_ID"]
     opts.checkpoint_dir.mkdir(parents=True, exist_ok=True)
