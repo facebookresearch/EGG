@@ -4,6 +4,7 @@ import itertools as it
 import sys
 from pathlib import Path
 import argparse
+import time
 
 default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
@@ -72,7 +73,7 @@ def sweep_params(opts):
         params = json.load(f)
 
         if not "checkpoint_dir" in params :
-            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.job_name]
+            params["checkpoint_dir"] = [(Path(default_checkpoint_dir)/opts.job_name/ time.strftime("%Y_%m_%d_%H_%M_%S")).expanduser()]
         checkpoint_dir = Path(params["checkpoint_dir"][0])
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
