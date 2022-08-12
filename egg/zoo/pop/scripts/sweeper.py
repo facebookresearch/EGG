@@ -86,8 +86,7 @@ def sweep_params(opts):
             write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
-            _return = os.system(f"sbatch {sbatch_file}")
-            print(_return)
+            os.system(f"sbatch {sbatch_file}")
             
 
 def build_command(game, params, keys):
