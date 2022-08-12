@@ -82,7 +82,6 @@ def sweep_params(opts):
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
             _return = os.system(f"sbatch {sbatch_file}")
-            print(_return)
             
 def prep_checkpointdir(params, keys):
     """
