@@ -78,8 +78,8 @@ def sweep_params(opts):
 
         for i, values in enumerate(it.product(*(params[key] for key in params))):
             # diferentiating the checkpoint_dir for each job to avoid overwriting
-            params["checkpoint_dir"] = [params["checkpoint_dir"][0] / f"{i}"]
-            checkpoint_dir = Path(params["checkpoint_dir"][0])
+            params["checkpoint_dir"] = [values["checkpoint_dir"][0] / f"{i}"]
+            checkpoint_dir = Path(values["checkpoint_dir"][0])
             checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
             command=build_command(opts.game, values, params.keys())
