@@ -4,7 +4,6 @@ import itertools as it
 import sys
 from pathlib import Path
 import argparse
-import time
 
 default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
@@ -74,22 +73,27 @@ def sweep_params(opts):
 
         if not "checkpoint_dir" in params :
             params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.job_name]
-        
+        checkpoint_dir = Path(params["checkpoint_dir"][0])
 
-        for i, values in enumerate(it.product(*(params[key] for key in params))):
-            # diferentiating the checkpoint_dir for each job to avoid overwriting
-            params["checkpoint_dir"] = [values["checkpoint_dir"][0] / f"{i}"]
-            checkpoint_dir = Path(values["checkpoint_dir"][0])
-            checkpoint_dir.mkdir(parents=True, exist_ok=True)
-
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        for values in it.product(*(params[key] for key in params)):
             command=build_command(opts.game, values, params.keys())
             write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
-            os.system(f"sbatch {sbatch_file}")
+            _return = os.system(f"sbatch {sbatch_file}")
+            print(_return)
             
+def prep_checkpointdir(params, keys):
+    """
+    to avoid overwriting the weights by saving them all in the same checkpoint_dir,
+    we create a subfolder for each parameter combination
+    """
+    job_id = os.environ["SLURM_JOB_ID"]
+    return [param if keys[i] != "checkpoint_dir" else param / job_id for i,param in enumerate(params)]
 
 def build_command(game, params, keys):
+    prep_checkpointdir()
     command=f"python -m {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):

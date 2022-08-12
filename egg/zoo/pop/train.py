@@ -6,7 +6,6 @@
 import torch
 
 # import json
-# from pathlib import Path
 
 import egg.core as core
 from egg.core import ConsoleLogger
@@ -22,9 +21,18 @@ from egg.zoo.pop.games import build_game, build_second_game
 from egg.zoo.pop.LARC import LARC
 from egg.zoo.pop.utils import add_weight_decay, get_common_opts
 
+from pathlib import Path
+import os
+
 
 def main(params):
     opts = get_common_opts(params=params)
+
+    # deal with opts issues due to submitit module being replaced by sweep.py
+    # TODO : check for necessity before applying
+    opts.checkpoint_dir = Path(opts.checkpoint_dir) / os.environ["SLURM_JOB_ID"]
+    opts.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
     assert (
         not opts.batch_size % 2
     ), f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
