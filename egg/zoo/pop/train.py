@@ -26,6 +26,7 @@ import os
 
 
 def main(params):
+    _path = ""
     for param in params:
         if "base_checkpoint_path" in param:
             _path = param.rpartition('=')[2]
