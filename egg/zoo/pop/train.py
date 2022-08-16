@@ -26,18 +26,17 @@ import os
 
 
 def main(params):
+    for param in params:
+        if "base_checkpoint_path" in param:
+            _path = param.rpartition('=')[2]
+            break
 
-
-    if opts.base_checkpoint_path == "":
+    if _path == "":
         # normal first training for all agents
         opts = get_common_opts(params=params)
         game = build_game(opts)
     else :
         # adding agents to a population of trained agents
-        _path = ''
-        for param in params:
-            if "base_checkpoint_path" in param:
-                _path = param.rpartition('=')[2]
         f = open(path_to_parameters(_path))
         opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
         game = build_second_game(opts)
