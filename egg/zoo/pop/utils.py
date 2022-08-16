@@ -297,12 +297,10 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 
 def path_to_parameters(path):
     old_game = pathlib.Path(path)
-    job_number = str(old_game.parents[0]).rpartition('\\')[2]
-    all_out_files = glob.glob(str(old_game.parents[1] / "*.out"))
-    for file in all_out_files:
-        if job_number in file:
-            return file
-    print(f"No .out file found for job number {job_number}")
+    job_number = str(old_game.parents[0].stem)
+    all_out_files = old_game.parents[1].glob(f"*{job_number}*.out")
+    assert len(all_out_files) == 1, "Found more than one out file"
+    return all_out_files[0]
 
 def metadata_opener(file, data_type: str, verbose=False):
     """
