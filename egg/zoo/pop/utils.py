@@ -298,7 +298,7 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 def path_to_parameters(path):
     old_game = pathlib.Path(path)
     job_number = str(old_game.parents[0]).rpartition('\\')[2]
-    all_out_files = glob.glob(old_game.parents[1] / "*.out")
+    all_out_files = glob.glob(str(old_game.parents[1] / "*.out"))
     for file in all_out_files:
         if job_number in file:
             return file
