@@ -19,14 +19,28 @@ from egg.zoo.pop.game_callbacks import (
 )
 from egg.zoo.pop.games import build_game, build_second_game
 from egg.zoo.pop.LARC import LARC
-from egg.zoo.pop.utils import add_weight_decay, get_common_opts
+from egg.zoo.pop.utils import add_weight_decay, get_common_opts, path_to_parameters, metadata_opener
 
 from pathlib import Path
 import os
 
 
 def main(params):
-    opts = get_common_opts(params=params)
+
+
+    if opts.base_checkpoint_path == "":
+        # normal first training for all agents
+        opts = get_common_opts(params=params)
+        game = build_game(opts)
+    else :
+        # adding agents to a population of trained agents
+        _path = ''
+        for param in params:
+            if "base_checkpoint_path" in param:
+                _path = param.rpartition('=')[2]
+        f = open(path_to_parameters(_path))
+        opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
+        game = build_second_game(opts)
 
     # deal with opts issues due to submitit module being replaced by sweep.py
     # all checkpoint_dirs from a sweep were stored in the same folder, causing overwriting
@@ -58,10 +72,6 @@ def main(params):
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
         split_set=True,
-    )
-
-    game = (
-        build_game(opts) if opts.base_checkpoint_path == "" else build_second_game(opts)
     )
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")

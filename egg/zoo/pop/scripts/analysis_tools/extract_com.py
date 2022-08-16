@@ -5,11 +5,12 @@ from egg.zoo.pop.utils import load_from_checkpoint
 
 # import sys
 import pathlib
+import glob
 import torch
 from egg.core.batch import Batch
 from egg.core.interaction import Interaction
 from egg.zoo.pop.data import get_dataloader
-from egg.zoo.pop.utils import get_common_opts, metadata_opener
+from egg.zoo.pop.utils import get_common_opts, metadata_opener, path_to_parameters
 
 
 def main(params):
@@ -28,12 +29,6 @@ def main(params):
     opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
     print(opts)
     build_and_test_game(opts, exp_name=str(opts.augmentation_type) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs), dump_dir=opts.checkpoint_dir)
-
-
-def path_to_parameters(path):
-    old_game = pathlib.Path(path)
-    job_number = str(old_game.parents[0]).rpartition('\\')[2]
-    return old_game.parents[1] / (job_number + "_log.out")
 
 #
 def eval(

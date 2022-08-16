@@ -6,6 +6,9 @@
 import argparse
 from xmlrpc.client import Boolean
 
+import pathlib
+import glob
+
 import egg.core as core
 import torch
 import os
@@ -291,6 +294,15 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         {"params": no_decay, "weight_decay": 0.0},
         {"params": decay, "weight_decay": weight_decay},
     ]
+
+def path_to_parameters(path):
+    old_game = pathlib.Path(path)
+    job_number = str(old_game.parents[0]).rpartition('\\')[2]
+    all_out_files = glob.glob(old_game.parents[1] / "*.out")
+    for file in all_out_files:
+        if job_number in file:
+            return file
+    print(f"No .out file found for job number {job_number}")
 
 def metadata_opener(file, data_type: str, verbose=False):
     """
