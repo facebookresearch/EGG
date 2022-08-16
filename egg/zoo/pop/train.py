@@ -38,7 +38,7 @@ def main(params):
         game = build_game(opts)
     else :
         # adding agents to a population of trained agents
-        f = open(_path)
+        f = open(path_to_parameters(_path))
         opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
         game = build_second_game(opts)
 
