@@ -7,5 +7,8 @@
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/cont_fuller_partial_198673.out"
+    ],
+    "image_size": [
+        384
     ]
 }
