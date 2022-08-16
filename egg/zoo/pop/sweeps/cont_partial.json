@@ -2,46 +2,10 @@
     "n_epochs": [
         5
     ],
-    "batch_size": [
-        64
+    "additional_sender": [
+            "['dino']"
     ],
-    "lr": [
-        0.0001
-    ],
-    "continuous_com": [
-        true
-    ],
-    "non_linearity": [
-        "sigmoid"
-    ],
-    "force_gumbel": [
-        false
-    ],
-    "vocab_size": [
-        16
-    ],
-    "random_seed": [
-        111
-    ],
-    "recv_hidden_dim": [
-        2048
-    ],
-    "use_augmentations":[
-        false
-    ],
-    "dataset_name": [
-        "cifar100"
-    ],
-    "gs_temperature": [
-        5.0
-    ],
-    "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception','swin']"
-    ],
-    "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception','swin']"
-    ],
-    "image_size": [
-        384
+    "base_checkpoint_path": [
+        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/cont_fuller_partial_198673.out"
     ]
 }
