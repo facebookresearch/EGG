@@ -295,19 +295,24 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
-def path_to_parameters(path):
-    old_game = pathlib.Path(path)
-    job_number = str(old_game.parents[0].stem)
-    all_out_files = [f for f in old_game.parents[1].glob(f"*{job_number}.out")]
-    assert len(all_out_files) == 1, f"did not find one out file (missing or duplicates) : {all_out_files}"
-    return all_out_files[0]
+def path_to_parameters(path, type="wandb"):
+    if type == "wandb":
+        _path = pathlib.Path(path)
+        return _path.parent / "wandb"  / "latest-run" / "files" / "wandb-metadata.json"
+    else :
+        # legacy from when submitit was in use and the parameters were saved in the .out file
+        old_game = pathlib.Path(path)
+        job_number = str(old_game.parents[0].stem)
+        all_out_files = [f for f in old_game.parents[1].glob(f"*{job_number}.out")]
+        assert len(all_out_files) == 1, f"did not find one out file (missing or duplicates) : {all_out_files}"
+        return all_out_files[0]
 
 def metadata_opener(file, data_type: str, verbose=False):
     """
     data_type : str in {"wandb", "nest"}
     Mat : case match in python 3.10 will cover all of this in syntactic sugar
     """
-    if data_type == "wandb":  # TODO : move to the yaml file in the near future
+    if data_type == "wandb":  # TODO : using the yaml file instead would use load all params instead of non-defaults
         meta = json.load(file)
         return meta["args"]
 

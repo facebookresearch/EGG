@@ -39,7 +39,7 @@ def main(params):
     else :
         # adding agents to a population of trained agents
         f = open(path_to_parameters(_path))
-        opts = get_common_opts(metadata_opener(f, data_type="nest", verbose=True) + params)
+        opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
         game = build_second_game(opts)
 
     # deal with opts issues due to submitit module being replaced by sweep.py
