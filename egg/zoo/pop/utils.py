@@ -298,7 +298,7 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 def path_to_parameters(path):
     old_game = pathlib.Path(path)
     job_number = str(old_game.parents[0].stem)
-    all_out_files = old_game.parents[1].glob(f"*{job_number}*.out")
+    all_out_files = [f for f in old_game.parents[1].glob(f"*{job_number}*.out")]
     assert len(all_out_files) == 1, "Found more than one out file"
     return all_out_files[0]
 
