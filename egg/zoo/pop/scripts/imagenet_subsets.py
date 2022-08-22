@@ -28,7 +28,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
 
     return modules[name]
 
-def train_one_epoch(epoch_index, tb_writer):
+def train_one_epoch(epoch_index, tb_writer, training_loader, model, optimizer, loss_fn):
     running_loss = 0.
     last_loss = 0.
 
@@ -67,9 +67,9 @@ def train_one_epoch(epoch_index, tb_writer):
 if __name__ == "__main__":
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=64, num_workers=4, seed=111, validation_split=0.1)
 
-    model = initialize_vision_module(name="vit", pretrained=False)
+    model = initialize_vision_module(name="vit", pretrained=False).to("cuda")
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001).to("cuda")
 
 
     # Initializing in a separate cell so we can easily add more epochs to the same run
@@ -86,13 +86,13 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
-        avg_loss = train_one_epoch(epoch_number, writer)
+        avg_loss = train_one_epoch(epoch_number, writer, training_loader, model, optimizer, loss_fn)
 
         # We don't need gradients on to do reporting
         model.train(False)
 
         running_vloss = 0.0
-        for i, vdata in enumerate(validation_loader):
+        for i, vdata in enumerate(validation_loader.to("cuda")):
             vinputs, vlabels = vdata
             voutputs = model(vinputs)
             vloss = loss_fn(voutputs, vlabels)
