@@ -37,7 +37,7 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
     # index and do some intra-epoch reporting
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
-        inputs, labels = data
+        inputs, labels, _ = data
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
