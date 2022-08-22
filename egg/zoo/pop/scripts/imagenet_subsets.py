@@ -65,7 +65,7 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
 
 
 if __name__ == "__main__":
-    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=64, num_workers=4, seed=111, image_size=384)
+    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
     model = initialize_vision_module(name="vit", pretrained=False).to("cuda")
     loss_fn = torch.nn.CrossEntropyLoss()
