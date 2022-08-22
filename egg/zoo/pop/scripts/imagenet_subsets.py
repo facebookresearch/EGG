@@ -26,7 +26,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
 
     return modules[name]
 
-def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn,device="cuda"):
+def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is_inception=False):
     running_loss = 0.
     last_loss = 0.
 
@@ -43,7 +43,8 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn,devi
 
         # Make predictions for this batch
         outputs = model(inputs)
-
+        if is_inception:
+            outputs = outputs[1]
         # Compute the loss and its gradients
         loss = loss_fn(outputs, labels)
         loss.backward()
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
-        avg_loss = train_one_epoch(epoch_number, training_loader, model, optimizer, loss_fn, opts.device)
+        avg_loss = train_one_epoch(training_loader, model, optimizer, loss_fn, opts.device, opts.model=="inception")
 
         # We don't need gradients on to do reporting
         model.train(False)
