@@ -84,7 +84,7 @@ if __name__ == "__main__":
     opts = parser.parse_args(sys.argv[1:])
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
-    model = initialize_vision_module(name=parser.model, pretrained=False).to("cuda")
+    model = initialize_vision_module(name=opts.model, pretrained=False).to("cuda")
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         # Track best performance, and save the model's state
         if avg_vloss < best_vloss:
             best_vloss = avg_vloss
-            model_path = Path(parser).checkpoint_dir / 'model_{}_{}'.format(timestamp, epoch_number)
+            model_path = Path(opts.checkpoint_dir) / 'model_{}_{}'.format(timestamp, epoch_number)
             torch.save(model.state_dict(), model_path)
 
         epoch_number += 1
