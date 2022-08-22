@@ -64,6 +64,7 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
 
 if __name__ == "__main__":
     import argparse
+    import sys
     # chose model to train
     parser = argparse.ArgumentParser(description="Train a model")
 
@@ -80,7 +81,7 @@ if __name__ == "__main__":
         default="/homedtcl/mmahaut/projects/experiments",
         help="Directory to save checkpoints",
     )
-
+    opts = parser.parse_args(sys.argv['1:'])
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
     model = initialize_vision_module(name=parser.model, pretrained=False).to("cuda")
