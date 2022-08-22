@@ -1,8 +1,6 @@
 
 import torch
 import torchvision
-import torchvision.transforms as transforms
-
 # PyTorch TensorBoard support
 # from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
@@ -65,9 +63,20 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
 
 
 if __name__ == "__main__":
+    import argparse
+    # chose model to train
+    parser = argparse.ArgumentParser(description="Train a model")
+
+    parser.add_argument(
+        "--model",
+        type=str,   
+        default="vit",
+        help="Name of model to train",
+    )
+
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
-    model = initialize_vision_module(name="vit", pretrained=False).to("cuda")
+    model = initialize_vision_module(name=parser.model, pretrained=False).to("cuda")
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
