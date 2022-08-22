@@ -37,13 +37,13 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
     # index and do some intra-epoch reporting
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
-        inputs, labels = data.to("cuda")
+        inputs, labels = data
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs)
+        outputs = model(inputs.to("cuda"))
 
         # Compute the loss and its gradients
         loss = loss_fn(outputs, labels)
