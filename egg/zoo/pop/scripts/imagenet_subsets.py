@@ -37,7 +37,7 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
     # index and do some intra-epoch reporting
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
-        inputs, labels = data
+        inputs, labels = data.to("cuda")
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     model = initialize_vision_module(name="vit", pretrained=False).to("cuda")
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001).to("cuda")
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
     # Initializing in a separate cell so we can easily add more epochs to the same run
