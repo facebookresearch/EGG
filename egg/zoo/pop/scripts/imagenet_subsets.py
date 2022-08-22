@@ -55,7 +55,6 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn,devi
         running_loss += loss.item()
         if i % 1000 == 999:
             last_loss = running_loss / 1000 # loss per batch
-            print(f"debug {outputs.argmax(1).shape} {labels.shape}")
             print('  batch {} loss: {} acc : {}'.format(i + 1, last_loss, (outputs.argmax(1)==labels).sum().item()/labels.size(0)))
 
             # tb_x = epoch_index * len(training_loader) + i + 1
