@@ -54,8 +54,8 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
         running_loss += loss.item()
         if i % 1000 == 999:
             last_loss = running_loss / 1000 # loss per batch
-            print('  batch {} loss: {}'.format(i + 1, last_loss))
-            tb_x = epoch_index * len(training_loader) + i + 1
+            print('  batch {} loss: {} acc : {}'.format(i + 1, last_loss, (outputs==labels).sum().item()/labels.size(0)))
+            # tb_x = epoch_index * len(training_loader) + i + 1
             # tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             running_loss = 0.
 
