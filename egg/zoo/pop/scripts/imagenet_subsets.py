@@ -46,7 +46,7 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
         outputs = model(inputs.to("cuda"))
 
         # Compute the loss and its gradients
-        loss = loss_fn(outputs, labels)
+        loss = loss_fn(outputs, labels.to("cuda"))
         loss.backward()
 
         # Adjust learning weights
