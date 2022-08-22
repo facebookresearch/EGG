@@ -26,7 +26,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
 
     return modules[name]
 
-def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
+def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn,device="cuda"):
     running_loss = 0.
     last_loss = 0.
 
@@ -36,15 +36,16 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
         inputs, labels, _ = data
-
+        labels = labels.to(device)
+        inputs = inputs.to(device)
         # Zero your gradients for every batch!
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs.to("cuda"))
+        outputs = model(inputs)
 
         # Compute the loss and its gradients
-        loss = loss_fn(outputs, labels.to("cuda"))
+        loss = loss_fn(outputs, labels)
         loss.backward()
 
         # Adjust learning weights
@@ -54,7 +55,9 @@ def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
         running_loss += loss.item()
         if i % 1000 == 999:
             last_loss = running_loss / 1000 # loss per batch
-            print('  batch {} loss: {} acc : {}'.format(i + 1, last_loss, (outputs==labels).sum().item()/labels.size(0)))
+            print(f"debug {outputs.argmax(1).shape} {labels.shape}")
+            print('  batch {} loss: {} acc : {}'.format(i + 1, last_loss, (outputs.argmax(1)==labels).sum().item()/labels.size(0)))
+
             # tb_x = epoch_index * len(training_loader) + i + 1
             # tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             running_loss = 0.
@@ -81,10 +84,18 @@ if __name__ == "__main__":
         default="/homedtcl/mmahaut/projects/experiments",
         help="Directory to save checkpoints",
     )
-    opts = parser.parse_args(sys.argv[1:])
-    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
-    model = initialize_vision_module(name=opts.model, pretrained=False).to("cuda")
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="cuda",
+        help="Device to use for training",
+    )
+
+    opts = parser.parse_args(sys.argv[1:])
+    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=4, seed=111, image_size=384)
+
+    model = initialize_vision_module(name=opts.model, pretrained=False).to(opts.device)
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -103,13 +114,13 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
-        avg_loss = train_one_epoch(epoch_number, training_loader, model, optimizer, loss_fn)
+        avg_loss = train_one_epoch(epoch_number, training_loader, model, optimizer, loss_fn, opts.device)
 
         # We don't need gradients on to do reporting
         model.train(False)
 
         running_vloss = 0.0
-        for i, vdata in enumerate(validation_loader.to("cuda")):
+        for i, vdata in enumerate(validation_loader.to(opts.device)):
             vinputs, vlabels = vdata
             voutputs = model(vinputs)
             vloss = loss_fn(voutputs, vlabels)
