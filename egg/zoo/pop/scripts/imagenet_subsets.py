@@ -6,7 +6,7 @@ import torchvision
 from datetime import datetime
 import timm
 from egg.zoo.pop.data import get_dataloader
-
+from pathlib import Path
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
     print("initialize module", name)
     # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
@@ -74,6 +74,13 @@ if __name__ == "__main__":
         help="Name of model to train",
     )
 
+    parser.add_argument(
+        "--checkpoint_dir",
+        type=str,
+        default="/homedtcl/mmahaut/projects/experiments",
+        help="Directory to save checkpoints",
+    )
+
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="alive_imagenet", batch_size=32, num_workers=4, seed=111, image_size=384)
 
     model = initialize_vision_module(name=parser.model, pretrained=False).to("cuda")
@@ -119,7 +126,7 @@ if __name__ == "__main__":
         # Track best performance, and save the model's state
         if avg_vloss < best_vloss:
             best_vloss = avg_vloss
-            model_path = 'model_{}_{}'.format(timestamp, epoch_number)
+            model_path = Path(parser).checkpoint_dir / 'model_{}_{}'.format(timestamp, epoch_number)
             torch.save(model.state_dict(), model_path)
 
         epoch_number += 1
