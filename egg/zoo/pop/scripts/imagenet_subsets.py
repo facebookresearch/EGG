@@ -4,7 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 # PyTorch TensorBoard support
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 import timm
 from egg.zoo.pop.data import get_dataloader
@@ -28,7 +28,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
 
     return modules[name]
 
-def train_one_epoch(epoch_index, tb_writer, training_loader, model, optimizer, loss_fn):
+def train_one_epoch(epoch_index, training_loader, model, optimizer, loss_fn):
     running_loss = 0.
     last_loss = 0.
 
@@ -58,7 +58,7 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, model, optimizer, l
             last_loss = running_loss / 1000 # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             tb_x = epoch_index * len(training_loader) + i + 1
-            tb_writer.add_scalar('Loss/train', last_loss, tb_x)
+            # tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             running_loss = 0.
 
     return last_loss
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Initializing in a separate cell so we can easily add more epochs to the same run
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    writer = SummaryWriter('runs/fashion_trainer_{}'.format(timestamp))
+    # writer = SummaryWriter('runs/fashion_trainer_{}'.format(timestamp))
     epoch_number = 0
 
     EPOCHS = 5
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
-        avg_loss = train_one_epoch(epoch_number, writer, training_loader, model, optimizer, loss_fn)
+        avg_loss = train_one_epoch(epoch_number, training_loader, model, optimizer, loss_fn)
 
         # We don't need gradients on to do reporting
         model.train(False)
@@ -103,10 +103,9 @@ if __name__ == "__main__":
 
         # Log the running loss averaged per batch
         # for both training and validation
-        writer.add_scalars('Training vs. Validation Loss',
+        print('Training vs. Validation Loss',
                         { 'Training' : avg_loss, 'Validation' : avg_vloss },
                         epoch_number + 1)
-        writer.flush()
 
         # Track best performance, and save the model's state
         if avg_vloss < best_vloss:
