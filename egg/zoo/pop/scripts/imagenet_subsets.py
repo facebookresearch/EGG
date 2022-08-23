@@ -120,14 +120,19 @@ if __name__ == "__main__":
         model.train(False)
 
         running_vloss = 0.0
-        for i, vdata in enumerate(validation_loader.to(opts.device)):
+        running_acc = 0.0
+        for i, vdata in enumerate(validation_loader):
             vinputs, vlabels = vdata
+            vinputs = vinputs.to(opts.device)
+            vlabels = vlabels.to(opts.device)
             voutputs = model(vinputs)
             vloss = loss_fn(voutputs, vlabels)
             running_vloss += vloss
+            running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
 
         avg_vloss = running_vloss / (i + 1)
-        print('LOSS train {} valid {}'.format(avg_loss, avg_vloss))
+        avg_acc = running_acc / (i + 1)
+        print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, running_acc))
 
         # Log the running loss averaged per batch
         # for both training and validation
