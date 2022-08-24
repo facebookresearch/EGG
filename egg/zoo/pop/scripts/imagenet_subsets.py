@@ -36,13 +36,13 @@ def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
         inputs, labels, _ = data
-        # labels = labels.to(device)
+        labels = labels.to(device)
         inputs = inputs.to(device)
         # Zero your gradients for every batch!
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs).to("cpu")
+        outputs = model(inputs)
         if is_inception:
             outputs = outputs[1]
         # Compute the loss and its gradients
@@ -70,8 +70,8 @@ def test_one_epoch(validation_loader, model, loss_fn, device="cuda", is_inceptio
     for i, vdata in enumerate(validation_loader):
         vinputs, vlabels, _ = vdata
         vinputs = vinputs.to(device)
-        # vlabels = vlabels.to(device)
-        voutputs = model(vinputs).to("cpu")
+        vlabels = vlabels.to(device)
+        voutputs = model(vinputs)
         if is_inception:
             voutputs = voutputs[1]
         vloss = loss_fn(voutputs, vlabels)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     opts = parser.parse_args(sys.argv[1:])
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=4, seed=111, image_size=384)
 
-    model = initialize_vision_module(name=opts.model, pretrained=False).to(opts.device)
+    model = initialize_vision_module(name=opts.model, pretrained=False)
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -132,11 +132,13 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
+        model.to(opts.device)
         avg_loss = train_one_epoch(training_loader, model, optimizer, loss_fn, opts.device, opts.model=="inception")
 
         # We don't need gradients on to do reporting
         model.train(False)
-        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, opts.device, opts.model=="inception")
+        model.to("cpu") # to save memory... Probably extremely slow
+        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, "cpu", opts.model=="inception")
 
         print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, avg_acc))
 
