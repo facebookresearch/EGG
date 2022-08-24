@@ -36,13 +36,13 @@ def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is
     for i, data in enumerate(training_loader):
         # Every data instance is an input + label pair
         inputs, labels, _ = data
-        labels = labels.to(device)
+        # labels = labels.to(device)
         inputs = inputs.to(device)
         # Zero your gradients for every batch!
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs)
+        outputs = model(inputs).to("cpu")
         if is_inception:
             outputs = outputs[1]
         # Compute the loss and its gradients
@@ -70,8 +70,8 @@ def test_one_epoch(validation_loader, model, loss_fn, device="cuda", is_inceptio
     for i, vdata in enumerate(validation_loader):
         vinputs, vlabels, _ = vdata
         vinputs = vinputs.to(device)
-        vlabels = vlabels.to(device)
-        voutputs = model(vinputs)
+        # vlabels = vlabels.to(device)
+        voutputs = model(vinputs).to("cpu")
         if is_inception:
             voutputs = voutputs[1]
         vloss = loss_fn(voutputs, vlabels)
