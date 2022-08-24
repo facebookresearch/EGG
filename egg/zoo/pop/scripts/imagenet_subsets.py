@@ -64,6 +64,22 @@ def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is
 
     return last_loss
 
+def test_one_epoch():
+    running_vloss = 0.0
+    running_acc = 0.0
+    for i, vdata in enumerate(validation_loader):
+        vinputs, vlabels, _ = vdata
+        vinputs = vinputs.to(opts.device)
+        vlabels = vlabels.to(opts.device)
+        voutputs = model(vinputs)
+        vloss = loss_fn(voutputs, vlabels)
+        running_vloss += vloss
+        running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
+
+    avg_vloss = running_vloss / (i + 1)
+    avg_acc = running_acc / (i + 1)
+    return avg_vloss, avg_acc
+
 
 if __name__ == "__main__":
     import argparse
@@ -119,20 +135,9 @@ if __name__ == "__main__":
         # We don't need gradients on to do reporting
         model.train(False)
 
-        running_vloss = 0.0
-        running_acc = 0.0
-        for i, vdata in enumerate(validation_loader):
-            vinputs, vlabels, _ = vdata
-            vinputs = vinputs.to(opts.device)
-            vlabels = vlabels.to(opts.device)
-            voutputs = model(vinputs)
-            vloss = loss_fn(voutputs, vlabels)
-            running_vloss += vloss
-            running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
+        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, opts.device, opts.model=="inception")
 
-        avg_vloss = running_vloss / (i + 1)
-        avg_acc = running_acc / (i + 1)
-        print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, running_acc))
+        print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, avg_acc))
 
         # Log the running loss averaged per batch
         # for both training and validation
