@@ -122,7 +122,7 @@ if __name__ == "__main__":
         running_vloss = 0.0
         running_acc = 0.0
         for i, vdata in enumerate(validation_loader):
-            vinputs, vlabels = vdata
+            vinputs, vlabels, _ = vdata
             vinputs = vinputs.to(opts.device)
             vlabels = vlabels.to(opts.device)
             voutputs = model(vinputs)
