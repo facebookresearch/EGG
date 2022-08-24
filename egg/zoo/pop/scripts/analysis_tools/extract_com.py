@@ -99,20 +99,6 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         param.requires_grad = False
     pop_game.train(False)
 
-    # get validation data
-    val_loader, train_loader = get_dataloader(
-        dataset_dir=opts.dataset_dir,
-        dataset_name=opts.dataset_name,
-        image_size=opts.image_size,
-        batch_size=opts.batch_size,
-        num_workers=opts.num_workers,
-        is_distributed=opts.distributed_context.is_distributed,
-        seed=111,  # same as hardcoded version used in experiments
-        use_augmentations=opts.use_augmentations,
-        return_original_image=opts.return_original_image,
-        split_set=True,
-        augmentation_type=opts.augmentation_type
-    )
     # Instead of letting the population game use the agent sampler to select a different pair for every batch
     # We choose the pair and evaluate it on all batches
     interactions = []
@@ -132,7 +118,20 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             "recv_idx": torch.Tensor([recv_idx] * opts.batch_size).int(),
             "loss_idx": torch.Tensor([loss_idx] * opts.batch_size).int(),
         }
-
+        # get validation data every time to reset seed (there might be a better and faster way to do this)
+        val_loader, train_loader = get_dataloader(
+            dataset_dir=opts.dataset_dir,
+            dataset_name=opts.dataset_name,
+            image_size=opts.image_size,
+            batch_size=opts.batch_size,
+            num_workers=opts.num_workers,
+            is_distributed=opts.distributed_context.is_distributed,
+            seed=111,  # same as hardcoded version used in experiments
+            use_augmentations=opts.use_augmentations,
+            return_original_image=opts.return_original_image,
+            split_set=True,
+            augmentation_type=opts.augmentation_type
+        )
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
