@@ -113,6 +113,8 @@ if __name__ == "__main__":
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=1, seed=111, image_size=384)
 
     model = initialize_vision_module(name=opts.model, pretrained=False)
+    model.to(opts.device)
+
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -131,13 +133,11 @@ if __name__ == "__main__":
 
         # Make sure gradient tracking is on, and do a pass over the data
         model.train(True)
-        model.to(opts.device)
         avg_loss = train_one_epoch(training_loader, model, optimizer, loss_fn, opts.device, opts.model=="inception")
 
         # We don't need gradients on to do reporting
         model.train(False)
-        model.to("cpu") # to save memory... Probably extremely slow
-        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, "cpu")
+        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, opts.device)
 
         print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, avg_acc))
 
