@@ -255,7 +255,7 @@ def graph_collector(
     labels = []
 
     # get all available files
-    files = glob.glob(path + "/*.out")
+    # files = glob.glob(path + "/*.out")
     if get_wandb:
         files += glob.glob(path + "/*/*/files/output.log")
     if verbose and files == []:
