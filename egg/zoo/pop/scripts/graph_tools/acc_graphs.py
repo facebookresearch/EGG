@@ -240,7 +240,7 @@ def graph_collector(
     verbose=False,
     mode="test",
     epoch_limit=None,
-    get_wandb=False,
+    get_wandb=True,
     label_names=["vision_model_names_senders", "vision_model_names_recvs"],
 ):
     """
