@@ -65,21 +65,22 @@ def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is
     return last_loss
 
 def test_one_epoch(validation_loader, model, loss_fn, device="cuda", is_inception=False):
-    running_vloss = 0.0
-    running_acc = 0.0
-    for i, vdata in enumerate(validation_loader):
-        vinputs, vlabels, _ = vdata
-        vinputs = vinputs.to(device)
-        vlabels = vlabels.to(device)
-        voutputs = model(vinputs)
-        if is_inception:
-            voutputs = voutputs[1]
-        vloss = loss_fn(voutputs, vlabels)
-        running_vloss += vloss
-        running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
+    with torch.no_grad():
+        running_vloss = 0.0
+        running_acc = 0.0
+        for i, vdata in enumerate(validation_loader):
+            vinputs, vlabels, _ = vdata
+            vinputs = vinputs.to(device)
+            vlabels = vlabels.to(device)
+            voutputs = model(vinputs)
+            if is_inception:
+                voutputs = voutputs[1]
+            vloss = loss_fn(voutputs, vlabels)
+            running_vloss += vloss
+            running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
 
-    avg_vloss = running_vloss / (i + 1)
-    avg_acc = running_acc / (i + 1)
+        avg_vloss = running_vloss / (i + 1)
+        avg_acc = running_acc / (i + 1)
     return avg_vloss, avg_acc
 
 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     )
 
     opts = parser.parse_args(sys.argv[1:])
-    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=4, seed=111, image_size=384)
+    validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=1, seed=111, image_size=384)
 
     model = initialize_vision_module(name=opts.model, pretrained=False)
     loss_fn = torch.nn.CrossEntropyLoss()
