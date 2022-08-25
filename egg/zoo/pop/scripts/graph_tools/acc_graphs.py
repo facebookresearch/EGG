@@ -257,7 +257,9 @@ def graph_collector(
     # get all available files
     # files = glob.glob(path + "/*.out")
     if get_wandb:
-        files += glob.glob(path + "/*/*/files/output.log")
+        files = glob.glob(path + "/*/*/files/output.log")
+    else:
+        files = glob.glob(path + "/*.out")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
