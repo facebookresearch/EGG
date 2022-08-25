@@ -64,7 +64,7 @@ def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is
 
     return last_loss
 
-def test_one_epoch(validation_loader, model, loss_fn, device="cuda", is_inception=False):
+def test_one_epoch(validation_loader, model, loss_fn, device="cuda"):
     with torch.no_grad():
         running_vloss = 0.0
         running_acc = 0.0
@@ -73,8 +73,6 @@ def test_one_epoch(validation_loader, model, loss_fn, device="cuda", is_inceptio
             vinputs = vinputs.to(device)
             vlabels = vlabels.to(device)
             voutputs = model(vinputs)
-            if is_inception:
-                voutputs = voutputs[1]
             vloss = loss_fn(voutputs, vlabels)
             running_vloss += vloss
             running_acc += (voutputs.argmax(1)==vlabels).sum().item()/vlabels.size(0)
@@ -139,7 +137,7 @@ if __name__ == "__main__":
         # We don't need gradients on to do reporting
         model.train(False)
         model.to("cpu") # to save memory... Probably extremely slow
-        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, "cpu", opts.model=="inception")
+        avg_vloss, avg_acc = test_one_epoch(validation_loader, model, loss_fn, "cpu")
 
         print('LOSS train {} valid {} v_acc {}'.format(avg_loss, avg_vloss, avg_acc))
 
