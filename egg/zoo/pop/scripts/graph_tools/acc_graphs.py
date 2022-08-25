@@ -308,7 +308,7 @@ def graph_collector(
                     else:
                         label = None
 
-                    x, y = text_to_acc(f, verbose=verbose, mode=mode)
+                    x, y = text_to_acc(open(file_path), verbose=verbose, mode=mode)
                 if len(x) > 0:
                     xs.append(x if epoch_limit is None else x[:epoch_limit])
                     ys.append(y if epoch_limit is None else y[:epoch_limit])
