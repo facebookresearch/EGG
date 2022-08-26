@@ -2,7 +2,7 @@
     "n_epochs": [
         25
     ],
-    "additional_sender": [
+    "additional_receiver": [
             "['vgg11']"
     ],
     "base_checkpoint_path": [
