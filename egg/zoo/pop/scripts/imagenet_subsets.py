@@ -124,7 +124,7 @@ if __name__ == "__main__":
     # writer = SummaryWriter('runs/fashion_trainer_{}'.format(timestamp))
     epoch_number = 0
 
-    EPOCHS = 5
+    EPOCHS = 500
 
     best_vloss = 1_000_000.
 
