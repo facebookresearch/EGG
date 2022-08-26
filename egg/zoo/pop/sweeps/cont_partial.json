@@ -3,10 +3,10 @@
         25
     ],
     "additional_sender": [
-            "['inception']"
+            "['dino']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/198677/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/198673/final.tar"
     ],
     "image_size": [
         384
