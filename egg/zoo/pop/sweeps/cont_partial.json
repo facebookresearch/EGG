@@ -3,10 +3,10 @@
         25
     ],
     "additional_receiver": [
-            "['vgg11']"
+            "['vit']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/198680/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/198679/final.tar"
     ],
     "image_size": [
         384
