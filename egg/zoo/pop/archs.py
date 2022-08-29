@@ -39,7 +39,7 @@ def get_model(name, pretrained, aux_logits=True):
         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False),
         "visformer":timm.create_model("visformer_small", pretrained=pretrained),
         "deit":timm.create_model("deit_base_patch16_384", pretrained=pretrained),
-        "beit":timm.create_model("beit_base_patch16_384", pretrained=pretrained),
+        "xcit":timm.create_model("xcit_large_24_p8_384_dist", pretrained=pretrained),
     }
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
