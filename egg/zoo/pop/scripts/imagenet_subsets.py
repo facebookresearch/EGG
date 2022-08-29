@@ -7,24 +7,25 @@ from datetime import datetime
 import timm
 from egg.zoo.pop.data import get_dataloader
 from pathlib import Path
-def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
-    print("initialize module", name)
-    # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
-    # It also reloads all of them every time we pick one !
-    modules = {
-        "resnet50": torchvision.models.resnet50(pretrained=pretrained),
-        "resnet101": torchvision.models.resnet101(pretrained=pretrained),
-        "resnet152": torchvision.models.resnet152(pretrained=pretrained),
-        "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=aux_logits
-        ),
-        "vgg11": torchvision.models.vgg11(pretrained=pretrained),
-        "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
-        "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
-        "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False)
-    }
+from egg.zoo.pop.archs import get_model
+# def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
+#     print("initialize module", name)
+#     # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
+#     # It also reloads all of them every time we pick one !
+#     modules = {
+#         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
+#         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
+#         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
+#         "inception": torchvision.models.inception_v3(
+#             pretrained=pretrained, aux_logits=aux_logits
+#         ),
+#         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
+#         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
+#         "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
+#         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False)
+#     }
 
-    return modules[name]
+#     return modules[name]
 
 def train_one_epoch(training_loader, model, optimizer, loss_fn,device="cuda", is_inception=False):
     running_loss = 0.
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     opts = parser.parse_args(sys.argv[1:])
     validation_loader, training_loader = get_dataloader(dataset_dir="/datasets/COLT/imagenet21k_resized" ,dataset_name="cifar100", batch_size=1, num_workers=1, seed=111, image_size=384)
 
-    model = initialize_vision_module(name=opts.model, pretrained=False)
+    model = get_model(name=opts.model, pretrained=False)
     model.to(opts.device)
 
     loss_fn = torch.nn.CrossEntropyLoss()
