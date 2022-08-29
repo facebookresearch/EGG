@@ -63,7 +63,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
             model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
 
-    elif name in ["vit","swin"] :
+    elif name in ["vit","swin","xcit","visformer","deit"]:
         n_features = model.head.in_features
         model.head = nn.Identity()
 
