@@ -33,10 +33,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['visformer','vit','beit', 'vit_deit','swin','dino']"
+        "['visformer','vit','beit', 'deit','swin']"
     ],
     "vision_model_names_senders": [
-        "['visformer','vit','beit', 'vit_deit','swin','dino']"
+        "['visformer','vit','beit', 'deit','swin']"
     ],
     "image_size": [
         384

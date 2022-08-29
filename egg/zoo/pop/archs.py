@@ -38,7 +38,7 @@ def get_model(name, pretrained, aux_logits=True):
         "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False),
         "visformer":timm.create_model("visformer_small", pretrained=pretrained),
-        "vit_deit":timm.create_model("vit_deit_base_patch16_384", pretrained=pretrained),
+        "deit":timm.create_model("deit_base_patch16_384", pretrained=pretrained),
         "beit":timm.create_model("beit_base_patch16_384", pretrained=pretrained),
     }
     if name not in modules:
