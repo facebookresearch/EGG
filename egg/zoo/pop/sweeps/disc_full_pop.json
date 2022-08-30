@@ -20,9 +20,6 @@
     "recv_hidden_dim": [
         2048
     ],
-    "recv_output_dim": [
-        512
-    ],
     "dataset_name": [
         "cifar100"
     ],
