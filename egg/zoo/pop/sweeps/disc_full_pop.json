@@ -1,0 +1,41 @@
+{
+    "n_epochs": [
+        25
+    ],
+    "batch_size": [
+        64
+    ],
+    "continuous_com": [
+        false
+    ],
+    "lr": [
+        0.0001
+    ],
+    "vocab_size": [
+        512
+    ],
+    "random_seed": [
+        111
+    ],
+    "recv_hidden_dim": [
+        2048
+    ],
+    "recv_output_dim": [
+        512
+    ],
+    "dataset_name": [
+        "cifar100"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "vision_model_names_recvs": [
+        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+    ],
+    "vision_model_names_senders": [
+        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+    ],
+    "image_size": [
+        384
+    ]
+}
