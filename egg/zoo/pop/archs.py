@@ -37,7 +37,7 @@ def get_model(name, pretrained, aux_logits=True):
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
         "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False),
-        "visformer":timm.create_model("visformer_small", pretrained=pretrained),
+        "twins_svt":timm.create_model("twins_svt_base", pretrained=pretrained),
         "deit":timm.create_model("deit_base_patch16_384", pretrained=pretrained),
         "xcit":timm.create_model("xcit_large_24_p8_384_dist", pretrained=pretrained),
     }
