@@ -5,7 +5,47 @@
     "remove_auxlogits": [
         false
     ],
+    "dataset": [
+        "inaturalist",
+        "gaussian_noise"
+    ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199164/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199128/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199129/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199130/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199131/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199132/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199133/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199134/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199135/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199136/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199137/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199138/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199139/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199140/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199141/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199142/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199143/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199144/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199145/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199146/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199147/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199148/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199149/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199150/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199151/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199152/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199153/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199154/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199155/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199156/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199157/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199158/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199159/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199160/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199161/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199162/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_2/199163/final.tar"
         ]
 }
