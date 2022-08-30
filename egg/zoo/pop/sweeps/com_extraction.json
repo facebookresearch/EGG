@@ -5,7 +5,7 @@
     "remove_auxlogits": [
         false
     ],
-    "dataset": [
+    "dataset_name": [
         "inaturalist",
         "gaussian_noise"
     ],
