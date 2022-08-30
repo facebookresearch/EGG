@@ -28,7 +28,7 @@ def main(params):
     f = open(path_to_parameters(_path, "wandb"))
     opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
     print(opts)
-    build_and_test_game(opts, exp_name=str(opts.augmentation_type) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs), dump_dir=opts.checkpoint_dir)
+    build_and_test_game(opts, exp_name=str(opts.dataset_name) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs), dump_dir=opts.checkpoint_dir)
 
 #
 def eval(

@@ -15,6 +15,8 @@ from torchvision import datasets, transforms
 from torchvision import transforms
 import numpy as np
 
+from pathlib import Path
+
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
 def seed_all(seed):
@@ -102,7 +104,7 @@ def get_dataloader(
         )
     elif dataset_name == "inaturalist":
         train_dataset = datasets.INaturalist(
-            root="./data", download=True, transform=transformations
+            root="./data" if not Path("./data").exists() else None, download=True, transform=transformations
         )
     elif dataset_name == "gaussian_noise":
         # Note : augmentations on gaussian noise make little sense, transformations are ignored
