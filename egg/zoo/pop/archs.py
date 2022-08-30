@@ -33,7 +33,10 @@ def get_model(name, pretrained, aux_logits=True):
         "inception": torchvision.models.inception_v3(
             pretrained=pretrained, aux_logits=aux_logits
         ),
+        "resnext": torchvision.models.resnext50_32x4d(pretrained=pretrained),
+        "mobilenet": torchvision.models.mobilenet_v3_large(pretrained=pretrained),
         "vgg11": torchvision.models.vgg11(pretrained=pretrained),
+        "densenet": torchvision.models.densenet161(pretrained=pretrained),
         "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
         "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
         "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False),
@@ -49,9 +52,17 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
     print("initialize module", name)
     model = get_model(name, pretrained, aux_logits)
 
-    if name in ["resnet50", "resnet101", "resnet152"]:
+    # TODO: instead of this I'd feel like using the dictionary structure further and including in_features
+
+    if name in ["resnet50", "resnet101", "resnet152", "resnext", ""]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
+    if name=="densenet":
+        n_features = model.classifier.in_features
+        model.classifier = nn.Identity()
+    if name == "mobilenet":
+        n_features = model.classifier[3].in_features
+        model.classifier[3] = nn.Identity()
 
     elif name == "vgg11":
         n_features = model.classifier[6].in_features

@@ -33,10 +33,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['twins_svt','vit','xcit', 'deit','swin']"
+        "['mobilenet','resnext','densenet', 'vgg11','inception','resnet152']"
     ],
     "vision_model_names_senders": [
-        "['twins_svt','vit','xcit', 'deit','swin']"
+        "['mobilenet','resnext','densenet', 'vgg11','inception','resnet152']"
     ],
     "image_size": [
         384
