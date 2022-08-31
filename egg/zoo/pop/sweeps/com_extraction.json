@@ -6,7 +6,6 @@
         false
     ],
     "dataset_name": [
-        "inaturalist",
         "gaussian_noise"
     ],
     "base_checkpoint_path": [
