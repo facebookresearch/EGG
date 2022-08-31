@@ -104,7 +104,7 @@ def get_dataloader(
         )
     elif dataset_name == "inaturalist":
         train_dataset = datasets.INaturalist(
-            root="./data" if not Path("./data").exists() else None, download=True, transform=transformations
+            root="./data", download=True, transform=transformations
         )
     elif dataset_name == "gaussian_noise":
         # Note : augmentations on gaussian noise make little sense, transformations are ignored
