@@ -4,6 +4,7 @@ import itertools as it
 import sys
 from pathlib import Path
 import argparse
+from time import sleep
 
 default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
 
@@ -82,6 +83,7 @@ def sweep_params(opts):
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
             _return = os.system(f"sbatch {sbatch_file}")
+            sleep(1)
             
 def prep_checkpointdir(params, keys):
     """
