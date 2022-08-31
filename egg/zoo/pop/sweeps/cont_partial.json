@@ -3,10 +3,16 @@
         25
     ],
     "additional_receiver": [
-            "['dino']"
+        "['vit']",
+        "['inception']",
+        "['resnet152']",
+        "['vgg11']",
+        "['dino']",
+        "['swin']" 
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_fuller_partial/198673/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198638/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198636/final.tar"
     ],
     "image_size": [
         384
