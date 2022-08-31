@@ -6,7 +6,7 @@
         false
     ],
     "dataset_name": [
-        "gaussian_noise"
+        "inaturalist"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/final.tar",
