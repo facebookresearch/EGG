@@ -2,7 +2,7 @@
     "n_epochs": [
         25
     ],
-    "additional_receiver": [
+    "additional_sender": [
         "['vit']",
         "['inception']",
         "['resnet152']",
