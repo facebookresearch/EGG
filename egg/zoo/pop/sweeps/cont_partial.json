@@ -11,8 +11,8 @@
         "['swin']" 
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198638/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198636/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198629/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198634/final.tar"
     ],
     "image_size": [
         384
