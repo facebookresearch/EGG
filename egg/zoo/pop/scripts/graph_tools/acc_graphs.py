@@ -265,10 +265,9 @@ def graph_collector(
 
     # select desired files
     for file_path in files:
-        is_nest_data = file_path[-4:] == ".out"
         if os.path.exists(file_path):
             if check_constraints(
-                file_path if is_nest_data else file_path[:-10] + "wandb-metadata.json",
+                file_path if not get_wandb else file_path[:-10] + "wandb-metadata.json",
                 names,
                 values,
                 verbose,
@@ -284,7 +283,7 @@ def graph_collector(
                         print(file_path)
                     params = metadata_opener(
                         f,
-                        "nest" if is_nest_data else "wandb",
+                        "nest" if not get_wandb else "wandb",
                         verbose=verbose,
                     )
 
