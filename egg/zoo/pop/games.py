@@ -30,6 +30,7 @@ def loss(
     acc = (receiver_output.argmax(dim=1) == labels).detach().float()
     loss = F.cross_entropy(receiver_output, labels, reduction="none")
     return loss, {"acc": acc}
+    # here add a secondary loss
 
 def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
     if vision_model_names_senders is None:
