@@ -427,6 +427,6 @@ class PopulationGame(nn.Module):
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
-        mean_loss = mean_loss + torch.F.cosine_similarity(interactions.message, aux_sender(interactions.messages))
+        # mean_loss = mean_loss + torch.F.cosine_similarity(interactions.message, aux_sender(interactions.messages))
 
         return mean_loss, interactions  # sent to cpu in trainer
