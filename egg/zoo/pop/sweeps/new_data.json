@@ -11,6 +11,10 @@
     "continuous_com": [
         true
     ],
+    "checkpoint_dir":
+    [
+        "homedtcl/ffranzon/scripts"
+    ],
     "non_linearity": [
         "sigmoid"
     ],
@@ -33,10 +37,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['mobilenet','resnext','densenet', 'vgg11','inception','resnet152']"
+        "['resnet152']"
     ],
     "vision_model_names_senders": [
-        "['twins_svt','vit','xcit', 'deit','swin','dino']"
+        "['dino']"
     ],
     "image_size": [
         384
