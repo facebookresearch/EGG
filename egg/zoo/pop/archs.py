@@ -413,7 +413,7 @@ class PopulationGame(nn.Module):
     def forward(self, *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
-        aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
+        #aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
 
         # creating an aux_input
         args = list(args)
@@ -421,12 +421,12 @@ class PopulationGame(nn.Module):
             "sender_idx": sender_idx,
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
-            "aux_sender_idx": aux_idxs[0],
+        #    "aux_sender_idx": aux_idxs[0],
         }
 
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
-        # mean_loss = mean_loss + torch.F.cosine_similarity(interactions.message, aux_sender(interactions.messages))
+        mean_loss = mean_loss + torch.F.cosine_similarity(interactions.message, aux_sender(interactions.messages))
 
         return mean_loss, interactions  # sent to cpu in trainer
