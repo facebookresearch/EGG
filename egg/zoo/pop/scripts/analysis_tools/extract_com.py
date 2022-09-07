@@ -32,7 +32,7 @@ def main(params):
 
 #
 def eval(
-    sender, receiver, loss, game, data=None, aux_input=None, gs=True, batch_size=64
+    sender, receiver, loss, game, data=None, aux_input=None, gs=True, batch_size=64, device="cuda"
 ):
     """
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
@@ -48,7 +48,7 @@ def eval(
             aux_input["batch_number"] = (
                 torch.range(0, batch_size - 1, 1, dtype=torch.int32) + batch_size * n_batches
             )
-            batch = batch.to("cuda")
+            batch = batch.to(device)
 
             _, interaction = game(
                 sender,
@@ -62,10 +62,12 @@ def eval(
             interaction = interaction.to("cpu")
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
-            game.to("cpu")
-            interactions.append(interaction)
+                interactions.append(interaction)
+                n_batches += 1
+    game.to("cpu")
+            
 
-            n_batches += 1
+            
 
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
@@ -110,8 +112,8 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     ) in pop_game.agents_loss_sampler.available_indexes:
         # run inference
         # I feel like this is sort of evil and if it was not python I would definently not get away with this sort of meddling with inner parameters from outside
-        sender = pop_game.agents_loss_sampler.senders[sender_idx]
-        receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
+        sender = pop_game.agents_loss_sampler.senders[sender_idx].to(device)
+        receiver = pop_game.agents_loss_sampler.receivers[recv_idx].to(device)
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
         aux_input = {
             "sender_idx": torch.Tensor([sender_idx] * opts.batch_size).int(),
@@ -135,14 +137,15 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
-                sender.to(device),
-                receiver.to(device),
+                sender,
+                receiver,
                 loss,
                 pop_game.game,
                 train_loader,
                 aux_input,
                 not opts.continuous_com,
                 opts.batch_size,
+                device,
             )
         )
 
