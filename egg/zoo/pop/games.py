@@ -30,7 +30,21 @@ def loss(
     acc = (receiver_output.argmax(dim=1) == labels).detach().float()
     loss = F.cross_entropy(receiver_output, labels, reduction="none")
     return loss, {"acc": acc}
-    # here add a secondary loss
+    
+# def similarity_loss(
+#     _sender_input,
+#     message,
+#     _receiver_input,
+#     _receiver_output,
+#     _labels,
+#     _aux_input,
+#  ):
+#     """
+#     auxiliary loss to encourage the sender to send a message that is similar to the one from a random other sender
+#     """
+#     other_message = 
+#     F.cosine_similarity(message, other_message)
+
 
 def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
     if vision_model_names_senders is None:
@@ -140,7 +154,7 @@ def build_game(opts):
         noisy=opts.noisy_channel,
     )
 
-    game = PopulationGame(game, agents_loss_sampler)
+    game = PopulationGame(game, agents_loss_sampler, auxiliary_loss=opts.auxiliary_loss)
 
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)

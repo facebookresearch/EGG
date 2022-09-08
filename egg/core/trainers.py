@@ -155,9 +155,7 @@ class Trainer:
             # NB: some optimizers pre-allocate buffers before actually doing any steps
             # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
             # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
-            self.optimizer.state = move_to(
-                self.optimizer.state, self.device
-            )  # TODO : examine whether it should (and can) be on GPU
+            self.optimizer.state = move_to(self.optimizer.state, self.device)
 
         if common_opts.fp16:
             self.scaler = GradScaler()
@@ -227,10 +225,9 @@ class Trainer:
             else:
                 optimized_loss.backward()
 
-            self.game.to(
-                "cpu"
-            )  # chosen sender and receiver where put on gpu during forward call. bring them back.
-
+            # chosen sender and receiver where put on gpu during forward call. This brings everything back to leave room for next pair.
+            self.game.to("cpu")  
+            
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)

@@ -230,6 +230,12 @@ def get_game_arch_opts(parser):
         action="store_true",
         help="blocks the communication layer from being used in the continuous sender and receiver (TODO, discrete sender). Used as baseline.",
     )
+    group.add_argument(
+        "--auxiliary_loss",
+        default=0.0,
+        type=float,
+        help="weight of the auxiliary loss (default: 0.0)"
+    )
 
 
 def get_common_opts(params):

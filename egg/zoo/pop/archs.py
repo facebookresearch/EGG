@@ -382,6 +382,7 @@ class Game(nn.Module):
             labels,
             aux_input,
         )
+        # if required, calculate auxiliary loss here ?
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
         )
@@ -402,12 +403,13 @@ class Game(nn.Module):
 
 
 class PopulationGame(nn.Module):
-    def __init__(self, game, agents_loss_sampler):
+    def __init__(self, game, agents_loss_sampler, auxiliary_loss=0):
         super().__init__()
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
-        # TODO : Mat : this should be in sync with whatever the opts selected
+        self.auxiliary_loss = auxiliary_loss
+        # TODO : Mat : this should be in sync with distributed training
         self.device = "cuda"
 
     def forward(self, *args, **kwargs):
@@ -424,11 +426,13 @@ class PopulationGame(nn.Module):
             # "aux_sender_idx": aux_idxs[0],
         }
         # add the aux_loss to the args
-        loss_strength = 0.5
+
         mean_loss, interactions = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
-        # aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender(interactions.messages))
-        # mean_loss = mean_loss + loss_strength * aux_loss
-        # print(mean_loss, aux_loss, aux_loss.shape)
+        if self.auxiliary_loss > 0:
+            #args.append(aux_loss)
+            aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender(interactions.messages))
+            mean_loss = mean_loss + self.auxiliary_loss * aux_loss
+            print(mean_loss, aux_loss, aux_loss.shape)
         return mean_loss, interactions  # sent to cpu in trainer
