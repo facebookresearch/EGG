@@ -62,8 +62,8 @@ def eval(
             interaction = interaction.to("cpu")
             if gs:
                 interaction.message = interaction.message.argmax(dim=-1)
-                interactions.append(interaction)
-                n_batches += 1
+            interactions.append(interaction)
+            n_batches += 1
     game.to("cpu")
             
 
