@@ -100,7 +100,6 @@ def main(params):
         train_data=train_loader,
         validation_data=val_loader,
         callbacks=callbacks,
-        device="cpu",  # individual senders and receivers are sent to gpu in the game's forward
     )
     trainer.train(n_epochs=opts.n_epochs)
 

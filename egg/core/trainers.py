@@ -80,6 +80,7 @@ class Trainer:
         self.aggregate_interaction_logs = aggregate_interaction_logs
 
         self.update_freq = common_opts.update_freq
+        self.gpu_mem_optim = False
 
         if common_opts.load_from_checkpoint is not None:
             print(
@@ -151,7 +152,16 @@ class Trainer:
             self.optimizer.state = move_to(self.optimizer.state, device_id)
 
         else:
-            self.game.to(self.device)
+            # When going multi-agent, there is not enough room to store all the gradients on a single GPU
+            # in that case, we load only the required senders on the GPU
+            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) > 2:
+
+                self.game.to("cpu")
+                print("WARNING: moving models that are not training to cpu as there are too many to fit in GPU memory. This will result in slower training.")
+                pass # TODO: implement this
+            else :
+                self.game.to(self.device)
+                self.gpu_mem_optim = True
             # NB: some optimizers pre-allocate buffers before actually doing any steps
             # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
             # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
@@ -183,7 +193,8 @@ class Trainer:
                     )
                 interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
-                self.game.to("cpu")
+                if self.gpu_mem_optim:
+                    self.game.to("cpu")
                 for callback in self.callbacks:
                     callback.on_batch_end(
                         interaction, optimized_loss, n_batches, is_training=False
@@ -209,7 +220,7 @@ class Trainer:
         for batch_id, batch in enumerate(self.train_data):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
-            batch = batch.to("cuda")  # TODO : use self.device)
+            batch = batch.to(self.device)
 
             context = autocast() if self.scaler else nullcontext()
             with context:
@@ -224,9 +235,9 @@ class Trainer:
                 self.scaler.scale(optimized_loss).backward()
             else:
                 optimized_loss.backward()
-
-            # chosen sender and receiver where put on gpu during forward call. This brings everything back to leave room for next pair.
-            self.game.to("cpu")  
+            if self.gpu_mem_optim:
+                # chosen sender and receiver where put on gpu during forward call. This brings everything back to leave room for next pair.
+                self.game.to("cpu")  
             
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.scaler:
