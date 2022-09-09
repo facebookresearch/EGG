@@ -96,7 +96,7 @@ def prep_checkpointdir(params, keys):
 
 def build_command(game, params, keys, n_gpus=1):
     if n_gpus >1:
-        command = f"python -m torch.distributed.launch --nproc_per_node={n_gpus} {game}"
+        command = f"python -m torch.distributed.launch --nproc_per_node={n_gpus} {game} "
     else:
         command=f"python {game} "
     for i, key in enumerate(keys):
