@@ -18,20 +18,7 @@ from egg.zoo.pop.scripts.analysis_tools.test_game import add_noise
 
 from collections.abc import Mapping
 
-# to make sure not all models are loaded when only few are used
-class LazyDict(Mapping):
-    def __init__(self, *args, **kw):
-        self._raw_dict = dict(*args, **kw)
 
-    def __getitem__(self, key):
-        func, arg = self._raw_dict.__getitem__(key)
-        return func(arg)
-
-    def __iter__(self):
-        return iter(self._raw_dict)
-
-    def __len__(self):
-        return len(self._raw_dict)
 
 def get_non_linearity(name):
     if name == "softmax":
@@ -40,29 +27,26 @@ def get_non_linearity(name):
         return nn.Sigmoid
 
 def get_model(name, pretrained, aux_logits=True):
-    # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
-    # It also reloads all of them every time we pick one !
-    modules = LazyDict({
-        "resnet50": torchvision.models.resnet50(pretrained=pretrained),
-        "resnet101": torchvision.models.resnet101(pretrained=pretrained),
-        "resnet152": torchvision.models.resnet152(pretrained=pretrained),
-        "inception": torchvision.models.inception_v3(
-            pretrained=pretrained, aux_logits=aux_logits
-        ),
-        "resnext": torchvision.models.resnext50_32x4d(pretrained=pretrained),
-        "mobilenet": torchvision.models.mobilenet_v3_large(pretrained=pretrained),
-        "vgg11": torchvision.models.vgg11(pretrained=pretrained),
-        "densenet": torchvision.models.densenet161(pretrained=pretrained),
-        "vit": timm.create_model("vit_base_patch16_384", pretrained=pretrained),
-        "swin":timm.create_model("swin_base_patch4_window12_384", pretrained=pretrained),
-        "dino":torch.hub.load('facebookresearch/dino:main', 'dino_vits16',verbose=False),
-        "twins_svt":timm.create_model("twins_svt_base", pretrained=pretrained),
-        "deit":timm.create_model("deit_base_patch16_384", pretrained=pretrained),
-        "xcit":timm.create_model("xcit_large_24_p8_384_dist", pretrained=pretrained),
-    })
+    modules = {
+        "resnet50": (torchvision.models.resnet50, {"pretrained":pretrained}),
+        "resnet101": (torchvision.models.resnet101, {"pretrained":pretrained}),
+        "resnet152": (torchvision.models.resnet152, {"pretrained":pretrained}),
+        "inception": (torchvision.models.inception_v3, {"pretrained":pretrained, "aux_logits":aux_logits}),
+        "resnext": (torchvision.models.resnext50_32x4d, {"pretrained":pretrained}),
+        "mobilenet": (torchvision.models.mobilenet_v3_large, {"pretrained":pretrained}),
+        "vgg11": (torchvision.models.vgg11, {"pretrained":pretrained}),
+        "densenet": (torchvision.models.densenet161, {"pretrained":pretrained}),
+        "vit": (timm.create_model, {"model_name":"vit_base_patch16_384", "pretrained":pretrained}),
+        "swin":(timm.create_model, {"model_name":"swin_base_patch4_window12_384", "pretrained":pretrained}),
+        "dino":(torch.hub.load, {"repo_or_dir":'facebookresearch/dino:main', "model":'dino_vits16',"verbose":False}),
+        "twins_svt":(timm.create_model, {"model_name":"twins_svt_base", "pretrained":pretrained}),
+        "deit":(timm.create_model, {"model_name":"deit_base_patch16_384", "pretrained":pretrained}),
+        "xcit":(timm.create_model, {"model_name":"xcit_large_24_p8_384_dist", "pretrained":pretrained}),
+    }
+
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
-    return modules[name]
+    return modules[name][0](**modules[name][1])
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
     print("initialize module", name)
@@ -70,7 +54,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
 
     # TODO: instead of this I'd feel like using the dictionary structure further and including in_features
 
-    if name in ["resnet50", "resnet101", "resnet152", "resnext", ""]:
+    if name in ["resnet50", "resnet101", "resnet152", "resnext"]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
     if name=="densenet":
