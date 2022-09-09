@@ -60,7 +60,7 @@ def get_opts(arguments):
     arg_parser.add_argument(
         "--game",
         type=str,
-        default="egg.zoo.pop.scripts.analysis_tools.extract_com",
+        default="./egg/zoo/pop/scripts/analysis_tools/extract_com.py",
         help="python module path to the game to run",
     )
 
@@ -78,7 +78,7 @@ def sweep_params(opts):
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
-            command=build_command(opts.game, values, params.keys())
+            command=build_command(opts.game, values, params.keys(),opts.n_gpus >1)
             write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
@@ -94,8 +94,11 @@ def prep_checkpointdir(params, keys):
     job_id = os.environ["SLURM_JOB_ID"]
     return [param if keys[i] != "checkpoint_dir" else param / job_id for i,param in enumerate(params)]
 
-def build_command(game, params, keys):
-    command=f"python -m {game} "
+def build_command(game, params, keys, is_distributed=False):
+    if is_distributed:
+        command = f"python -m torch.distributed.launch --nproc_per_node={params.n_gpus} {game}"
+    else:
+        command=f"python {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
             command += f"--{key}=\"{params[i]}\" "
