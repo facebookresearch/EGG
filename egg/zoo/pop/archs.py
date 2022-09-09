@@ -415,7 +415,6 @@ class PopulationGame(nn.Module):
     def forward(self, *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
         sender_idx, recv_idx, loss_idx = idxs
-        # aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
 
         # creating an aux_input
         args = list(args)
@@ -423,7 +422,6 @@ class PopulationGame(nn.Module):
             "sender_idx": sender_idx,
             "recv_idx": recv_idx,
             "loss_idx": loss_idx,
-            # "aux_sender_idx": aux_idxs[0],
         }
         # add the aux_loss to the args
 
@@ -431,7 +429,8 @@ class PopulationGame(nn.Module):
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
         if self.auxiliary_loss > 0:
-            #args.append(aux_loss)
+            aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
+            args[-1]["aux_sender_idx"] = aux_idxs[0]
             aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender(interactions.messages))
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
             print(mean_loss, aux_loss, aux_loss.shape)
