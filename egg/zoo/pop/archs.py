@@ -432,7 +432,7 @@ class PopulationGame(nn.Module):
         if self.auxiliary_loss > 0:
             aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
             args[-1]["aux_sender_idx"] = aux_idxs[0]
-            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender.to(self.device)(args[0],args[-1]).detach())
+            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender.to(self.device)(args[0],args[-1]).detach()).mean()
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
             print(mean_loss, aux_loss, aux_loss.shape)
 
