@@ -392,7 +392,7 @@ class Game(nn.Module):
             labels=labels,
             aux_input=aux_input,
             receiver_output=receiver_output,
-            message=message.detach(),
+            message=message, # message kept attached for auxiliary loss. Detached later. 
             message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
@@ -403,14 +403,14 @@ class Game(nn.Module):
 
 
 class PopulationGame(nn.Module):
-    def __init__(self, game, agents_loss_sampler, auxiliary_loss=0):
+    def __init__(self, game, agents_loss_sampler, device="cuda", auxiliary_loss=0):
         super().__init__()
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
         self.auxiliary_loss = auxiliary_loss
         # TODO : Mat : this should be in sync with distributed training
-        self.device = "cuda"
+        self.device = device
 
     def forward(self, *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
@@ -431,7 +431,10 @@ class PopulationGame(nn.Module):
         if self.auxiliary_loss > 0:
             aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
             args[-1]["aux_sender_idx"] = aux_idxs[0]
-            aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender(interactions.messages))
+            aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender.to(self.device)(args[3],args[-1]).detach())
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
             print(mean_loss, aux_loss, aux_loss.shape)
-        return mean_loss, interactions  # sent to cpu in trainer
+
+        # detaching message which remained attached for auxiliary loss
+        interactions.message = interactions.message.detach()
+        return mean_loss, interactions  # sent back to cpu in trainer
