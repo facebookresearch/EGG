@@ -135,8 +135,8 @@ class Trainer:
                 self.game.to(device_id)
             else:
                 self.gpu_mem_optim = True
-                self.game.force_set_device(self.device)
-            device = device_id
+                self.game.force_set_device(self.device_id)
+            self.device = device_id
 
             # NB: here we are doing something that is a bit shady:
             # 1/ optimizer was created outside of the Trainer instance, so we don't really know
