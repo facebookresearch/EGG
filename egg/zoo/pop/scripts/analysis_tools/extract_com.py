@@ -50,7 +50,7 @@ def eval(
             )
             batch = batch.to(device)
 
-            _, interaction = game(
+            _, interaction, _ = game(
                 sender,
                 receiver,
                 loss,

@@ -392,14 +392,15 @@ class Game(nn.Module):
             labels=labels,
             aux_input=aux_input,
             receiver_output=receiver_output,
-            message=message, # message kept attached for auxiliary loss. Detached later. 
+            message=message.detach(), 
             message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
         # if not self.training:
         # sender.to("cpu")
         # receiver.to("cpu")
-        return loss.mean(), interaction
+
+        return loss.mean(), interaction, message
 
 
 class PopulationGame(nn.Module):
@@ -425,16 +426,14 @@ class PopulationGame(nn.Module):
         }
         # add the aux_loss to the args
 
-        mean_loss, interactions = self.game(
+        mean_loss, interactions, msg = self.game(
             sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
         )
         if self.auxiliary_loss > 0:
             aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
             args[-1]["aux_sender_idx"] = aux_idxs[0]
-            aux_loss = torch.nn.functional.cosine_similarity(interactions.message, aux_sender.to(self.device)(args[0],args[-1]).detach())
+            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender.to(self.device)(args[0],args[-1]).detach())
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
             print(mean_loss, aux_loss, aux_loss.shape)
 
-        # detaching message which remained attached for auxiliary loss
-        interactions.message = interactions.message.detach()
         return mean_loss, interactions  # sent back to cpu in trainer
