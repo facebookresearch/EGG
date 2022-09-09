@@ -16,6 +16,22 @@ from egg.core.interaction import LoggingStrategy
 from egg.core.gs_wrappers import gumbel_softmax_sample
 from egg.zoo.pop.scripts.analysis_tools.test_game import add_noise
 
+from collections.abc import Mapping
+
+# to make sure not all models are loaded when only few are used
+class LazyDict(Mapping):
+    def __init__(self, *args, **kw):
+        self._raw_dict = dict(*args, **kw)
+
+    def __getitem__(self, key):
+        func, arg = self._raw_dict.__getitem__(key)
+        return func(arg)
+
+    def __iter__(self):
+        return iter(self._raw_dict)
+
+    def __len__(self):
+        return len(self._raw_dict)
 
 def get_non_linearity(name):
     if name == "softmax":
@@ -26,7 +42,7 @@ def get_non_linearity(name):
 def get_model(name, pretrained, aux_logits=True):
     # TODO : Matéo this could use some lazyloading instead of loading them all even if they're not being used
     # It also reloads all of them every time we pick one !
-    modules = {
+    modules = LazyDict({
         "resnet50": torchvision.models.resnet50(pretrained=pretrained),
         "resnet101": torchvision.models.resnet101(pretrained=pretrained),
         "resnet152": torchvision.models.resnet152(pretrained=pretrained),
@@ -43,7 +59,7 @@ def get_model(name, pretrained, aux_logits=True):
         "twins_svt":timm.create_model("twins_svt_base", pretrained=pretrained),
         "deit":timm.create_model("deit_base_patch16_384", pretrained=pretrained),
         "xcit":timm.create_model("xcit_large_24_p8_384_dist", pretrained=pretrained),
-    }
+    })
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
     return modules[name]
