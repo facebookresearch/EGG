@@ -155,7 +155,6 @@ class Trainer:
                 find_unused_parameters=True,
             )
             self.optimizer.state = move_to(self.optimizer.state, device_id)
-            print("all clear")
 
         else:
             # When going multi-agent, there is not enough room to store all the gradients on a single GPU
