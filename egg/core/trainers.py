@@ -131,7 +131,12 @@ class Trainer:
         if self.distributed_context.is_distributed:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
-            self.game.to(device_id)
+            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) > 2:
+                self.game.to(device_id)
+            else:
+                self.gpu_mem_optim = True
+                self.game.force_set_device(self.device)
+            device = device_id
 
             # NB: here we are doing something that is a bit shady:
             # 1/ optimizer was created outside of the Trainer instance, so we don't really know
@@ -154,13 +159,10 @@ class Trainer:
         else:
             # When going multi-agent, there is not enough room to store all the gradients on a single GPU
             # in that case, we load only the required senders on the GPU
-            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) > 2:
-
-                self.game.to("cpu")
-                print("WARNING: moving models that are not training to cpu as there are too many to fit in GPU memory. This will result in slower training.")
-                pass # TODO: implement this
-            else :
+            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
                 self.game.to(self.device)
+            else:
+                self.game.force_set_device(self.device)
                 self.gpu_mem_optim = True
             # NB: some optimizers pre-allocate buffers before actually doing any steps
             # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
@@ -182,7 +184,7 @@ class Trainer:
             for batch in validation_data:
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
-                batch = batch.to("cuda")
+                batch = batch.to(self.device)
                 optimized_loss, interaction = self.game(*batch)
                 if (
                     self.distributed_context.is_distributed

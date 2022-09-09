@@ -412,6 +412,12 @@ class PopulationGame(nn.Module):
         self.auxiliary_loss = auxiliary_loss
         # TODO : Mat : this should be in sync with distributed training
         self.device = device
+        self.force_gpu_use = False
+
+    def force_set_device(self, device):
+        self.device = device
+        self.force_gpu_use = True
+        
 
     def forward(self, *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
@@ -426,13 +432,18 @@ class PopulationGame(nn.Module):
         }
         # add the aux_loss to the args
 
+        if self.force_gpu_use:
+            sender = sender.to(self.device)
+            receiver = receiver.to(self.device)
+            aux_sender = aux_sender.to(self.device)
+
         mean_loss, interactions, msg = self.game(
-            sender.to(self.device), receiver.to(self.device), loss, *args, **kwargs
+            sender, receiver, loss, *args, **kwargs
         )
         if self.auxiliary_loss > 0:
             aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
             args[-1]["aux_sender_idx"] = aux_idxs[0]
-            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender.to(self.device)(args[0],args[-1]).detach()).mean()
+            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender(args[0],args[-1]).detach()).mean()
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
             print(mean_loss, aux_loss, aux_loss.shape)
 
