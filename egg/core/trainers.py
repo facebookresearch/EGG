@@ -133,6 +133,7 @@ class Trainer:
             torch.cuda.set_device(device_id)
             print(f"# Using device {device_id}")
             self.device = self.device + ":" + str(device_id)
+            print(f"# Using device {self.device}")
             if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
                 self.game.to(self.device)
             else:
