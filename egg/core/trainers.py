@@ -156,6 +156,7 @@ class Trainer:
                 find_unused_parameters=True,
             )
             self.optimizer.state = move_to(self.optimizer.state, device_id)
+            print("# Optimizer state moved to device")
 
         else:
             # When going multi-agent, there is not enough room to store all the gradients on a single GPU
@@ -174,6 +175,7 @@ class Trainer:
             self.scaler = GradScaler()
         else:
             self.scaler = None
+        print("# Trainer initialization done")
 
     def eval(self, data=None):
         mean_loss = 0.0
@@ -266,7 +268,6 @@ class Trainer:
             ):
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to("cpu")
-
             for callback in self.callbacks:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
