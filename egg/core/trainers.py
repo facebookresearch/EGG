@@ -148,7 +148,7 @@ class Trainer:
             #    forward/backward calls, however, would happen on the DistributedDataParallel wrapper.
             #    This wrapper would sync gradients of the underlying tensors - which are the ones that optimizer
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
-
+            print("# Wrapping game into DistributedDataParallel")
             self.game = torch.nn.parallel.DistributedDataParallel(
                 self.game,
                 device_ids=[device_id],
