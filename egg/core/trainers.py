@@ -131,6 +131,7 @@ class Trainer:
         if self.distributed_context.is_distributed:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
+            print(f"# Using device {device_id}")
             if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
                 self.game.to(device_id)
             else:

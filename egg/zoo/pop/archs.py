@@ -49,9 +49,8 @@ def get_model(name, pretrained, aux_logits=True):
     return modules[name][0](**modules[name][1])
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
-    print("initialize module", name)
+    print("initialize module", name, torch.cuda.device())
     model = get_model(name, pretrained, aux_logits)
-
     # TODO: instead of this I'd feel like using the dictionary structure further and including in_features
 
     if name in ["resnet50", "resnet101", "resnet152", "resnext"]:
@@ -445,6 +444,6 @@ class PopulationGame(nn.Module):
             args[-1]["aux_sender_idx"] = aux_idxs[0]
             aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender(args[0],args[-1]).detach()).mean()
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss
-            print(mean_loss, aux_loss, aux_loss.shape)
+            # print(mean_loss, aux_loss, aux_loss.shape)
 
         return mean_loss, interactions  # sent back to cpu in trainer
