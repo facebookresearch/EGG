@@ -434,7 +434,8 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
-            aux_sender = aux_sender.to(self.device)
+            if self.auxiliary_loss > 0:
+                aux_sender = aux_sender.to(self.device)
 
         mean_loss, interactions, msg = self.game(
             sender, receiver, loss, *args, **kwargs
