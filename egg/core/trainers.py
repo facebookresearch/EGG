@@ -152,8 +152,8 @@ class Trainer:
             print("# Wrapping game into DistributedDataParallel")
             self.game = torch.nn.parallel.DistributedDataParallel(
                 self.game,
-                device_ids=[device_id],
-                output_device=device_id,
+                device_ids=[self.device],
+                output_device=self.device,
                 find_unused_parameters=True,
             )
             print("# DistributedDataParallel initialized")
