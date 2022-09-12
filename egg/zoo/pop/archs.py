@@ -432,6 +432,7 @@ class PopulationGame(nn.Module):
         # add the aux_loss to the args
 
         if self.force_gpu_use:
+            print("Forcing GPU use")
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
             if self.auxiliary_loss > 0:
