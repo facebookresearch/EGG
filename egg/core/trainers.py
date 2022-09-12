@@ -132,12 +132,12 @@ class Trainer:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
             print(f"# Using device {device_id}")
+            self.device = self.device + ":" + device_id
             if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
-                self.game.to(device_id)
+                self.game.to(self.device)
             else:
                 self.gpu_mem_optim = True
-                self.game.force_set_device(self.device_id)
-            self.device = device_id
+                self.game.force_set_device(self.device)
 
             # NB: here we are doing something that is a bit shady:
             # 1/ optimizer was created outside of the Trainer instance, so we don't really know
@@ -290,6 +290,7 @@ class Trainer:
         return mean_loss.item(), full_interaction
 
     def train(self, n_epochs):
+        print("Starting training")
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
