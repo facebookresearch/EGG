@@ -155,6 +155,7 @@ class Trainer:
                 output_device=device_id,
                 find_unused_parameters=True,
             )
+            print("# DistributedDataParallel initialized")
             self.optimizer.state = move_to(self.optimizer.state, device_id)
             print("# Optimizer state moved to device")
 
