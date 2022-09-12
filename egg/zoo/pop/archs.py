@@ -49,7 +49,7 @@ def get_model(name, pretrained, aux_logits=True):
     return modules[name][0](**modules[name][1])
 
 def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
-    print("initialize module", name, torch.cuda.device())
+    print("initialize module", name)
     model = get_model(name, pretrained, aux_logits)
     # TODO: instead of this I'd feel like using the dictionary structure further and including in_features
 
