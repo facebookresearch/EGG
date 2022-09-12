@@ -149,12 +149,12 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             )
         )
 
-    # save data
-    dump_interactions(
-        Interaction.from_iterable(interactions),
-        exp_name if exp_name is not None else "%j_interactions",
-        dump_dir,
-    )
+        # save data
+        dump_interactions(
+            Interaction.from_iterable(interactions),
+            exp_name if exp_name is not None else "%j_interactions",
+            dump_dir,
+        )
 
 
 # check same message gives same image
