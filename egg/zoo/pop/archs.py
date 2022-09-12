@@ -435,14 +435,14 @@ class PopulationGame(nn.Module):
             print("Forcing GPU use")
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
-            if self.auxiliary_loss > 0:
-                aux_sender = aux_sender.to(self.device)
-
+            # if aux_loss, aux sender is moved during auxiliary loss calculation                 
         mean_loss, interactions, msg = self.game(
             sender, receiver, loss, *args, **kwargs
         )
         if self.auxiliary_loss > 0:
             aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
+            if self.force_gpu_use:
+                aux_sender = aux_sender.to(self.device)
             args[-1]["aux_sender_idx"] = aux_idxs[0]
             aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender(args[0],args[-1]).detach())
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss.mean()
