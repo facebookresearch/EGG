@@ -446,6 +446,6 @@ class PopulationGame(nn.Module):
             args[-1]["aux_sender_idx"] = aux_idxs[0]
             aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender(args[0],args[-1]).detach())
             mean_loss = mean_loss + self.auxiliary_loss * aux_loss.mean()
-            print(mean_loss, aux_loss, aux_loss.shape)
+            print(mean_loss, aux_loss, aux_loss.shape, args[-1])
 
         return mean_loss, interactions  # sent back to cpu in trainer
