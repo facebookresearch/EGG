@@ -11,7 +11,6 @@
         "gaussian_noise"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_send_rec_dif/202778/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_cnnpop/202461/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/disc_fuller_pop/202915/final.tar"
         ]
 }
