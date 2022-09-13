@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        10
     ],
     "batch_size": [
         64
@@ -27,7 +27,7 @@
         "cifar100"
     ],
     "auxiliary_loss":[
-        0.1,0.25,0.5,0.75
+        0
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"
@@ -36,10 +36,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+        "['twins_svt', 'vit', 'xcit', 'deit', 'swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+        "['twins_svt', 'vit', 'xcit', 'deit', 'swin']"
     ],
     "image_size": [
         384
