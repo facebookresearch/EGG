@@ -27,7 +27,7 @@
         "cifar100"
     ],
     "auxiliary_loss":[
-        1, 2, 5, 10
+        0.1,0.25,0.5,0.75
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"

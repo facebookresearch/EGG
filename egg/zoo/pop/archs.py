@@ -432,7 +432,6 @@ class PopulationGame(nn.Module):
         # add the aux_loss to the args
 
         if self.force_gpu_use:
-            print("Forcing GPU use")
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
             # if aux_loss, aux sender is moved during auxiliary loss calculation                 
