@@ -418,7 +418,7 @@ class PopulationGame(nn.Module):
                 self.best_sender_idx = None
                 self.best_loss = 2**63-1
             elif aux_loss == "best_averaged":
-                self.aux_loss = self.best_similarity_loss_averaged
+                self.aux_loss = self.averaged_similarity_loss
                 self.best_sender_idx = None
                 self.best_loss = [2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]
                 self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
@@ -462,7 +462,7 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = self.best_sender_idx
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
         return aux_loss
         
     def averaged_similarity_loss(self, original_message, aux_input, batch, loss):
@@ -477,7 +477,7 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = _best_sender_idx
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
         return aux_loss
 
     def forward(self, *args, **kwargs):
