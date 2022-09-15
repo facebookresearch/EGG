@@ -154,7 +154,7 @@ def build_game(opts):
         noisy=opts.noisy_channel,
     )
 
-    game = PopulationGame(game, agents_loss_sampler, auxiliary_loss=opts.auxiliary_loss)
+    game = PopulationGame(game, agents_loss_sampler, aux_loss=opts.aux_loss, aux_loss_weight=opts.aux_loss_weight)
 
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)

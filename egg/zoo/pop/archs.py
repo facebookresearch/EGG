@@ -408,6 +408,8 @@ class PopulationGame(nn.Module):
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
+
+        # initialising aux_loss
         if aux_loss is not None:
             if aux_loss == "random":
                 self.aux_loss = self.random_similarity_loss 
@@ -421,8 +423,12 @@ class PopulationGame(nn.Module):
                 self.best_loss = [2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]
                 self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
             else :
+                
                 raise NotImplementedError
-        self.aux_loss_weight = aux_loss_weight
+            self.aux_loss_weight = aux_loss_weight
+        else:
+            self.aux_loss_weight = 0
+            
         # TODO : Mat : this should be in sync with distributed training
         self.device = device
         self.force_gpu_use = False
