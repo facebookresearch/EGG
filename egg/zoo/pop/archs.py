@@ -403,20 +403,76 @@ class Game(nn.Module):
 
 
 class PopulationGame(nn.Module):
-    def __init__(self, game, agents_loss_sampler, device="cuda", auxiliary_loss=0):
+    def __init__(self, game, agents_loss_sampler, device="cuda", aux_loss=None, aux_loss_weight=0):
         super().__init__()
 
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
-        self.auxiliary_loss = auxiliary_loss
+        if aux_loss is not None:
+            if aux_loss == "random":
+                self.aux_loss = self.random_similarity_loss 
+            elif aux_loss =="best":
+                self.aux_loss = self.best_similarity_loss
+                self.best_sender_idx = None
+                self.best_loss = 2**63-1
+            elif aux_loss == "best_averaged":
+                self.aux_loss = self.best_similarity_loss_averaged
+                self.best_sender_idx = None
+                self.best_loss = [2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]
+                self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
+            else :
+                raise NotImplementedError
+        self.aux_loss_weight = aux_loss_weight
         # TODO : Mat : this should be in sync with distributed training
         self.device = device
         self.force_gpu_use = False
+        
 
     def force_set_device(self, device):
         self.device = device
         self.force_gpu_use = True
         
+    def random_similarity_loss(self, original_message, aux_input, batch, _loss):
+        """
+        takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
+        """
+        aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
+        if self.force_gpu_use:
+            aux_sender = aux_sender.to(self.device)
+        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        return aux_loss
+    
+    def best_similarity_loss(self, original_message, aux_input, batch, loss):
+        """
+        takes the agent which has the best loss so far, 
+        computes what message it would have given for the same input and calculates the similarity loss
+        """
+        if loss < self.best_loss:
+            self.best_loss = loss
+            self.best_sender_idx = aux_input["sender_idx"]
+
+        aux_sender, _, _, aux_idxs = self.agents_loss_sampler.senders[self.best_sender_idx]
+        if self.force_gpu_use:
+            aux_sender = aux_sender.to(self.device)
+        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        return aux_loss
+        
+    def averaged_similarity_loss(self, original_message, aux_input, batch, loss):
+        """
+        takes the agent which has had the best loss so far averaged over time, 
+        computes what message it would have given for the same input and calculates the similarity loss
+        """
+        self.best_loss[aux_input["sender_idx"]] += (self.best_loss[aux_input["sender_idx"]] - loss)/self.n_elemets[aux_input["sender_idx"]]
+        _best_sender_idx = np.argmin(self.best_loss)
+
+        aux_sender, _, _, aux_idxs = self.agents_loss_sampler.senders[_best_sender_idx]
+        if self.force_gpu_use:
+            aux_sender = aux_sender.to(self.device)
+        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        return aux_loss
 
     def forward(self, *args, **kwargs):
         sender, receiver, loss, idxs = self.agents_loss_sampler()
@@ -435,15 +491,10 @@ class PopulationGame(nn.Module):
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
             # if aux_loss, aux sender is moved during auxiliary loss calculation                 
-        mean_loss, interactions, msg = self.game(
+        mean_loss, interactions, message = self.game(
             sender, receiver, loss, *args, **kwargs
         )
-        if self.auxiliary_loss > 0:
-            aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
-            if self.force_gpu_use:
-                aux_sender = aux_sender.to(self.device)
-            args[-1]["aux_sender_idx"] = aux_idxs[0]
-            aux_loss = torch.nn.functional.cosine_similarity(msg, aux_sender(args[0],args[-1]).detach())
-            mean_loss = mean_loss + self.auxiliary_loss * aux_loss.mean()
+        if self.aux_loss_weight > 0:
+            mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
 
         return mean_loss, interactions  # sent back to cpu in trainer
