@@ -458,10 +458,10 @@ class PopulationGame(nn.Module):
             self.best_loss = loss
             self.best_sender_idx = aux_input["sender_idx"]
 
-        aux_sender, _, _, aux_idxs = self.agents_loss_sampler.senders[self.best_sender_idx]
+        aux_sender = self.agents_loss_sampler.senders[self.best_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
-        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_input["aux_sender_idx"] = self.best_sender_idx
         aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
         return aux_loss
         
@@ -473,10 +473,10 @@ class PopulationGame(nn.Module):
         self.best_loss[aux_input["sender_idx"]] += (self.best_loss[aux_input["sender_idx"]] - loss)/self.n_elemets[aux_input["sender_idx"]]
         _best_sender_idx = np.argmin(self.best_loss)
 
-        aux_sender, _, _, aux_idxs = self.agents_loss_sampler.senders[_best_sender_idx]
+        aux_sender = self.agents_loss_sampler.senders[_best_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
-        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_input["aux_sender_idx"] = _best_sender_idx
         aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
         return aux_loss
 
