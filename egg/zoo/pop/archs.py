@@ -470,7 +470,7 @@ class PopulationGame(nn.Module):
         takes the agent which has had the best loss so far averaged over time, 
         computes what message it would have given for the same input and calculates the similarity loss
         """
-        self.best_loss[aux_input["sender_idx"]] += (self.best_loss[aux_input["sender_idx"]] - loss)/self.n_elemets[aux_input["sender_idx"]]
+        self.best_loss[aux_input["sender_idx"]] += (self.best_loss[aux_input["sender_idx"]].item() - loss)/self.n_elemets[aux_input["sender_idx"]]
         _best_sender_idx = np.argmin(self.best_loss)
 
         aux_sender = self.agents_loss_sampler.senders[_best_sender_idx]

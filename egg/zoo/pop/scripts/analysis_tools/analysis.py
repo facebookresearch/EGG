@@ -1,6 +1,6 @@
 import pandas as pd
-import torch
-import scipy
+# import torch
+# import scipy
 
 def interaction_to_dataframe(interaction):
     """
