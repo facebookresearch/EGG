@@ -420,7 +420,7 @@ class PopulationGame(nn.Module):
             elif aux_loss == "best_averaged":
                 self.aux_loss = self.averaged_similarity_loss
                 self.best_sender_idx = None
-                self.best_loss = torch([2**63-1 for _ in range(len(self.agents_loss_sampler.senders))])
+                self.best_loss = torch.Tensor([2**63-1 for _ in range(len(self.agents_loss_sampler.senders))])
                 self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
             else :
                 
