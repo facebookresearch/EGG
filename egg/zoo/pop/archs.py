@@ -426,7 +426,6 @@ class PopulationGame(nn.Module):
                 self.best_loss = torch.Tensor([2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]).to(self.device)
                 self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
             else :
-                
                 raise NotImplementedError
             self.aux_loss_weight = aux_loss_weight
         else:
@@ -502,5 +501,9 @@ class PopulationGame(nn.Module):
         )
         if self.aux_loss_weight > 0:
             mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
+            if "aux_sender_idx" not in interactions.aux_input.keys():
+                print("aux_sender_idx not in interactions.aux_input.keys()")
+                print(interactions)
+                interactions.aux_input["aux_sender_idx"] = torch.zeros(message[0].size(0))
 
         return mean_loss, interactions  # sent back to cpu in trainer

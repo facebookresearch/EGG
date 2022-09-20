@@ -151,8 +151,8 @@ class Trainer:
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
             
             
-            # Mat : I think my issue here is that I have not placed the game on the GPU yet, so the optimizer is not aware of the GPU
-            # Either place part of it and pray, or hack into the function itself to parametrise it as targeting a gpu ? 
+            # Mat multi-gpu multi-agent: I think my issue here is that I have not placed the game on the GPU yet, so the optimizer is not aware of the GPU
+            # If I place the whole game on the GPU I'll have issues, and it does not appear like I have much of a choice 
             print("# Wrapping game into DistributedDataParallel")
             self.game = torch.nn.parallel.DistributedDataParallel(
                 self.game,
