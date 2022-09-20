@@ -408,7 +408,7 @@ class PopulationGame(nn.Module):
         # TODO : Mat : this should be in sync with distributed training
         self.device = device
         self.force_gpu_use = False
-        
+
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
 
@@ -471,7 +471,7 @@ class PopulationGame(nn.Module):
         computes what message it would have given for the same input and calculates the similarity loss
         """
         self.best_loss[aux_input["sender_idx"].item()] += (self.best_loss[aux_input["sender_idx"].item()] - loss)/self.n_elemets[aux_input["sender_idx"]]
-        _best_sender_idx = np.argmin(self.best_loss)
+        _best_sender_idx = torch.argmin(self.best_loss)
 
         aux_sender = self.agents_loss_sampler.senders[_best_sender_idx]
         if self.force_gpu_use:
