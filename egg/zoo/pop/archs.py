@@ -381,7 +381,7 @@ class Game(nn.Module):
             labels,
             aux_input,
         )
-        # if required, calculate auxiliary loss here ?
+
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
         )
@@ -495,13 +495,13 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
-            # if aux_loss, aux sender is moved during auxiliary loss calculation                 
+            # if aux_loss, aux_sender is moved during auxiliary loss calculation                 
         mean_loss, interactions, message = self.game(
             sender, receiver, loss, *args, **kwargs
         )
         if self.aux_loss_weight > 0:
             mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
-            if "aux_sender_idx" not in interactions.aux_input.keys():
+            if not self.training and "aux_sender_idx" not in interactions.aux_input.keys():
                 print("aux_sender_idx not in interactions.aux_input.keys()")
                 print(interactions)
                 interactions.aux_input["aux_sender_idx"] = torch.zeros(message[0].size(0))
