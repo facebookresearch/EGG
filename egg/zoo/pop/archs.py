@@ -405,7 +405,10 @@ class Game(nn.Module):
 class PopulationGame(nn.Module):
     def __init__(self, game, agents_loss_sampler, device="cuda", aux_loss=None, aux_loss_weight=0):
         super().__init__()
-
+        # TODO : Mat : this should be in sync with distributed training
+        self.device = device
+        self.force_gpu_use = False
+        
         self.game = game
         self.agents_loss_sampler = agents_loss_sampler
 
@@ -429,9 +432,6 @@ class PopulationGame(nn.Module):
         else:
             self.aux_loss_weight = 0
             
-        # TODO : Mat : this should be in sync with distributed training
-        self.device = device
-        self.force_gpu_use = False
         
 
     def force_set_device(self, device):
