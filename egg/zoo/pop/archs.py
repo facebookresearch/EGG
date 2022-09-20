@@ -475,7 +475,7 @@ class PopulationGame(nn.Module):
         aux_sender = self.agents_loss_sampler.senders[_best_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
-        aux_input["aux_sender_idx"] = _best_sender_idx
+        aux_input["aux_sender_idx"] = _best_sender_idx.detach().to("cpu")
         aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
         return aux_loss
 
@@ -501,9 +501,5 @@ class PopulationGame(nn.Module):
         )
         if self.aux_loss_weight > 0:
             mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
-            if not self.training and "aux_sender_idx" not in interactions.aux_input.keys():
-                print("aux_sender_idx not in interactions.aux_input.keys()")
-                print(interactions)
-                interactions.aux_input["aux_sender_idx"] = torch.zeros(message[0].size(0))
 
         return mean_loss, interactions  # sent back to cpu in trainer
