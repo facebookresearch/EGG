@@ -459,7 +459,7 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = aux_idxs[0]
-        aux_loss = self._kl(original_message, aux_sender(batch,aux_input.detach()))
+        aux_loss = self._kl(original_message, aux_sender(batch,aux_input))
         return aux_loss
     
     def best_similarity_loss(self, original_message, aux_input, batch, loss):
