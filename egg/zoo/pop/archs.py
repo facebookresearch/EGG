@@ -425,6 +425,9 @@ class PopulationGame(nn.Module):
                 self.best_sender_idx = None
                 self.best_loss = torch.Tensor([2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]).to(self.device)
                 self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
+            elif aux_loss == "random_kl":
+                self._kl = nn.KLDivLoss(reduction="batchmean")
+                self.aux_loss = self.random_kl_loss 
             else :
                 raise NotImplementedError
             self.aux_loss_weight = aux_loss_weight
@@ -446,6 +449,17 @@ class PopulationGame(nn.Module):
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = aux_idxs[0]
         aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        return aux_loss
+    
+    def random_kl_loss(self, original_message, aux_input, batch, _loss):
+        """
+        takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
+        """
+        aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
+        if self.force_gpu_use:
+            aux_sender = aux_sender.to(self.device)
+        aux_input["aux_sender_idx"] = aux_idxs[0]
+        aux_loss = self._kl(original_message, aux_sender(batch,aux_input.detach()))
         return aux_loss
     
     def best_similarity_loss(self, original_message, aux_input, batch, loss):
