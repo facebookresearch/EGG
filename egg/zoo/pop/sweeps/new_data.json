@@ -27,8 +27,7 @@
         "cifar100"
     ],
     "aux_loss":[
-        "best",
-        "best_averaged"
+        "random_kl"
     ],
     "aux_loss_weight":[
         0.5
