@@ -9,7 +9,6 @@
         "cifar100"
     ],
     "augmentation": [
-        "resize",
         "gaussian_blur",
         "color_jitter"
     ],
