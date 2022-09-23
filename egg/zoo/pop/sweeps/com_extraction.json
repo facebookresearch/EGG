@@ -9,7 +9,6 @@
         "cifar100"
     ],
     "augmentation": [
-        "gaussian_blur",
         "color_jitter"
     ],
     "base_checkpoint_path": [
