@@ -81,10 +81,10 @@ for epoch in range(10):
         for i in range(len(senders) - 1):
             _, output, loss = forward_backward(i, images, labels)
             if batch_idx % 1000 == 0 :
-                print(f"acc_{i} : ", (labels.to(device) == output.argmax(dim=1)).float().mean())
+                print(f"{epoch}-{batch_idx} : acc_{i} : ", (labels.to(device) == output.argmax(dim=1)).float().mean())
             if i == _rand_sender:
                 _, output, loss = forward_backward(-1, images, labels)
                 if batch_idx % 1000 == 0 :
-                    print("acc_shuffled : ", (labels == output.argmax(dim=1)).float().mean())
+                    print("{epoch}-{batch_idx} : acc_shuffled : ", (labels == output.argmax(dim=1)).float().mean())
     
     
