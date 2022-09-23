@@ -35,7 +35,7 @@ def main(params):
     if _path == "":
         # normal first training for all agents
         opts = get_common_opts(params=params)
-        print(opts.distributed_context)
+        print(opts)
         game = build_game(opts)
     else :
         # adding agents to a population of trained agents

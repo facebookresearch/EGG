@@ -7,8 +7,8 @@ from torchvision import transforms
 #from egg.zoo.pop.data import ImageTransformation
 import numpy as np
 
-model_path = "../../../../../experiments/cont_fuller_pop/199711/final.tar"
-metadata_path = "../../../../../experiments/cont_fuller_pop/199711/wandb/latest-run/files/wandb-metadata.json"
+model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/final.tar"
+metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/wandb/latest-run/files/wandb-metadata.json"
 
 opts = None
 with open(metadata_path) as f:
