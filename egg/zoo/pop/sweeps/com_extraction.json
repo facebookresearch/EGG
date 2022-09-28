@@ -9,9 +9,7 @@
         "cifar100"
     ],
     "augmentation": [
-        "color_jitter",
-        "resize",
-        "gaussian_blur"
+        ""
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_aux_loss_hyp/205519/final.tar"
