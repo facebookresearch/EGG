@@ -42,7 +42,7 @@
         "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+        "['resnext','mobilenet','densenet', 'twins_svt','deit','xcit']"
     ],
     "image_size": [
         384
