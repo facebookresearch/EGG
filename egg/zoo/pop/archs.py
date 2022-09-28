@@ -448,7 +448,7 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = aux_idxs[0]
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input.detach()))
+        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
         return aux_loss
     
     def random_kl_loss(self, original_message, aux_input, batch, _loss):
