@@ -1,3 +1,4 @@
+from re import U
 import torch 
 from egg.core.util import move_to
 from egg.zoo.pop.utils import get_common_opts, metadata_opener, load_from_checkpoint
@@ -110,8 +111,8 @@ if __name__ == "__main__":
         classifiers = [LinearClassifier(n_features[i], 245).to(device) for i in range(len(senders))] 
         classifiers.append(LinearClassifier(16, 245).to(device))
     else:
-        model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/final.tar",
-        metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199711/wandb/latest-run/files/wandb-metadata.json"
+        model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/final.tar",
+        metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/wandb/latest-run/files/wandb-metadata.json"
         senders = load_models(model_path, metadata_path)
         classifiers = [LinearClassifier(16, 245).to(device) for _ in range(len(senders))] 
         classifiers.append(LinearClassifier(16, 245).to(device))
