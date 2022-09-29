@@ -30,7 +30,7 @@
         "chosen"
     ],
     "aux_loss_weight":[
-        0.25
+        0.5
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"
