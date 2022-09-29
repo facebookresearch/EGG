@@ -30,7 +30,7 @@
         "random"
     ],
     "aux_loss_weight":[
-        0.5
+        0.25
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"
@@ -42,7 +42,7 @@
         "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['resnext','mobilenet','densenet', 'twins_svt','deit','xcit']"
+        "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "image_size": [
         384
