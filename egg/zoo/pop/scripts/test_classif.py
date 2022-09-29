@@ -5,7 +5,7 @@ from egg.zoo.pop.utils import get_common_opts, metadata_opener, load_from_checkp
 from egg.zoo.pop.games import build_game
 import hub
 from torchvision import transforms
-from egg.zoo.pop.archs import get_model
+from egg.zoo.pop.archs import initialize_vision_module
 
 
 # load models from given experiment
@@ -29,7 +29,7 @@ def get_archs(names):
     archs = []
     features = []
     for name in names:
-        arch, n_features = get_model(name, pretrained=True, aux_logits=False)
+        arch, n_features = initialize_vision_module(name, pretrained=True, aux_logits=False)
         archs.append(arch)
         features.append(n_features)
     return archs, features
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         classifiers = [LinearClassifier(n_features[i], 245).to(device) for i in range(len(senders))] 
         classifiers.append(LinearClassifier(16, 245).to(device))
     else:
-        model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/final.tar",
+        model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/final.tar"
         metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/wandb/latest-run/files/wandb-metadata.json"
         senders = load_models(model_path, metadata_path)
         classifiers = [LinearClassifier(16, 245).to(device) for _ in range(len(senders))] 
