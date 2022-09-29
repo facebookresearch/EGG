@@ -94,7 +94,7 @@ def train_epoch(senders, dataloader, optimizers, criterion, device):
             if batch_idx % 100 == 0 :
                 print(f"{epoch}-{batch_idx} : acc_{i} : {acc}", flush=True)
             if i == _rand_sender:
-                _, output, loss = forward_backward(-1, images, labels)
+                _, output, loss = forward_backward(-1, images, labels, optimizers, criterion, device)
                 if batch_idx % 100 == 0 :
                     print(f"{epoch}-{batch_idx} : acc_shuffled : {acc}", flush=True)
 
