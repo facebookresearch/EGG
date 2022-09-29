@@ -103,7 +103,7 @@ if __name__ == "__main__":
     # classifiers and optimizers are on gpu if device is set to cuda
     # an additional classifier is created for the shuffled input, where the sender is randomly chosen to get input
     device="cuda"
-    is_baseline = False
+    is_baseline = True
 
     if is_baseline:
         names = ['vgg11','vit','resnet152', 'inception','dino','swin']
