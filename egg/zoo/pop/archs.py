@@ -461,7 +461,7 @@ class PopulationGame(nn.Module):
         aux_sender = self.agents_loss_sampler.senders[self.chosen_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
-        aux_input["aux_sender_idx"] = self.chosen_sender_idx
+        aux_input["aux_sender_idx"] = torch.Tensor(self.chosen_sender_idx)
         aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
         return aux_loss
     
