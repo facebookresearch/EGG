@@ -684,7 +684,7 @@ class TransformerSenderReinforce(nn.Module):
         :param agent: the agent to be wrapped, returns the "encoder" state vector, which is the unrolled into a message
         :param vocab_size: vocab size of the message
         :param embed_dim: embedding dimensions
-        :param max_len: maximal length of the message (including <eos>)
+        :param max_len: maximal length of the message
         :param num_layers: number of transformer layers
         :param num_heads: number of attention heads
         :param hidden_size: size of the FFN layers
