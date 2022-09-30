@@ -5,7 +5,7 @@ from egg.zoo.pop.utils import load_from_checkpoint
 
 # import sys
 import pathlib
-import glob
+# import glob
 import torch
 from egg.core.batch import Batch
 from egg.core.interaction import Interaction

@@ -234,7 +234,7 @@ def get_game_arch_opts(parser):
         "--aux_loss",
         default=None,
         type=str,
-        choices=["random", "best","best_averaged","random_kl"],
+        choices=["random", "best","best_averaged","random_kl","chosen"],
         help="auxiliary loss to reduce differences between sender messages on same input"
     )
     group.add_argument(
