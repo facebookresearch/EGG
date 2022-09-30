@@ -27,7 +27,7 @@
         "cifar100"
     ],
     "aux_loss":[
-        "chosen", "best", "random"
+        "chosen"
     ],
     "aux_loss_weight":[
         5, 10
