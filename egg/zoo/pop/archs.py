@@ -458,7 +458,7 @@ class PopulationGame(nn.Module):
         """
         takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
         """
-        aux_sender = self.agents_loss_sampler.sender_idx(self.chosen_sender_idx)
+        aux_sender = self.agents_loss_sampler.senders[self.chosen_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = self.chosen_sender_idx
