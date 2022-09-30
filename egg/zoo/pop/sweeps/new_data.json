@@ -27,10 +27,10 @@
         "cifar100"
     ],
     "aux_loss":[
-        "random", "chosen"
+        "chosen", "best", "random"
     ],
     "aux_loss_weight":[
-        0.25, 0.4, 0.75
+        5, 10
     ],
     "dataset_dir":[
         "/datasets/COLT/imagenet21k_resized"
@@ -42,7 +42,7 @@
         "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['resnext','mobilenet','densenet', 'twins_svt','deit','xcit']"
+        "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "image_size": [
         384
