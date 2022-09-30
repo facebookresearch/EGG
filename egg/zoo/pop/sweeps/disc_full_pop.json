@@ -17,6 +17,9 @@
     "aux_loss":[
         "random"
     ],
+    "aux_loss_weight":[
+        0.5
+    ],
     "random_seed": [
         111
     ],
