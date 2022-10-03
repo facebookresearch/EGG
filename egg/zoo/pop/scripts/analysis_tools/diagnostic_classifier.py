@@ -3,7 +3,7 @@ from tabnanny import verbose
 import torch
 from pathlib import Path
 
-def run_dc(interaction_file, base_path="/Users/u203445/Documents/projects/EGG/interactions",seed=111,device="cuda",n_samples=None,verbose=True):
+def run_dc(interaction_file, base_path="/Users/u203445/Documents/projects/EGG/interactions",seed=111,device="cuda",n_samples=None,verbose=True, n_epochs=10000,lr=0.01):
     """
     Run the diagnostic classifier on the given interaction file.
     """
@@ -21,8 +21,8 @@ def run_dc(interaction_file, base_path="/Users/u203445/Documents/projects/EGG/in
             torch.Generator().manual_seed(seed),
         )
     # from there train to classify back the original classes
-    model = train_diagnostic_classifier(train_messages=training_data[:][:,:16], train_labels=training_data[:][:,16:].long(), device = device)
-    print(test_diagnostic_classifier(model,test_messages=testing_data[:][:,:16], test_labels=testing_data[:][:,16:].long(), device = device))
+    model = train_diagnostic_classifier(train_messages=training_data[:][:,:16], train_labels=training_data[:][:,16:].long(), device = device, n_epochs=n_epochs,lr=lr)
+    print(test_diagnostic_classifier(model,test_messages=testing_data[:][:,:16], test_labels=testing_data[:][:,16:].long(), device = device,n_epochs=n_epochs,lr=lr))
 
 
 class LinearClassifier(torch.nn.Module):
