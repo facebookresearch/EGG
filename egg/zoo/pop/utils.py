@@ -25,7 +25,7 @@ def get_data_opts(parser):
 
     group.add_argument(
         "--dataset_name",
-        choices=["cifar100", "imagenet", "gaussian_noise", "inaturalist", "imagenet_alive"],
+        choices=["cifar100", "imagenet", "gaussian_noise", "inaturalist", "imagenet_alive","imagenet_ood"],
         default="imagenet",
         help="Dataset used for training a model",
     )
