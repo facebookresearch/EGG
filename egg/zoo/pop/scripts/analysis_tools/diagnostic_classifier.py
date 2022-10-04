@@ -22,7 +22,7 @@ def run_dc(interaction_file, base_path="/Users/u203445/Documents/projects/EGG/in
         )
     # from there train to classify back the original classes
     model = train_diagnostic_classifier(train_messages=training_data[:][:,:16], train_labels=training_data[:][:,16:].long(), device = device, n_epochs=n_epochs,lr=lr)
-    print(test_diagnostic_classifier(model,test_messages=testing_data[:][:,:16], test_labels=testing_data[:][:,16:].long(), device = device,n_epochs=n_epochs,lr=lr))
+    print(test_diagnostic_classifier(model,test_messages=testing_data[:][:,:16], test_labels=testing_data[:][:,16:].long(), device = device))
 
 
 class LinearClassifier(torch.nn.Module):
