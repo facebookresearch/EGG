@@ -5,11 +5,11 @@
     "remove_auxlogits": [
         false
     ],
+    "dataset_dir": [
+        "/datasets/COLT/imagenet21k_resized/imagenet21k_train/"
+    ],
     "dataset_name": [
         "imagenet_ood"
-    ],
-    "augmentation": [
-        "color_jitter"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198629/final.tar",
