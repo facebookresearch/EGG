@@ -109,7 +109,7 @@ if __name__ == "__main__":
         names = ['vgg11','vit','resnet152', 'inception','dino','swin']
         senders, n_features= get_archs(names)
         classifiers = [LinearClassifier(n_features[i], 245).to(device) for i in range(len(senders))] 
-        classifiers.append(LinearClassifier(16, 245).to(device))
+        # classifiers.append(LinearClassifier(16, 245).to(device)) can't do that because of different representation lengths
     else:
         model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/final.tar"
         metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/wandb/latest-run/files/wandb-metadata.json"
