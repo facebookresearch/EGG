@@ -29,7 +29,7 @@ def get_archs(names):
     archs = []
     features = []
     for name in names:
-        arch, n_features = initialize_vision_module(name, pretrained=True, aux_logits=False)
+        arch, n_features, _ = initialize_vision_module(name, pretrained=True, aux_logits=False)
         archs.append(arch)
         features.append(n_features)
     return archs, features
