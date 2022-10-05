@@ -1,4 +1,3 @@
-from re import U
 import torch 
 from egg.core.util import move_to
 from egg.zoo.pop.utils import get_common_opts, metadata_opener, load_from_checkpoint
@@ -50,7 +49,7 @@ def load_data():
         transforms.Resize(size=(size, size)),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
     ])
-    dataloader = ds.pytorch(num_workers = 0, shuffle = True, batch_size= 128, collate_fn=collate_fn, transform={'images':transformations,'labels':None, 'index':None})
+    dataloader = ds.pytorch(num_workers = 0, shuffle = True, batch_size= 128, collate_fn=collate_fn, transform={'images':transformations,'labels':None, 'index':None}, pin_memory=True)
     return dataloader
 
 class LinearClassifier(torch.nn.Module):
@@ -62,10 +61,8 @@ class LinearClassifier(torch.nn.Module):
     x = self.linear(x)
     return x
 
-def forward_backward(model_idx, input_images, labels, optimizers, criterion, device):
-    # everyone goes to selected device
-    senders[model_idx].to(device)
-    
+def forward_backward(model_idx, input_images, labels, optimizers, criterion):
+    # everyone goes to selected device    
     message = senders[model_idx](input_images)
     output = classifiers[model_idx](message)
 
@@ -74,9 +71,6 @@ def forward_backward(model_idx, input_images, labels, optimizers, criterion, dev
 
     optimizers[model_idx].step()
     optimizers[model_idx].zero_grad()
-    
-    senders[model_idx].to("cpu")
-
     return message, output, loss
 
 
@@ -88,13 +82,13 @@ def train_epoch(senders, dataloader, optimizers, criterion, device):
         labels = labels.to(device)
         
         for i in range(len(senders) - 1):
-            _, output, loss = forward_backward(i, images, labels, optimizers, criterion, device)
+            _, output, loss = forward_backward(i, images, labels, optimizers, criterion)
             acc = (output.argmax(dim=1) == labels).float().mean()
             
             if batch_idx % 100 == 0 :
                 print(f"{epoch}-{batch_idx} : acc_{i} : {acc}", flush=True)
             if i == _rand_sender:
-                _, output, loss = forward_backward(-1, images, labels, optimizers, criterion, device)
+                _, output, loss = forward_backward(-1, images, labels, optimizers, criterion)
                 if batch_idx % 100 == 0 :
                     print(f"{epoch}-{batch_idx} : acc_shuffled : {acc}", flush=True)
 
@@ -117,7 +111,8 @@ if __name__ == "__main__":
         classifiers = [LinearClassifier(16, 245).to(device) for _ in range(len(senders))] 
         classifiers.append(LinearClassifier(16, 245).to(device))
 
-
+    for sender in senders:
+        sender.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     dataloader = load_data()
     optimizers = []
