@@ -10,12 +10,9 @@ from typing import Optional
 
 import torch
 from PIL import ImageFilter
-from sklearn import gaussian_process
 from torchvision import datasets, transforms
 from torchvision import transforms
 import numpy as np
-
-from pathlib import Path
 
 # separate imagenet into subsets such as animate and inanimate
 # Image selection

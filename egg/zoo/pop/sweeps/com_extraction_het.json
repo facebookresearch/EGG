@@ -6,7 +6,7 @@
         false
     ],
     "dataset_dir": [
-        "/datasets/COLT/imagenet21k_resized/imagenet21k_train/"
+        "/datasets/COLT/imagenet21k_resized/"
     ],
     "dataset_name": [
         "imagenet_ood"

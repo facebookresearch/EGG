@@ -5,7 +5,7 @@ from egg.zoo.pop.games import build_game
 import hub
 from torchvision import transforms
 from egg.zoo.pop.archs import initialize_vision_module
-
+from egg.zoo.pop.data import get_dataloader
 
 # load models from given experiment
 def load_models(model_path, metadata_path):
@@ -97,7 +97,9 @@ if __name__ == "__main__":
     # classifiers and optimizers are on gpu if device is set to cuda
     # an additional classifier is created for the shuffled input, where the sender is randomly chosen to get input
     device="cuda"
-    is_baseline = False
+    is_baseline = False # set to True to train baseline classifiers
+    dataset_name = "places205"
+    dataset_dir =  "/datasets/COLT/imagenet21k_resized/imagenet21k_train/"
 
     if is_baseline:
         names = ['vgg11','vit','resnet152', 'inception','dino','swin']
@@ -114,7 +116,23 @@ if __name__ == "__main__":
     for sender in senders:
         sender.to(device)
     criterion = torch.nn.CrossEntropyLoss()
-    dataloader = load_data()
+
+    if dataset_name == "places205":
+        dataloader = load_data()
+    else:
+        val_dataloader, train_dataloader = get_dataloader(
+            dataset_dir=dataset_dir,
+            dataset_name=dataset_name,
+            batch_size=128,
+            image_size=384,
+            num_workers=0,
+            is_distributed=False,
+            use_augmentations=False,
+            return_original_image=False,
+            seed=111,
+            split_set=True,
+            augmentation_type=None
+        )
     optimizers = []
     for classifier in classifiers:
         opt = torch.optim.Adam(classifier.parameters(), lr=0.01)
@@ -123,5 +141,5 @@ if __name__ == "__main__":
     
 
     for epoch in range(10):
-        train_epoch(senders, dataloader, optimizers, criterion, device)
+        train_epoch(senders, train_dataloader, optimizers, criterion, device)
     
