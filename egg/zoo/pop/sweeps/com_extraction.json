@@ -6,10 +6,10 @@
         false
     ],
     "dataset_dir": [
-        "/datasets/COLT/imagenet21k_resized/"
+        "/datasets/COLT/imagenet21k_resized/imagenet21k_train"
     ],
     "dataset_name": [
-        "cifar100"
+        "imagenet_ood"
     ],
     "noisy_channel": [
         0.2

@@ -7,11 +7,9 @@ import argparse
 from xmlrpc.client import Boolean
 
 import pathlib
-import glob
 
 import egg.core as core
 import torch
-import os
 import json
 
 def get_data_opts(parser):
