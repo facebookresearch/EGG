@@ -24,16 +24,16 @@
         2048
     ],
     "dataset_name": [
-        "cifar100"
+        "imagenet"
     ],
     "aux_loss":[
-        "chosen"
+        "random"
     ],
     "aux_loss_weight":[
         0.5
     ],
     "dataset_dir":[
-        "/datasets/COLT/imagenet21k_resized"
+        "/datasets/COLT/ILSVRC2012_img_train"
     ],
     "gs_temperature": [
         5.0
