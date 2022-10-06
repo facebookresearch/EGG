@@ -9,7 +9,10 @@
         "/datasets/COLT/imagenet21k_resized/"
     ],
     "dataset_name": [
-        "imagenet_ood"
+        "cifar100"
+    ],
+    "noisy_channel": [
+        0.2
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198629/final.tar",
