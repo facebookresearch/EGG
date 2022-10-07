@@ -206,7 +206,8 @@ class ClassificationDataset(Dataset):
     
     def __getitem__(self, idx):
         dl_im = self.ds.images[idx]
-        image = self.to_pil(dl_im.numpy())
+        np_dl_im = dl_im.numpy()
+        image = self.to_pil(np_dl_im)
         label = self.ds.labels[idx].numpy(fetch_chunks = True).astype(np.int32)
 
         if self.transform is not None:
