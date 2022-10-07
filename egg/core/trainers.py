@@ -80,7 +80,6 @@ class Trainer:
         self.aggregate_interaction_logs = aggregate_interaction_logs
 
         self.update_freq = common_opts.update_freq
-        self.gpu_mem_optim = False
 
         if common_opts.load_from_checkpoint is not None:
             print(
@@ -131,14 +130,7 @@ class Trainer:
         if self.distributed_context.is_distributed:
             device_id = self.distributed_context.local_rank
             torch.cuda.set_device(device_id)
-            print(f"# Using device {device_id}")
-            self.device = str(self.device) + ":" + str(device_id)
-            print(f"# Using device {self.device}")
-            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
-                self.game.to(self.device)
-            else:
-                self.gpu_mem_optim = True
-                self.game.force_set_device(self.device)
+            self.game.to(device_id)
 
             # NB: here we are doing something that is a bit shady:
             # 1/ optimizer was created outside of the Trainer instance, so we don't really know
@@ -149,29 +141,17 @@ class Trainer:
             #    forward/backward calls, however, would happen on the DistributedDataParallel wrapper.
             #    This wrapper would sync gradients of the underlying tensors - which are the ones that optimizer
             #    holds itself.  As a result it seems to work, but only because DDP doesn't take any tensor ownership.
-            
-            
-            # Mat multi-gpu multi-agent: I think my issue here is that I have not placed the game on the GPU yet, so the optimizer is not aware of the GPU
-            # If I place the whole game on the GPU I'll have issues, and it does not appear like I have much of a choice 
-            print("# Wrapping game into DistributedDataParallel")
+
             self.game = torch.nn.parallel.DistributedDataParallel(
                 self.game,
                 device_ids=[device_id],
                 output_device=device_id,
                 find_unused_parameters=True,
             )
-            print("# DistributedDataParallel initialized")
             self.optimizer.state = move_to(self.optimizer.state, device_id)
-            print("# Optimizer state moved to device")
 
         else:
-            # When going multi-agent, there is not enough room to store all the gradients on a single GPU
-            # in that case, we load only the required senders on the GPU
-            if len(common_opts.vision_model_names_senders) + len(common_opts.vision_model_names_recvs) <= 2:
-                self.game.to(self.device)
-            else:
-                self.game.force_set_device(self.device)
-                self.gpu_mem_optim = True
+            self.game.to(self.device)
             # NB: some optimizers pre-allocate buffers before actually doing any steps
             # since model is placed on GPU within Trainer, this leads to having optimizer's state and model parameters
             # on different devices. Here, we protect from that by moving optimizer's internal state to the proper device
@@ -181,7 +161,6 @@ class Trainer:
             self.scaler = GradScaler()
         else:
             self.scaler = None
-        print("# Trainer initialization done")
 
     def eval(self, data=None):
         mean_loss = 0.0
@@ -204,8 +183,7 @@ class Trainer:
                     )
                 interaction = interaction.to("cpu")
                 mean_loss += optimized_loss
-                if self.gpu_mem_optim:
-                    self.game.to("cpu")
+
                 for callback in self.callbacks:
                     callback.on_batch_end(
                         interaction, optimized_loss, n_batches, is_training=False
@@ -219,7 +197,7 @@ class Trainer:
 
         return mean_loss.item(), full_interaction
 
-    def train_epoch(self, epoch=None):
+    def train_epoch(self):
         mean_loss = 0
         n_batches = 0
         interactions = []
@@ -246,10 +224,7 @@ class Trainer:
                 self.scaler.scale(optimized_loss).backward()
             else:
                 optimized_loss.backward()
-            if self.gpu_mem_optim:
-                # chosen sender and receiver where put on gpu during forward call. This brings everything back to leave room for next pair.
-                self.game.to("cpu")  
-            
+
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)
@@ -274,20 +249,11 @@ class Trainer:
             ):
                 interaction = Interaction.gather_distributed_interactions(interaction)
             interaction = interaction.to("cpu")
+
             for callback in self.callbacks:
                 callback.on_batch_end(interaction, optimized_loss, batch_id)
 
             interactions.append(interaction)
-            validation_loss = validation_interaction = None
-            if batch_id % 100 == 0: # this needs to be a changeable param
-                for callback in self.callbacks:
-                    callback.on_validation_begin(epoch + 1)
-                    validation_loss, validation_interaction = self.eval()
-                    self.game.train()
-                    for callback in self.callbacks:
-                        callback.on_validation_end(
-                            validation_loss, validation_interaction, epoch + 1
-                        )
 
         if self.optimizer_scheduler:
             self.optimizer_scheduler.step()
@@ -297,7 +263,6 @@ class Trainer:
         return mean_loss.item(), full_interaction
 
     def train(self, n_epochs):
-        print("Starting training")
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
@@ -305,36 +270,36 @@ class Trainer:
             for callback in self.callbacks:
                 callback.on_epoch_begin(epoch + 1)
 
-            train_loss, train_interaction = self.train_epoch(epoch=epoch)
+            train_loss, train_interaction = self.train_epoch()
 
             for callback in self.callbacks:
                 callback.on_epoch_end(train_loss, train_interaction, epoch + 1)
-            # We will now be considering evaluation on a batch per batch level, continuous experiments giving such rapid results
-            # validation_loss = validation_interaction = None
-            # if (
-            #     self.validation_data is not None
-            #     and self.validation_freq > 0
-            #     and (epoch + 1) % self.validation_freq == 0
-            # ):
-            #     for callback in self.callbacks:
-            #         callback.on_validation_begin(epoch + 1)
-            #     validation_loss, validation_interaction = self.eval()
 
-            #     for callback in self.callbacks:
-            #         callback.on_validation_end(
-            #             validation_loss, validation_interaction, epoch + 1
-            #         )
+            validation_loss = validation_interaction = None
+            if (
+                self.validation_data is not None
+                and self.validation_freq > 0
+                and (epoch + 1) % self.validation_freq == 0
+            ):
+                for callback in self.callbacks:
+                    callback.on_validation_begin(epoch + 1)
+                validation_loss, validation_interaction = self.eval()
 
-            # if self.should_stop:
-            #     for callback in self.callbacks:
-            #         callback.on_early_stopping(
-            #             train_loss,
-            #             train_interaction,
-            #             epoch + 1,
-            #             validation_loss,
-            #             validation_interaction,
-            #         )
-            #     break
+                for callback in self.callbacks:
+                    callback.on_validation_end(
+                        validation_loss, validation_interaction, epoch + 1
+                    )
+
+            if self.should_stop:
+                for callback in self.callbacks:
+                    callback.on_early_stopping(
+                        train_loss,
+                        train_interaction,
+                        epoch + 1,
+                        validation_loss,
+                        validation_interaction,
+                    )
+                break
 
         for callback in self.callbacks:
             callback.on_train_end()

@@ -31,19 +31,10 @@ def loss(
     loss = F.cross_entropy(receiver_output, labels, reduction="none")
     return loss, {"acc": acc}
     
-# def similarity_loss(
-#     _sender_input,
-#     message,
-#     _receiver_input,
-#     _receiver_output,
-#     _labels,
-#     _aux_input,
-#  ):
-#     """
-#     auxiliary loss to encourage the sender to send a message that is similar to the one from a random other sender
-#     """
-#     other_message = 
-#     F.cosine_similarity(message, other_message)
+def find_module_from_name(modules, name):
+    for module in modules:
+        if module[2] == name:
+            return module
 
 
 def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
@@ -64,72 +55,73 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
     #     vision_module_names_senders = eval(opts.vision_module_names.replace("#", '"'))
     #     vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
 
-    vision_modules_senders = [
-        initialize_vision_module(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-        for i in range(len(vision_model_names_senders))
+    vision_modules = [
+        initialize_vision_module(name=module_name, pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+        if not opts.keep_classification_layer 
+        else initialize_classifiers(name=module_name, pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+        for module_name in set(vision_model_names_senders + vision_model_names_receiver)
     ]
-    vision_modules_receivers = [
-        initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-        if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-        for i in range(len(vision_model_names_receiver))
-    ]
+    # vision_modules_receivers = [
+    #     initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+    #     if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+    #     for i in range(len(vision_model_names_receiver))
+    # ]
     if opts.continuous_com:
         senders = [
             ContinuousSender(
-                vision_module=vision_modules_senders[i][0],
-                input_dim=vision_modules_senders[i][1],
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                input_dim=find_module_from_name(vision_modules, module_name)[1], # TODO: Matéo repeated twice :/ think about optimising
                 vocab_size=opts.vocab_size,
-                name=vision_model_names_senders[i],
+                name=module_name,
                 non_linearity=opts.non_linearity,
                 force_gumbel=opts.force_gumbel,
                 forced_gumbel_temperature=opts.gs_temperature,
                 block_com_layer=opts.block_com_layer,
             )
-            for i in range(len(vision_model_names_senders))
+            for module_name in vision_model_names_senders
         ]
         receivers = [
                 Receiver(
-                vision_module=vision_modules_receivers[i][0],
-                input_dim=vision_modules_receivers[i][1],
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                input_dim=find_module_from_name(vision_modules, module_name)[1],
                 hidden_dim=opts.recv_hidden_dim,
                 output_dim=opts.vocab_size,
                 temperature=opts.recv_temperature,
-                name=vision_model_names_receiver[i],
+                name=module_name,
                 block_com_layer=opts.block_com_layer,
 
             )
-            for i in range(len(vision_model_names_receiver))
+            for module_name in vision_model_names_receiver
         ]
     else:
         senders = [
             GumbelSoftmaxWrapper(
                 Sender(
-                    vision_module=vision_modules_senders[i][0],
-                    input_dim=vision_modules_senders[i][1],
+                    vision_module=find_module_from_name(vision_modules, module_name)[0],
+                    input_dim=find_module_from_name(vision_modules, module_name)[1],
                     vocab_size=opts.vocab_size,
-                    name=vision_model_names_senders[i],
+                    name=module_name,
                 ),
                 temperature=opts.gs_temperature,
                 trainable_temperature=opts.train_gs_temperature,
                 straight_through=opts.straight_through,
             )
-            for i in range(len(vision_model_names_senders))
+            for module_name in vision_model_names_senders
         ]
         receivers = [
             SymbolReceiverWrapper(
                 Receiver(
-                    vision_module=vision_modules_receivers[i][0],
-                    input_dim=vision_modules_receivers[i][1],
+                    vision_module=find_module_from_name(vision_modules, module_name)[0],
+                    input_dim=find_module_from_name(vision_modules, module_name)[1],
                     hidden_dim=opts.recv_hidden_dim,
                     output_dim=opts.vocab_size,
                     temperature=opts.recv_temperature,
-                    name=vision_model_names_receiver[i],
+                    name=module_name,
                 ),
                 opts.vocab_size,
-                opts.vocab_size, # probably useless ? ask Roberto
+                opts.vocab_size, # TODO Matéo : check if isn't possibly removed
             )
-            for i in range(len(vision_model_names_receiver))
+            for module_name in vision_model_names_receiver
         ]
     print(vision_model_names_senders)
     print(vision_model_names_receiver)

@@ -440,6 +440,8 @@ class PopulationGame(nn.Module):
         
 
     def force_set_device(self, device):
+        # to use when each agent needs to go back and forth on GPU, needs to be sent back to cpu in trainer after backprop and optim step
+        # this does not work with actual core.trainers
         self.device = device
         self.force_gpu_use = True
         
@@ -530,4 +532,4 @@ class PopulationGame(nn.Module):
         if self.aux_loss_weight > 0:
             mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
 
-        return mean_loss, interactions  # sent back to cpu in trainer
+        return mean_loss, interactions  
