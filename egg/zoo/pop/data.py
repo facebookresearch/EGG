@@ -197,13 +197,14 @@ class ClassificationDataset(Dataset):
     # for palces205, which is not a folder of images but calls on an API to stream images in realtime
     def __init__(self, ds, transform = None):
         self.ds = ds
+        self.to_pil = transforms.ToPILImage()
         self.transform = transform
 
     def __len__(self):
         return len(self.ds)
     
     def __getitem__(self, idx):
-        image = self.ds.images[idx]
+        image = self.to_pil(self.ds.images[idx])
         label = self.ds.labels[idx].numpy(fetch_chunks = True).astype(np.int32)
 
         if self.transform is not None:
