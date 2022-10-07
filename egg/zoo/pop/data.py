@@ -203,8 +203,8 @@ class ClassificationDataset(Dataset):
         return len(self.ds)
     
     def __getitem__(self, idx):
-        image = self.ds.images[idx].numpy()
-        label = self.ds.labels[idx].numpy(fetch_chunks = True).astype(np.int32)
+        image = self.ds.images[idx]
+        label = self.ds.labels[idx]
 
         if self.transform is not None:
             image = self.transform(image)
