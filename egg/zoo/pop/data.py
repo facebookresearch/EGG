@@ -204,7 +204,7 @@ class ClassificationDataset(Dataset):
     
     def __getitem__(self, idx):
         image = self.ds.images[idx]
-        label = self.ds.labels[idx]
+        label = self.ds.labels[idx].numpy(fetch_chunks = True).astype(np.int32)
 
         if self.transform is not None:
             image = self.transform(image)
