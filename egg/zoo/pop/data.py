@@ -129,7 +129,7 @@ def get_dataloader(
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
         train_dataset = select_ood_idxs(train_dataset)
     elif dataset_name == "places205":
-        train_dataset = ClassificationDataset(hub.load("hub://activeloop/places205"), transform = tform)
+        train_dataset = ClassificationDataset(hub.load("hub://activeloop/places205"), transform = transformations)
 
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
@@ -210,6 +210,7 @@ class ClassificationDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+
 class ImageTransformation:
     """
     A stochastic data augmentation module that transforms any given data example
