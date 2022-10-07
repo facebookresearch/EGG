@@ -9,6 +9,7 @@ from typing import Optional
 
 import torch
 from PIL import ImageFilter
+from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 from torchvision import transforms
 import numpy as np
@@ -128,7 +129,7 @@ def get_dataloader(
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
         train_dataset = select_ood_idxs(train_dataset)
     elif dataset_name == "places205":
-        train_dataset = hub.load("hub://activeloop/places205")
+        train_dataset = ClassificationDataset(hub.load("hub://activeloop/places205"), transform = tform)
 
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
@@ -192,7 +193,23 @@ class GaussianBlur:
         x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
         return x
 
+class ClassificationDataset(Dataset):
+    # for palces205, which is not a folder of images but calls on an API to stream images in realtime
+    def __init__(self, ds, transform = None):
+        self.ds = ds
+        self.transform = transform
 
+    def __len__(self):
+        return len(self.ds)
+    
+    def __getitem__(self, idx):
+        image = self.ds.images[idx].numpy()
+        label = self.ds.labels[idx].numpy(fetch_chunks = True).astype(np.int32)
+
+        if self.transform is not None:
+            image = self.transform(image)
+
+        return image, label
 class ImageTransformation:
     """
     A stochastic data augmentation module that transforms any given data example
