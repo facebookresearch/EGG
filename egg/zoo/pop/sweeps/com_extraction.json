@@ -9,10 +9,10 @@
         "/datasets/COLT/imagenet21k_resized/imagenet21k_train"
     ],
     "dataset_name": [
-        "imagenet_ood"
+        "places205"
     ],
     "noisy_channel": [
-        0.2
+        0
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/cont_div/208355/final.tar"
