@@ -3,8 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from cgi import test
-from optparse import Option
+import hub
 import random
 from typing import Optional
 
@@ -128,6 +127,9 @@ def get_dataloader(
     elif dataset_name == "imagenet_ood":
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
         train_dataset = select_ood_idxs(train_dataset)
+    elif dataset_name == "places205":
+        train_dataset = hub.load("hub://activeloop/places205")
+
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
@@ -227,17 +229,17 @@ class ImageTransformation:
             ]
 
         transformations.append(transforms.ToTensor())
+        transformations.append(transforms.Lambda(lambda x: x.repeat(int(3/x.shape[0]), 1, 1)))
 
-        if dataset_name == "imagenet":
+        if dataset_name == "imagenet" or dataset_name == "imagenet_alive" or dataset_name == "imagenet_ood":
             transformations.extend(
                 [
                     transforms.Normalize(
                         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
                     ),
-                    transforms.CenterCrop(size),
                 ]
             )
-        elif dataset_name in ["cifar100", "inaturalist"]:
+        elif dataset_name in ["cifar100", "inaturalist","places205"]:
             transformations.append(
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             )
