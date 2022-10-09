@@ -12,7 +12,7 @@
         "imagenet"
     ],
     "noisy_channel": [
-        0,0.2
+        0
     ],
     "seed": [
         111
