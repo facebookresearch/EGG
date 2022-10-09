@@ -118,7 +118,7 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
 
     if dataset_name == "places205":
-        dataloader = load_data()
+        train_dataloader = load_data()
     else:
         val_dataloader, train_dataloader = get_dataloader(
             dataset_dir=dataset_dir,
