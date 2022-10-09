@@ -6,50 +6,54 @@
         false
     ],
     "dataset_dir": [
-        "/datasets/COLT/imagenet21k_resized/"
+        "/datasets/COLT/ILSVRC2012_img_train/"
     ],
     "dataset_name": [
-        "cifar100"
+        "imagenet"
     ],
     "noisy_channel": [
-        0.2
+        0,0.2
+    ],
+    "seed": [
+        111
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198629/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198630/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198631/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198632/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198633/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198634/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198635/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198636/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198637/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198638/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198639/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198640/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198641/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198642/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198643/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198644/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198645/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198646/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198647/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198648/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198649/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198650/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198651/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198652/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198653/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198654/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198655/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198656/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198657/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198658/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198659/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198660/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198661/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198662/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198663/final.tar",
-        "/homedtcl/mmahaut/projects/experiments/cont_het_seeded/198664/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/209940/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210031/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210032/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210033/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210034/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210035/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210036/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210037/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210038/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210039/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210040/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210041/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210042/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210043/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210044/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210045/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210046/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210047/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210048/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210049/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210050/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210051/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210052/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210053/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210054/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210055/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210056/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210057/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210058/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210059/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210060/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210061/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210062/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210063/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210064/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210065/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/speed_im1k_cont_aux/210066/final.tar"
         ]
 }
