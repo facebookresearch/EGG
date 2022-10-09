@@ -14,7 +14,7 @@
     "noisy_channel": [
         0
     ],
-    "seed": [
+    "random_seed": [
         111
     ],
     "base_checkpoint_path": [
