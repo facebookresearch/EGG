@@ -11,8 +11,8 @@
     "dataset_name": [
         "imagenet"
     ],
-    "noisy_channel": [
-        0
+    "augmentation_type": [
+        "resize"
     ],
     "random_seed": [
         111
