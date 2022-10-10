@@ -9,7 +9,7 @@
         "/datasets/COLT/imagenet21k_resized/imagenet21k_train"
     ],
     "dataset_name": [
-        "imagenet_ood"
+        "places205"
     ],
     "noisy_channel": [
         0

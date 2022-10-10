@@ -65,7 +65,6 @@ def eval(
                 interaction.message = interaction.message.argmax(dim=-1)
             interactions.append(interaction)
             n_batches += 1
-    game.to("cpu")
             
 
             
@@ -95,7 +94,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     Each agent pairs plays on the whole validation set
     """
 
-    pop_game = build_game(opts)
+    pop_game = build_game(opts).to(device)
     load_from_checkpoint(pop_game, opts.base_checkpoint_path)
     # make everything go to evaluation mode (non-trainable, no training behaviour of any layers)
     for param in pop_game.parameters():
@@ -113,8 +112,8 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
     ) in pop_game.agents_loss_sampler.available_indexes:
         # run inference
         # I feel like this is sort of evil and if it was not python I would definently not get away with this sort of meddling with inner parameters from outside
-        sender = pop_game.agents_loss_sampler.senders[sender_idx].to(device)
-        receiver = pop_game.agents_loss_sampler.receivers[recv_idx].to(device)
+        sender = pop_game.agents_loss_sampler.senders[sender_idx]
+        receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
         aux_input = {
             "sender_idx": torch.Tensor([sender_idx] * opts.batch_size).int(),

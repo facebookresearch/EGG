@@ -33,7 +33,7 @@ def get_archs(names):
         features.append(n_features)
     return archs, features
 
-def load_data():
+def load_places():
     # load data
     def collate_fn(batch):
         return (
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
 
     if dataset_name == "places205":
-        train_dataloader = load_data()
+        train_dataloader = load_places()
     else:
         val_dataloader, train_dataloader = get_dataloader(
             dataset_dir=dataset_dir,
