@@ -237,7 +237,7 @@ class ImagenetValDataset(Dataset):
         img_path = self.files[idx]
         image = Image.open(img_path)
         label = self.img_labels[idx]
-        if self.transform:
+        if self.transform is not None:
             image = self.transform(image)
         return image, label
 
