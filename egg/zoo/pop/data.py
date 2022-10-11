@@ -15,7 +15,6 @@ from torchvision import datasets, transforms
 
 import numpy as np
 
-
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
 def seed_all(seed):
@@ -267,38 +266,28 @@ class ImageTransformation:
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
-        elif test_attack is not None:
-            transformations = [
-                transforms.Resize(size=(size, size)),
-                test_attack
-            ]
         else:
             transformations = [
                 transforms.Resize(size=(size, size)),
             ]
+            if test_attack is not None:
+                transformations.append(test_attack)
+
 
         transformations.append(transforms.ToTensor())
         transformations.append(transforms.Lambda(lambda x: x.repeat(int(3/x.shape[0]), 1, 1)))
 
         if dataset_name=="imagenet" or dataset_name=="imagenet_alive" or dataset_name=="imagenet_ood" or dataset_name=="imagenet_val":
-            transformations.extend(
-                [
-                    transforms.Normalize(
-                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                    ),
-                ]
-            )
+            transformations.append(transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
         elif dataset_name in ["cifar100", "inaturalist","places205"]:
-            transformations.append(
-                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-            )
+            transformations.append(transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]))
 
         self.transform = transforms.Compose(transformations)
         self.test_attack = test_attack is None
         self.return_original_image = return_original_image
         if self.return_original_image or self.test_attack:
             self.original_image_transform = transforms.Compose(
-                [transforms.Resize(size=(size, size)), transforms.ToTensor()]
+                [transforms.Resize(size=(size, size)), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(int(3/x.shape[0]), 1, 1))]
             )
 
     def __call__(self, x):
