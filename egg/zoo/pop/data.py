@@ -8,7 +8,7 @@ import random
 from typing import Optional
 
 import torch
-from PIL import ImageFilter
+from PIL import ImageFilter, Image
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 from torchvision import transforms
@@ -236,7 +236,7 @@ class ImagenetValDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.files[idx]
-        image = read_image(img_path)
+        image = Image.open(img_path)
         label = self.img_labels[idx]
         if self.transform:
             image = self.transform(image)
@@ -279,7 +279,7 @@ class ImageTransformation:
 
         transformations.append(transforms.ToTensor())
 
-        if dataset_name == "imagenet" or dataset_name == "imagenet_alive" or dataset_name == "imagenet_ood":
+        if dataset_name=="imagenet" or dataset_name=="imagenet_alive" or dataset_name=="imagenet_ood" or dataset_name=="imagenet_val":
             transformations.extend(
                 [
                     transforms.Normalize(
