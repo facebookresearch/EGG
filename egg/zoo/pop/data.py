@@ -228,7 +228,6 @@ class ImagenetValDataset(Dataset):
     def __init__(self, img_dir, annotations_file, transform=None):
         with open(annotations_file) as f:
             self.img_labels = [line for line in f.readlines()]
-        self.img_dir = img_dir
         self.transform = transform
         self.files = sorted(glob.glob(f'{img_dir}/*.JPEG'))
 
@@ -236,7 +235,7 @@ class ImagenetValDataset(Dataset):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
-        img_path = self.img_dir[idx, 0]
+        img_path = self.files[idx]
         image = read_image(img_path)
         label = self.img_labels[idx]
         if self.transform:
