@@ -30,10 +30,10 @@
         "random"
     ],
     "aux_loss_weight":[
-        0.5
+        0
     ],
     "dataset_dir":[
-        "/datasets/COLT/ILSVRC2012_img_train"
+        "/datasets/COLT/ILSVRC2012/test/"
     ],
     "gs_temperature": [
         5.0

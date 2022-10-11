@@ -14,6 +14,8 @@ from torchvision import datasets, transforms
 from torchvision import transforms
 import numpy as np
 from pathlib import Path
+import glob
+from torchvision.io import read_image
 
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
@@ -133,10 +135,14 @@ def get_dataloader(
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
         train_dataset = select_ood_idxs(train_dataset)
     elif dataset_name == "places205":
-        train_dataset = ClassificationDataset(hub.load("hub://activeloop/places205"), transform = transformations)
+        train_dataset = PlacesDataset(hub.load("hub://activeloop/places205"), transform = transformations)
+    elif dataset_name == "imagenet_val":
+        # TODO Matéo : correct this so that path is not hardcoded
+        train_dataset = ImagenetValDataset(dataset_dir, annotations_file=Path(dataset_dir).parent / "ILSVRC2012_devkit_t12/data/ILSVRC2012_validation_ground_truth.txt", transform = transformations)
 
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
+        # change collate fn to use the dev_kits tags
     train_sampler = None
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -197,7 +203,7 @@ class GaussianBlur:
         x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
         return x
 
-class ClassificationDataset(Dataset):
+class PlacesDataset(Dataset):
     # for palces205, which is not a folder of images but calls on an API to stream images in realtime
     def __init__(self, ds, transform = None):
         self.ds = ds
@@ -216,6 +222,25 @@ class ClassificationDataset(Dataset):
         if self.transform is not None:
             image = self.transform(image)
 
+        return image, label
+
+class ImagenetValDataset(Dataset):
+    def __init__(self, img_dir, annotations_file, transform=None):
+        with open(annotations_file) as f:
+            self.img_labels = [line for line in f.readlines()]
+        self.img_dir = img_dir
+        self.transform = transform
+        self.files = sorted(glob.glob(f'{img_dir}/*.JPEG'))
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = self.img_dir[idx, 0]
+        image = read_image(img_path)
+        label = self.img_labels[idx]
+        if self.transform:
+            image = self.transform(image)
         return image, label
 
 class ImageTransformation:
