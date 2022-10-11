@@ -278,6 +278,7 @@ class ImageTransformation:
             ]
 
         transformations.append(transforms.ToTensor())
+        transformations.append(transforms.Lambda(lambda x: x.repeat(int(3/x.shape[0]), 1, 1)))
 
         if dataset_name=="imagenet" or dataset_name=="imagenet_alive" or dataset_name=="imagenet_ood" or dataset_name=="imagenet_val":
             transformations.extend(
