@@ -227,7 +227,7 @@ class PlacesDataset(Dataset):
 class ImagenetValDataset(Dataset):
     def __init__(self, img_dir, annotations_file, transform=None):
         with open(annotations_file) as f:
-            self.img_labels = [line for line in f.readlines()]
+            self.img_labels = [int(line) for line in f.readlines()]
         self.transform = transform
         self.files = sorted(glob.glob(f'{img_dir}/*.JPEG'))
 
