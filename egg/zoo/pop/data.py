@@ -2,20 +2,19 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-
-import hub
 import random
 from typing import Optional
+from pathlib import Path
+import glob
 
+import hub
 import torch
 from PIL import ImageFilter, Image
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
-from torchvision import transforms
+
 import numpy as np
-from pathlib import Path
-import glob
-from torchvision.io import read_image
+
 
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
@@ -69,6 +68,7 @@ def get_augmentation(attck_name:str, size:int):
     return transformations[attck_name]
 
 def collate_fn(batch):
+
     return (
         torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
         torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0),  # labels (original classes, not used in emecom_game)
