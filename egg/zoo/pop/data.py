@@ -235,11 +235,17 @@ class ImagenetValDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.files[idx]
-        image = Image.open(img_path)
+        image = self.pil_loader(img_path)
         label = self.img_labels[idx]
         if self.transform is not None:
             image = self.transform(image)
         return image, label
+
+    def pil_loader(path: str) -> Image.Image:
+        # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
+        with open(path, "rb") as f:
+            img = Image.open(f)
+            return img.convert("RGB")
 
 class ImageTransformation:
     """
