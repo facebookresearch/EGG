@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # an additional classifier is created for the shuffled input, where the sender is randomly chosen to get input
     device="cuda"
     is_baseline = False # set to True to train baseline classifiers
-    dataset_name = "places205"
+    dataset_name = "imagenet_ood" # "places205"
     dataset_dir =  "/datasets/COLT/imagenet21k_resized/imagenet21k_train/"
 
     if is_baseline:
@@ -117,22 +117,21 @@ if __name__ == "__main__":
         sender.to(device)
     criterion = torch.nn.CrossEntropyLoss()
 
-    if dataset_name == "places205":
-        train_dataloader = load_places()
-    else:
-        val_dataloader, train_dataloader = get_dataloader(
-            dataset_dir=dataset_dir,
-            dataset_name=dataset_name,
-            batch_size=128,
-            image_size=384,
-            num_workers=0,
-            is_distributed=False,
-            use_augmentations=False,
-            return_original_image=False,
-            seed=111,
-            split_set=True,
-            augmentation_type=None
-        )
+
+    val_dataloader, train_dataloader = get_dataloader(
+        dataset_dir=dataset_dir,
+        dataset_name=dataset_name,
+        batch_size=128,
+        image_size=384,
+        num_workers=0,
+        is_distributed=False,
+        use_augmentations=False,
+        return_original_image=False,
+        seed=111,
+        split_set=True,
+        augmentation_type=None
+    )
+
     optimizers = []
     for classifier in classifiers:
         opt = torch.optim.Adam(classifier.parameters(), lr=0.01)
@@ -142,4 +141,9 @@ if __name__ == "__main__":
 
     for epoch in range(10):
         train_epoch(senders, train_dataloader, optimizers, criterion, device)
+
+    # save models
+    for i, classifier in enumerate(classifiers):
+        # TODO: remove hardcoded path
+        torch.save(classifier.state_dict(), f"../experiments/feature_classif/{dataset_name}_{i}.pth")
     
