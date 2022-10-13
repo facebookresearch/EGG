@@ -3,7 +3,7 @@
         5
     ],
     "additional_sender": [
-        "['swin']"
+        "['dino']"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_cont/211316/final.tar",

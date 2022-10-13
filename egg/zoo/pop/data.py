@@ -15,6 +15,8 @@ from torchvision import transforms
 import numpy as np
 from pathlib import Path
 import glob
+from torch.utils.data import Subset
+
 
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
@@ -31,7 +33,6 @@ def seed_all(seed):
     torch.backends.cudnn.benchmark = False
     return seed
 
-from torch.utils.data import Subset
 def select_inanimate_idxs(dataset):
     """
         from all imagenet classes select those which are inanimate
