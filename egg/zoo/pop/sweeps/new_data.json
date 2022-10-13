@@ -33,7 +33,7 @@
         "random"
     ],
     "aux_loss_weight":[
-        0
+        0.25
     ],
     "gs_temperature": [
         5.0
