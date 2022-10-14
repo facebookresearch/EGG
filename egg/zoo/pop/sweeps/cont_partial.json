@@ -3,10 +3,10 @@
         5
     ],
     "additional_receiver": [
-        "['swin']"
+        "['resnet152']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212210/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212211/final.tar"
     ],
     "image_size": [
         384
