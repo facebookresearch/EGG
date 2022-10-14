@@ -3,10 +3,10 @@
         5
     ],
     "additional_sender": [
-        "['resnet152']"
+        "['vit']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212211/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212212/final.tar"
     ],
     "image_size": [
         384
