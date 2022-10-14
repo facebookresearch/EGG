@@ -108,7 +108,7 @@ def train_epoch(sender, classifier, dataloader, optimizer, criterion, device):
             sender, classifier, images, labels, optimizer, criterion
         )
 
-        acc = (output.argmax(dim=1) == labels).float().mean()
+        acc = (output.argmax(dim=1) == labels).float().mean().to("cpu")
         accs.append(acc.item())
 
     return accs
