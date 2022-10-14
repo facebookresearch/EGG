@@ -206,7 +206,7 @@ if __name__ == "__main__":
     val_dataloader, train_dataloader = get_dataloader(
         dataset_dir=args.dataset_dir,
         dataset_name=args.dataset_name,
-        batch_size=256,
+        batch_size=128,
         image_size=384,
         num_workers=4,
         is_distributed=False,
