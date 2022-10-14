@@ -2,8 +2,8 @@
     "n_epochs": [
         5
     ],
-    "additional_receiver": [
-        "['vgg11']"
+    "additional_sender": [
+        "['inception']"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_partial/212213/final.tar"
