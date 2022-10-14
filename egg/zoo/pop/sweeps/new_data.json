@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        5
+        30
     ],
     "batch_size": [
         64
