@@ -2,6 +2,9 @@
     "n_epochs": [
         30
     ],
+    "checkpoint_freq": [
+        5
+    ],
     "batch_size": [
         64
     ],
