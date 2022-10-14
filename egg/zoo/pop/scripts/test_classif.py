@@ -33,48 +33,6 @@ def load_models(model_path, metadata_path, device):
     return senders
 
 
-def get_archs(names):
-    archs = []
-    features = []
-    for name in names:
-        arch, n_features, _ = initialize_vision_module(
-            name, pretrained=True, aux_logits=True
-        )
-        archs.append(arch)
-        features.append(n_features)
-    return archs, features
-
-
-def load_places():
-    # load data
-    def collate_fn(batch):
-        return (
-            torch.stack([x["images"] for x in batch], dim=0),
-            torch.stack([torch.Tensor(x["labels"]).long() for x in batch], dim=0),
-            torch.stack([torch.Tensor(x["index"]) for x in batch], dim=0),
-        )
-
-    ds = hub.load("hub://activeloop/places205")
-    size = 384
-    transformations = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.repeat(int(3 / x.shape[0]), 1, 1)),
-            transforms.Resize(size=(size, size)),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        ]
-    )
-    dataloader = ds.pytorch(
-        num_workers=0,
-        shuffle=True,
-        batch_size=128,
-        collate_fn=collate_fn,
-        transform={"images": transformations, "labels": None, "index": None},
-        pin_memory=True,
-    )
-    return dataloader
-
-
 class LinearClassifier(torch.nn.Module):
     def __init__(self, input_dim=2, output_dim=3):
         super(LinearClassifier, self).__init__()
@@ -199,7 +157,9 @@ if __name__ == "__main__":
     metadata_path = path_to_parameters(args.model_path, "wandb")
     senders = load_models(args.model_path, metadata_path, args.device)
     sender = senders[args.selected_sender_idx]
-    classifier = LinearClassifier(16, 245).to(args.device)
+    classifier = LinearClassifier(16, 58).to(
+        args.device
+    )  # TODO : hard coded output dim to be replaced
 
     criterion = torch.nn.CrossEntropyLoss()
 
