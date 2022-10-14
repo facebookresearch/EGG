@@ -3,10 +3,10 @@
         5
     ],
     "additional_receiver": [
-        "['vit']"
+        "['vgg11']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212212/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/im1k_partial/212213/final.tar"
     ],
     "image_size": [
         384
