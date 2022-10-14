@@ -1,14 +1,20 @@
-import torch 
+import torch
 from egg.core.util import move_to
-from egg.zoo.pop.utils import get_common_opts, metadata_opener, load_from_checkpoint
+from egg.zoo.pop.utils import (
+    get_common_opts,
+    metadata_opener,
+    load_from_checkpoint,
+    path_to_parameters,
+)
 from egg.zoo.pop.games import build_game
 import hub
 from torchvision import transforms
 from egg.zoo.pop.archs import initialize_vision_module
 from egg.zoo.pop.data import get_dataloader
+import argparse
 
 # load models from given experiment
-def load_models(model_path, metadata_path):
+def load_models(model_path, metadata_path, device):
     opts = None
     with open(metadata_path) as f:
         opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True))
@@ -17,21 +23,26 @@ def load_models(model_path, metadata_path):
     load_from_checkpoint(pop_game, model_path)
     senders = pop_game.agents_loss_sampler.senders
 
-    # make non-trainable
+    # make non-trainable + send to gpu if required
     for sender in senders:
         sender.eval()
+        sender.to(device)
         for param in sender.parameters():
-                param.requires_grad = False
+            param.requires_grad = False
     return senders
+
 
 def get_archs(names):
     archs = []
     features = []
     for name in names:
-        arch, n_features, _ = initialize_vision_module(name, pretrained=True, aux_logits=True)
+        arch, n_features, _ = initialize_vision_module(
+            name, pretrained=True, aux_logits=True
+        )
         archs.append(arch)
         features.append(n_features)
     return archs, features
+
 
 def load_places():
     # load data
@@ -41,109 +52,181 @@ def load_places():
             torch.stack([torch.Tensor(x["labels"]).long() for x in batch], dim=0),
             torch.stack([torch.Tensor(x["index"]) for x in batch], dim=0),
         )
+
     ds = hub.load("hub://activeloop/places205")
     size = 384
-    transformations = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.repeat(int(3/x.shape[0]), 1, 1)),
-        transforms.Resize(size=(size, size)),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
-    dataloader = ds.pytorch(num_workers = 0, shuffle = True, batch_size= 128, collate_fn=collate_fn, transform={'images':transformations,'labels':None, 'index':None}, pin_memory=True)
+    transformations = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x.repeat(int(3 / x.shape[0]), 1, 1)),
+            transforms.Resize(size=(size, size)),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )
+    dataloader = ds.pytorch(
+        num_workers=0,
+        shuffle=True,
+        batch_size=128,
+        collate_fn=collate_fn,
+        transform={"images": transformations, "labels": None, "index": None},
+        pin_memory=True,
+    )
     return dataloader
 
-class LinearClassifier(torch.nn.Module):
-  def __init__(self, input_dim=2, output_dim=3):
-    super(LinearClassifier, self).__init__()
-    self.linear = torch.nn.Linear(input_dim, output_dim)
-    
-  def forward(self, x):
-    x = self.linear(x)
-    return x
 
-def forward_backward(model_idx, input_images, labels, optimizers, criterion):
-    # everyone goes to selected device    
-    message = senders[model_idx](input_images)
-    output = classifiers[model_idx](message)
+class LinearClassifier(torch.nn.Module):
+    def __init__(self, input_dim=2, output_dim=3):
+        super(LinearClassifier, self).__init__()
+        self.linear = torch.nn.Linear(input_dim, output_dim)
+
+    def forward(self, x):
+        x = self.linear(x)
+        return x
+
+
+def forward_backward(sender, classifier, input_images, labels, optimizer, criterion):
+    message = sender(input_images)
+    output = classifier(message)
 
     loss = criterion(output, labels.view(-1))
     loss.backward()
 
-    optimizers[model_idx].step()
-    optimizers[model_idx].zero_grad()
+    optimizer.step()
+    optimizer.zero_grad()
     return message, output, loss
 
 
-def train_epoch(senders, dataloader, optimizers, criterion, device):
+def train_epoch(sender, dataloader, optimizer, criterion, device):
+    accs = []
     for batch_idx, batch in enumerate(dataloader):
-        _rand_sender = torch.randint(0, len(senders), (1,)).item() # chosing the shuffled input for shuffled-classifier
         images, labels, _ = batch
         images = images.to(device)
         labels = labels.to(device)
-        
-        for i in range(len(senders) - 1):
-            _, output, loss = forward_backward(i, images, labels, optimizers, criterion)
+
+        _, output, loss = forward_backward(
+            sender, optimizer, images, labels, optimizer, criterion
+        )
+
+        acc = (output.argmax(dim=1) == labels).float().mean()
+        accs.append(acc.item())
+
+    return accs
+
+
+def test_epoch(senders, val_dataloader, device):
+    sender_accs = []
+    for sender in senders:
+        accs = []
+        for batch_idx, batch in enumerate(val_dataloader):
+            images, labels, _ = batch
+            images = images.to(device)
+            labels = labels.to(device)
+
+            message = sender(images)
+            output = classifier(message)
+
             acc = (output.argmax(dim=1) == labels).float().mean()
-            
-            if batch_idx % 100 == 0 :
-                print(f"{epoch}-{batch_idx} : acc_{i} : {acc}", flush=True)
-            if i == _rand_sender:
-                _, output, loss = forward_backward(-1, images, labels, optimizers, criterion)
-                if batch_idx % 100 == 0 :
-                    print(f"{epoch}-{batch_idx} : acc_shuffled : {acc}", flush=True)
+            accs.append(acc.item())
+    sender_accs.append(accs)
+    return sender_accs
+
 
 if __name__ == "__main__":
     # create classifiers & parametrise learning
     # classifiers and optimizers are on gpu if device is set to cuda
     # an additional classifier is created for the shuffled input, where the sender is randomly chosen to get input
-    device="cuda"
-    is_baseline = False # set to True to train baseline classifiers
-    dataset_name = "imagenet_ood" # "places205"
-    dataset_dir =  "/datasets/COLT/imagenet21k_resized/imagenet21k_train/"
+    parser = argparse.ArgumentParser(description="Description of your program")
+    parser.add_argument(
+        "-d",
+        "--device",
+        help="device to run this on",
+        choices=["cpu", "cuda"],
+        required=False,
+        default="cuda",
+    )
+    parser.add_argument(
+        "-D",
+        "--dataset_name",
+        help="which data to train classifier on",
+        choices=[
+            "cifar100",
+            "imagenet",
+            "gaussian_noise",
+            "inaturalist",
+            "imagenet_alive",
+            "imagenet_ood",
+            "places205",
+            "imagenet_val",
+        ],
+        required=False,
+        default="imagenet_ood",
+    )
 
-    if is_baseline:
-        names = ['vgg11','vit','resnet152', 'inception','dino','swin']
-        senders, n_features= get_archs(names)
-        classifiers = [LinearClassifier(n_features[i], 245).to(device) for i in range(len(senders))] 
-        # classifiers.append(LinearClassifier(16, 245).to(device)) can't do that because of different representation lengths
-    else:
-        model_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/final.tar"
-        metadata_path = "/homedtcl/mmahaut/projects/experiments/cont_fuller_pop/199721/wandb/latest-run/files/wandb-metadata.json"
-        senders = load_models(model_path, metadata_path)
-        classifiers = [LinearClassifier(16, 245).to(device) for _ in range(len(senders))] 
-        classifiers.append(LinearClassifier(16, 245).to(device))
+    parser.add_argument(
+        "--dataset_dir",
+        help="path to directory with dataset",
+        type=str,
+        required=False,
+        default="/datasets/COLT/imagenet21k_resized/imagenet21k_train/",
+    )
+    parser.add_argument(
+        "-s",
+        "--selected_sender_idx",
+        help="index in original training game of sender used to train classifier (classification is then tested on all senders available)",
+        type=int,
+        required=False,
+        default=0,
+    )
+    parser.add_argument(
+        "-m",
+        "--model_path",
+        help="path to model to load",
+        type=str,
+        required=False,
+        default="/homedtcl/mmahaut/projects/experiments/im1k_cont/211295/final.tar",
+    )
+    args = vars(parser.parse_args())
 
-    for sender in senders:
-        sender.to(device)
+    metadata_path = path_to_parameters(args["model_path"], "wandb")
+    senders = load_models(args.model_path, metadata_path, args.device)
+    sender = senders[args.selected_sender_idx]
+    classifier = LinearClassifier(16, 245).to(args.device)
+
     criterion = torch.nn.CrossEntropyLoss()
 
-
     val_dataloader, train_dataloader = get_dataloader(
-        dataset_dir=dataset_dir,
-        dataset_name=dataset_name,
-        batch_size=128,
+        dataset_dir=args.dataset_dir,
+        dataset_name=args.dataset_name,
+        batch_size=256,
         image_size=384,
-        num_workers=0,
+        num_workers=4,
         is_distributed=False,
         use_augmentations=False,
         return_original_image=False,
         seed=111,
         split_set=True,
-        augmentation_type=None
+        augmentation_type=None,
     )
 
-    optimizers = []
-    for classifier in classifiers:
-        opt = torch.optim.Adam(classifier.parameters(), lr=0.01)
-        opt.state = move_to(opt.state, device)
-        optimizers.append(opt)
-    
+    optimizer = torch.optim.Adam(classifier.parameters(), lr=0.01)
+    optimizer.state = move_to(optimizer.state, args.device)
 
     for epoch in range(10):
-        train_epoch(senders, train_dataloader, optimizers, criterion, device)
+        train_acc = train_epoch(
+            sender, train_dataloader, optimizer, criterion, args.device
+        )
+        test_accs = test_epoch(senders, val_dataloader, args.device)
 
-    # save models
-    for i, classifier in enumerate(classifiers):
-        # TODO: remove hardcoded path
-        torch.save(classifier.state_dict(), f"../experiments/feature_classif/{dataset_name}_{i}.pth")
-    
+        print(f"Epoch {epoch} train acc: {sum(train_acc)/len(train_acc)}")
+        for i in range(len(test_accs)):
+            print(
+                f"Epoch {epoch} test acc from sender {args.selected_sender_idx} tested on {i}: {sum(test_accs[i])/len(test_accs[i])}"
+            )
+
+        # save models
+        for i, classifier in enumerate(classifier):
+            # TODO: remove hardcoded path
+            torch.save(
+                classifier.state_dict(),
+                f"../experiments/feature_classif/cl_s{args.selected_sender_idx}_{epoch}.tar",
+            )
