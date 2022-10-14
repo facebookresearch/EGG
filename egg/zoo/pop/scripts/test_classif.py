@@ -12,6 +12,7 @@ from torchvision import transforms
 from egg.zoo.pop.archs import initialize_vision_module
 from egg.zoo.pop.data import get_dataloader
 import argparse
+import sys
 
 # load models from given experiment
 def load_models(model_path, metadata_path, device):
@@ -193,10 +194,9 @@ if __name__ == "__main__":
         required=False,
         default="/homedtcl/mmahaut/projects/experiments/feature_classif",
     )
+    args = parser.parse_args(sys.argv[1:])
 
-    args = vars(parser.parse_args())
-
-    metadata_path = path_to_parameters(args["model_path"], "wandb")
+    metadata_path = path_to_parameters(args.model_path, "wandb")
     senders = load_models(args.model_path, metadata_path, args.device)
     sender = senders[args.selected_sender_idx]
     classifier = LinearClassifier(16, 245).to(args.device)
