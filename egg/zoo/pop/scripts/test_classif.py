@@ -97,7 +97,7 @@ def forward_backward(sender, classifier, input_images, labels, optimizer, criter
     return message, output, loss
 
 
-def train_epoch(sender, dataloader, optimizer, criterion, device):
+def train_epoch(sender, classifier, dataloader, optimizer, criterion, device):
     accs = []
     for batch_idx, batch in enumerate(dataloader):
         images, labels, _ = batch
@@ -105,7 +105,7 @@ def train_epoch(sender, dataloader, optimizer, criterion, device):
         labels = labels.to(device)
 
         _, output, loss = forward_backward(
-            sender, optimizer, images, labels, optimizer, criterion
+            sender, classifier, images, labels, optimizer, criterion
         )
 
         acc = (output.argmax(dim=1) == labels).float().mean()
@@ -114,7 +114,7 @@ def train_epoch(sender, dataloader, optimizer, criterion, device):
     return accs
 
 
-def test_epoch(senders, val_dataloader, device):
+def test_epoch(senders, classifier, val_dataloader, device):
     sender_accs = []
     for sender in senders:
         accs = []
@@ -222,9 +222,9 @@ if __name__ == "__main__":
 
     for epoch in range(10):
         train_acc = train_epoch(
-            sender, train_dataloader, optimizer, criterion, args.device
+            sender, classifier, train_dataloader, optimizer, criterion, args.device
         )
-        test_accs = test_epoch(senders, val_dataloader, args.device)
+        test_accs = test_epoch(senders, classifier, val_dataloader, args.device)
 
         print(f"Epoch {epoch} train acc: {sum(train_acc)/len(train_acc)}")
         for i in range(len(test_accs)):
