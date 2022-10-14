@@ -185,6 +185,15 @@ if __name__ == "__main__":
         required=False,
         default="/homedtcl/mmahaut/projects/experiments/im1k_cont/211295/final.tar",
     )
+    parser.add_argument(
+        "-c",
+        "--checkpoint_dir",
+        help="path to directory to save checkpoints",
+        type=str,
+        required=False,
+        default="/homedtcl/mmahaut/projects/experiments/feature_classif",
+    )
+
     args = vars(parser.parse_args())
 
     metadata_path = path_to_parameters(args["model_path"], "wandb")
@@ -225,8 +234,7 @@ if __name__ == "__main__":
 
         # save models
         for i, classifier in enumerate(classifier):
-            # TODO: remove hardcoded path
             torch.save(
                 classifier.state_dict(),
-                f"../experiments/feature_classif/cl_s{args.selected_sender_idx}_{epoch}.tar",
+                f"{args.checkpoint_dir}/cl_s{args.selected_sender_idx}_{epoch}.tar",
             )
