@@ -113,7 +113,7 @@ def select_ood_idxs(dataset):
 
     # build the appropriate subset
     img_ids = (
-        (torch.tensor(dataset.targets)[..., None] == imood_class_ids)
+        (torch.tensor(dataset.targets)[..., None] == torch.tensor(imood_class_ids))
         .any(-1)
         .nonzero(as_tuple=True)[0]
     )
@@ -149,9 +149,7 @@ def collate_fn_imood(batch):
     return (
         torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
         torch.Tensor(
-            imood_class_ids[
-                torch.cat([torch.Tensor([x[1]]).long() for x in batch], dim=0)
-            ]
+            imood_class_ids[[int(x[1]) for x in batch]]
         ),  # labels, corrected for out of domain selection
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
     )
