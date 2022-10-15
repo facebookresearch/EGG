@@ -8,6 +8,6 @@
         5
     ],
     "device": [
-        "cpu"
+        "cuda"
     ]
 }
