@@ -190,8 +190,7 @@ if __name__ == "__main__":
             )
 
         # save models
-        for i, classifier in enumerate(classifier):
-            torch.save(
-                classifier.state_dict(),
-                f"{args.checkpoint_dir}/cl_s{args.selected_sender_idx}_{epoch}.tar",
-            )
+        torch.save(
+            classifier.state_dict(),
+            f"{args.checkpoint_dir}/cl_s{args.selected_sender_idx}_{epoch}.tar",
+        )
