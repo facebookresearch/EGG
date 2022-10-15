@@ -32,20 +32,20 @@
     "dataset_name": [
         "imagenet_val"
     ],
-    "aux_loss":[
+    "aux_loss": [
         "random"
     ],
-    "aux_loss_weight":[
+    "aux_loss_weight": [
         0.5
     ],
     "gs_temperature": [
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152','inception', 'dino','swin']"
+        "['vgg11','vit','resnet152','inception', 'dino']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152','inception', 'dino','swin',]"
+        "['vgg11','vit','resnet152','inception', 'dino']"
     ],
     "image_size": [
         384

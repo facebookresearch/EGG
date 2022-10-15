@@ -148,8 +148,12 @@ def collate_fn_imood(batch):
 
     return (
         torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
-        torch.Tensor(
-            imood_class_ids[[int(x[1]) for x in batch]]
+        torch.cat(
+            [
+                torch.Tensor([np.where(imood_class_ids, x[1])[0][0]]).long()
+                for x in batch
+            ],
+            dim=0,
         ),  # labels, corrected for out of domain selection
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
     )
