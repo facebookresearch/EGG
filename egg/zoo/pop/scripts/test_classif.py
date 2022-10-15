@@ -7,9 +7,6 @@ from egg.zoo.pop.utils import (
     path_to_parameters,
 )
 from egg.zoo.pop.games import build_game
-import hub
-from torchvision import transforms
-from egg.zoo.pop.archs import initialize_vision_module
 from egg.zoo.pop.data import get_dataloader
 import argparse
 import sys
