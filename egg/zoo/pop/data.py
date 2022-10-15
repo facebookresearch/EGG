@@ -150,7 +150,7 @@ def collate_fn_imood(batch):
         torch.stack([x[0][0] for x in batch], dim=0),  # sender_input
         torch.cat(
             [
-                torch.Tensor([np.where(imood_class_ids, x[1])[0][0]]).long()
+                torch.Tensor([np.where(imood_class_ids == x[1])[0][0]]).long()
                 for x in batch
             ],
             dim=0,
