@@ -6,13 +6,15 @@ from pathlib import Path
 import argparse
 from time import sleep
 
-default_checkpoint_dir="/homedtcl/mmahaut/projects/experiments"
+default_checkpoint_dir = "/homedtcl/mmahaut/projects/experiments"
+
 
 def get_opts(arguments):
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
         "--params_path",
         type=str,
+        required=True,
         help="path to the json file containing the parameters to sweep through",
     )
     arg_parser.add_argument(
@@ -72,18 +74,29 @@ def sweep_params(opts):
     with open(opts.params_path, "r") as f:
         params = json.load(f)
 
-        if not "checkpoint_dir" in params :
-            params["checkpoint_dir"] = [Path(default_checkpoint_dir)/opts.job_name]
+        if not "checkpoint_dir" in params:
+            params["checkpoint_dir"] = [Path(default_checkpoint_dir) / opts.job_name]
         checkpoint_dir = Path(params["checkpoint_dir"][0])
 
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
         for values in it.product(*(params[key] for key in params)):
-            command=build_command(opts.game, values, params.keys(),opts.n_gpus)
-            write_sbatch(command,opts.job_name,opts.sbatch_dir,checkpoint_dir,opts.partition,opts.n_gpus,opts.time,opts.memory,opts.qos)
+            command = build_command(opts.game, values, params.keys(), opts.n_gpus)
+            write_sbatch(
+                command,
+                opts.job_name,
+                opts.sbatch_dir,
+                checkpoint_dir,
+                opts.partition,
+                opts.n_gpus,
+                opts.time,
+                opts.memory,
+                opts.qos,
+            )
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
             _return = os.system(f"sbatch {sbatch_file}")
-            
+
+
 def prep_checkpointdir(params, keys):
     """
     --- Not used at the moment ---
@@ -92,16 +105,20 @@ def prep_checkpointdir(params, keys):
     we create a subfolder for each parameter combination
     """
     job_id = os.environ["SLURM_JOB_ID"]
-    return [param if keys[i] != "checkpoint_dir" else param / job_id for i,param in enumerate(params)]
+    return [
+        param if keys[i] != "checkpoint_dir" else param / job_id
+        for i, param in enumerate(params)
+    ]
+
 
 def build_command(game, params, keys, n_gpus=1):
-    if n_gpus >1:
+    if n_gpus > 1:
         command = f"python -m torch.distributed.run --nproc_per_node={n_gpus} {game} "
     else:
-        command=f"python {game} "
+        command = f"python {game} "
     for i, key in enumerate(keys):
         if isinstance(params[i], str):
-            command += f"--{key}=\"{params[i]}\" "
+            command += f'--{key}="{params[i]}" '
         elif isinstance(params[i], bool):
             command += f"--{key} " if params[i] else ""
         else:
@@ -109,7 +126,17 @@ def build_command(game, params, keys, n_gpus=1):
     return command
 
 
-def write_sbatch(command,jobname,sbatch_dir,checkpoint_dir:Path,partition,n_gpus,time,mem,qos):
+def write_sbatch(
+    command,
+    jobname,
+    sbatch_dir,
+    checkpoint_dir: Path,
+    partition,
+    n_gpus,
+    time,
+    mem,
+    qos,
+):
     """
     writes a sbatch file for the current job
     """
@@ -132,6 +159,7 @@ def write_sbatch(command,jobname,sbatch_dir,checkpoint_dir:Path,partition,n_gpus
 echo "done"
 """
         )
+
 
 if __name__ == "__main__":
     sweep_params(get_opts(sys.argv[1:]))
