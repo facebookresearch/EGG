@@ -15,7 +15,7 @@
         111
     ],
     "augmentation_type": [
-        "gaussian_blur"
+        "grayscale"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_cont/211335/final.tar",
