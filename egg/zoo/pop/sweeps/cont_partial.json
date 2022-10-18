@@ -2,7 +2,7 @@
     "n_epochs": [
         5
     ],
-    "additional_receiver": [
+    "additional_sender": [
         "['resnet152']"
     ],
     "base_checkpoint_path": [
