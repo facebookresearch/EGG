@@ -6,7 +6,7 @@
         "['inception']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/im1k_partial_2/212824/final.tarr"
+        "/homedtcl/mmahaut/projects/experiments/im1k_partial_2/212824/final.tar"
     ],
     "image_size": [
         384
