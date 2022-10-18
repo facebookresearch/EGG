@@ -3,7 +3,7 @@
         5
     ],
     "additional_receiver": [
-        "['vit']"
+        "['dino']"
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_partial_2/212827/final.tar"
