@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        30
+        25
     ],
     "checkpoint_freq": [
         5
@@ -12,13 +12,13 @@
         0.0001
     ],
     "continuous_com": [
-        true
+        false
     ],
     "non_linearity": [
         "sigmoid"
     ],
     "vocab_size": [
-        16
+        512
     ],
     "random_seed": [
         111
@@ -42,10 +42,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vit','resnet152','inception','dino', 'swin']"
+        "['vgg11','vit','resnet152','inception','dino', 'swin']"
     ],
     "vision_model_names_senders": [
-        "['vit','resnet152','inception','dino', 'swin']"
+        "['vgg11','resnet152','inception','dino', 'swin']"
     ],
     "image_size": [
         384
