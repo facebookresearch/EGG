@@ -42,10 +42,10 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152','inception','dino','swin']"
+        "['vgg11','vit','resnet152','inception','swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152','inception','dino','swin']"
+        "['vgg11','vit','resnet152','inception','swin']"
     ],
     "image_size": [
         384
