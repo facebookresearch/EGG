@@ -3,10 +3,10 @@
         5
     ],
     "additional_sender": [
-        "['vit']"
+        "['inception']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/im1k_partial_2/212827/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/im1k_partial_2/212824/final.tarr"
     ],
     "image_size": [
         384
