@@ -9,10 +9,13 @@
         "/datasets/COLT/imagenet21k_resized/imagenet21k_train"
     ],
     "dataset_name": [
-        "imagenet_ood"
+        "cifar100"
     ],
     "noisy_channel": [
         0
+    ],
+    "batch_size": [
+        32
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_cont/212452/final.tar"
