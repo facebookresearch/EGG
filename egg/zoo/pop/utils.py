@@ -12,6 +12,7 @@ import egg.core as core
 import torch
 import json
 
+
 def get_data_opts(parser):
     group = parser.add_argument_group("data")
     group.add_argument(
@@ -23,7 +24,16 @@ def get_data_opts(parser):
 
     group.add_argument(
         "--dataset_name",
-        choices=["cifar100", "imagenet", "gaussian_noise", "inaturalist", "imagenet_alive","imagenet_ood","places205","imagenet_val"],
+        choices=[
+            "cifar100",
+            "imagenet",
+            "gaussian_noise",
+            "inaturalist",
+            "imagenet_alive",
+            "imagenet_ood",
+            "places205",
+            "imagenet_val",
+        ],
         default="imagenet",
         help="Dataset used for training a model",
     )
@@ -94,7 +104,22 @@ def get_vision_module_opts(parser):
         "--vision_model_name",
         type=str,
         default="",
-        choices=["resnet50", "resnet101", "resnet152", "vgg11", "inception", "vit", "swin","dino","twins_svt","deit","xcit","resnext","mobilenet","densenet"],
+        choices=[
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "vgg11",
+            "inception",
+            "vit",
+            "swin",
+            "dino",
+            "twins_svt",
+            "deit",
+            "xcit",
+            "resnext",
+            "mobilenet",
+            "densenet",
+        ],
         help="Model name for the encoder",
     )
     group.add_argument(
@@ -189,7 +214,7 @@ def get_game_arch_opts(parser):
         "--augmentation_type",
         type=str,
         default=None,
-        choices=["resize","color_jitter", "grayscale","gaussian_blur"],
+        choices=["resize", "color_jitter", "grayscale", "gaussian_blur"],
         help="non_linearity for the continuous sender",
     )
     group.add_argument(
@@ -232,14 +257,20 @@ def get_game_arch_opts(parser):
         "--aux_loss",
         default=None,
         type=str,
-        choices=["random", "best","best_averaged","random_kl","chosen"],
-        help="auxiliary loss to reduce differences between sender messages on same input"
+        choices=["random", "best", "best_averaged", "random_kl", "chosen"],
+        help="auxiliary loss to reduce differences between sender messages on same input",
     )
     group.add_argument(
         "--aux_loss_weight",
         default=0.0,
         type=float,
-        help="weight of the auxiliary loss (default: 0.0)"
+        help="weight of the auxiliary loss (default: 0.0)",
+    )
+    group.add_argument(
+        "--is_single_class_batch",
+        default=False,
+        action="store_true",
+        help="if true, the batch will be composed of only one class, and the auxiliary loss will be computed on the same class",
     )
 
 
@@ -306,24 +337,30 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
+
 def path_to_parameters(path, type="wandb"):
     if type == "wandb":
         _path = pathlib.Path(path)
-        return _path.parent / "wandb"  / "latest-run" / "files" / "wandb-metadata.json"
-    else :
+        return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
+    else:
         # legacy from when submitit was in use and the parameters were saved in the .out file
         old_game = pathlib.Path(path)
         job_number = str(old_game.parents[0].stem)
         all_out_files = [f for f in old_game.parents[1].glob(f"*{job_number}.out")]
-        assert len(all_out_files) == 1, f"did not find one out file (missing or duplicates) : {all_out_files}"
+        assert (
+            len(all_out_files) == 1
+        ), f"did not find one out file (missing or duplicates) : {all_out_files}"
         return all_out_files[0]
+
 
 def metadata_opener(file, data_type: str, verbose=False):
     """
     data_type : str in {"wandb", "nest"}
     Mat : case match in python 3.10 will cover all of this in syntactic sugar
     """
-    if data_type == "wandb":  # TODO : using the yaml file instead would use load all params instead of non-defaults
+    if (
+        data_type == "wandb"
+    ):  # TODO : using the yaml file instead would use load all params instead of non-defaults
         meta = json.load(file)
         return meta["args"]
 

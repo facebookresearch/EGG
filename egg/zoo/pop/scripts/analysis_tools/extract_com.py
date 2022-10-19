@@ -5,6 +5,7 @@ from egg.zoo.pop.utils import load_from_checkpoint
 
 # import sys
 import pathlib
+
 # import glob
 import torch
 from egg.core.batch import Batch
@@ -19,21 +20,35 @@ def main(params):
     TODO : allow simpler loading, from a path, or by searching for a few parameters
     """
     torch.autograd.set_detect_anomaly(True)
-    _path = ''
+    _path = ""
     for param in params:
         if "base_checkpoint_path" in param:
-            _path = param.rpartition('=')[2]
-    assert _path != '', "--base_checkpoint_path must be defined"
+            _path = param.rpartition("=")[2]
+    assert _path != "", "--base_checkpoint_path must be defined"
 
     f = open(path_to_parameters(_path, "wandb"))
     opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
     print(opts)
-    exp_name = str(opts.dataset_name) + str(opts.augmentation_type) + str(opts.vision_model_names_senders) + str(opts.vision_model_names_recvs)
+    exp_name = (
+        str(opts.dataset_name)
+        + str(opts.augmentation_type)
+        + str(opts.vision_model_names_senders)
+        + str(opts.vision_model_names_recvs)
+    )
     build_and_test_game(opts, exp_name=exp_name, dump_dir=opts.checkpoint_dir)
+
 
 #
 def eval(
-    sender, receiver, loss, game, data=None, aux_input=None, gs=True, batch_size=64, device="cuda"
+    sender,
+    receiver,
+    loss,
+    game,
+    data=None,
+    aux_input=None,
+    gs=True,
+    batch_size=64,
+    device="cuda",
 ):
     """
     Taken from core.trainers.py and modified (removed loss logging and multi-gpu support)
@@ -47,7 +62,8 @@ def eval(
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             aux_input["batch_number"] = (
-                torch.range(0, batch_size - 1, 1, dtype=torch.int32) + batch_size * n_batches
+                torch.range(0, batch_size - 1, 1, dtype=torch.int32)
+                + batch_size * n_batches
             )
             batch = batch.to(device)
 
@@ -65,9 +81,6 @@ def eval(
                 interaction.message = interaction.message.argmax(dim=-1)
             interactions.append(interaction)
             n_batches += 1
-            
-
-            
 
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
@@ -132,7 +145,8 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             use_augmentations=opts.use_augmentations,
             return_original_image=opts.return_original_image,
             split_set=True,
-            augmentation_type=opts.augmentation_type
+            augmentation_type=opts.augmentation_type,
+            is_single_class_batch=opts.is_single_class_batch,
         )
         # run evaluation, collect resulting interactions
         interactions.append(

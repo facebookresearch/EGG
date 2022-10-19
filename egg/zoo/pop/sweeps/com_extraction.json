@@ -6,16 +6,19 @@
         false
     ],
     "dataset_dir": [
-        "/datasets/COLT/imagenet21k_resized/imagenet21k_train"
+        "/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/"
     ],
     "dataset_name": [
-        "cifar100"
+        "imagenet_val"
     ],
     "noisy_channel": [
         0
     ],
     "batch_size": [
         32
+    ],
+    "is_single_class_batch": [
+        true
     ],
     "base_checkpoint_path": [
         "/homedtcl/mmahaut/projects/experiments/im1k_cont/212452/final.tar"

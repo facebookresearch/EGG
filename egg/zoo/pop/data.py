@@ -78,6 +78,56 @@ imood_class_ids = np.array(
         21765,
     ]
 )
+
+
+class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
+    """Samples elements uniformly from a given class
+    Arguments:
+        num_samples: number of samples to draw
+    """
+
+    def __init__(
+        self,
+        dataset,
+        num_samples=None,
+        replacement=True,
+    ):
+        # if indices is not provided, all elements in the dataset will be considered
+        self.indices = list(range(len(dataset)))
+        self.replacement = replacement
+        # define custom callback
+
+        # if num_samples is not provided, draw `len(indices)` samples in each iteration
+        self.num_samples = len(self.indices) if num_samples is None else num_samples
+
+        # distribution of classes in the dataset
+        self.labels = self._get_labels(dataset)
+
+    def _get_labels(self, dataset):
+        if self.callback_get_label:
+            return self.callback_get_label(dataset)
+        elif isinstance(dataset, datasets.ImageFolder):
+            return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
+        elif isinstance(dataset, torch.utils.data.Subset):
+            return dataset.dataset.imgs[:][1]
+        else:
+            raise NotImplementedError
+
+    def __iter__(self):
+        # randomly select a label
+        label_id = random.choice(self.labels)
+
+        return (
+            self.indices[i]
+            for i in torch.multinomial(
+                self.labels == label_id, self.num_samples, self.replacement
+            )
+        )
+
+    def __len__(self):
+        return self.num_samples
+
+
 # separate imagenet into subsets such as animate and inanimate
 # Image selection
 def seed_all(seed):
@@ -193,6 +243,7 @@ def get_dataloader(
     seed: int = 111,
     split_set: bool = True,
     augmentation_type=None,
+    is_single_class_batch: bool = False,
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
     seed_all(
@@ -244,12 +295,20 @@ def get_dataloader(
 
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
-        # change collate fn to use the dev_kits tags
     train_sampler = None
+    if is_single_class_batch:
+        train_sampler = SingleClassDatasetSampler(
+            train_dataset, batch_size, shuffle=True
+        )
+        # for now, cannot be distributed ! will be overriden !
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
             train_dataset, shuffle=True, drop_last=True, seed=seed
         )
+        if is_single_class_batch:
+            raise NotImplemented(
+                "Cannot use distributed sampling with single class batch"
+            )
 
     if split_set:
         test_dataset, train_dataset = torch.utils.data.random_split(
