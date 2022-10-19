@@ -297,9 +297,7 @@ def get_dataloader(
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
     if is_single_class_batch:
-        train_sampler = SingleClassDatasetSampler(
-            train_dataset, batch_size, shuffle=True
-        )
+        train_sampler = SingleClassDatasetSampler(train_dataset, batch_size)
         # for now, cannot be distributed ! will be overriden !
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
