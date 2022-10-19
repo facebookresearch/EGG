@@ -104,9 +104,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         self.labels = self._get_labels(dataset)
 
     def _get_labels(self, dataset):
-        if self.callback_get_label:
-            return self.callback_get_label(dataset)
-        elif isinstance(dataset, datasets.ImageFolder):
+        if isinstance(dataset, datasets.ImageFolder):
             return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
         elif isinstance(dataset, torch.utils.data.Subset):
             return dataset.dataset.imgs[:][1]
