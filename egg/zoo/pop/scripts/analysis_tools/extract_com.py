@@ -134,7 +134,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             "loss_idx": torch.Tensor([loss_idx] * opts.batch_size).int(),
         }
         # get validation data every time to reset seed (there might be a better and faster way to do this)
-        val_loader, train_loader = get_dataloader(
+        train_loader = get_dataloader(
             dataset_dir=opts.dataset_dir,
             dataset_name=opts.dataset_name,
             image_size=opts.image_size,
@@ -144,7 +144,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
             seed=111,  # same as hardcoded version used in experiments
             use_augmentations=opts.use_augmentations,
             return_original_image=opts.return_original_image,
-            split_set=True,
+            split_set=False,
             augmentation_type=opts.augmentation_type,
             is_single_class_batch=opts.is_single_class_batch,
         )
