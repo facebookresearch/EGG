@@ -16,6 +16,7 @@ from torchvision import datasets, transforms
 import numpy as np
 from torch.utils.data import Subset
 
+# TODO: move table to its own file
 imood_class_ids = np.array(
     [
         4491,
@@ -104,14 +105,14 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         self.labels = self._get_labels(dataset)
 
     def _get_labels(self, dataset):
-        if isinstance(dataset, datasets.ImageFolder) or isinstance(
-            dataset, ImagenetValDataset
-        ):
+        if isinstance(dataset, datasets.ImageFolder):
             return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
+        elif isinstance(dataset, ImagenetValDataset):
+            return torch.Tensor(dataset.labels)
         elif isinstance(dataset, torch.utils.data.Subset):
             return dataset.dataset.imgs[:][1]
         else:
-            raise NotImplementedError
+            raise NotImplementedError("Dataset type not supported")
 
     def __iter__(self):
         # randomly select a label
