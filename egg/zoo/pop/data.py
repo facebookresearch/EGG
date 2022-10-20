@@ -127,7 +127,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
                     ),
                 ]
             )
-        print(idxs, flush=True)
+        print(idxs.max(), self.num_samples, flush=True)
         return (i for i in idxs.int())
 
     def __len__(self):
