@@ -126,7 +126,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         )
 
     def __len__(self):
-        return self.num_samples
+        return len(self.indices)
 
 
 # separate imagenet into subsets such as animate and inanimate
