@@ -403,6 +403,7 @@ class ImagenetValDataset(Dataset):
             self.img_labels = [int(line) for line in f.readlines()]
         self.transform = transform
         self.files = sorted(glob.glob(f"{img_dir}/*.JPEG"))
+        print(len(self.files), flush=True)
 
     def __len__(self):
         return len(self.img_labels)
