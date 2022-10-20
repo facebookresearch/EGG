@@ -108,7 +108,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         if isinstance(dataset, datasets.ImageFolder):
             return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
         elif isinstance(dataset, ImagenetValDataset):
-            return torch.Tensor(dataset.labels)
+            return torch.Tensor(dataset.img_labels)
         elif isinstance(dataset, torch.utils.data.Subset):
             return dataset.dataset.imgs[:][1]
         else:
