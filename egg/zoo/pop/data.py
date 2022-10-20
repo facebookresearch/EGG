@@ -121,7 +121,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         return (
             self.indices[i]
             for i in torch.multinomial(
-                self.labels == label_id, self.num_samples, self.replacement
+                (self.labels == label_id).long(), self.num_samples, self.replacement
             )
         )
 
