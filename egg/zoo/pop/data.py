@@ -90,16 +90,17 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
     def __init__(
         self,
         dataset,
-        num_samples=None,
+        batch_size,
         replacement=True,
     ):
         # if indices is not provided, all elements in the dataset will be considered
         self.indices = list(range(len(dataset)))
         self.replacement = replacement
+        self.batch_size = batch_size
         # define custom callback
 
         # if num_samples is not provided, draw `len(indices)` samples in each iteration
-        self.num_samples = len(self.indices) if num_samples is None else num_samples
+        self.num_samples = len(self.indices)
 
         # distribution of classes in the dataset
         self.labels = self._get_labels(dataset)
@@ -116,17 +117,22 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
 
     def __iter__(self):
         # randomly select a label
-        label_id = random.choice(self.labels)
 
-        return (
-            self.indices[i]
-            for i in torch.multinomial(
-                (self.labels == label_id).float(), self.num_samples, self.replacement
+        idxs = torch.tensor([])
+        for _ in range(self.num_samples // self.batch_size):
+            label_id = random.choice(self.labels)
+            idxs = torch.concat(
+                [
+                    idxs,
+                    torch.multinomial(
+                        (self.labels == label_id).float(), self.batch_size, True
+                    ),
+                ]
             )
-        )
+        return (self.indices[i] for i in idxs.int())
 
     def __len__(self):
-        return len(self.indices)
+        return self.num_samples
 
 
 # separate imagenet into subsets such as animate and inanimate
@@ -298,7 +304,7 @@ def get_dataloader(
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
     if is_single_class_batch:
-        train_sampler = SingleClassDatasetSampler(train_dataset, batch_size)
+        train_sampler = SingleClassDatasetSampler(train_dataset, batch_size=batch_size)
         # for now, cannot be distributed ! will be overriden !
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
