@@ -96,13 +96,10 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         # if indices is not provided, all elements in the dataset will be considered
         self.replacement = replacement
         self.batch_size = batch_size
-        # define custom callback
-
-        # if num_samples is not provided, draw `len(indices)` samples in each iteration
-        self.num_samples = len(self.indices)
 
         # distribution of classes in the dataset
         self.labels = self._get_labels(dataset)
+        self.num_samples = len(self.labels)
 
     def _get_labels(self, dataset):
         if isinstance(dataset, datasets.ImageFolder):
