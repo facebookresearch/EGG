@@ -17,6 +17,9 @@
     "batch_size": [
         32
     ],
+    "num_workers": [
+        0
+    ],
     "is_single_class_batch": [
         true
     ],
