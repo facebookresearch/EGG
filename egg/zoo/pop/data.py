@@ -91,7 +91,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
         self,
         dataset,
         batch_size,
-        replacement=True,
+        replacement=False,
     ):
         # if indices is not provided, all elements in the dataset will be considered
         self.indices = list(range(len(dataset)))
@@ -125,7 +125,9 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
                 [
                     idxs,
                     torch.multinomial(
-                        (self.labels == label_id).float(), self.batch_size, True
+                        (self.labels == label_id).float(),
+                        self.batch_size,
+                        self.replacement,
                     ),
                 ]
             )
