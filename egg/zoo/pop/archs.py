@@ -19,36 +19,67 @@ from egg.zoo.pop.scripts.analysis_tools.test_game import add_noise
 from collections.abc import Mapping
 
 
-
 def get_non_linearity(name):
     if name == "softmax":
         return nn.Softmax
     elif name == "sigmoid":
         return nn.Sigmoid
 
+
 def get_model(name, pretrained, aux_logits=True):
     modules = {
-        "resnet50": (torchvision.models.resnet50, {"pretrained":pretrained}),
-        "resnet101": (torchvision.models.resnet101, {"pretrained":pretrained}),
-        "resnet152": (torchvision.models.resnet152, {"pretrained":pretrained}),
-        "inception": (torchvision.models.inception_v3, {"pretrained":pretrained, "aux_logits":aux_logits}),
-        "resnext": (torchvision.models.resnext50_32x4d, {"pretrained":pretrained}),
-        "mobilenet": (torchvision.models.mobilenet_v3_large, {"pretrained":pretrained}),
-        "vgg11": (torchvision.models.vgg11, {"pretrained":pretrained}),
-        "densenet": (torchvision.models.densenet161, {"pretrained":pretrained}),
-        "vit": (timm.create_model, {"model_name":"vit_base_patch16_384", "pretrained":pretrained}),
-        "swin":(timm.create_model, {"model_name":"swin_base_patch4_window12_384", "pretrained":pretrained}),
-        "dino":(torch.hub.load, {"repo_or_dir":'facebookresearch/dino:main', "model":'dino_vits16',"verbose":False}),
-        "twins_svt":(timm.create_model, {"model_name":"twins_svt_base", "pretrained":pretrained}),
-        "deit":(timm.create_model, {"model_name":"deit_base_patch16_384", "pretrained":pretrained}),
-        "xcit":(timm.create_model, {"model_name":"xcit_large_24_p8_384_dist", "pretrained":pretrained}),
+        "resnet50": (torchvision.models.resnet50, {"pretrained": pretrained}),
+        "resnet101": (torchvision.models.resnet101, {"pretrained": pretrained}),
+        "resnet152": (torchvision.models.resnet152, {"pretrained": pretrained}),
+        "inception": (
+            torchvision.models.inception_v3,
+            {"pretrained": pretrained, "aux_logits": aux_logits},
+        ),
+        "resnext": (torchvision.models.resnext50_32x4d, {"pretrained": pretrained}),
+        "mobilenet": (
+            torchvision.models.mobilenet_v3_large,
+            {"pretrained": pretrained},
+        ),
+        "vgg11": (torchvision.models.vgg11, {"pretrained": pretrained}),
+        "densenet": (torchvision.models.densenet161, {"pretrained": pretrained}),
+        "vit": (
+            timm.create_model,
+            {"model_name": "vit_base_patch16_384", "pretrained": pretrained},
+        ),
+        "swin": (
+            timm.create_model,
+            {"model_name": "swin_base_patch4_window12_384", "pretrained": pretrained},
+        ),
+        "dino": (
+            torch.hub.load,
+            {
+                "repo_or_dir": "facebookresearch/dino:main",
+                "model": "dino_vits16",
+                "verbose": False,
+            },
+        ),
+        "twins_svt": (
+            timm.create_model,
+            {"model_name": "twins_svt_base", "pretrained": pretrained},
+        ),
+        "deit": (
+            timm.create_model,
+            {"model_name": "deit_base_patch16_384", "pretrained": pretrained},
+        ),
+        "xcit": (
+            timm.create_model,
+            {"model_name": "xcit_large_24_p8_384_dist", "pretrained": pretrained},
+        ),
     }
 
     if name not in modules:
         raise KeyError(f"{name} is not currently supported.")
     return modules[name][0](**modules[name][1])
 
-def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, aux_logits=True):
+
+def initialize_vision_module(
+    name: str = "resnet50", pretrained: bool = False, aux_logits=True
+):
     print("initialize module", name)
     model = get_model(name, pretrained, aux_logits)
     # TODO: instead of this I'd feel like using the dictionary structure further and including in_features
@@ -56,7 +87,7 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
     if name in ["resnet50", "resnet101", "resnet152", "resnext"]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
-    if name=="densenet":
+    if name == "densenet":
         n_features = model.classifier.in_features
         model.classifier = nn.Identity()
     if name == "mobilenet":
@@ -73,12 +104,12 @@ def initialize_vision_module(name: str = "resnet50", pretrained: bool = False, a
             model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
 
-    elif name in ["vit","swin","xcit","twins_svt","deit"]:
+    elif name in ["vit", "swin", "xcit", "twins_svt", "deit"]:
         n_features = model.head.in_features
         model.head = nn.Identity()
 
     elif name == "dino":
-        n_features = 384 #... could go and get that somehow instead of hardcoding ?
+        n_features = 384  # ... could go and get that somehow instead of hardcoding ?
         # Dino is already chopped and does not require removal of classif layer
 
     if pretrained:
@@ -159,15 +190,27 @@ class ContinuousSender(Sender):
         super(Sender, self).__init__()
         self.name = name
         self.init_vision_module(vision_module, input_dim)
-        self.init_com_layer(input_dim, vocab_size, get_non_linearity(non_linearity),block_com_layer)
+        self.init_com_layer(
+            input_dim, vocab_size, get_non_linearity(non_linearity), block_com_layer
+        )
         self.force_gumbel = force_gumbel
         self.forced_gumbel_temperature = forced_gumbel_temperature
 
-    def init_com_layer(self, input_dim, vocab_size, non_linearity: nn.Module = None,block_com_layer: bool = False):
-        self.fc = nn.Identity() if block_com_layer else nn.Sequential(
-            nn.Linear(input_dim, vocab_size),
-            nn.BatchNorm1d(vocab_size),
-            non_linearity() if non_linearity is not None else nn.Identity(),
+    def init_com_layer(
+        self,
+        input_dim,
+        vocab_size,
+        non_linearity: nn.Module = None,
+        block_com_layer: bool = False,
+    ):
+        self.fc = (
+            nn.Identity()
+            if block_com_layer
+            else nn.Sequential(
+                nn.Linear(input_dim, vocab_size),
+                nn.BatchNorm1d(vocab_size),
+                non_linearity() if non_linearity is not None else nn.Identity(),
+            )
         )
         pass
 
@@ -190,7 +233,7 @@ class Receiver(nn.Module):
         hidden_dim: int = 2048,
         output_dim: int = 2048,
         temperature: float = 1.0,
-        block_com_layer = False,
+        block_com_layer=False,
     ):
 
         super(Receiver, self).__init__()
@@ -204,16 +247,20 @@ class Receiver(nn.Module):
             self.vision_module, input_dim = initialize_vision_module(vision_module)
         else:
             raise RuntimeError("Unknown vision module for the Receiver")
-        self.fc = nn.Identity() if block_com_layer else nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim, bias=False),
+        self.fc = (
+            nn.Identity()
+            if block_com_layer
+            else nn.Sequential(
+                nn.Linear(input_dim, hidden_dim),
+                nn.BatchNorm1d(hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, output_dim, bias=False),
+            )
         )
         self.temperature = temperature
 
     def train(self, mode: bool = True):
-        r"""
+        """
         sets all in training mode EXCEPT vision module which is pre-trained and frozen
         """
         if not isinstance(mode, bool):
@@ -339,10 +386,10 @@ class Game(nn.Module):
         self,
         train_logging_strategy: Optional[LoggingStrategy] = None,
         test_logging_strategy: Optional[LoggingStrategy] = None,
-        noisy=None
+        noisy=None,
     ):
         super(Game, self).__init__()
-        self.noisy=noisy
+        self.noisy = noisy
         self.train_logging_strategy = (
             LoggingStrategy()
             if train_logging_strategy is None
@@ -371,7 +418,11 @@ class Game(nn.Module):
         # receiver_input = receiver_input.to("cuda")
 
         message = sender(sender_input, aux_input)
-        receiver_output = receiver(message if self.noisy is None else add_noise(message, self.noisy), receiver_input, aux_input)
+        receiver_output = receiver(
+            message if self.noisy is None else add_noise(message, self.noisy),
+            receiver_input,
+            aux_input,
+        )
 
         loss, aux_info = loss(
             sender_input,
@@ -391,7 +442,7 @@ class Game(nn.Module):
             labels=labels,
             aux_input=aux_input,
             receiver_output=receiver_output,
-            message=message.detach(), 
+            message=message.detach(),
             message_length=torch.ones(message[0].size(0)),
             aux=aux_info,
         )
@@ -403,7 +454,9 @@ class Game(nn.Module):
 
 
 class PopulationGame(nn.Module):
-    def __init__(self, game, agents_loss_sampler, device="cuda", aux_loss=None, aux_loss_weight=0):
+    def __init__(
+        self, game, agents_loss_sampler, device="cuda", aux_loss=None, aux_loss_weight=0
+    ):
         super().__init__()
         # TODO : Mat : this should be in sync with distributed training
         self.device = device
@@ -415,36 +468,38 @@ class PopulationGame(nn.Module):
         # initialising aux_loss
         if aux_loss is not None:
             if aux_loss == "random":
-                self.aux_loss = self.random_similarity_loss 
-            elif aux_loss =="best":
+                self.aux_loss = self.random_similarity_loss
+            elif aux_loss == "best":
                 self.aux_loss = self.best_similarity_loss
                 self.best_sender_idx = None
-                self.best_loss = 2**63-1
+                self.best_loss = 2**63 - 1
             elif aux_loss == "best_averaged":
                 self.aux_loss = self.averaged_similarity_loss
                 self.best_sender_idx = None
-                self.best_loss = torch.Tensor([2**63-1 for _ in range(len(self.agents_loss_sampler.senders))]).to(self.device)
-                self.n_elemets = [0 for _ in range(len(self.agents_loss_sampler.senders))]
+                self.best_loss = torch.Tensor(
+                    [2**63 - 1 for _ in range(len(self.agents_loss_sampler.senders))]
+                ).to(self.device)
+                self.n_elemets = [
+                    0 for _ in range(len(self.agents_loss_sampler.senders))
+                ]
             elif aux_loss == "random_kl":
                 self._kl = nn.KLDivLoss(reduction="batchmean")
-                self.aux_loss = self.random_kl_loss 
+                self.aux_loss = self.random_kl_loss
             elif aux_loss == "chosen":
                 self.aux_loss = self.chosen_similarity_loss
                 self.chosen_sender_idx = 1
-            else :
+            else:
                 raise NotImplementedError
             self.aux_loss_weight = aux_loss_weight
         else:
             self.aux_loss_weight = 0
-            
-        
 
     def force_set_device(self, device):
         # to use when each agent needs to go back and forth on GPU, needs to be sent back to cpu in trainer after backprop and optim step
         # this does not work with actual core.trainers
         self.device = device
         self.force_gpu_use = True
-        
+
     def random_similarity_loss(self, original_message, aux_input, batch, _loss):
         """
         takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
@@ -453,7 +508,9 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = aux_idxs[0]
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
+        aux_loss = torch.nn.functional.cosine_similarity(
+            original_message, aux_sender(batch, aux_input)
+        )
         return aux_loss
 
     def chosen_similarity_loss(self, original_message, aux_input, batch, _loss):
@@ -464,9 +521,11 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = torch.Tensor(self.chosen_sender_idx)
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
+        aux_loss = torch.nn.functional.cosine_similarity(
+            original_message, aux_sender(batch, aux_input)
+        )
         return aux_loss
-    
+
     def random_kl_loss(self, original_message, aux_input, batch, _loss):
         """
         takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
@@ -475,12 +534,12 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = aux_idxs[0]
-        aux_loss = self._kl(original_message, aux_sender(batch,aux_input))
+        aux_loss = self._kl(original_message, aux_sender(batch, aux_input))
         return aux_loss
-    
+
     def best_similarity_loss(self, original_message, aux_input, batch, loss):
         """
-        takes the agent which has the best loss so far, 
+        takes the agent which has the best loss so far,
         computes what message it would have given for the same input and calculates the similarity loss
         """
         if loss < self.best_loss:
@@ -491,22 +550,28 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = self.best_sender_idx
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
+        aux_loss = torch.nn.functional.cosine_similarity(
+            original_message, aux_sender(batch, aux_input)
+        )
         return aux_loss
-        
+
     def averaged_similarity_loss(self, original_message, aux_input, batch, loss):
         """
-        takes the agent which has had the best loss so far averaged over time, 
+        takes the agent which has had the best loss so far averaged over time,
         computes what message it would have given for the same input and calculates the similarity loss
         """
-        self.best_loss[aux_input["sender_idx"].item()] += (self.best_loss[aux_input["sender_idx"].item()] - loss)/self.n_elemets[aux_input["sender_idx"]]
+        self.best_loss[aux_input["sender_idx"].item()] += (
+            self.best_loss[aux_input["sender_idx"].item()] - loss
+        ) / self.n_elemets[aux_input["sender_idx"]]
         _best_sender_idx = torch.argmin(self.best_loss)
 
         aux_sender = self.agents_loss_sampler.senders[_best_sender_idx]
         if self.force_gpu_use:
             aux_sender = aux_sender.to(self.device)
         aux_input["aux_sender_idx"] = _best_sender_idx.detach().to("cpu")
-        aux_loss = torch.nn.functional.cosine_similarity(original_message, aux_sender(batch,aux_input))
+        aux_loss = torch.nn.functional.cosine_similarity(
+            original_message, aux_sender(batch, aux_input)
+        )
         return aux_loss
 
     def forward(self, *args, **kwargs):
@@ -525,11 +590,15 @@ class PopulationGame(nn.Module):
         if self.force_gpu_use:
             sender = sender.to(self.device)
             receiver = receiver.to(self.device)
-            # if aux_loss, aux_sender is moved during auxiliary loss calculation                 
+            # if aux_loss, aux_sender is moved during auxiliary loss calculation
         mean_loss, interactions, message = self.game(
             sender, receiver, loss, *args, **kwargs
         )
         if self.aux_loss_weight > 0:
-            mean_loss = mean_loss + self.aux_loss_weight * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
+            mean_loss = (
+                mean_loss
+                + self.aux_loss_weight
+                * self.aux_loss(message, args[-1], args[0], mean_loss).mean()
+            )
 
-        return mean_loss, interactions  
+        return mean_loss, interactions
