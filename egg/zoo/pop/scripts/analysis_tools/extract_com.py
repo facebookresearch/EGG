@@ -30,7 +30,9 @@ def main(params):
     opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
     print(opts)
     exp_name = (
-        str(opts.dataset_name)
+        str(opts.dataset_name) + str(opts.noisy_channel)
+        if opts.noisy_channel != None
+        else ""
         + str(opts.augmentation_type)
         + str(opts.vision_model_names_senders)
         + str(opts.vision_model_names_recvs)
