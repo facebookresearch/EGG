@@ -31,7 +31,7 @@ def main(params):
     print(opts)
     exp_name = (
         str(opts.dataset_name)
-        + +str(opts.augmentation_type)
+        + str(opts.augmentation_type)
         + str(opts.vision_model_names_senders)
         + str(opts.vision_model_names_recvs)
         + (str(opts.noisy_channel) if opts.noisy_channel != None else "")
@@ -39,7 +39,6 @@ def main(params):
     build_and_test_game(opts, exp_name=exp_name, dump_dir=opts.checkpoint_dir)
 
 
-#
 def eval(
     sender,
     receiver,
