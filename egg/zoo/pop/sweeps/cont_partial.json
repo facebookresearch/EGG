@@ -9,10 +9,10 @@
         "imagenet_val"
     ],
     "additional_receiver": [
-        "['dino']"
+        "['swin']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/disc_im1k_partial/213789/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/disc_im1k_partial/213785/final.tar"
     ],
     "image_size": [
         384
