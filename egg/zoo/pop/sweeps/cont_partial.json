@@ -8,11 +8,11 @@
     "dataset_name": [
         "imagenet_val"
     ],
-    "additional_receiver": [
+    "additional_sender": [
         "['inception']"
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/disc_im1k_partial/213790/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/disc_im1k_partial/213789/final.tar"
     ],
     "image_size": [
         384
