@@ -8,7 +8,7 @@
     "dataset_name": [
         "imagenet_val"
     ],
-    "additional_sender": [
+    "additional_receiver": [
         "['vit']"
     ],
     "base_checkpoint_path": [
