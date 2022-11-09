@@ -74,6 +74,23 @@ class Interaction:
     def __add__(self, other) -> "Interaction":
         """
         Defines the behaviour of the + operator between two Interaction objects
+        >>> i1 = Interaction(
+        ...     torch.Tensor([1]), torch.Tensor([1]), torch.Tensor([1]),
+        ...     {"a": torch.Tensor([1]), "b": torch.Tensor([1])}, torch.Tensor([1]), torch.Tensor([1]),
+        ...     torch.Tensor([1]), {"a": torch.Tensor([1]), "b": torch.Tensor([1])}
+        ... )
+        >>> i2 = Interaction(
+        ...     torch.Tensor([2]), torch.Tensor([2]), torch.Tensor([2]),
+        ...     {"b": torch.Tensor([2]), "c": torch.Tensor([2])}, torch.Tensor([2]), torch.Tensor([2]),
+        ...     torch.Tensor([2]), {"b": torch.Tensor([2]), "c": torch.Tensor([2])}
+        ... )
+        >>> i3 = i1 + i2
+        >>> i3.sender_input
+        tensor([1., 2.])
+        >>> i3.aux_input['b']
+        tensor([1., 2.])
+        >>> i3.aux['c']
+        tensor([2.])
         """
         sender_input = torch.cat((self.sender_input, other.sender_input))
         receiver_input = torch.cat((self.receiver_input, other.receiver_input))
@@ -82,9 +99,27 @@ class Interaction:
         message_length = torch.cat((self.message_length, other.message_length))
         receiver_output = torch.cat((self.receiver_output, other.receiver_output))
         if self.aux:
-            aux = {**self.aux, **other.aux}
+            aux = {}
+            keys = set(list(self.aux.keys()) + list(other.aux.keys()))
+            for k in keys:
+                if k in self.aux and k in other.aux:
+                    aux[k] = torch.cat((self.aux[k], other.aux[k]))
+                else:
+                    if k in self.aux:
+                        aux[k] = self.aux[k]
+                    elif k in other.aux:
+                        aux[k] = other.aux[k]
         if self.aux_input:
-            aux_input = {**self.aux_input, **other.aux_input}
+            aux_input = {}
+            keys = set(list(self.aux_input.keys()) + list(other.aux_input.keys()))
+            for k in keys:
+                if k in self.aux_input and k in other.aux_input:
+                    aux_input[k] = torch.cat((self.aux_input[k], other.aux_input[k]))
+                else:
+                    if k in self.aux_input:
+                        aux_input[k] = self.aux_input[k]
+                    elif k in other.aux_input:
+                        aux_input[k] = other.aux_input[k]
         return Interaction(
             sender_input=sender_input,
             receiver_input=receiver_input,
@@ -145,7 +180,8 @@ class Interaction:
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), ..., receiver_output=tensor([1., 1.]), message_length=None, aux={})
+        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, aux_input={}, \
+message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
         >>> d = Interaction(torch.ones(1), torch.ones(1), None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
