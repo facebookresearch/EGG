@@ -295,7 +295,6 @@ def dump_interactions(
     :param variable_length: whether variable-length communication is used.
     :param device: device (e.g. 'cuda') to be used.
     :return: The entire log of agent interactions, represented as an Interaction instance.
-        Interaction instances.
     """
     train_state = game.training  # persist so we restore it back
     game.eval()
