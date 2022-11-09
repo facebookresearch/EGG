@@ -88,12 +88,18 @@ class Interaction:
         >>> i2.aux['c']
         tensor([1.])
         """
-        sender_input = torch.cat((self.sender_input, other.sender_input))
-        receiver_input = torch.cat((self.receiver_input, other.receiver_input))
-        labels = torch.cat((self.labels, other.labels))
-        message = torch.cat((self.message, other.message))
-        message_length = torch.cat((self.message_length, other.message_length))
-        receiver_output = torch.cat((self.receiver_output, other.receiver_output))
+
+        def _check_cat(lst):
+            if all(x is None for x in lst):
+                return None
+            # if some but not all are None: not good
+            if any(x is None for x in lst):
+                raise RuntimeError(
+                    "Appending empty and non-empty interactions logs. "
+                    "Normally this shouldn't happen!"
+                )
+            return torch.cat(lst, dim=0)
+
         if self.aux:
             aux = {}
             keys = set(list(self.aux.keys()) + list(other.aux.keys()))
@@ -116,14 +122,16 @@ class Interaction:
                         aux_input[k] = self.aux_input[k]
                     elif k in other.aux_input:
                         aux_input[k] = other.aux_input[k]
+
+        interactions = [self, other]
         return Interaction(
-            sender_input=sender_input,
-            receiver_input=receiver_input,
-            labels=labels,
+            sender_input=_check_cat([x.sender_input for x in interactions]),
+            receiver_input=_check_cat([x.receiver_input for x in interactions]),
+            labels=_check_cat([x.labels for x in interactions]),
             aux_input=aux_input,
-            message=message,
-            message_length=message_length,
-            receiver_output=receiver_output,
+            message=_check_cat([x.message for x in interactions]),
+            message_length=_check_cat([x.message_length for x in interactions]),
+            receiver_output=_check_cat([x.receiver_output for x in interactions]),
             aux=aux,
         )
 
