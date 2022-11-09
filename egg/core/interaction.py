@@ -74,23 +74,19 @@ class Interaction:
     def __add__(self, other) -> "Interaction":
         """
         Defines the behaviour of the + operator between two Interaction objects
-        >>> i1 = Interaction(
-        ...     torch.Tensor([1]), torch.Tensor([1]), torch.Tensor([1]),
-        ...     {"a": torch.Tensor([1]), "b": torch.Tensor([1])}, torch.Tensor([1]), torch.Tensor([1]),
-        ...     torch.Tensor([1]), {"a": torch.Tensor([1]), "b": torch.Tensor([1])}
-        ... )
-        >>> i2 = Interaction(
-        ...     torch.Tensor([2]), torch.Tensor([2]), torch.Tensor([2]),
-        ...     {"b": torch.Tensor([2]), "c": torch.Tensor([2])}, torch.Tensor([2]), torch.Tensor([2]),
-        ...     torch.Tensor([2]), {"b": torch.Tensor([2]), "c": torch.Tensor([2])}
-        ... )
-        >>> i3 = i1 + i2
-        >>> i3.sender_input
-        tensor([1., 2.])
-        >>> i3.aux_input['b']
-        tensor([1., 2.])
-        >>> i3.aux['c']
-        tensor([2.])
+        >>> i0 = Interaction(torch.zeros(1), torch.zeros(1), torch.zeros(1),
+        ...     {"a": torch.zeros(1), "b": torch.zeros(1)}, torch.zeros(1), torch.zeros(1), torch.zeros(1),
+        ...     {"a": torch.zeros(1), "b": torch.zeros(1)})
+        >>> i1 = Interaction(torch.ones(1), torch.ones(1), torch.ones(1),
+        ...     {"b": torch.ones(1), "c": torch.ones(1)}, torch.ones(1), torch.ones(1), torch.ones(1),
+        ...     {"b": torch.ones(1), "c": torch.ones(1)})
+        >>> i2 = i0 + i1
+        >>> i2.sender_input
+        tensor([0., 1.])
+        >>> i2.aux_input['b']
+        tensor([0., 1.])
+        >>> i2.aux['c']
+        tensor([1.])
         """
         sender_input = torch.cat((self.sender_input, other.sender_input))
         receiver_input = torch.cat((self.receiver_input, other.receiver_input))
