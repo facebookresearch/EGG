@@ -74,19 +74,17 @@ class Interaction:
     def __add__(self, other) -> "Interaction":
         """
         Defines the behaviour of the + operator between two Interaction objects
-        >>> i0 = Interaction(torch.zeros(1), torch.zeros(1), torch.zeros(1),
-        ...     {"a": torch.zeros(1), "b": torch.zeros(1)}, torch.zeros(1), torch.zeros(1), torch.zeros(1),
-        ...     {"a": torch.zeros(1), "b": torch.zeros(1)})
-        >>> i1 = Interaction(torch.ones(1), torch.ones(1), torch.ones(1),
-        ...     {"b": torch.ones(1), "c": torch.ones(1)}, torch.ones(1), torch.ones(1), torch.ones(1),
-        ...     {"b": torch.ones(1), "c": torch.ones(1)})
+        >>> i0 = Interaction(torch.zeros(1), None, None, {"a": torch.zeros(1), "b": torch.zeros(1)}, None, None, None, {})
+        >>> i1 = Interaction(torch.ones(1), None, None, {"b": torch.ones(1), "c": torch.ones(1)}, None, None, None, {})
         >>> i2 = i0 + i1
         >>> i2.sender_input
         tensor([0., 1.])
-        >>> i2.aux_input['b']
+        >>> i2.aux_input["b"]
         tensor([0., 1.])
-        >>> i2.aux['c']
+        >>> i2.aux_input["c"]
         tensor([1.])
+        >>> i2.aux
+        {}
         """
 
         def _check_cat(lst):
@@ -100,39 +98,26 @@ class Interaction:
                 )
             return torch.cat(lst, dim=0)
 
-        if self.aux:
-            aux = {}
-            keys = set(list(self.aux.keys()) + list(other.aux.keys()))
+        def _combine_aux_dicts(dict1, dict2):
+            new_dict = {}
+            keys = set(list(dict1.keys()) + list(dict2.keys()))
             for k in keys:
-                if k in self.aux and k in other.aux:
-                    aux[k] = torch.cat((self.aux[k], other.aux[k]))
+                if k in dict1 and k in dict2:
+                    new_dict[k] = torch.cat((dict1[k], dict2[k]))
                 else:
-                    if k in self.aux:
-                        aux[k] = self.aux[k]
-                    elif k in other.aux:
-                        aux[k] = other.aux[k]
-        if self.aux_input:
-            aux_input = {}
-            keys = set(list(self.aux_input.keys()) + list(other.aux_input.keys()))
-            for k in keys:
-                if k in self.aux_input and k in other.aux_input:
-                    aux_input[k] = torch.cat((self.aux_input[k], other.aux_input[k]))
-                else:
-                    if k in self.aux_input:
-                        aux_input[k] = self.aux_input[k]
-                    elif k in other.aux_input:
-                        aux_input[k] = other.aux_input[k]
+                    new_dict[k] = dict1[k] if k in dict1 else dict2[k]
+            return new_dict
 
         interactions = [self, other]
         return Interaction(
             sender_input=_check_cat([x.sender_input for x in interactions]),
             receiver_input=_check_cat([x.receiver_input for x in interactions]),
             labels=_check_cat([x.labels for x in interactions]),
-            aux_input=aux_input,
+            aux_input=_combine_aux_dicts(self.aux_input, other.aux_input),
             message=_check_cat([x.message for x in interactions]),
             message_length=_check_cat([x.message_length for x in interactions]),
             receiver_output=_check_cat([x.receiver_output for x in interactions]),
-            aux=aux,
+            aux=_combine_aux_dicts(self.aux, other.aux),
         )
 
     @property
