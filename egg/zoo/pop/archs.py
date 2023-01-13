@@ -515,7 +515,7 @@ class PopulationGame(nn.Module):
 
     def chosen_similarity_loss(self, original_message, aux_input, batch, _loss):
         """
-        takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
+        computes what message the selected agent would have given for the same input and calculates the similarity loss
         """
         aux_sender = self.agents_loss_sampler.senders[self.chosen_sender_idx]
         if self.force_gpu_use:
@@ -528,7 +528,7 @@ class PopulationGame(nn.Module):
 
     def random_kl_loss(self, original_message, aux_input, batch, _loss):
         """
-        takes a random agent, computes what message it would have given for the same input and calculates the similarity loss
+        takes a random agent, computes what message it would have given for the same input and calculates the kl loss
         """
         aux_sender, _, _, aux_idxs = self.agents_loss_sampler()
         if self.force_gpu_use:

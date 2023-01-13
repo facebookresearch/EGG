@@ -12,7 +12,7 @@
         0.0001
     ],
     "vocab_size": [
-        512
+        2048
     ],
     "aux_loss":[
         "random"
@@ -36,8 +36,7 @@
         "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']",
-        "['resnext','mobilenet','densenet', 'twins_svt','deit','xcit']"
+        "['vgg11','vit','resnet152', 'inception','dino','swin']"
     ],
     "image_size": [
         384

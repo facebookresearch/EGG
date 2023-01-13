@@ -17,7 +17,7 @@ from egg.zoo.pop.utils import get_common_opts, metadata_opener, path_to_paramete
 def main(params):
     """
     starting point if script is executed from submitit or slurm with normal EGG parameters
-    TODO : allow simpler loading, from a path, or by searching for a few parameters
+    can load from a model path, finding in the metadata all the required parameters instead of requiring them to be rewritten
     """
     torch.autograd.set_detect_anomaly(True)
     _path = ""
@@ -44,7 +44,7 @@ def eval(
     receiver,
     loss,
     game,
-    data=None,
+    validation_data=None,
     aux_input=None,
     gs=True,
     batch_size=64,
@@ -56,7 +56,6 @@ def eval(
     """
     interactions = []
     n_batches = 0
-    validation_data = data
     with torch.no_grad():
         for batch in validation_data:
             if not isinstance(batch, Batch):
