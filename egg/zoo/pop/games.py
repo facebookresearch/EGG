@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from egg.zoo.pop.scripts.analysis_tools.test_game import initialize_classifiers
 from egg.zoo.pop.utils import load_from_checkpoint
 from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
+from egg.core.reinforce_wrappers import ReinforceWrapper
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.pop.archs import (
     AgentSampler,
@@ -30,14 +31,17 @@ def loss(
     acc = (receiver_output.argmax(dim=1) == labels).detach().float()
     loss = F.cross_entropy(receiver_output, labels, reduction="none")
     return loss, {"acc": acc}
-    
+
+
 def find_module_from_name(modules, name):
     for module in modules:
         if module[2] == name:
             return module
 
 
-def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_names_receiver=None):
+def build_senders_receivers(
+    opts, vision_model_names_senders=None, vision_model_names_receiver=None
+):
     if vision_model_names_senders is None:
         vision_model_names_senders = opts.vision_model_names_senders
     if vision_model_names_receiver is None:
@@ -46,9 +50,7 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
     vision_model_names_senders = eval(
         vision_model_names_senders.replace("#", '"')  # Mat : ...
     )
-    vision_model_names_receiver = eval(
-        vision_model_names_receiver.replace("#", '"')
-    )
+    vision_model_names_receiver = eval(vision_model_names_receiver.replace("#", '"'))
 
     # We don't do the single module thing here
     # if not (vision_model_names_senders and vision_model_names_receiver):
@@ -56,9 +58,17 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
     #     vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
 
     vision_modules = [
-        initialize_vision_module(name=module_name, pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-        if not opts.keep_classification_layer 
-        else initialize_classifiers(name=module_name, pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
+        initialize_vision_module(
+            name=module_name,
+            pretrained=not opts.retrain_vision,
+            aux_logits=not opts.remove_auxlogits,
+        )
+        if not opts.keep_classification_layer
+        else initialize_classifiers(
+            name=module_name,
+            pretrained=not opts.retrain_vision,
+            aux_logits=not opts.remove_auxlogits,
+        )
         for module_name in set(vision_model_names_senders + vision_model_names_receiver)
     ]
     # vision_modules_receivers = [
@@ -70,7 +80,9 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
         senders = [
             ContinuousSender(
                 vision_module=find_module_from_name(vision_modules, module_name)[0],
-                input_dim=find_module_from_name(vision_modules, module_name)[1], # TODO: Matéo repeated twice :/ think about optimising
+                input_dim=find_module_from_name(vision_modules, module_name)[
+                    1
+                ],  # TODO: Matéo repeated twice :/ think about optimising
                 vocab_size=opts.vocab_size,
                 name=module_name,
                 non_linearity=opts.non_linearity,
@@ -81,7 +93,7 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
             for module_name in vision_model_names_senders
         ]
         receivers = [
-                Receiver(
+            Receiver(
                 vision_module=find_module_from_name(vision_modules, module_name)[0],
                 input_dim=find_module_from_name(vision_modules, module_name)[1],
                 hidden_dim=opts.recv_hidden_dim,
@@ -89,22 +101,29 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                 temperature=opts.recv_temperature,
                 name=module_name,
                 block_com_layer=opts.block_com_layer,
-
             )
             for module_name in vision_model_names_receiver
         ]
     else:
+        if opts.gumbel_softmax:
+            wrapper = GumbelSoftmaxWrapper
+            kwargs = {
+                "temperature": opts.gs_temperature,
+                "trainable_temperature": opts.train_gs_temperature,
+                "straight_through": opts.straight_through,
+            }
+        else:
+            wrapper = ReinforceWrapper
+            kwargs = {}
         senders = [
-            GumbelSoftmaxWrapper(
+            wrapper(
                 Sender(
                     vision_module=find_module_from_name(vision_modules, module_name)[0],
                     input_dim=find_module_from_name(vision_modules, module_name)[1],
                     vocab_size=opts.vocab_size,
                     name=module_name,
                 ),
-                temperature=opts.gs_temperature,
-                trainable_temperature=opts.train_gs_temperature,
-                straight_through=opts.straight_through,
+                **kwargs,
             )
             for module_name in vision_model_names_senders
         ]
@@ -119,13 +138,14 @@ def build_senders_receivers(opts,vision_model_names_senders=None,vision_model_na
                     name=module_name,
                 ),
                 opts.vocab_size,
-                opts.vocab_size, # TODO Matéo : check if isn't possibly removed
+                opts.vocab_size,  # TODO Matéo : check if isn't possibly removed
             )
             for module_name in vision_model_names_receiver
         ]
     print(vision_model_names_senders)
     print(vision_model_names_receiver)
     return senders, receivers
+
 
 def build_game(opts):
     train_logging_strategy = LoggingStrategy(
@@ -146,7 +166,12 @@ def build_game(opts):
         noisy=opts.noisy_channel,
     )
 
-    game = PopulationGame(game, agents_loss_sampler, aux_loss=opts.aux_loss, aux_loss_weight=opts.aux_loss_weight)
+    game = PopulationGame(
+        game,
+        agents_loss_sampler,
+        aux_loss=opts.aux_loss,
+        aux_loss_weight=opts.aux_loss_weight,
+    )
 
     if opts.distributed_context.is_distributed:
         game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
@@ -162,14 +187,16 @@ def build_second_game(opts):
     pop_game = build_game(opts)
     load_from_checkpoint(pop_game, opts.base_checkpoint_path)
 
-    for old_sender in  pop_game.agents_loss_sampler.senders:
+    for old_sender in pop_game.agents_loss_sampler.senders:
         for param in old_sender.parameters():
             param.requires_grad = False
-    for old_receiver in  pop_game.agents_loss_sampler.receivers:
+    for old_receiver in pop_game.agents_loss_sampler.receivers:
         for param in old_receiver.parameters():
             param.requires_grad = False
 
-    new_senders, new_receivers = build_senders_receivers(opts, opts.additional_senders, opts.additional_receivers)
+    new_senders, new_receivers = build_senders_receivers(
+        opts, opts.additional_senders, opts.additional_receivers
+    )
     pop_game.agents_loss_sampler.avoid_training_old()
     pop_game.agents_loss_sampler.add_senders(new_senders)
     pop_game.agents_loss_sampler.add_receivers(new_receivers)
@@ -178,7 +205,3 @@ def build_second_game(opts):
     #     game = torch.nn.SyncBatchNorm.convert_sync_batchnorm(game)
 
     return pop_game
-
-
-
-    

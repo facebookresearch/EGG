@@ -12,7 +12,7 @@
         0.0001
     ],
     "vocab_size": [
-        2048
+        64000
     ],
     "aux_loss":[
         "random"
@@ -37,6 +37,9 @@
     ],
     "vision_model_names_senders": [
         "['vgg11','vit','resnet152', 'inception','dino','swin']"
+    ],
+    "gumbel_softmax":[
+    	false,true
     ],
     "image_size": [
         384

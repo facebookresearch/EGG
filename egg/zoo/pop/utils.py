@@ -224,6 +224,12 @@ def get_game_arch_opts(parser):
         help="activates the continuous sender",
     )
     group.add_argument(
+        "--gumbel_softmax",
+        default=True,
+        action="store_false",
+        help="uses gumbel softmax for the discrete sender, not possible when using continuous",
+    )
+    group.add_argument(
         "--noisy_channel",
         type=float,
         default=None,
