@@ -206,7 +206,8 @@ class TopographicSimilarity(Callback):
         messages = logs.message.argmax(dim=-1) if self.is_gumbel else logs.message
         messages = [msg.tolist() for msg in messages]
 
-        topsim = self.compute_topsim(logs.sender_input, messages)
+        topsim = self.compute_topsim(logs.sender_input, messages,
+                                     self.sender_input_distance_fn, self.message_distance_fn)
 
         output = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
         print(output, flush=True)
