@@ -12,13 +12,7 @@
         0.0001
     ],
     "vocab_size": [
-        64000
-    ],
-    "aux_loss":[
-        "random"
-    ],
-    "aux_loss_weight":[
-        0.5
+        256
     ],
     "random_seed": [
         111
@@ -26,20 +20,26 @@
     "recv_hidden_dim": [
         2048
     ],
+    "dataset_dir": [
+        "/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/"
+    ],
     "dataset_name": [
-        "cifar100"
+        "imagenet_val"
     ],
     "gs_temperature": [
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+        "['vgg11','vit','resnet152','inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception','dino','swin']"
+        "['vgg11','vit','resnet152','inception','dino','swin']"
     ],
-    "gumbel_softmax":[
-    	false,true
+    "com_channel": [
+        "reinforce"
+    ],
+    "max_len": [
+        1
     ],
     "image_size": [
         384

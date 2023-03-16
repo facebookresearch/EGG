@@ -31,6 +31,8 @@ def main(params):
     print(opts)
     exp_name = (
         str(opts.dataset_name)
+        + str(opts.com_channel)
+        + str(opts.vocab_size)
         + (str(opts.noisy_channel) if opts.noisy_channel != None else "")
         + str(opts.augmentation_type)
         + str(opts.vision_model_names_senders)
@@ -80,7 +82,6 @@ def eval(
                 interaction.message = interaction.message.argmax(dim=-1)
             interactions.append(interaction)
             n_batches += 1
-
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
 
@@ -157,7 +158,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
                 pop_game.game,
                 train_loader,
                 aux_input,
-                not opts.continuous_com,
+                opts.com_channel == "gs",
                 opts.batch_size,
                 device,
             )

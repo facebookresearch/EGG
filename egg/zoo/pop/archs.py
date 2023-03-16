@@ -14,8 +14,11 @@ import torch.nn as nn
 import torchvision
 from egg.core.interaction import LoggingStrategy
 from egg.core.gs_wrappers import gumbel_softmax_sample
+from egg.core.reinforce_wrappers import RnnReceiverReinforce
 from egg.zoo.pop.scripts.analysis_tools.test_game import add_noise
+from egg.core.baselines import MeanBaseline, NoBaseline
 
+from egg.core.util import find_lengths
 from collections.abc import Mapping
 
 
@@ -113,15 +116,34 @@ def initialize_vision_module(
         # Dino is already chopped and does not require removal of classif layer
 
     if pretrained:
+        # prevent training by removing gradients
         for param in model.parameters():
             param.requires_grad = False
         if name == "inception":
             model.aux_logits = False
-        model = (
-            model.eval()
-        )  # Mat : --> dropout blocked, as well as all other training dependant behaviors
+        # prevent training dependant behaviors (dropout...)
+        model = model.eval()
 
     return model, n_features, name
+
+
+class RnnReceiverReinforce(RnnReceiverReinforce):
+    """
+    Taken from egg.core.reinforce_wrappers and modified to work with crossentropy training.
+    """
+
+    def __init__(
+        self, agent, vocab_size, embed_dim, hidden_size, cell="rnn", num_layers=1
+    ):
+        super(RnnReceiverReinforce, self).__init__(
+            agent, vocab_size, embed_dim, hidden_size, cell="rnn", num_layers=1
+        )
+
+    def forward(self, message, input=None, aux_input=None, lengths=None):
+        encoded = self.encoder(message, lengths)
+        sample = self.agent(encoded, input, aux_input)
+
+        return sample
 
 
 class Sender(nn.Module):
@@ -387,9 +409,18 @@ class Game(nn.Module):
         train_logging_strategy: Optional[LoggingStrategy] = None,
         test_logging_strategy: Optional[LoggingStrategy] = None,
         noisy=None,
+        sender_entropy_coeff=0.5,
+        kl_div_coeff=0.0,
+        baseline=None,
     ):
         super(Game, self).__init__()
         self.noisy = noisy
+        self.baseline = baseline
+        if baseline is not None:
+            self.baseline = {"no": NoBaseline, "mean": MeanBaseline}[baseline]()
+            self.sender_entropy_coeff = sender_entropy_coeff
+            self.kl_div_coeff = kl_div_coeff
+
         self.train_logging_strategy = (
             LoggingStrategy()
             if train_logging_strategy is None
@@ -418,8 +449,18 @@ class Game(nn.Module):
         # receiver_input = receiver_input.to("cuda")
 
         message = sender(sender_input, aux_input)
+
+        if self.baseline is not None:
+            # this is to allow for ReinforceSender which forwards additional info
+            # baseline is only set for reinforce
+            log_probs = message[1]
+            entropy = message[2]
+            message = message[0].long()
+
+        message = message if self.noisy is None else add_noise(message, self.noisy)
+
         receiver_output = receiver(
-            message if self.noisy is None else add_noise(message, self.noisy),
+            message,
             receiver_input,
             aux_input,
         )
@@ -433,8 +474,38 @@ class Game(nn.Module):
             aux_input,
         )
 
+        if self.baseline is not None:
+            # dealing with multi-message using
+            # egg.core.reinforce_wrappers.CommunicationRnnReinforce as an example
+            if len(message.shape) > 1:
+                log_probs = log_probs.mean(dim=1)
+                entropy = entropy.mean(dim=1)
+
+            # TODO : Mat : add kl_div --> get the old policy logits from the sender
+            weighted_entropy = entropy * self.sender_entropy_coeff
+            # kl_div = torch.distributions.kl_divergence(
+            #     torch.distributions.Categorical(logits=logits),
+            #     torch.distributions.Categorical(logits=old_policy_logits),
+            # )
+            # weighted_kl_div = self.kl_div_coeff * kl_div
+
+            baseline = self.baseline.predict(loss.detach())
+            if self.training:
+                self.baseline.update(loss)
+
+            policy_loss = ((loss.detach() - baseline) * log_probs).mean()
+            optimized_loss = policy_loss - weighted_entropy  # + weighted_kl_div
+            loss += optimized_loss
+
+            # aux_info["sender_entropy"] = entropy
+            # aux_info["kl_div"] = kl_div
+
         logging_strategy = (
             self.train_logging_strategy if self.training else self.test_logging_strategy
+        )
+        # The util does not work with one dimensional messages :( TODO : Mat : Replace with an util that does
+        message_length = (
+            1 if len(message.shape) <= 1 else find_lengths(message)[1].item()
         )
         interaction = logging_strategy.filtered_interaction(
             sender_input=sender_input,
@@ -443,7 +514,7 @@ class Game(nn.Module):
             aux_input=aux_input,
             receiver_output=receiver_output,
             message=message.detach(),
-            message_length=torch.ones(message[0].size(0)),
+            message_length=torch.ones(message_length),
             aux=aux_info,
         )
         # if not self.training:

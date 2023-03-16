@@ -218,17 +218,20 @@ def get_game_arch_opts(parser):
         help="non_linearity for the continuous sender",
     )
     group.add_argument(
+        "--com_channel",
+        type=str,
+        default="continuous",
+        choices=["gs", "reinforce", "lstm", "continuous"],
+        help="communication channel to use, the first three are discrete, the last one is continuous. rnn is multi-symbol",
+    )
+
+    group.add_argument(
         "--continuous_com",
         default=False,
         action="store_true",
-        help="activates the continuous sender",
+        help="legacy : use continuous communication channel",
     )
-    group.add_argument(
-        "--gumbel_softmax",
-        default=True,
-        action="store_false",
-        help="uses gumbel softmax for the discrete sender, not possible when using continuous",
-    )
+
     group.add_argument(
         "--noisy_channel",
         type=float,

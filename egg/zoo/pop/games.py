@@ -5,8 +5,16 @@ import torch
 import torch.nn.functional as F
 from egg.zoo.pop.scripts.analysis_tools.test_game import initialize_classifiers
 from egg.zoo.pop.utils import load_from_checkpoint
-from egg.core.gs_wrappers import GumbelSoftmaxWrapper, SymbolReceiverWrapper
-from egg.core.reinforce_wrappers import ReinforceWrapper
+from egg.core.gs_wrappers import (
+    GumbelSoftmaxWrapper,
+    SymbolReceiverWrapper,
+    RnnSenderGS,
+    RnnReceiverGS,
+)
+from egg.core.reinforce_wrappers import (
+    ReinforceWrapper,
+    RnnSenderReinforce,
+)
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.pop.archs import (
     AgentSampler,
@@ -16,6 +24,7 @@ from egg.zoo.pop.archs import (
     Sender,
     ContinuousSender,
     initialize_vision_module,
+    RnnReceiverReinforce,
 )
 
 
@@ -52,11 +61,6 @@ def build_senders_receivers(
     )
     vision_model_names_receiver = eval(vision_model_names_receiver.replace("#", '"'))
 
-    # We don't do the single module thing here
-    # if not (vision_model_names_senders and vision_model_names_receiver):
-    #     vision_module_names_senders = eval(opts.vision_module_names.replace("#", '"'))
-    #     vision_module_names_receivers = eval(opts.vision_module_names.replace("#", '"'))
-
     vision_modules = [
         initialize_vision_module(
             name=module_name,
@@ -71,18 +75,20 @@ def build_senders_receivers(
         )
         for module_name in set(vision_model_names_senders + vision_model_names_receiver)
     ]
-    # vision_modules_receivers = [
-    #     initialize_vision_module(name=vision_model_names_receiver[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-    #     if not opts.keep_classification_layer else initialize_classifiers(name=vision_model_names_senders[i], pretrained=not opts.retrain_vision, aux_logits=not opts.remove_auxlogits)
-    #     for i in range(len(vision_model_names_receiver))
-    # ]
-    if opts.continuous_com:
+
+    if (
+        opts.com_channel == "continuous" or opts.continuous_com
+    ):  # legacy parameter :/ TODO Matéo: remove
+        if opts.max_len != 1:
+            raise NotImplementedError(
+                f"Continuous communication channel only supports max_len=1, got {opts.max_len}"
+            )
         senders = [
             ContinuousSender(
                 vision_module=find_module_from_name(vision_modules, module_name)[0],
                 input_dim=find_module_from_name(vision_modules, module_name)[
                     1
-                ],  # TODO: Matéo repeated twice :/ think about optimising
+                ],  # TODO Matéo: repeated twice :/ think about optimising
                 vocab_size=opts.vocab_size,
                 name=module_name,
                 non_linearity=opts.non_linearity,
@@ -104,17 +110,48 @@ def build_senders_receivers(
             )
             for module_name in vision_model_names_receiver
         ]
+
+    # select communication channel wrapper
     else:
-        if opts.gumbel_softmax:
+        if opts.com_channel == "gs":
             wrapper = GumbelSoftmaxWrapper
+            rwrapper = SymbolReceiverWrapper
             kwargs = {
                 "temperature": opts.gs_temperature,
                 "trainable_temperature": opts.train_gs_temperature,
                 "straight_through": opts.straight_through,
             }
-        else:
+            rkwargs = {
+                "vocab_size": opts.vocab_size,
+                "agent_input_size": opts.vocab_size,
+            }
+        elif opts.com_channel == "reinforce":
             wrapper = ReinforceWrapper
+            rwrapper = SymbolReceiverWrapper
             kwargs = {}
+            rkwargs = {
+                "vocab_size": opts.vocab_size,
+                "agent_input_size": opts.vocab_size,
+            }
+        elif opts.com_channel == "lstm":
+            # multisymbol wrapper
+            wrapper = RnnSenderReinforce
+            rwrapper = RnnReceiverReinforce
+            kwargs = {
+                "vocab_size": opts.vocab_size,
+                "embed_dim": opts.vocab_size,  # embedding & hidden hard-coded as the same-size as the vocab
+                "hidden_size": opts.vocab_size,
+                "max_len": opts.max_len,
+                "cell": "lstm",
+            }
+            rkwargs = {
+                "vocab_size": opts.vocab_size,
+                "embed_dim": opts.vocab_size,
+                "hidden_size": opts.vocab_size,
+                "cell": "lstm",
+            }
+        else:
+            raise NotImplementedError(f"Unknown com channel : {opts.com_channel}")
         senders = [
             wrapper(
                 Sender(
@@ -128,7 +165,7 @@ def build_senders_receivers(
             for module_name in vision_model_names_senders
         ]
         receivers = [
-            SymbolReceiverWrapper(
+            rwrapper(
                 Receiver(
                     vision_module=find_module_from_name(vision_modules, module_name)[0],
                     input_dim=find_module_from_name(vision_modules, module_name)[1],
@@ -137,8 +174,7 @@ def build_senders_receivers(
                     temperature=opts.recv_temperature,
                     name=module_name,
                 ),
-                opts.vocab_size,
-                opts.vocab_size,  # TODO Matéo : check if isn't possibly removed
+                **rkwargs,
             )
             for module_name in vision_model_names_receiver
         ]
@@ -164,6 +200,9 @@ def build_game(opts):
         train_logging_strategy=train_logging_strategy,
         test_logging_strategy=test_logging_strategy,
         noisy=opts.noisy_channel,
+        baseline="mean"
+        if opts.com_channel == "reinforce" or opts.com_channel == "lstm"
+        else None,
     )
 
     game = PopulationGame(
@@ -180,8 +219,8 @@ def build_game(opts):
 
 
 def build_second_game(opts):
-    """temporary version of build_game, train a new receiver with a pretrained sender
-    (might end up using checkpoints instead...)
+    """
+    used for retraining when adding a new agent to an existing population
     """
 
     pop_game = build_game(opts)
