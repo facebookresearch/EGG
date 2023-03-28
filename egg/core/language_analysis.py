@@ -207,8 +207,7 @@ class TopographicSimilarity(Callback):
         messages = [msg.tolist() for msg in messages]
         sender_input = torch.flatten(logs.sender_input, start_dim=1)
 
-        topsim = self.compute_topsim(sender_input, messages,
-                                     self.sender_input_distance_fn, self.message_distance_fn)
+        topsim = self.compute_topsim(sender_input, messages, self.sender_input_distance_fn, self.message_distance_fn)
 
         output = json.dumps(dict(topsim=topsim, mode=mode, epoch=epoch))
         print(output, flush=True)
