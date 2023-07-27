@@ -11,6 +11,7 @@ from egg.zoo.pop.data import get_dataloader
 import argparse
 import sys
 
+
 # load models from given experiment
 def load_models(model_path, metadata_path, device):
     opts = None
@@ -115,7 +116,7 @@ if __name__ == "__main__":
             "imagenet_val",
         ],
         required=False,
-        default="imagenet_ood",
+        default="imagenet_val",
     )
 
     parser.add_argument(
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         help="path to directory with dataset",
         type=str,
         required=False,
-        default="/datasets/COLT/imagenet21k_resized/imagenet21k_train/",
+        default="/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/",
     )
     parser.add_argument(
         "-s",
@@ -139,7 +140,7 @@ if __name__ == "__main__":
         help="path to model to load",
         type=str,
         required=False,
-        default="/homedtcl/mmahaut/projects/experiments/im1k_cont/211295/final.tar",
+        default="/homedtcl/mmahaut/projects/experiments/rev_vir_16/372913/final.tar",
     )
     parser.add_argument(
         "-c",
@@ -147,7 +148,7 @@ if __name__ == "__main__":
         help="path to directory to save checkpoints",
         type=str,
         required=False,
-        default="/homedtcl/mmahaut/projects/experiments/feature_classif",
+        default="/homedtcl/mmahaut/projects/experiments/feature_classif_rev",
     )
     args = parser.parse_args(sys.argv[1:])
 

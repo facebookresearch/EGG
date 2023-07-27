@@ -119,6 +119,8 @@ def get_vision_module_opts(parser):
             "resnext",
             "mobilenet",
             "densenet",
+            "virtex",
+            "fcn_resnet50",
         ],
         help="Model name for the encoder",
     )
@@ -280,6 +282,12 @@ def get_game_arch_opts(parser):
         default=False,
         action="store_true",
         help="if true, the batch will be composed of only one class, and the auxiliary loss will be computed on the same class",
+    )
+    group.add_argument(
+        "--simplicial_temperature",
+        default=1.0,
+        type=float,
+        help="when communicating with simplicial messages, the temperature to use to sample the simplex",
     )
 
 

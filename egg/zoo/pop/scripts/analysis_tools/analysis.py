@@ -1,6 +1,8 @@
 import pandas as pd
+
 # import torch
 # import scipy
+
 
 def interaction_to_dataframe(interaction):
     """
@@ -12,7 +14,9 @@ def interaction_to_dataframe(interaction):
     # df["receiver_input"] = interaction.receiver_input
     df["labels"] = interaction.labels
     for key in interaction.aux_input:
-        if key == "receiver_message_embedding": # in continuous format message and receiver embedding are the same
+        if (
+            key == "receiver_message_embedding"
+        ):  # in continuous format message and receiver embedding are the same
             for dim, value in enumerate(interaction.message.T):
                 df[f"dim_{dim}"] = value
         else:
@@ -21,18 +25,18 @@ def interaction_to_dataframe(interaction):
 
     return df
 
+
 def name_to_idx(name):
     """
     Function to convert a name to the vision-module index
     """
-    names = ['vgg11','vit','resnet152', 'inception', "swin", "dino"]
+    names = ["vgg11", "vit", "resnet152", "inception", "swin", "dino", "virtex"]
     assert name in names, f"{name} is not a valid vision-module name"
     return names.index(name)
+
 
 def extract_name(name):
     """
     Function to extract the name of the vision-module from the interaction file name
     """
-    return [i.replace("]","").replace("'","") for i in name.split('[')[1:]]
-
-
+    return [i.replace("]", "").replace("'", "") for i in name.split("[")[1:]]

@@ -6,18 +6,67 @@
         false
     ],
     "dataset_dir": [
-        "/datasets/COLT/imagenet21k_resized/imagenet21k_val/"
+        "/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/"
     ],
     "dataset_name": [
-        "imagenet_ood"
+        "imagenet_val"
     ],
     "batch_size": [
         64
     ],
     "is_single_class_batch": [
-        false
+        true
     ],
     "base_checkpoint_path": [
-        "/homedtcl/mmahaut/projects/experiments/bigger_disc_reinforce/268604/final.tar"
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372913/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372914/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372915/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372916/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372917/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372918/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372919/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372920/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372921/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372922/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372923/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372924/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372925/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372926/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372927/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372928/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372929/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372930/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372931/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372932/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372933/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372934/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372935/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372936/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372937/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372938/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372939/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372940/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372941/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372942/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372943/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372944/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372945/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372946/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372947/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372948/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372949/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372950/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372951/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372952/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372953/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372954/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372955/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372956/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372957/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372958/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372959/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372960/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372961/final.tar",
+        "/homedtcl/mmahaut/projects/experiments/rev_vir_16/372962/final.tar"
     ]
 }

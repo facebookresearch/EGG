@@ -10,6 +10,7 @@ from egg.core.gs_wrappers import (
     SymbolReceiverWrapper,
     RnnSenderGS,
     RnnReceiverGS,
+    SenderReceiverRnnGS,
 )
 from egg.core.reinforce_wrappers import (
     ReinforceWrapper,
@@ -26,6 +27,7 @@ from egg.zoo.pop.archs import (
     initialize_vision_module,
     RnnReceiverReinforce,
 )
+from egg.zoo.pop.scripts.simplicial import SimplicialWrapper
 
 
 def loss(
@@ -135,20 +137,29 @@ def build_senders_receivers(
             }
         elif opts.com_channel == "lstm":
             # multisymbol wrapper
-            wrapper = RnnSenderReinforce
-            rwrapper = RnnReceiverReinforce
+            # TODO: we should be able to chose between gs and reinforce
+            wrapper = RnnSenderGS
+            rwrapper = RnnReceiverGS
             kwargs = {
                 "vocab_size": opts.vocab_size,
                 "embed_dim": opts.vocab_size,  # embedding & hidden hard-coded as the same-size as the vocab
                 "hidden_size": opts.vocab_size,
                 "max_len": opts.max_len,
                 "cell": "lstm",
+                "temperature": opts.gs_temperature,
             }
             rkwargs = {
                 "vocab_size": opts.vocab_size,
                 "embed_dim": opts.vocab_size,
                 "hidden_size": opts.vocab_size,
                 "cell": "lstm",
+            }
+        elif opts.com_channel == "simplicial":
+            wrapper = SimplicialWrapper
+            rwrapper = Receiver
+            kwargs = {
+                "L": opts.vocab_size,
+                "temperature": opts.simplicial_temperature,
             }
         else:
             raise NotImplementedError(f"Unknown com channel : {opts.com_channel}")
@@ -195,8 +206,13 @@ def build_game(opts):
         receivers,
         [loss],
     )
+    if not opts.com_channel == "lstm":
+        _game = Game
+    else:
+        raise NotImplementedError("LSTM not implemented yet, replace GS by Reinforce")
+        _game = SenderReceiverRnnGS  # BEWARE --> no baseline no opts channel
 
-    game = Game(
+    game = _game(
         train_logging_strategy=train_logging_strategy,
         test_logging_strategy=test_logging_strategy,
         noisy=opts.noisy_channel,

@@ -226,9 +226,30 @@ class Trainer:
                 optimized_loss.backward()
 
             if batch_id % self.update_freq == self.update_freq - 1:
+                # TODO: remove this once done
+                grads = [
+                    param.grad.detach().flatten()
+                    for param in self.game.parameters()
+                    if param.grad is not None
+                ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("game_norm: ", norm.item())
+                # grads = [
+                #     param.grad.detach().flatten()
+                #     for param in self.game.agents_loss_sampler.senders.parameters()
+                #     if param.grad is not None
+                # ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("sender_norm: ", norm.item())
+                # grads = [
+                #     param.grad.detach().flatten()
+                #     for param in self.game.agents_loss_sampler.receivers.parameters()
+                #     if param.grad is not None
+                # ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("receiver_norm: ", norm.item())
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)
-
                 if self.grad_norm:
                     torch.nn.utils.clip_grad_norm_(
                         self.game.parameters(), self.grad_norm

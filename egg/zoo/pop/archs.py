@@ -73,6 +73,20 @@ def get_model(name, pretrained, aux_logits=True):
             timm.create_model,
             {"model_name": "xcit_large_24_p8_384_dist", "pretrained": pretrained},
         ),
+        "virtex": (
+            torch.hub.load,
+            {
+                "repo_or_dir": "kdexd/virtex",
+                "model": "resnet50",
+                "pretrained": pretrained,
+            },
+        ),
+        "fcn_resnet50": (
+            torchvision.models.segmentation.fcn_resnet50,
+            {
+                "weights": "DEFAULT" if pretrained else None,
+            },
+        ),
     }
 
     if name not in modules:
@@ -90,6 +104,10 @@ def initialize_vision_module(
     if name in ["resnet50", "resnet101", "resnet152", "resnext"]:
         n_features = model.fc.in_features
         model.fc = nn.Identity()
+    if name == "virtex":
+        # virtex has a no pooling layer, so we add the one in the original resnet
+        n_features = 2048
+        model.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
     if name == "densenet":
         n_features = model.classifier.in_features
         model.classifier = nn.Identity()
@@ -257,7 +275,6 @@ class Receiver(nn.Module):
         temperature: float = 1.0,
         block_com_layer=False,
     ):
-
         super(Receiver, self).__init__()
 
         self.name = name
@@ -443,7 +460,7 @@ class Game(nn.Module):
         aux_input=None,
     ):
         # if not self.training:
-        # sender.to("cuda")  # Mat !! TODO : change this to common opts device
+        # Mat !! TODO : change this to common opts device
         # receiver.to("cuda")
         # sender_input = sender_input.to("cuda")
         # receiver_input = receiver_input.to("cuda")
@@ -473,7 +490,6 @@ class Game(nn.Module):
             labels,
             aux_input,
         )
-
         if self.baseline is not None:
             # dealing with multi-message using
             # egg.core.reinforce_wrappers.CommunicationRnnReinforce as an example

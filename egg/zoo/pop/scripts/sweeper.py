@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 from time import sleep
 
-default_checkpoint_dir = "/homedtcl/mmahaut/projects/experiments"
+default_checkpoint_dir = "/home/mmahaut/projects/experiments"
 
 
 def get_opts(arguments):
@@ -32,7 +32,7 @@ def get_opts(arguments):
     arg_parser.add_argument(
         "--sbatch_dir",
         type=str,
-        default="/homedtcl/mmahaut/projects/manual_slurm",
+        default="/home/mmahaut/projects/manual_slurm",
         help="path to the directory where the sbatch file is stored",
     )
     arg_parser.add_argument(
@@ -62,7 +62,7 @@ def get_opts(arguments):
     arg_parser.add_argument(
         "--game",
         type=str,
-        default="./egg/zoo/pop/scripts/analysis_tools/extract_com.py",
+        default="/home/mmahaut/projects/EGG/egg/zoo/pop/scripts/analysis_tools/extract_com.py",
         help="python module path to the game to run",
     )
 
@@ -95,6 +95,7 @@ def sweep_params(opts):
 
             sbatch_file = Path(opts.sbatch_dir) / f"{opts.job_name}.sh"
             _return = os.system(f"sbatch {sbatch_file}")
+            os.system(f"cp {sbatch_file} {checkpoint_dir}")
 
 
 def prep_checkpointdir(params, keys):
@@ -150,13 +151,14 @@ def write_sbatch(
 #SBATCH --qos={qos}
 #SBATCH --nodes=1
 #SBATCH --exclude=node044
-#SBATCH --nice=42
+#SBATCH --nice=41
 #SBATCH --ntasks-per-node=1
 #SBATCH --time={time}
 #SBATCH --mem={mem}
 #SBATCH --output={checkpoint_dir / jobname}_%j.out
 #SBATCH --error={checkpoint_dir / jobname}_%j.err
-
+source ~/.bashrc
+conda activate omelette
 {command}
 echo "done"
 """

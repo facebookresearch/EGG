@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        30
     ],
     "batch_size": [
         64
@@ -12,7 +12,8 @@
         0.0001
     ],
     "vocab_size": [
-        256
+        256,
+        8192
     ],
     "random_seed": [
         111
@@ -30,16 +31,19 @@
         5.0
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152','inception','dino','swin']"
+        "['vit','resnet152','inception','dino','swin']"
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152','inception','dino','swin']"
+        "['vit','resnet152','inception','dino','swin']"
     ],
     "com_channel": [
-        "reinforce"
+        "lstm"
     ],
     "max_len": [
-        1
+        1,
+        2,
+        5,
+        10
     ],
     "image_size": [
         384

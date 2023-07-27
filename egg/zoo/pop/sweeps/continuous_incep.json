@@ -21,7 +21,10 @@
         false
     ],
     "vocab_size": [
-        16
+        8,
+        16,
+        32,
+        64
     ],
     "random_seed": [
         111
@@ -29,8 +32,11 @@
     "recv_hidden_dim": [
         2048
     ],
+    "dataset_dir": [
+        "/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/"
+    ],
     "dataset_name": [
-        "cifar100"
+        "imagenet_val"
     ],
     "gs_temperature": [
         5.0
