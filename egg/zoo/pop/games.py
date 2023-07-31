@@ -27,7 +27,7 @@ from egg.zoo.pop.archs import (
     initialize_vision_module,
     RnnReceiverReinforce,
 )
-from egg.zoo.pop.scripts.simplicial import SimplicialWrapper
+from egg.zoo.pop.scripts.simplicial import SimplicialWrapper, Empty_wrapper
 
 
 def loss(
@@ -78,9 +78,7 @@ def build_senders_receivers(
         for module_name in set(vision_model_names_senders + vision_model_names_receiver)
     ]
 
-    if (
-        opts.com_channel == "continuous" or opts.continuous_com
-    ):  # legacy parameter :/ TODO Matéo: remove
+    if opts.com_channel == "continuous":  # legacy parameter :/ TODO Matéo: remove
         if opts.max_len != 1:
             raise NotImplementedError(
                 f"Continuous communication channel only supports max_len=1, got {opts.max_len}"
@@ -112,7 +110,30 @@ def build_senders_receivers(
             )
             for module_name in vision_model_names_receiver
         ]
-
+    elif opts.com_channel == "simplicial":
+        # assert vision_model_names_senders == vision_model_names_receiver == 1, "For now simplicial communication channel only supports one sender and one receiver"
+        senders = [
+            SimplicialWrapper(
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                v_output_dim=find_module_from_name(vision_modules, module_name)[1],
+                hidden_size=opts.vocab_size,
+                L=opts.simplicial_L,
+                temperature=opts.simplicial_temperature,
+            )
+            for module_name in vision_model_names_senders
+        ]
+        receivers = [
+            Receiver(
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                input_dim=find_module_from_name(vision_modules, module_name)[1],
+                hidden_dim=opts.recv_hidden_dim,
+                output_dim=opts.vocab_size,
+                temperature=opts.recv_temperature,
+                name=module_name,
+                block_com_layer=opts.block_com_layer,
+            )
+            for module_name in vision_model_names_receiver
+        ]
     # select communication channel wrapper
     else:
         if opts.com_channel == "gs":
@@ -153,13 +174,6 @@ def build_senders_receivers(
                 "embed_dim": opts.vocab_size,
                 "hidden_size": opts.vocab_size,
                 "cell": "lstm",
-            }
-        elif opts.com_channel == "simplicial":
-            wrapper = SimplicialWrapper
-            rwrapper = Receiver
-            kwargs = {
-                "L": opts.vocab_size,
-                "temperature": opts.simplicial_temperature,
             }
         else:
             raise NotImplementedError(f"Unknown com channel : {opts.com_channel}")

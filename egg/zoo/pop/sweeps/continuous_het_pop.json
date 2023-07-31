@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        25
+        10
     ],
     "fp16": [
         false
@@ -14,11 +14,16 @@
     "lr": [
         0.0001
     ],
-    "continuous_com": [
-        true
-    ],
     "com_channel": [
-        "continuous"
+        "simplicial"
+    ],
+    "simplicial_temperature": [
+        1
+    ],
+    "simplicial_L": [
+        2,
+        4,
+        8
     ],
     "non_linearity": [
         "sigmoid"
@@ -45,10 +50,22 @@
         5.0
     ],
     "vision_model_names_senders": [
-        "['vit','resnet152','inception','dino','swin','virtex']"
+        "['vgg11']",
+        "['vit']",
+        "['resnet152']",
+        "['inception']",
+        "['dino']",
+        "['swin']",
+        "['virtex']"
     ],
     "vision_model_names_recvs": [
-        "['vit','resnet152','inception','dino','swin','virtex']"
+        "['vgg11']",
+        "['vit']",
+        "['resnet152']",
+        "['inception']",
+        "['dino']",
+        "['swin']",
+        "['virtex']"
     ],
     "image_size": [
         384

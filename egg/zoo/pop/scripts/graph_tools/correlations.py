@@ -17,6 +17,12 @@ import hub
 from torch.utils.data import Dataset
 from pathlib import Path
 from typing import Optional
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import metrics
+from scipy.stats import spearmanr
+from scipy.spatial.distance import cosine
+from scipy.stats import pearsonr
 
 
 def seed_all(seed):
@@ -406,25 +412,111 @@ if __name__ == "__main__":
         augmentation_type,
         is_single_class_batch,
     )
-    for vm in vision_modules:
-        model, n_features, name = initialize_vision_module(vm, True)
-        model = model.cuda()
-        representation[name] = []
-        for i, b in enumerate(train_loader):
-            if i > 10:
-                break
-            # print(len(b), b[0].shape, b[1].shape, b[2].shape)
-            representation[name].append(model(b[0].cuda()).detach().cpu())
-        representation[name] = torch.cat(representation[name])
-        print(representation[name].shape)
-    for vm in vision_modules:
-        for vm2 in vision_modules:
-            if vm == vm2:
-                continue
-            print(
-                vm,
-                vm2,
-                torch.nn.functional.cosine_similarity(
-                    representation[vm], representation[vm2], dim=1
-                ).mean(),
-            )
+    # RSA analysis
+    # we take 1000 images from the test set
+    # we compute the representation for each image
+    # we then make correlation analysis between the 1000 image representations
+    # Finally, we compute the correlation between the correlation matrices of the different models
+
+    # collect the first 1000 images from the test set
+    collected_images = []
+    for i, (im, _, _) in enumerate(test_loader):
+        if i == 1000:
+            break
+        collected_images.append(im)
+    for model_name in vision_modules:
+            model, _,_=initialize_vision_module(model_name)
+            model.to("cuda")
+            model.eval()
+            for im in collected_images:
+                with torch.no_grad():
+                    if model_name not in representation:
+                        representation[model_name] = []
+                    representation[model_name].append(model(im.to("cuda")).cpu().numpy())
+    
+        
+    for model_name in vision_modules:
+        representation[model_name] = np.concatenate(representation[model_name])
+    corr_matrices = []
+    for model_name in vision_modules:
+        # make a correlation matrix
+        corr_matrix = np.corrcoef(representation[model_name])
+        corr_matrices.append(corr_matrix)
+        # plot and save the correlation matrix
+        plt.imshow(corr_matrix)
+        plt.colorbar()
+        plt.savefig(f"correlation_matrix_{model_name}.png")
+        plt.close()
+
+    # make heatmaps of the ps between the correlation matrices
+    ps = []
+    for corr_matrix in corr_matrices:
+        for corr_matrix2 in corr_matrices:
+            # get the vectors of m1 in vectors1
+            # get the vectors of m2 in vectors2, in same order as those of m1
+            # computing pairwise similarities
+            cosines1=metrics.pairwise.cosine_similarity(corr_matrix)
+            cosines2=metrics.pairwise.cosine_similarity(corr_matrix2)
+            # extracting uppper triangular of pairwise cosine matrices
+            upper_tri1=cosines1[np.triu_indices(cosines1.shape[0], k = 1)]
+            upper_tri2=cosines2[np.triu_indices(cosines2.shape[0], k = 1)]
+            # computing RSA as Person correlation
+            p_object =pearsonr(upper_tri1,upper_tri2)
+            # print(f"RSA between {model_name} and {model_name2} is {p_object[0]}")
+            ps.append(p_object[0])
+    # make a heatmap of the ps
+    ps = np.array(ps).reshape((len(vision_modules), len(vision_modules)))
+    plt.imshow(ps)
+    plt.colorbar()
+    plt.xticks(range(len(vision_modules)), vision_modules, rotation=90)
+    plt.yticks(range(len(vision_modules)), vision_modules)
+    plt.savefig("ps.png")
+    plt.close()
+
+    # save as npy
+    np.save("ps.npy", ps)
+
+# switch ps columns to     vision_modules =['vgg','incep','resnet','virtex','swin','vit','dino']
+# rows to ['vgg','incep','resnet','virtex','swin','vit','dino']
+ps = np.load("ps.npy")
+ps = ps[[0, 3, 4, 5, 6, 1, 2], :]
+ps = ps[:, [0, 3, 4, 5, 6, 1, 2]]
+
+# check correlation with this
+# [[ 3  6  7  7  7  7  7]
+#  [ 8  4 10  7  6  4  6]
+#  [ 8  5 29  9  7  8  7]
+#  [12  4 22  8  6  6  7]
+#  [ 9  5 11  7  8  4  7]
+#  [ 6  4  5  8  7  6  7]
+#  [ 9  5  5  7  8  4  5]]
+
+cosines1 = metrics.pairwise.cosine_similarity(
+    np.array(
+        [
+            [3, 6, 7, 7, 7, 7, 7],
+            [8, 4, 10, 7, 6, 4, 6],
+            [8, 5, 29, 9, 7, 8, 7],
+            [12, 4, 22, 8, 6, 6, 7],
+            [9, 5, 11, 7, 8, 4, 7],
+            [6, 4, 5, 8, 7, 6, 7],
+            [9, 5, 5, 7, 8, 4, 5],
+        ]
+    )
+)
+cosines2 = metrics.pairwise.cosine_similarity(
+    np.array(ps)
+)
+# extracting uppper triangular of pairwise cosine matrices
+upper_tri1 = cosines1[np.triu_indices(cosines1.shape[0], k=1)]
+upper_tri2 = cosines2[np.triu_indices(cosines2.shape[0], k=1)]
+# computing RSA as Person correlation
+p_object = pearsonr(upper_tri1, upper_tri2)
+print(f"{p_object[0]}")
+
+
+
+
+
+
+

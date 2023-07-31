@@ -223,7 +223,7 @@ def get_game_arch_opts(parser):
         "--com_channel",
         type=str,
         default="continuous",
-        choices=["gs", "reinforce", "lstm", "continuous"],
+        choices=["gs", "reinforce", "lstm", "continuous", "simplicial"],
         help="communication channel to use, the first three are discrete, the last one is continuous. rnn is multi-symbol",
     )
 
@@ -289,7 +289,12 @@ def get_game_arch_opts(parser):
         type=float,
         help="when communicating with simplicial messages, the temperature to use to sample the simplex",
     )
-
+    group.add_argument(
+        "--simplicial_L",
+        default=10,
+        type=int,
+        help="when communicating with simplicial messages, the number of embedding chunks",
+    )
 
 def get_common_opts(params):
     parser = argparse.ArgumentParser()
@@ -358,6 +363,10 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 def path_to_parameters(path, type="wandb"):
     if type == "wandb":
         _path = pathlib.Path(path)
+        # replace homedtcl with home
+        if _path.parts[1] == "homedtcl":
+            # unsupported operand type(s) for /: 'PosixPath' and 'tuple' in _path = pathlib.Path("/home") / _path.parts[2:]
+            _path = pathlib.Path("/home") / "/".join(_path.parts[2:])
         return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
     else:
         # legacy from when submitit was in use and the parameters were saved in the .out file

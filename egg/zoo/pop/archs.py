@@ -327,8 +327,7 @@ class Receiver(nn.Module):
             aux_input["receiver_message_embedding"] = message.detach()
 
         return similarity_scores
-
-
+        
 class AgentSampler(nn.Module):
     """Random sampler at training time, fullsweep sampler at test time."""
 

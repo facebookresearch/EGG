@@ -272,6 +272,7 @@ def graph_collector(
                 values,
                 verbose,
             ):
+                print(file_path)
                 label = ""
                 # collect data
                 with open(
