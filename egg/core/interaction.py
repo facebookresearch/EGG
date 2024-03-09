@@ -23,17 +23,16 @@ class LoggingStrategy:
     store_message_length: bool = True
 
     def filtered_interaction(
-        self,
-        sender_input: Optional[torch.Tensor],
-        receiver_input: Optional[torch.Tensor],
-        labels: Optional[torch.Tensor],
-        aux_input: Optional[Dict[str, torch.Tensor]],
-        message: Optional[torch.Tensor],
-        receiver_output: Optional[torch.Tensor],
-        message_length: Optional[torch.Tensor],
-        aux: Dict[str, torch.Tensor],
+            self,
+            sender_input: Optional[torch.Tensor],
+            receiver_input: Optional[torch.Tensor],
+            labels: Optional[torch.Tensor],
+            aux_input: Optional[Dict[str, torch.Tensor]],
+            message: Optional[torch.Tensor],
+            receiver_output: Optional[torch.Tensor],
+            message_length: Optional[torch.Tensor],
+            aux: Dict[str, torch.Tensor],
     ):
-
         return Interaction(
             sender_input=sender_input if self.store_sender_input else None,
             receiver_input=receiver_input if self.store_receiver_input else None,
@@ -53,6 +52,27 @@ class LoggingStrategy:
     @classmethod
     def maximal(cls):
         return cls()
+
+
+class IntervalLoggingStrategy(LoggingStrategy):
+
+    def __init__(self, log_interval: int = 100, **kwargs):
+        """
+        Extends the LoggingStrategy class to log interactions at regular intervals
+        """
+        super().__init__(**kwargs)
+
+        self.counter = 0
+        self.log_interval = log_interval
+
+    def filtered_interaction(self, **kwargs):
+
+        self.counter += 1
+
+        if self.counter % self.log_interval == 0:
+            return super().filtered_interaction(**kwargs)
+        else:
+            return Interaction.empty()
 
 
 @dataclass(repr=True, unsafe_hash=True)
@@ -189,7 +209,14 @@ message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None,
                 )
             return torch.cat(lst, dim=0)
 
-        assert interactions, "interaction list must not be empty"
+        # filter out empty interactions
+        interactions = [x for x in interactions if x != Interaction.empty()]
+
+        # if there are no interactions, return an empty interaction
+        if not interactions:
+            print("No interactions to concatenate, be sure to set the logging strategy properly.")
+            return Interaction.empty()
+
         has_aux_input = interactions[0].aux_input is not None
         for x in interactions:
             assert len(x.aux) == len(interactions[0].aux)
@@ -279,12 +306,12 @@ message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None,
 
 
 def dump_interactions(
-    game: torch.nn.Module,
-    dataset: "torch.utils.data.DataLoader",
-    gs: bool,
-    variable_length: bool,
-    device: Optional[torch.device] = None,
-    apply_padding: bool = True,
+        game: torch.nn.Module,
+        dataset: "torch.utils.data.DataLoader",
+        gs: bool,
+        variable_length: bool,
+        device: Optional[torch.device] = None,
+        apply_padding: bool = True,
 ) -> Interaction:
     """
     A tool to dump the interaction between Sender and Receiver
