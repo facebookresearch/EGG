@@ -55,7 +55,6 @@ class LoggingStrategy:
 
 
 class IntervalLoggingStrategy(LoggingStrategy):
-
     def __init__(self, log_interval: int = 100, **kwargs):
         """
         Extends the LoggingStrategy class to log interactions at regular intervals
