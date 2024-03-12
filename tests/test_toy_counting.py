@@ -18,7 +18,7 @@ class ToyDataset:
     def __init__(self):
         data = []
 
-        for i in range(2 ** 8):
+        for i in range(2**8):
             s = [int(x) for x in "{0:08b}".format(i)]
             data.append(s)
         self.data = torch.tensor(data).float()
