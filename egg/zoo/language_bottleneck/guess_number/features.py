@@ -112,7 +112,7 @@ class UniformLoader(torch.utils.data.DataLoader):
         batch_size = 2 ** (n_bits)
         numbers = np.array(range(batch_size))
 
-        examples = np.zeros((batch_size, n_bits), dtype=np.int)
+        examples = np.zeros((batch_size, n_bits), dtype=int)
 
         for i in range(n_bits):
             examples[:, i] = np.bitwise_and(numbers, 2**i) > 0
