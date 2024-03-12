@@ -47,12 +47,12 @@ def select_subset_V2(data, n_subset, n_attributes, n_values, random_seed=7):
     sampled_data = []
     # Sample the diagonal (minus (0,0)) to impose having each attribute is present at least once in the dataset
     start = 0
-    while start < (n_values ** n_attributes):
+    while start < (n_values**n_attributes):
         if start > 0:
             sampled_data.append(data[start])
         start += n_values + 1
     # Sample remaining
-    to_sample = (n_subset ** n_attributes) - len(sampled_data)
+    to_sample = (n_subset**n_attributes) - len(sampled_data)
     tobesampled = copy.deepcopy(data)
     for sample in sampled_data:
         tobesampled.remove(sample)

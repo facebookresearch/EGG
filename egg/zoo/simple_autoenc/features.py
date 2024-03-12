@@ -75,7 +75,7 @@ class OneHotLoader(torch.utils.data.DataLoader):
 
     def __iter__(self):
         if self.seed is None:
-            seed = np.random.randint(0, 2 ** 32)
+            seed = np.random.randint(0, 2**32)
         else:
             seed = self.seed
 

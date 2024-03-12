@@ -180,7 +180,7 @@ class TransformerBaseEncoder(torch.nn.Module):
         self.init_parameters()
 
     def init_parameters(self):
-        nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim ** -0.5)
+        nn.init.normal_(self.embedding.weight, mean=0, std=self.embed_dim**-0.5)
 
     def forward(self, src_tokens, key_padding_mask=None, attn_mask=None):
         # embed tokens and positions

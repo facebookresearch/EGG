@@ -13,7 +13,7 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: v2.14-dependencies-{{ checksum "requirements.txt" }}
+          key: v2.15-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
           name: install dependencies
@@ -23,7 +23,7 @@ jobs:
             pip install -U pip setuptools
             pip install -r requirements.txt
             pip install tox
-            pip install black==23.3.0
+            pip install black==24.2.0
             pip install isort
             pip install flake8
             pip install requests
@@ -31,7 +31,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v2.14-dependencies-{{ checksum "requirements.txt" }}
+          key: v2.15-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
           name: black-check

@@ -283,9 +283,11 @@ class RnnSenderReinforce(nn.Module):
         cell_type = cell_types[cell]
         self.cells = nn.ModuleList(
             [
-                cell_type(input_size=embed_dim, hidden_size=hidden_size)
-                if i == 0
-                else cell_type(input_size=hidden_size, hidden_size=hidden_size)
+                (
+                    cell_type(input_size=embed_dim, hidden_size=hidden_size)
+                    if i == 0
+                    else cell_type(input_size=hidden_size, hidden_size=hidden_size)
+                )
                 for i in range(self.num_layers)
             ]
         )  # noqa: E502
@@ -722,7 +724,7 @@ class TransformerSenderReinforce(nn.Module):
         self.vocab_size = vocab_size
 
         self.embed_tokens = torch.nn.Embedding(vocab_size, embed_dim)
-        nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.embed_dim ** -0.5)
+        nn.init.normal_(self.embed_tokens.weight, mean=0, std=self.embed_dim**-0.5)
         self.embed_scale = math.sqrt(embed_dim)
 
     def generate_standard(self, encoder_state):

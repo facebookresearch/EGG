@@ -42,7 +42,7 @@ class AttributesValuesDataset:
             itertools.product(*(range(1, n_values + 1) for _ in range(n_attributes)))
         )
 
-        seed = seed if seed else np.random.randint(0, 2 ** 31)
+        seed = seed if seed else np.random.randint(0, 2**31)
         self.seed = seed
 
     def __iter__(self):
@@ -77,7 +77,7 @@ class AttributesValuesIterator:
         self.idx = 0
 
         self.data = samples
-        seed = seed if seed else np.random.randint(0, 2 ** 31)
+        seed = seed if seed else np.random.randint(0, 2**31)
         self.random_state = np.random.RandomState(seed)
 
     def __iter__(self):

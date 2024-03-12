@@ -14,6 +14,7 @@ from torch.utils.data import Dataset
 # method, returning the idx-th item in the dataset. We also provide a get_n_features(self) method,
 # returning the dimensionality of the Sender input vector after it is transformed to one-hot format.
 
+
 # The AttValRecoDataset class is used in the reconstruction game. It takes an input file with a
 # space-delimited attribute-value vector per line and  creates a data-frame with the two mandatory
 # fields expected in EGG games, namely sender_input and labels.

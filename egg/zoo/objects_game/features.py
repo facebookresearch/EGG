@@ -47,7 +47,7 @@ class VectorsLoader:
             pathlib.Path(dump_data_folder) if dump_data_folder is not None else None
         )
 
-        seed = seed if seed else np.random.randint(0, 2 ** 31)
+        seed = seed if seed else np.random.randint(0, 2**31)
         self.random_state = np.random.RandomState(seed)
 
     @property

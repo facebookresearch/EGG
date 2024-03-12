@@ -8,8 +8,8 @@ from typing import Iterable, Optional, Tuple
 import torch
 
 
-def get_dataloader() -> Iterable[
-    Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]
-]:
+def get_dataloader() -> (
+    Iterable[Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]]
+):
     "Returning an iterator for tuple(sender_input, labels, receiver_input)."
     pass

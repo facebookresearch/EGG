@@ -92,7 +92,7 @@ class OneHotLoader(torch.utils.data.DataLoader):
 
     def __iter__(self):
         if self.seed is None:
-            seed = np.random.randint(0, 2 ** 32)
+            seed = np.random.randint(0, 2**32)
         else:
             seed = self.seed
 
@@ -115,7 +115,7 @@ class UniformLoader(torch.utils.data.DataLoader):
         examples = np.zeros((batch_size, n_bits), dtype=np.int)
 
         for i in range(n_bits):
-            examples[:, i] = np.bitwise_and(numbers, 2 ** i) > 0
+            examples[:, i] = np.bitwise_and(numbers, 2**i) > 0
 
         sender_examples, examples, receiver_examples = sender_receiver_examples(
             examples, n_bits, bits_s, bits_r
