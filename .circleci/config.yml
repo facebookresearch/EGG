@@ -13,7 +13,7 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: v2.13-dependencies-{{ checksum "requirements.txt" }}
+          key: v2.14-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
           name: install dependencies
@@ -31,7 +31,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v2.13-dependencies-{{ checksum "requirements.txt" }}
+          key: v2.14-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
           name: black-check
