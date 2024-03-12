@@ -7,5 +7,5 @@ editdistance
 dataclasses
 rich
 scikit-learn
-wandb
+wandb>=0.16.0
 submitit
