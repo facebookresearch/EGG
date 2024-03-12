@@ -7,7 +7,7 @@ jobs:
   build:
     working_directory: ~/EGG
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
 
     steps:
       - checkout
