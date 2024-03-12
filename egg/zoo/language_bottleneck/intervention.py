@@ -42,7 +42,7 @@ def _hashable_tensor(t):
 
     try:
         t = t.item()
-    except ValueError:
+    except (ValueError, RuntimeError):
         t = tuple(t.view(-1).tolist())
     return t
 
