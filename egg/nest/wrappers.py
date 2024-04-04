@@ -40,18 +40,28 @@ class ConcurrentWrapper:
 
     def __call__(self, args):
         stdout_path = pathlib.Path(self.log_dir) / f"{self.job_id}.out"
-        self.stdout = open(stdout_path, "w")
-
         stderr_path = pathlib.Path(self.log_dir) / f"{self.job_id}.err"
-        self.stderr = open(stderr_path, "w")
 
-        sys.stdout = self.stdout
-        sys.stderr = self.stderr
-        cuda_id = -1
-        n_devices = torch.cuda.device_count()
-        if n_devices > 0:
-            cuda_id = self.job_id % n_devices
-        print(f"# {json.dumps(args)}", flush=True)
+        with open(stdout_path, "w") as self.stdout, open(
+            stderr_path, "w"
+        ) as self.stderr:
+            original_stdout = sys.stdout
+            original_stderr = sys.stderr
+            sys.stdout = self.stdout
+            sys.stderr = self.stderr
 
-        with torch.cuda.device(cuda_id):
-            self.runnable(args)
+            cuda_id = -1
+            n_devices = torch.cuda.device_count()
+            if n_devices > 0:
+                cuda_id = self.job_id % n_devices
+
+            print(f"# {json.dumps(args)}", flush=True)
+
+            with torch.cuda.device(cuda_id):
+                self.runnable(args)
+
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
