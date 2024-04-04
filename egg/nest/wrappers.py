@@ -42,7 +42,9 @@ class ConcurrentWrapper:
         stdout_path = pathlib.Path(self.log_dir) / f"{self.job_id}.out"
         stderr_path = pathlib.Path(self.log_dir) / f"{self.job_id}.err"
 
-        with open(stdout_path, "w") as self.stdout, open(stderr_path, "w") as self.stderr:
+        with open(stdout_path, "w") as self.stdout, open(
+            stderr_path, "w"
+        ) as self.stderr:
             original_stdout = sys.stdout
             original_stderr = sys.stderr
             sys.stdout = self.stdout
