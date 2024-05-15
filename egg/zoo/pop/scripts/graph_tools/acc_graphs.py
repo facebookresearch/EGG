@@ -234,7 +234,7 @@ def acc_graph(
 
 
 def graph_collector(
-    path='/homedtcl/mmahaut/projects/experiments/',
+    path='/homedtcl/mmahaut/projects/exps/',
     names=[],
     values=[],
     verbose=False,

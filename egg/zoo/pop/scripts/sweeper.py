@@ -6,7 +6,7 @@ from pathlib import Path
 import argparse
 from time import sleep
 
-default_checkpoint_dir = "/home/mmahaut/projects/experiments"
+default_checkpoint_dir = "/home/mmahaut/projects/exps/tmlr"
 
 
 def get_opts(arguments):
@@ -158,7 +158,8 @@ def write_sbatch(
 #SBATCH --output={checkpoint_dir / jobname}_%j.out
 #SBATCH --error={checkpoint_dir / jobname}_%j.err
 source ~/.bashrc
-conda activate omelette
+conda activate omelette2
+which python
 {command}
 echo "done"
 """

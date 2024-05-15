@@ -284,6 +284,12 @@ def get_game_arch_opts(parser):
         help="if true, the batch will be composed of only one class, and the auxiliary loss will be computed on the same class",
     )
     group.add_argument(
+        "--kmeans_training",
+        default=False,
+        action="store_true",
+        help="if true, each will be composed of the batch_size closest image representations",
+    )
+    group.add_argument(
         "--simplicial_temperature",
         default=1.0,
         type=float,

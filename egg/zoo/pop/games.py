@@ -135,6 +135,30 @@ def build_senders_receivers(
             for module_name in vision_model_names_receiver
         ]
     # select communication channel wrapper
+    elif opts.com_channel == "kmeans":
+        senders = [
+            KMeansSender(
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                input_dim=find_module_from_name(vision_modules, module_name)[1],
+                name=module_name,
+                path_to_kmeans=opts.path_to_kmeans,
+            )
+            for module_name in vision_model_names_senders
+        ]
+        receivers = [
+            Receiver(
+                vision_module=find_module_from_name(vision_modules, module_name)[0],
+                input_dim=find_module_from_name(vision_modules, module_name)[1],
+                hidden_dim=opts.recv_hidden_dim,
+                output_dim=opts.vocab_size,
+                temperature=opts.recv_temperature,
+                name=module_name,
+                block_com_layer=opts.block_com_layer,
+            )
+            for module_name in vision_model_names_receiver
+        ]
+    elif opts.com_channel == "supervised_classes":
+        raise NotImplementedError("supervised not implemented yet")
     else:
         if opts.com_channel == "gs":
             wrapper = GumbelSoftmaxWrapper

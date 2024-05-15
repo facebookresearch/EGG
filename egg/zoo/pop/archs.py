@@ -20,7 +20,7 @@ from egg.core.baselines import MeanBaseline, NoBaseline
 
 from egg.core.util import find_lengths
 from collections.abc import Mapping
-
+from joblib import load
 
 def get_non_linearity(name):
     if name == "softmax":
@@ -125,9 +125,13 @@ def initialize_vision_module(
             model.AuxLogits.fc = nn.Identity()
         model.fc = nn.Identity()
 
-    elif name in ["vit", "swin", "xcit", "twins_svt", "deit"]:
+    elif name in ["vit", "xcit", "twins_svt", "deit"]:
         n_features = model.head.in_features
         model.head = nn.Identity()
+
+    elif name == "swin":
+        n_features = model.head.in_features
+        model.head.fc = torch.nn.Identity()
 
     elif name == "dino":
         n_features = 384  # ... could go and get that somehow instead of hardcoding ?
@@ -178,7 +182,7 @@ class Sender(nn.Module):
         self.init_com_layer(input_dim, vocab_size)
 
     def train(self, mode: bool = True):
-        r"""
+        """
         sets all in training mode EXCEPT vision module which is pre-trained and frozen
         """
         if not isinstance(mode, bool):
@@ -214,7 +218,55 @@ class Sender(nn.Module):
 
         return self.fc(vision_module_out)
 
+class KMeansSender(Sender):
+    def __init__(
+        self,
+        vision_module: Union[nn.Module, str],
+        input_dim: Optional[int],
+        name: str = "resnet50",
+        path_to_kmeans: str = None,
+    ):
+        super(Sender, self).__init__()
+        self.name = name
+        self.init_vision_module(vision_module, input_dim)
+        self.init_com_layer(input_dim, vocab_size, path_to_kmeans)
 
+    def train(self, mode: bool = True):
+        """
+        sets all in training mode EXCEPT vision module which is pre-trained and frozen
+        """
+        if not isinstance(mode, bool):
+            raise ValueError("training mode is expected to be boolean")
+        self.training = mode
+        for module in self.children():
+            if module != self.vision_module:
+                module.train(mode)
+        return self
+
+    def init_vision_module(self, vision_module, input_dim):
+        if isinstance(vision_module, nn.Module):
+            self.vision_module = vision_module
+            input_dim = input_dim
+        elif isinstance(vision_module, str):
+            self.vision_module, input_dim = initialize_vision_module(vision_module)
+        else:
+            raise RuntimeError("Unknown vision module for the Sender")
+
+    def init_com_layer(self, input_dim, path_to_kmeans):
+        # if is a dir, search by name, if file, load
+        if path_to_kmeans is not None:
+            if path_to_kmeans.endswith(".joblib"):
+                self.kmeans = load(path_to_kmeans)
+            else:
+                self.kmeans = load(path_to_kmeans + f"{name}_kmeans.joblib")
+
+    def forward(self, x, aux_input=None):
+        vision_module_out = self.vision_module(x)
+        # n_cluster as size
+        out_vec = torch.zeros(self.kmeans.n_clusters)
+        out_vec[self.kmeans.predict(vision_module_out)] = 1
+        return out_vec
+        
 class ContinuousSender(Sender):
     def __init__(
         self,

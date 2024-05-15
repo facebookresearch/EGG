@@ -12,9 +12,11 @@ import torch
 from PIL import ImageFilter, Image
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
-
+from sklearn.cluster import KMeans
+import torchvision
 import numpy as np
 from torch.utils.data import Subset
+from egg.zoo.pop.proximity_sampler import ProximitySampler
 
 # TODO: move table to its own file
 imood_class_ids = np.array(
@@ -79,6 +81,65 @@ imood_class_ids = np.array(
         21765,
     ]
 )
+class ClosestImagesSampler(torch.utils.data.sampler.Sampler):
+    """
+    organises the dataset into batches of images with similar representations
+    use kmeans to cluster the dataset into n_clusters of batch_size
+    images within clusters have similar representations
+    """
+    def __init__(self, dataset, batch_size, model):
+        self.n_clusters = len(dataset) // batch_size
+        self.batch_size = batch_size
+        self.labels = self._get_labels(dataset)
+        self.num_samples = len(self.labels)
+        self.clusters = self._get_clusters(model, dataset)
+    
+    def _get_labels(self, dataset):
+        if isinstance(dataset, datasets.ImageFolder):
+            return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
+        elif isinstance(dataset, ImagenetValDataset):
+            return torch.Tensor(dataset.img_labels)
+        elif isinstance(dataset, torch.utils.data.Subset):
+            return dataset.dataset.imgs[:][1]
+        else:
+            raise NotImplementedError("Dataset type not supported")
+    
+    def _get_clusters(self, model, dataset, batch_size=64, seed=42):
+        # get image representations
+        reps=[]
+        for i in range(len(dataset)//batch_size):
+            dl = torch.stack([dataset[i*batch_size+j][0][0] for j in range(batch_size)], dim=0)
+            with torch.no_grad():
+                rep = model(dl)
+            reps.extend(rep)
+        reps = torch.stack(reps, dim=0)
+        # cluster the representations
+        kmeans = KMeans(n_clusters=self.n_clusters, random_state=seed).fit(reps)
+        # to torch tensor
+        return torch.tensor(kmeans.labels_)
+
+    def __iter__(self):
+        idxs = torch.tensor([])
+        for i in range(self.n_clusters//self.batch_size):
+            c_size=0
+            while c_size<self.batch_size:
+                cluster_id = random.choice(self.clusters)
+                c_size=sum(self.clusters==cluster_id)
+            idxs = torch.concat(
+                [
+                    idxs,
+                    torch.multinomial(
+                        (self.clusters == cluster_id).float(),
+                        self.batch_size,
+                        False,
+                    ),
+                ]
+            )
+
+        # print(len(idxs), flush=True)
+        # print(idxs.max(), idxs.min(), self.num_samples, flush=True)
+        return (i for i in torch.tensor(idxs).int())
+
 
 
 class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
@@ -99,7 +160,7 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
 
         # distribution of classes in the dataset
         self.labels = self._get_labels(dataset)
-        self.num_samples = len(self.labels)
+        self.num_samples = (self.num_samples // self.batch_size) * self.batch_size
 
     def _get_labels(self, dataset):
         if isinstance(dataset, datasets.ImageFolder):
@@ -250,6 +311,7 @@ def get_dataloader(
     split_set: bool = True,
     augmentation_type=None,
     is_single_class_batch: bool = False,
+    kmeans_training: bool = False,
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
     seed_all(
@@ -298,20 +360,25 @@ def get_dataloader(
             / "ILSVRC2012_devkit_t12/data/ILSVRC2012_validation_ground_truth.txt",
             transform=transformations,
         )
-
     else:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
     if is_single_class_batch:
         train_sampler = SingleClassDatasetSampler(train_dataset, batch_size=batch_size)
         # for now, cannot be distributed ! will be overriden !
+    elif kmeans_training:
+        # model = torchvision.models.resnet18(pretrained=True)
+        # train_sampler = ClosestImagesSampler(train_dataset, batch_size, model)
+        assert dataset_name == "imagenet_val", "cosine_sim training only supported for imagenet_val dataset."
+        # FIXME: this is hardcoded for now, will be changed later
+        train_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size)
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
             train_dataset, shuffle=True, drop_last=True, seed=seed
         )
-        if is_single_class_batch:
+        if is_single_class_batch or kmeans_training:
             raise NotImplemented(
-                "Cannot use distributed sampling with single class batch"
+                "Cannot use distributed sampling with single class batch or kmeans training."
             )
 
     if split_set:
@@ -466,7 +533,6 @@ class ImageTransformation:
             or dataset_name == "imagenet_ood"
             or dataset_name == "imagenet_val"
         ):
-            pass  # temporary, to remove
             transformations.append(
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
