@@ -72,7 +72,7 @@ def main(params):
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
         split_set=True,
-        kmeans_training=opts.kmeans_training,
+        similbatch_training=opts.similbatch_training,
     )
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")

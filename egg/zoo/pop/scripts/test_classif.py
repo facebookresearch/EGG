@@ -116,7 +116,7 @@ if __name__ == "__main__":
             "imagenet_val",
         ],
         required=False,
-        default="imagenet_val",
+        default="imagenet_ood",
     )
 
     parser.add_argument(
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         help="path to directory with dataset",
         type=str,
         required=False,
-        default="/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/",
+        default="/projects/colt/imagenet21k_resized/imagenet21k_train/",
     )
     parser.add_argument(
         "-s",
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         help="path to model to load",
         type=str,
         required=False,
-        default="/homedtcl/mmahaut/projects/experiments/rev_vir_16/372913/final.tar",
+        default="/home/mmahaut/projects/exps/tmlr/vocab_64/646399/final.tar",
     )
     parser.add_argument(
         "-c",
@@ -148,14 +148,14 @@ if __name__ == "__main__":
         help="path to directory to save checkpoints",
         type=str,
         required=False,
-        default="/homedtcl/mmahaut/projects/experiments/feature_classif_rev",
+        default="/home/mmahaut/projects/exps/tmlr/classif",
     )
     args = parser.parse_args(sys.argv[1:])
 
     metadata_path = path_to_parameters(args.model_path, "wandb")
     senders = load_models(args.model_path, metadata_path, args.device)
     sender = senders[args.selected_sender_idx]
-    classifier = LinearClassifier(16, 58).to(
+    classifier = LinearClassifier(64, 58).to(
         args.device
     )  # TODO : hard coded output dim to be replaced
 

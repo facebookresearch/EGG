@@ -256,23 +256,23 @@ def graph_collector(
 
     # get all available files
     # files = glob.glob(path + "/*.out")
-    if get_wandb:
-        files = glob.glob(path + "/*/*/*run-*/files/output.log")
-    else:
-        files = glob.glob(path + "/*.out")
+    # if get_wandb:
+    #     files = glob.glob(path + "/*/*/*run-*/files/output.log")
+    # else:
+    files = glob.glob(path + "/*.out")
     if verbose and files == []:
         print(f"no files were found in path {path}")
 
     # select desired files
     for file_path in files:
-        if os.path.exists(file_path):
+        num = file_path.split(".out")[0][-6:]
+        if os.path.exists(file_path) and os.path.exists(path + f"/{num}/wandb/latest-run/files/output.log"):
             if check_constraints(
-                file_path if not get_wandb else file_path[:-10] + "wandb-metadata.json",
+                file_path if not get_wandb else path + f"/{num}/wandb/latest-run/files/output.log",
                 names,
                 values,
                 verbose,
             ):
-                print(file_path)
                 label = ""
                 # collect data
                 with open(

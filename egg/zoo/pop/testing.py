@@ -25,7 +25,7 @@ if __name__ == "__main__":
     dataset_name = "imagenet_ood"
     augmentation_type = None
     # dataset_dir = "/projects/colt//ILSVRC2012/ILSVRC2012_img_val"
-    dataset_dir = "/projects/colt/imagenet21k_resized/imagenet21k_val/"
+    dataset_dir = "/projects/colt/imagenet21k_resized/imagenet21k_train/"
     transformations = ImageTransformation(
         image_size,
         use_augmentations,
@@ -46,11 +46,10 @@ if __name__ == "__main__":
         batch_size=batch_size,
         num_workers=0,
         is_distributed=False,
-        seed=0,
+        seed=111,
         use_augmentations=use_augmentations,
         return_original_image=return_original_image,
         split_set=True,
-        kmeans_training=False,
     )
     # colate fn set back to default
     tr_dl.collate_fn = collate_fn_imood

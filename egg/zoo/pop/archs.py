@@ -28,7 +28,6 @@ def get_non_linearity(name):
     elif name == "sigmoid":
         return nn.Sigmoid
 
-
 def get_model(name, pretrained, aux_logits=True):
     modules = {
         "resnet50": (torchvision.models.resnet50, {"pretrained": pretrained}),
@@ -87,6 +86,18 @@ def get_model(name, pretrained, aux_logits=True):
                 "weights": "DEFAULT" if pretrained else None,
             },
         ),
+        "cait":(
+            timm.create_model,
+            {"model_name": "cait_m36_384", "pretrained": pretrained},
+        ),
+        "levit":(
+            timm.create_model,
+            {"model_name": "levit_384", "pretrained": pretrained},
+        ),
+        "vit_clip":(
+            timm.create_model,
+            {"model_name": "vit_base_patch16_clip_384", "pretrained": pretrained},
+        ),
     }
 
     if name not in modules:
@@ -129,13 +140,23 @@ def initialize_vision_module(
         n_features = model.head.in_features
         model.head = nn.Identity()
 
-    elif name == "swin":
+    elif name in ["swin","cait"]:
         n_features = model.head.in_features
         model.head.fc = torch.nn.Identity()
+
+    elif name == "levit":
+        n_features = model.head.linear.in_features
+        model.head.linear = torch.nn.Identity()
 
     elif name == "dino":
         n_features = 384  # ... could go and get that somehow instead of hardcoding ?
         # Dino is already chopped and does not require removal of classif layer
+    
+    elif name == "vit_clip":
+        n_features = model.head.in_features
+        model.head = nn.Identity()
+        # only used for the visual part, the text part is not used
+    
 
     if pretrained:
         # prevent training by removing gradients
@@ -229,7 +250,7 @@ class KMeansSender(Sender):
         super(Sender, self).__init__()
         self.name = name
         self.init_vision_module(vision_module, input_dim)
-        self.init_com_layer(input_dim, vocab_size, path_to_kmeans)
+        self.init_com_layer(input_dim, path_to_kmeans)
 
     def train(self, mode: bool = True):
         """
@@ -258,13 +279,15 @@ class KMeansSender(Sender):
             if path_to_kmeans.endswith(".joblib"):
                 self.kmeans = load(path_to_kmeans)
             else:
-                self.kmeans = load(path_to_kmeans + f"{name}_kmeans.joblib")
+                self.kmeans = load(path_to_kmeans + f"/{self.name}_kmeans.joblib")
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
         # n_cluster as size
-        out_vec = torch.zeros(self.kmeans.n_clusters)
-        out_vec[self.kmeans.predict(vision_module_out)] = 1
+        out_vec = torch.zeros(vision_module_out.shape[0],self.kmeans.n_clusters)
+        vision_module_out = vision_module_out.detach().cpu().numpy()
+        _k = self.kmeans.predict(vision_module_out)
+        out_vec[range(vision_module_out.shape[0]),_k] = 1
         return out_vec
         
 class ContinuousSender(Sender):
@@ -308,6 +331,7 @@ class ContinuousSender(Sender):
 
     def forward(self, x, aux_input=None):
         vision_module_out = self.vision_module(x)
+        # aux_input["vision_module"] = vision_module_out.detach()
         if self.force_gumbel:
             return gumbel_softmax_sample(
                 self.fc(vision_module_out), temperature=self.forced_gumbel_temperature
@@ -375,11 +399,81 @@ class Receiver(nn.Module):
             / self.temperature
         )
 
-        if not self.training:
-            aux_input["receiver_message_embedding"] = message.detach()
+        # if not self.training:
+        #     aux_input["receiver_message_embedding"] = message.detach()
 
         return similarity_scores
-        
+
+class KMeansReceiver(Receiver):
+    def __init__(
+        self,
+        vision_module: Union[nn.Module, str],
+        input_dim: int,
+        name: str = "resnet50",
+        s_name: str = None,
+        hidden_dim: int = 2048,
+        output_dim: int = 2048,
+        temperature: float = 1.0,
+        block_com_layer=False,
+        path_to_kmeans: str = None,
+    ):
+        super(Receiver, self).__init__()
+
+        self.name = name
+
+        if isinstance(vision_module, nn.Module):
+            self.vision_module = vision_module
+            input_dim = input_dim
+        elif isinstance(vision_module, str):
+            self.vision_module, input_dim = initialize_vision_module(vision_module)
+        else:
+            raise RuntimeError("Unknown vision module for the Receiver")
+        self.temperature = temperature
+        self.s_name = s_name
+        self.init_com_layer(input_dim, path_to_kmeans)
+
+    def init_com_layer(self, input_dim, path_to_kmeans):
+        # if is a dir, search by name, if file, load
+        if path_to_kmeans is not None:
+            if path_to_kmeans.endswith(".joblib"):
+                self.kmeans = load(path_to_kmeans)
+            else:
+                self.kmeans = load(path_to_kmeans + f"/{self.name}_kmeans.joblib")
+        if self.s_name is not None:
+            # load the alignent matrix
+            if path_to_kmeans.endswith(".joblib"):
+                self.translate=np.load(self.s_name)
+            else:
+                try:
+                    self.translate=np.load(path_to_kmeans + f"/{self.name}_to_{self.s_name}.npy")
+                except:
+                    self.translate=np.load(path_to_kmeans + f"/{self.s_name}_to_{self.name}.npy")
+                    self.translate = np.transpose(self.translate)
+                else:
+                    raise RuntimeError(f"No alignment matrix found for {self.s_name} and {self.name}")
+
+    def forward(self, message, distractors, aux_input=None):
+        vision_module_out = self.vision_module(distractors)
+        # if self.name == "inception":
+        #     vision_module_out = vision_module_out.logits
+        distractors = torch.zeros(vision_module_out.shape[0],self.kmeans.n_clusters)
+        vision_module_out = vision_module_out.detach().cpu().numpy()
+        _k = self.kmeans.predict(vision_module_out)
+        if self.r_name is not None:
+            _k = self.translate[_k]
+        distractors[range(vision_module_out.shape[0]),_k] = 1
+        similarity_scores = (
+            torch.nn.functional.cosine_similarity(
+                message.unsqueeze(1), distractors.unsqueeze(0), dim=2
+            )
+            / self.temperature
+        )
+
+        # if not self.training:
+        #     aux_input["receiver_message_embedding"] = message.detach()
+
+        return similarity_scores
+
 class AgentSampler(nn.Module):
     """Random sampler at training time, fullsweep sampler at test time."""
 

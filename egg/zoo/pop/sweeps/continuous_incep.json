@@ -1,6 +1,6 @@
 {
     "n_epochs": [
-        5
+        25
     ],
     "remove_auxlogits": [
         false
@@ -11,8 +11,8 @@
     "lr": [
         0.0001
     ],
-    "continuous_com": [
-        true
+    "com_channel": [
+        "continuous"
     ],
     "non_linearity": [
         "sigmoid"
@@ -21,9 +21,6 @@
         false
     ],
     "vocab_size": [
-        8,
-        16,
-        32,
         64
     ],
     "random_seed": [
@@ -47,14 +44,10 @@
         "['resnet152']",
         "['vgg11']",
         "['dino']",
-        "['swin']"        ],
-    "vision_model_names_recvs": [
-        "['vit']",
-        "['inception']",
-        "['resnet152']",
-        "['vgg11']",
-        "['dino']",
         "['swin']"
+    ],
+    "vision_model_names_recvs": [
+        "['clip_vit']"
     ],
     "image_size": [
         384

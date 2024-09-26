@@ -12,7 +12,8 @@ from egg.core.batch import Batch
 from egg.core.interaction import Interaction
 from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.utils import get_common_opts, metadata_opener, path_to_parameters
-
+from tqdm.auto import tqdm
+import time
 
 def main(params):
     """
@@ -24,11 +25,17 @@ def main(params):
     for param in params:
         if "base_checkpoint_path" in param:
             _path = param.rpartition("=")[2]
-    assert _path != "", "--base_checkpoint_path must be defined"
-
-    f = open(path_to_parameters(_path, "wandb"))
-    opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
-    print(opts)
+            print(_path)
+    # assert _path != "", "--base_checkpoint_path must be defined"
+    if _path == "":
+        # only warn
+        # raise Warning("No base_checkpoint_path found, attempting to run com extraction without a trained game")
+        opts = get_common_opts(params)
+    else:
+        _path = path_to_parameters(_path)
+        with open(_path) as f:
+            opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
+        print(opts)
     exp_name = (
         str(opts.dataset_name)
         + str(opts.com_channel)
@@ -37,8 +44,10 @@ def main(params):
         + str(opts.augmentation_type)
         + str(opts.vision_model_names_senders)
         + str(opts.vision_model_names_recvs)
+        + (str(opts.force_rank) if opts.force_rank is not None else "")
+        + ".pth"
     )
-    build_and_test_game(opts, exp_name=exp_name, dump_dir=opts.checkpoint_dir)
+    build_and_test_game(opts, exp_name=exp_name, dump_dir=opts.checkpoint_dir, force_rank=opts.force_rank)
 
 
 def eval(
@@ -59,13 +68,17 @@ def eval(
     interactions = []
     n_batches = 0
     with torch.no_grad():
-        for batch in validation_data:
+        for batch in tqdm(validation_data):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
+            # if batch[3] is not None:
+            #     for key in batch[3]:
+            #         aux_input[key] = batch[3][key]
             aux_input["batch_number"] = (
-                torch.range(0, batch_size - 1, 1, dtype=torch.int32)
+                torch.arange(0, batch_size, 1, dtype=torch.int32)
                 + batch_size * n_batches
             )
+
             batch = batch.to(device)
 
             _, interaction, _ = game(
@@ -82,6 +95,15 @@ def eval(
                 interaction.message = interaction.message.argmax(dim=-1)
             interactions.append(interaction)
             n_batches += 1
+            # if n_batches %100 == 0:
+            #     dump_interactions(
+            #         Interaction.from_iterable(interactions),
+            #         "temp_interactions",
+            #         "./temp_interactions",
+            #     )
+            # partial_interaction = Interaction.from_iterable(interactions)
+
+
     full_interaction = Interaction.from_iterable(interactions)
     return full_interaction
 
@@ -97,34 +119,44 @@ def dump_interactions(
     """
     dump_dir = pathlib.Path(dump_dir)
     dump_dir.mkdir(exist_ok=True, parents=True)
+    for i in range(100):
+        try:
+            torch.save(logs, dump_dir / exp_name)
+            break
+        except RuntimeError as e:
+            print(f"Error saving interactions: {e}")
+            time.sleep(5)
+            print("Trying again")
     torch.save(logs, dump_dir / exp_name)
 
 
 # buids a game using the usual pop parameters, perfroms evaluations, saves interactions
-def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
+def build_and_test_game(opts, exp_name, dump_dir, device="cuda", force_rank=None):
     """
     From an existing game save interactions of each possible agent pair
     Each agent pairs plays on the whole validation set
     """
-
     pop_game = build_game(opts).to(device)
-    load_from_checkpoint(pop_game, opts.base_checkpoint_path)
+    if opts.base_checkpoint_path != "":
+        load_from_checkpoint(pop_game, opts.base_checkpoint_path)
     # make everything go to evaluation mode (non-trainable, no training behaviour of any layers)
     for param in pop_game.parameters():
         param.requires_grad = False
     pop_game.train(False)
+    pop_game.training=False
 
     # Instead of letting the population game use the agent sampler to select a different pair for every batch
     # We choose the pair and evaluate it on all batches
     interactions = []
-
+    if force_rank is not None:
+        print(f"Force rank {force_rank} out of {len(pop_game.agents_loss_sampler.available_indexes)}")
+        pop_game.agents_loss_sampler.available_indexes = [pop_game.agents_loss_sampler.available_indexes[force_rank]]
     for (
         sender_idx,
         recv_idx,
         loss_idx,
     ) in pop_game.agents_loss_sampler.available_indexes:
         # run inference
-        # I feel like this is sort of evil and if it was not python I would definently not get away with this sort of meddling with inner parameters from outside
         sender = pop_game.agents_loss_sampler.senders[sender_idx]
         receiver = pop_game.agents_loss_sampler.receivers[recv_idx]
         loss = pop_game.agents_loss_sampler.losses[loss_idx]
@@ -135,20 +167,38 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
         }
         # get validation data every time to reset seed (there might be a better and faster way to do this)
         # Beware ! Using all data, both test and train !
-        test_loader, train_loader = get_dataloader(
-            dataset_dir=opts.dataset_dir,
-            dataset_name=opts.dataset_name,
-            image_size=opts.image_size,
-            batch_size=opts.batch_size,
-            num_workers=opts.num_workers,
-            is_distributed=opts.distributed_context.is_distributed,
-            seed=111,  # same as hardcoded version used in experiments
-            use_augmentations=opts.use_augmentations,
-            return_original_image=opts.return_original_image,
-            split_set=True,
-            augmentation_type=opts.augmentation_type,
-            is_single_class_batch=opts.is_single_class_batch,
-        )
+        if opts.dataset_name in ["imagenet_ood","places205","cifar100","celeba"] and opts.split_dataset:
+            warnings.warn(f"You are splitting the {opts.dataset_name} which is only used at test time by using the default split_dataset=True option. This is not recommended, you could run this test on the entire dataset. Running anyway.")
+        if not opts.split_dataset:
+            test_loader = get_dataloader(
+                dataset_dir=opts.dataset_dir,
+                dataset_name=opts.dataset_name,
+                image_size=opts.image_size,
+                batch_size=opts.batch_size,
+                num_workers=opts.num_workers,
+                is_distributed=opts.distributed_context.is_distributed,
+                seed=111,  # same as hardcoded version used in experiments
+                use_augmentations=opts.use_augmentations,
+                return_original_image=opts.return_original_image,
+                split_set=False,
+                augmentation_type=opts.augmentation_type,
+                is_single_class_batch=opts.is_single_class_batch,
+            )
+        else:
+            test_loader, train_loader = get_dataloader(
+                dataset_dir=opts.dataset_dir,
+                dataset_name=opts.dataset_name,
+                image_size=opts.image_size,
+                batch_size=opts.batch_size,
+                num_workers=opts.num_workers,
+                is_distributed=opts.distributed_context.is_distributed,
+                seed=111,  # same as hardcoded version used in experiments
+                use_augmentations=opts.use_augmentations,
+                return_original_image=opts.return_original_image,
+                split_set=True,
+                augmentation_type=opts.augmentation_type,
+                is_single_class_batch=opts.is_single_class_batch,
+            )
         # run evaluation, collect resulting interactions
         interactions.append(
             eval(
@@ -156,7 +206,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda"):
                 receiver,
                 loss,
                 pop_game.game,
-                train_loader,
+                train_loader if opts.is_single_class_batch or opts.extract_train_com else test_loader, # only train for sc
                 aux_input,
                 opts.com_channel == "gs",
                 opts.batch_size,

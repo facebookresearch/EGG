@@ -5,6 +5,12 @@
     "remove_auxlogits": [
         false
     ],
+    "checkpoint_dir": [
+        "/home/mmahaut/projects/exps/tmlr/similar_batches_64/"
+    ],
+    "checkpoint_freq": [
+        1
+    ],
     "batch_size": [
         64
     ],
@@ -21,12 +27,12 @@
         false
     ],
     "vocab_size": [
-        16
+        64
     ],
     "use_augmentations": [
         false
     ],
-    "kmeans_training": [
+    "similbatch_training": [
         true
     ],
     "random_seed": [
@@ -45,22 +51,10 @@
         5.0
     ],
     "vision_model_names_senders": [
-        "['vit']",
-        "['inception']",
-        "['resnet152']",
-        "['vgg11']",
-        "['dino']",
-        "['swin']",
-        "['virtex']"
+        "['vit', 'inception', 'resnet152', 'vgg11', 'dino', 'swin', 'virtex']"
     ],
     "vision_model_names_recvs": [
-        "['vit']",
-        "['inception']",
-        "['resnet152']",
-        "['vgg11']",
-        "['dino']",
-        "['swin']",
-        "['virtex']"
+        "['vit', 'inception', 'resnet152', 'vgg11', 'dino', 'swin', 'virtex']"
     ],
     "image_size": [
         384

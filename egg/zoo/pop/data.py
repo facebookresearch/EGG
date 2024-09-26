@@ -2,13 +2,14 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-import random
 from typing import Optional
 from pathlib import Path
 import glob
 
+from tqdm.auto import tqdm 
 import hub
 import torch
+import random
 from PIL import ImageFilter, Image
 from torch.utils.data import Dataset
 from torchvision import datasets, transforms
@@ -160,39 +161,45 @@ class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
 
         # distribution of classes in the dataset
         self.labels = self._get_labels(dataset)
-        self.num_samples = (self.num_samples // self.batch_size) * self.batch_size
+        self.dataset=dataset
+        self.len = len(dataset)
+        # self.num_samples = (len(dataset) // self.batch_size) * self.batch_size
 
     def _get_labels(self, dataset):
         if isinstance(dataset, datasets.ImageFolder):
-            return torch.Tensor([torch.Tensor(x[1]).int() for x in dataset.imgs])
+            return torch.tensor([x[1] for x in dataset.imgs], dtype=torch.int32)
         elif isinstance(dataset, ImagenetValDataset):
             return torch.Tensor(dataset.img_labels)
         elif isinstance(dataset, torch.utils.data.Subset):
-            return dataset.dataset.imgs[:][1]
+            if isinstance(dataset.dataset, ImagenetValDataset):
+                return torch.tensor([dataset.dataset.img_labels[x] for x in tqdm(dataset.indices, desc="Getting labels")])
+            return torch.tensor([x[1] for x in tqdm(dataset)], dtype=torch.int32)
         else:
             raise NotImplementedError("Dataset type not supported")
 
     def __iter__(self):
         # randomly select a label
-
         idxs = torch.tensor([])
-        for _ in range(self.num_samples // self.batch_size):
-            label_id = random.choice(self.labels)
+        # check there are enough images of at least one class
+        for _ in range(self.len // self.batch_size):
+            possible_idxs = []
+            while len(possible_idxs) <= self.batch_size:
+                label_id = random.choice(self.labels)
+                possible_idxs = torch.where(self.labels == label_id)[0]
+            _rand_idxs = torch.multinomial(
+                torch.ones(len(possible_idxs)), self.batch_size, self.replacement
+            )
+            selected_idxs = possible_idxs[_rand_idxs]
             idxs = torch.concat(
                 [
                     idxs,
-                    torch.multinomial(
-                        (self.labels == label_id).float(),
-                        self.batch_size,
-                        self.replacement,
-                    ),
+                    selected_idxs,
                 ]
             )
-        print(idxs.max(), idxs.min(), self.num_samples, flush=True)
-        return (i for i in idxs.int())
+        return (i for i in torch.tensor(idxs).int())
 
     def __len__(self):
-        return self.num_samples
+        return self.len
 
 
 # separate imagenet into subsets such as animate and inanimate
@@ -227,7 +234,6 @@ def select_ood_idxs(dataset):
     """
     # ood_ids = {'n04454908', 'n12267411', 'n12164363', 'n09270657', 'n12435777', 'n13154841', 'n12489815', 'n12461673', 'n05604434', 'n10020890', 'n12674895', 'n10296176', 'n11706761', 'n10347446', 'n12152532', 'n10382710', 'n08518171', 'n04250850', 'n10160280', 'n04961062', 'n05262698', 'n02772435', 'n09805151', 'n10530571', 'n11616486', 'n12275317', 'n12731401', 'n04981658', 'n07596160', 'n04298661', 'n11709674', 'n08524735', 'n09896685', 'n09495962', 'n03147280', 'n12401684', 'n12300840', 'n09666883', 'n08573842', 'n04257684', 'n12432574', 'n11620673', 'n09932508', 'n11615026', 'n14564779', 'n10721321', 'n02802544', 'n11508382', 'n12427184', 'n07601290', 'n12495670', 'n03087521', 'n10333838', 'n11928858', 'n12161577', 'n13908580', 'n12159804', 'n13869788', 'n10622053', 'n09403427', 'n11608250', 'n10123844', 'n05450617', 'n12651611', 'n10734963', 'n08616050', 'n12135898', 'n11703669', 'n03823111', 'n08521623', 'n10471640', 'n07643891', 'n03963645', 'n13865904', 'n10036929', 'n11524451', 'n09247410', 'n04330746', 'n03320262', 'n13881644'}
     # ood_ids = {'n04454908', 'n12267411', 'n12164363', 'n09270657', 'n12435777', 'n12489815', 'n12461673', 'n10020890', 'n11706761', 'n12152532', 'n10382710', 'n08518171', 'n04250850', 'n04961062', 'n02772435',  'n11616486', 'n12731401', 'n04981658', 'n04298661', 'n11709674', 'n08524735', 'n09896685', 'n03147280', 'n12401684', 'n12300840', 'n09666883', 'n08573842', 'n04257684', 'n11620673', 'n09932508', 'n11615026', 'n14564779', 'n10721321', 'n02802544', 'n11508382', 'n12427184', 'n07601290', 'n11928858', 'n13908580', 'n13869788', 'n09403427', 'n11608250', 'n10123844', 'n05450617', 'n12651611', 'n08616050', 'n11703669', 'n03823111', 'n08521623', 'n10471640', 'n07643891', 'n03963645', 'n13865904', 'n11524451', 'n09247410', 'n04330746', 'n03320262', 'n13881644'}
-
     # build the appropriate subset
     img_ids = (
         (torch.tensor(dataset.targets)[..., None] == torch.tensor(imood_class_ids))
@@ -258,6 +264,7 @@ def collate_fn(batch):
             [torch.Tensor([x[1]]).long() for x in batch], dim=0
         ),  # labels (original classes, not used in emecom_game)
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
+        # {"path": [x[2] for x in batch]},  # path to image
     )
 
 
@@ -273,6 +280,7 @@ def collate_fn_imood(batch):
             dim=0,
         ),  # labels, corrected for out of domain selection
         torch.stack([x[0][1] for x in batch], dim=0),  # receiver_input
+        # {"path": [x[2] for x in batch]},  # path to image
     )
 
 
@@ -311,7 +319,7 @@ def get_dataloader(
     split_set: bool = True,
     augmentation_type=None,
     is_single_class_batch: bool = False,
-    kmeans_training: bool = False,
+    similbatch_training: bool = False,
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
     seed_all(
@@ -352,6 +360,9 @@ def get_dataloader(
         train_dataset = PlacesDataset(
             hub.load("hub://activeloop/places205"), transform=transformations
         )
+    # Editor asks for ADE20k, and CelebA
+    elif dataset_name == "ade20k":
+        pass
     elif dataset_name == "imagenet_val":
         # TODO Matéo : correct this so that path is not hardcoded
         train_dataset = ImagenetValDataset(
@@ -360,23 +371,15 @@ def get_dataloader(
             / "ILSVRC2012_devkit_t12/data/ILSVRC2012_validation_ground_truth.txt",
             transform=transformations,
         )
-    else:
+    else: # includes dataset_name == "celeba"
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
     train_sampler = None
-    if is_single_class_batch:
-        train_sampler = SingleClassDatasetSampler(train_dataset, batch_size=batch_size)
         # for now, cannot be distributed ! will be overriden !
-    elif kmeans_training:
-        # model = torchvision.models.resnet18(pretrained=True)
-        # train_sampler = ClosestImagesSampler(train_dataset, batch_size, model)
-        assert dataset_name == "imagenet_val", "cosine_sim training only supported for imagenet_val dataset."
-        # FIXME: this is hardcoded for now, will be changed later
-        train_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size)
     if is_distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(
             train_dataset, shuffle=True, drop_last=True, seed=seed
         )
-        if is_single_class_batch or kmeans_training:
+        if is_single_class_batch or similbatch_training:
             raise NotImplemented(
                 "Cannot use distributed sampling with single class batch or kmeans training."
             )
@@ -387,11 +390,22 @@ def get_dataloader(
             [len(train_dataset) // 10, len(train_dataset) - (len(train_dataset) // 10)],
             torch.Generator().manual_seed(seed),
         )
+        if is_single_class_batch:
+            train_sampler = SingleClassDatasetSampler(train_dataset, batch_size=batch_size)
+            test_sampler = SingleClassDatasetSampler(test_dataset, batch_size=batch_size)
+        if similbatch_training:
+            # get indexes of test set
+            assert dataset_name == "imagenet_val", "cosine_sim training only supported for imagenet_val dataset."
+            train_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size, train_dataset.indices)
+            test_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size, test_dataset.indices)
+        else:
+            test_sampler = None
         test_loader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=batch_size,
-            shuffle=(train_sampler is None),
-            sampler=train_sampler,
+            shuffle=(test_sampler is None),
+            generator=torch.Generator().manual_seed(seed),
+            sampler=test_sampler,
             num_workers=num_workers,
             collate_fn=collate_fn_imood
             if dataset_name == "imagenet_ood"
@@ -404,6 +418,7 @@ def get_dataloader(
             train_dataset,
             batch_size=batch_size,
             shuffle=(train_sampler is None),
+            generator=torch.Generator().manual_seed(seed),
             sampler=train_sampler,
             num_workers=num_workers,
             collate_fn=collate_fn_imood
@@ -470,7 +485,6 @@ class ImagenetValDataset(Dataset):
             self.img_labels = [int(line) for line in f.readlines()]
         self.transform = transform
         self.files = sorted(glob.glob(f"{img_dir}/*.JPEG"))
-        print(len(self.files), flush=True)
 
     def __len__(self):
         return len(self.img_labels)
@@ -482,6 +496,7 @@ class ImagenetValDataset(Dataset):
         if self.transform is not None:
             image = self.transform(image)
         return image, label
+        # return image, label
 
     def pil_loader(self, path: str) -> Image.Image:
         # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
@@ -515,6 +530,7 @@ class ImageTransformation:
                 transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
                 transforms.RandomHorizontalFlip(),  # with 0.5 probability
             ]
+
         else:
             transformations = [
                 transforms.Resize(size=(size, size)),
@@ -542,6 +558,12 @@ class ImageTransformation:
             transformations.append(
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             )
+        elif dataset_name == "celeba":
+            # offset_height = (218 - size) // 2
+            # offset_width = (178 - size) // 2
+            # crop = lambda x: x[:, offset_height:offset_height + size, offset_width:offset_width + size]
+            # transformations.append(transforms.Lambda(crop))
+            transformations.append(transforms.Normalize(mean=[0.5] * 3, std=[0.5] * 3))
 
         self.transform = transforms.Compose(transformations)
         self.test_attack = test_attack is None

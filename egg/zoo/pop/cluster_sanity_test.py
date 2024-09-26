@@ -123,11 +123,12 @@ if __name__ == "__main__":
             accs[m][m2] = _acc
     
             # build a game
+    save_dir = Path("/home/mmahaut/projects/exps/tmlr/kmeans")            
     for _k in k_means.keys():
         print(_k)
-        save_dir = Path("/home/mmahaut/projects/exps/tmlr/kmeans")
         save_dir.mkdir(exist_ok=True, parents=True)
         dump(k_means[_k], save_dir / f"{_k}_kmeans.joblib")
+    np.save(save_dir / f"{_k}_m2_to_m1.npy", m2_to_m1)
     print(accs)
 
 

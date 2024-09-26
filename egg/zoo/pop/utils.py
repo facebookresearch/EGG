@@ -21,11 +21,12 @@ def get_data_opts(parser):
         default="./data",
         help="Dataset location",
     )
-
     group.add_argument(
         "--dataset_name",
         choices=[
             "cifar100",
+            "ade20k",
+            "celeba",
             "imagenet",
             "gaussian_noise",
             "inaturalist",
@@ -42,6 +43,21 @@ def get_data_opts(parser):
 
     group.add_argument(
         "--num_workers", type=int, default=4, help="Workers used in the dataloader"
+    )
+    group.add_argument(
+        "--force_rank", type=int, default=None, help="Force rank for parallelising communication extraction"
+    )
+    group.add_argument(
+        "--split_dataset",
+        default=True,
+        action="store_false",
+        help="Split the dataset in train and test during communication extraction (at test time). default usage will then only use the test set, change extract_train_com to use the train set",
+    )
+    group.add_argument(
+        "--extract_train_com",
+        default=False,
+        action="store_true",
+        help="Extract communication (at test time) on the train set instead of the test set",
     )
     group.add_argument("--use_augmentations", action="store_true", default=False)
     group.add_argument(
@@ -121,6 +137,9 @@ def get_vision_module_opts(parser):
             "densenet",
             "virtex",
             "fcn_resnet50",
+            "cait",
+            "levit",
+            "vit_clip",
         ],
         help="Model name for the encoder",
     )
@@ -217,13 +236,13 @@ def get_game_arch_opts(parser):
         type=str,
         default=None,
         choices=["resize", "color_jitter", "grayscale", "gaussian_blur"],
-        help="non_linearity for the continuous sender",
+        help="augmentation type for the continuous sender",
     )
     group.add_argument(
         "--com_channel",
         type=str,
         default="continuous",
-        choices=["gs", "reinforce", "lstm", "continuous", "simplicial"],
+        choices=["gs", "reinforce", "lstm", "continuous", "simplicial", "kmeans"],
         help="communication channel to use, the first three are discrete, the last one is continuous. rnn is multi-symbol",
     )
 
@@ -284,10 +303,16 @@ def get_game_arch_opts(parser):
         help="if true, the batch will be composed of only one class, and the auxiliary loss will be computed on the same class",
     )
     group.add_argument(
-        "--kmeans_training",
+        "--similbatch_training",
         default=False,
         action="store_true",
         help="if true, each will be composed of the batch_size closest image representations",
+    )
+    group.add_argument(
+        "--path_to_kmeans",
+        default=None,
+        type=str,
+        help="path to the kmeans model ending in .joblib or folder containing com modules named 'modelname_kmeans.joblib' with modelname replaced by one of the options from vision_model_name",
     )
     group.add_argument(
         "--simplicial_temperature",
