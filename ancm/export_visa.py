@@ -41,18 +41,3 @@ output.to_csv('visa.csv', index=False)
 
 print('number of concepts:', len(output))
 print('number of attributes:', len(output.columns) - 1)
-
-
-
-#print(concepts)
-#    for subcategory in tree.getroot()[:1]:
-#        for concept in subcategory:
-#            concept_dict = defaultdict(int)
-#            for attr_category in concept:
-#                if not attr_category or not attr_category.text.strip():
-#                    print(concept, attr_category)
-#                print([attr.strip() for attr in attr_category.text.split('\n') if attr.strip()])
-                #for attr in attr_category.text.split('\n'):
-                #    if attr.tag.startswith('beh'):
-                #        continue
-
