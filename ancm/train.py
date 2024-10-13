@@ -3,6 +3,9 @@ import argparse
 import torch
 import numpy as np
 
+import time
+from datetime import timedelta
+
 from reformat_visa import reformat
 from features import VectorsLoader
 from archs import (
@@ -148,7 +151,10 @@ def main():
         validation_data=validation_data,
         callbacks=callbacks,
     )
+   
+    t_start = time.monotonic()
     trainer.train(n_epochs=args.n_epochs)
+    t_end = time.monotonic()
 
     if args.evaluate:
         is_gs = args.mode == "gs"
@@ -168,7 +174,10 @@ def main():
         receiver_outputs = torch.stack(receiver_outputs)
         labels = torch.stack(labels)
 
-        tensor_accuracy = receiver_outputs.argmax(dim=1 if args.mode.lower() == 'gs' else 0) == labels
+        if args.mode.lower() == 'gs':
+            tensor_accuracy = receiver_outputs.argmax(dim=1) == labels
+        else:
+            tensor_accuracy = receiver_outputs == labels
         accuracy = torch.mean(tensor_accuracy.float()).item()
 
         unique_dict = {}
@@ -242,6 +251,13 @@ def main():
                 f.write(f"Messagses: 'msg' : msg_count: {str(sorted_msgs)}\n")
                 f.write(f"\nAccuracy: {accuracy}")
 
+    training_time = timedelta(seconds=t_end-t_start)
+    sec_per_epoch = training_time.seconds / args.n_epochs
+    minutes, seconds = divmod(sec_per_epoch, 60)
+
+    print('')
+    print('Total training time:', str(training_time).split('.', maxsplit=1)[0])
+    print(f'Training time per epoch: {int(minutes):02}:{int(seconds):02}')
 
 if __name__ == '__main__':
     main()
