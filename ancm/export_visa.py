@@ -3,7 +3,7 @@ import pandas
 from collections import defaultdict
 import xml.etree.ElementTree as ET
 
-directory = 'visa_dataset/UK'
+directory = 'data/visa_dataset/UK'
 concepts = {}
 homonyms = []
 for file in os.listdir(directory):
@@ -44,7 +44,8 @@ output_dict = {
 for attribute in all_attributes:
     output_dict[attribute] = [cd['attributes'][attribute] for cd in concepts.values()]
 output = pandas.DataFrame(output_dict)
-output.to_csv('visa.csv', index=False)
+os.makedirs('data', exist_ok=True)
+output.to_csv('data/visa.csv', index=False)
 
 print('number of concepts:', len(output))
 print('number of attributes:', len(output.columns) - 2)

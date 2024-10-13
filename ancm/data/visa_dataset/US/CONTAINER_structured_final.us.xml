@@ -1,0 +1,256 @@
+<concepts category="container">
+<concept name="ashtray">
+<color_patterns>
+    different_colors
+    is_green
+</color_patterns>
+<shape_size>
+    is_rectangular
+    is_round
+    different_shapes
+</shape_size>
+<texture_material>
+    is_transparent
+    made_of_plastic
+    made_of_glass
+    made_of_metal
+</texture_material>
+</concept>
+<concept name="bag">
+<parts>
+    has_handle
+    has_strap
+    has_label
+    has_latch
+    has_clasp
+</parts>
+<color_patterns>
+    different_colors
+    has_patterns
+    is_colorful
+    is_brown
+</color_patterns>
+<texture_material>
+    made_of_plastic
+    made_of_leather
+    made_of_fibers
+    made_of_fabrics
+</texture_material>
+<shape_size>
+    is_rectangular
+    different_shapes
+</shape_size>
+</concept>
+<concept name="barrel">
+<shape_size>
+    is_cylindrical
+    is_hollow
+</shape_size>
+<parts>
+    has_container
+    has_lid
+    has_bung
+    has_hoop
+    has_staves
+</parts>
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+<color_patterns>
+    is_black
+    is_brown
+</color_patterns>
+</concept>
+<concept name="basket">
+<color_patterns>
+    is_brown
+</color_patterns>
+<parts>
+    has_handle
+    has_container
+</parts>
+<texture_material>
+    made_of_fibers
+    is_braided
+    made_of_wicker
+</texture_material>
+<shape_size>
+    is_deep
+    is_concave
+    is_rectangular<no_evidence/>
+    has_semicircular_handle
+</shape_size>
+</concept>
+<concept name="bin_(waste)">
+<texture_material>
+    made_of_plastic
+    made_of_metal<no_evidence/>
+</texture_material>
+<parts>
+    has_lid
+    has_handle<no_evidence/>
+    has_wheels
+</parts>
+<shape_size>
+    is_tall
+    is_box_shaped
+    is_deep
+    is_hollow
+</shape_size>
+<color_patterns>
+    different_colors
+    is_blue
+    is_green
+    is_black
+    is_gray
+    is_red<no_evidence/>
+</color_patterns>
+</concept>
+<concept name="bottle">
+<texture_material>
+    made_of_plastic
+    made_of_glass
+    is_shiny
+    is_transparent
+</texture_material>
+<parts>
+    has_lid
+    has_cork<no_evidence/>
+    has_label
+    has_bottleneck
+</parts>
+<shape_size>
+    is_deep
+    is_hollow
+    is_round
+</shape_size>
+<color_patterns>
+    is_green
+    different_colors
+</color_patterns>
+</concept>
+<concept name="box">
+<parts>
+    has_container
+    has_6_sides
+</parts>
+<shape_size>
+    is_box_shaped
+    is_deep
+    is_rectangular
+    is_hollow
+</shape_size>
+<texture_material>
+    made_of_cardboard
+    made_of_wood
+</texture_material>
+<color_patterns>
+    has_patterns
+    is_colorful
+    is_brown
+    different_colors
+</color_patterns>
+</concept>
+<concept name="bucket">
+<texture_material>
+    made_of_plastic
+    is_shiny
+    made_of_metal
+</texture_material>
+<parts>
+    has_container
+    has_handle
+</parts>
+<shape_size>
+    is_deep
+    is_cylindrical
+    is_hollow
+    has_semicircular_handle
+</shape_size>
+<color_patterns>
+    different_colors
+    is_silver
+    is_white
+</color_patterns>
+</concept>
+<concept name="jar">
+<texture_material>
+    made_of_plastic<no_evidence/>
+    is_transparent
+    made_of_glass
+    made_of_ceramic
+</texture_material>
+<parts>
+    has_container
+    has_lid
+</parts>
+<shape_size>
+    different_shapes
+    is_cylindrical
+    is_deep
+    is_hollow
+</shape_size>
+<color_patterns>
+    different_colors
+    is_brown
+    is_white
+    has_patterns<no_evidence/>
+</color_patterns>
+</concept>
+<concept name="sack">
+<color_patterns>
+    is_brown
+</color_patterns>
+<shape_size>
+    different_shapes
+    is_deep
+    is_rectangular
+    is_hollow
+    has_semicircular_handle
+</shape_size>
+<parts>
+    has_container
+    has_handle
+</parts>
+<texture_material>
+    made_of_paper
+</texture_material>
+</concept>
+<concept name="tank_(container)">
+<shape_size>
+    is_large
+    is_cylindrical
+</shape_size>
+<texture_material>
+    made_of_metal
+    made_of_plastic<no_evidence/>
+</texture_material>
+<color_patterns>
+    is_gray
+    is_white
+</color_patterns>
+</concept>
+<concept name="tray">
+<texture_material>
+    made_of_plastic
+    is_shiny
+    made_of_wood
+    made_of_ceramic
+    made_of_metal<no_evidence/>
+</texture_material>
+<shape_size>
+    different_shapes
+    is_flat
+    is_rectangular
+    is_round
+</shape_size>
+<color_patterns>
+    different_colors
+    has_patterns
+    is_silver
+    is_brown
+    is_white
+</color_patterns>
+</concept>
+</concepts>

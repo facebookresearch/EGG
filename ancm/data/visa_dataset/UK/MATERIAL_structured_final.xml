@@ -1,0 +1,54 @@
+<concepts category="material">
+<concept name="brick">
+<shape_size>
+	is_small
+	is_rectangular
+	is_box_shaped
+</shape_size>
+<texture_material>
+	made_of_ceramic
+	made_of_brick
+</texture_material>
+<colour_patterns>
+	is_red
+</colour_patterns>
+</concept>
+<concept name="cork">
+<texture_material>
+	made_of_cork
+</texture_material>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<shape_size>
+	is_small
+	is_cylindrical
+</shape_size>
+</concept>
+<concept name="rock">
+<shape_size>
+	different_shapes
+</shape_size>
+<texture_material>
+	made_of_stone
+	made_of_minerals
+</texture_material>
+<colour_patterns>
+	is_grey
+	different_colours
+</colour_patterns>
+</concept>
+<concept name="stone">
+<shape_size>
+	different_shapes
+</shape_size>
+<texture_material>
+	made_of_stone
+	made_of_minerals
+</texture_material>
+<colour_patterns>
+	is_grey
+	different_colours
+</colour_patterns>
+</concept>
+</concepts>

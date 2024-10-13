@@ -1,3 +1,4 @@
+import os
 import argparse
 import torch
 import math
@@ -71,7 +72,7 @@ def reformat(n_distractors, n_samples):
     n_features = features.shape[1] - 1  # exclude the category column
 
     # divide 60% for train, 20% test and valid
-    train_features, temp_features, train_textlabels, temp_labels = train_test_split(features, textlabels, test_size=0.4)
+    train_features, temp_features, train_textlabels, temp_labels = train_test_split(features, textlabels, test_size=0.3)
     valid_features, test_features, valid_textlabels, test_textlabels = train_test_split(temp_features, temp_labels, test_size=0.5)
 
     train_size = len(train_features)
@@ -81,14 +82,17 @@ def reformat(n_distractors, n_samples):
     train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, features)
     valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, features)
     test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, features)
-   
+  
+    print('Exporting VISA...\n\n number of samples:')
     print('train:', len(train_labels))
     print('val:', len(valid_labels))
     print('test:', len(test_labels))
 
-    np.savez(f"visa-{n_distractors+1}", train=train, valid=valid, test=test,
+    os.makedirs('data/input_data', exist_ok=True)
+    np.savez(f"data/input_data/visa-{n_distractors+1}-{n_samples}", train=train, valid=valid, test=test,
              train_labels=train_labels, valid_labels=valid_labels, test_labels=test_labels,
              n_distractors=n_distractors)
+    print('dataset saved to ' + f"data/input_data/visa-{n_distractors+1}-{n_samples}.npz")
 
 
 def main():
