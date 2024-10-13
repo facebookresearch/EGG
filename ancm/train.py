@@ -168,7 +168,7 @@ def main():
         receiver_outputs = torch.stack(receiver_outputs)
         labels = torch.stack(labels)
 
-        tensor_accuracy = receiver_outputs.argmax(dim=1) == labels
+        tensor_accuracy = receiver_outputs.argmax(dim=1 if args.mode.lower() == 'gs' else 0) == labels
         accuracy = torch.mean(tensor_accuracy.float()).item()
 
         unique_dict = {}
