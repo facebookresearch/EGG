@@ -61,7 +61,7 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, dat
 
 def reformat(n_distractors, n_samples):
     np.random.seed(42)
-    visa = pd.read_csv("visa.csv")
+    visa = pd.read_csv("data/visa.csv")
 
     # features = visa.iloc[:, 1:].values
     # textlabels = visa.iloc[:, :1].values
