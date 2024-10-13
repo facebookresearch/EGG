@@ -39,8 +39,9 @@ def parse_args():
     parser.add_argument("--receiver_cell", type=str, default="lstm", help="Type of the cell used for Receiver {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--sender_lr", type=float, default=1e-1, help="Learning rate for Sender's parameters (default: 1e-1)")
     parser.add_argument("--receiver_lr", type=float, default=1e-1, help="Learning rate for Receiver's parameters (default: 1e-1)")
+    parser.add_argument("--lr_scheduler", type=str, default=None, help="LR scheduler (linear or by default None)")
     parser.add_argument("--temperature", type=float, default=1.0, help="GS temperature for the sender (default: 1.0)")
-    parser.add_argument("--mode", type=str, default="gs", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {gs only at the moment} (default: rf)")
+    parser.add_argument("--mode", type=str, default="rf", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training (default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
     parser.add_argument("--dump_data_folder", type=str, default=None, help="Folder where file with dumped data will be created")
@@ -111,7 +112,7 @@ def main():
             {"params": game.receiver.parameters(), "lr": args.receiver_lr},
         ])
 
-    elif args.mode.lower() == 'reinforce':
+    elif args.mode.lower() == 'rf':
         sender = SenderReinforce(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
         receiver = ReceiverReinforce(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
         sender = core.RnnSenderReinforce(
@@ -139,7 +140,9 @@ def main():
 
     else:
         raise NotImplementedError(f"Unknown training mode, {args.mode}")
-
+    
+    if args.lr_scheduler == 'linear':
+        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=0.2, total_iters=args.n_epochs)
 
     callbacks = [core.ConsoleLogger(as_json=True)]
     if args.mode.lower() == "gs":
@@ -147,6 +150,7 @@ def main():
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
+        optimizer_scheduler=scheduler, 
         train_data=train_data,
         validation_data=validation_data,
         callbacks=callbacks,
