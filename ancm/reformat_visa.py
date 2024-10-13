@@ -32,8 +32,8 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, dat
             distractor_pos = [i for i in range(n_distractors) if i != target_pos]
             data_reshaped[concept_i + sample_j, target_pos, :] = torch.tensor(data_concepts[concept_i])
 
-            if sample_j <= math.floor(sample_j / n_samples) \
-                    and len(data_distractors[data_distractors.category == category]) >= math.ceil(1.5 * n_samples): 
+            if sample_j <= math.floor(sample_j / n_samples / 6) \
+                    and len(data_distractors[data_distractors.category == category]) >= math.ceil(0.5 * n_samples): 
                 # if there are sufficiently many concepts in the category,
                 # pick random distractors from the same category
      
@@ -71,7 +71,7 @@ def reformat(n_distractors, n_samples):
     textlabels = visa.iloc[:, :1]
     n_features = features.shape[1] - 1  # exclude the category column
 
-    # divide 60% for train, 20% test and valid
+    # divide 70% for train, 15% test and valid
     train_features, temp_features, train_textlabels, temp_labels = train_test_split(features, textlabels, test_size=0.3)
     valid_features, test_features, valid_textlabels, test_textlabels = train_test_split(temp_features, temp_labels, test_size=0.5)
 
@@ -79,9 +79,9 @@ def reformat(n_distractors, n_samples):
     valid_size = len(valid_features)
     test_size = len(test_features)
 
-    train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, features)
-    valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, features)
-    test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, features)
+    train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, train_features)
+    valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, valid_features)
+    test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, test_features)
   
     print('Exporting VISA...\n\n number of samples:')
     print('train:', len(train_labels))
