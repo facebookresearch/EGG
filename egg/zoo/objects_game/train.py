@@ -17,6 +17,7 @@ import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.archs import Receiver, Sender
 from egg.zoo.objects_game.features import VectorsLoader
+from egg.core import EarlyStopperAccuracy
 from egg.zoo.objects_game.util import (
     compute_baseline_accuracy,
     compute_mi_input_msgs,
@@ -36,6 +37,7 @@ def get_params(params):
         default="[4, 4, 4, 4, 4]",
         help="Number of features for every perceptual dimension",
     )
+
     input_data.add_argument(
         "--load_data_path",
         type=str,
@@ -46,7 +48,7 @@ def get_params(params):
     parser.add_argument(
         "--n_distractors",
         type=int,
-        default=3,
+        default=4,
         help="Number of distractor objects for the receiver (default: 3)",
     )
     parser.add_argument(
@@ -109,26 +111,26 @@ def get_params(params):
     parser.add_argument(
         "--sender_cell",
         type=str,
-        default="rnn",
+        default="lstm",
         help="Type of the cell used for Sender {rnn, gru, lstm} (default: rnn)",
     )
     parser.add_argument(
         "--receiver_cell",
         type=str,
-        default="rnn",
+        default="lstm",
         help="Type of the cell used for Receiver {rnn, gru, lstm} (default: rnn)",
     )
 
     parser.add_argument(
         "--sender_lr",
         type=float,
-        default=1e-1,
+        default=1e-4,
         help="Learning rate for Sender's parameters (default: 1e-1)",
     )
     parser.add_argument(
         "--receiver_lr",
         type=float,
-        default=1e-1,
+        default=1e-3,
         help="Learning rate for Receiver's parameters (default: 1e-1)",
     )
     parser.add_argument(
@@ -294,18 +296,62 @@ def main(params):
         )
 
         game = core.SenderReceiverRnnGS(sender, receiver, loss)
-    else:
-        raise NotImplementedError(f"Unknown training mode, {opts.mode}")
 
-    optimizer = torch.optim.Adam(
+        optimizer = torch.optim.Adam(
         [
             {"params": game.sender.parameters(), "lr": opts.sender_lr},
             {"params": game.receiver.parameters(), "lr": opts.receiver_lr},
         ]
-    )
-    callbacks = [core.ConsoleLogger(as_json=True)]
+        )
+    elif  opts.mode.lower() == 'rf':
+        sender = core.RnnSenderReinforce(
+            sender,
+            opts.vocab_size,
+            opts.sender_embedding,
+            opts.sender_hidden,
+            cell=opts.sender_cell,
+            num_layers = 1,
+            max_len=opts.max_len,
+        )
+
+        receiver = core.RnnReceiverDeterministic(
+            receiver,
+            opts.vocab_size,
+            opts.receiver_embedding,
+            opts.receiver_hidden,
+            cell=opts.receiver_cell,
+            num_layers=1
+        )
+
+        baseline = {
+        "no": core.baselines.NoBaseline,
+        "mean": core.baselines.MeanBaseline,
+        "builtin": core.baselines.BuiltInBaseline,
+        }["mean"]
+
+        game = core.SenderReceiverRnnReinforce(sender, receiver, loss, 
+                                               sender_entropy_coeff=0.01, 
+                                               receiver_entropy_coeff=0.001,
+                                               length_cost= 0.0,
+                                               baseline_type=baseline)
+
+        optimize_lr = 0.0001
+        optimizer = torch.optim.RMSprop(
+            game.parameters(), optimize_lr
+        )
+    else:
+        raise NotImplementedError(f"Unknown training mode, {opts.mode}")
+
+    early_stopper = EarlyStopperAccuracy(0.99999, validation=True)
+
+    callbacks=[
+            core.ConsoleLogger(as_json=True, print_train_loss=False),
+            early_stopper,
+        ]
+    
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
+        
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
@@ -313,6 +359,7 @@ def main(params):
         validation_data=validation_data,
         callbacks=callbacks,
     )
+
     trainer.train(n_epochs=opts.n_epochs)
 
     if opts.evaluate:
