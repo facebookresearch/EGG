@@ -142,7 +142,7 @@ def main():
         raise NotImplementedError(f"Unknown training mode, {args.mode}")
     
     if args.lr_scheduler == 'linear':
-        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=0.2, total_iters=args.n_epochs)
+        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=0.001, total_iters=args.n_epochs)
 
     callbacks = [core.ConsoleLogger(as_json=True)]
     if args.mode.lower() == "gs":
