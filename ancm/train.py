@@ -36,13 +36,15 @@ def parse_args():
     parser.add_argument("--receiver_cell", type=str, default="lstm", help="Type of the cell used for Receiver {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--sender_lr", type=float, default=1e-1, help="Learning rate for Sender's parameters (default: 1e-1)")
     parser.add_argument("--receiver_lr", type=float, default=1e-1, help="Learning rate for Receiver's parameters (default: 1e-1)")
-    parser.add_argument("--lr_scheduler", type=float, default=None, help="LR scheduler (LR multiplier or by default None)")
+    parser.add_argument("--lr_decay", type=float, default=1., help="LR decay (1.0 for no decay)")
     parser.add_argument("--temperature", type=float, default=1.0, help="GS temperature for the sender (default: 1.0)")
+    parser.add_argument("--length_cost", type=float, default=0., help="Message length cost (e.g. 1e-2)")
     parser.add_argument("--mode", type=str, default="rf", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training (default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
     parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
 
     args = core.init(parser)
 
@@ -69,7 +71,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    np.random.seed(42)
+    np.random.seed(args.seed)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -77,7 +79,7 @@ def main():
         batch_size=args.batch_size,
         shuffle_train_data=True,
         load_data_path=args.load_data_path,
-        seed=42)
+        seed=args.seed)
 
     train_data, validation_data, test_data = data_loader.get_iterators()
 
@@ -124,7 +126,7 @@ def main():
             sender, receiver, loss_reinforce,
             sender_entropy_coeff=0.01,
             receiver_entropy_coeff=0.001,
-            length_cost=1e-2)
+            length_cost=args.length_cost)
         optimizer = torch.optim.RMSprop([
             {"params": game.sender.parameters(), "lr": args.sender_lr},
             {"params": game.receiver.parameters(), "lr": args.receiver_lr},
@@ -133,12 +135,15 @@ def main():
     else:
         raise NotImplementedError(f"Unknown training mode, {args.mode}")
 
-    if args.lr_scheduler is not None:
-        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=args.lr_scheduler, total_iters=args.n_epochs)
+    if args.lr_decay != 1.:
+        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=args.lr_decay, total_iters=args.n_epochs)
+    else:
+        scheduler = None
 
     callbacks = [
         CustomProgressBarLogger(
             n_epochs=args.n_epochs,
+            print_train_metrics=True,
             train_data_len=len(train_data),
             test_data_len=len(validation_data))
     ]
@@ -202,11 +207,13 @@ def main():
             output_msg = (
                 f"messages_{args.perceptual_dimensions}_vocab_{args.vocab_size}"
                 f"_maxlen_{args.max_len}_bsize_{args.batch_size}"
-                f"_n_distractors_{args.n_distractors}_train_size_{args.train_samples}"
+                f"_n_distractors_{args.n_distractors}_n_samples_{args.n_samples}"
+                f"_train_size_{args.train_samples}length_cost_{args.length_cost}"
                 f"_valid_size_{args.validation_samples}_test_size_{args.test_samples}"
                 f"_slr_{args.sender_lr}_rlr_{args.receiver_lr}_shidden_{args.sender_hidden}"
                 f"_rhidden_{args.receiver_hidden}_semb_{args.sender_embedding}"
                 f"_remb_{args.receiver_embedding}_mode_{args.mode}"
+                f"_lr_decay_{args.lr_decay}_seed_{args.seed}"
                 f"_scell_{args.sender_cell}_rcell_{args.receiver_cell}.msg"
             )
 

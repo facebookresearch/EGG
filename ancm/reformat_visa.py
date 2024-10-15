@@ -32,8 +32,9 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, dat
             distractor_pos = [i for i in range(n_distractors) if i != target_pos]
             data_reshaped[concept_i + sample_j, target_pos, :] = torch.tensor(data_concepts[concept_i])
 
-            if sample_j <= math.floor(sample_j / n_samples / 6) \
-                    and len(data_distractors[data_distractors.category == category]) >= math.ceil(0.5 * n_samples): 
+            if False and sample_j <= math.floor(sample_j / n_samples / 6) \
+                    and len(data_distractors[data_distractors.category == category]) >= math.ceil(0.5 * n_samples) \
+                    and len(data_distractors[data_distractors.category == category]) >= n_distractors: 
                 # if there are sufficiently many concepts in the category,
                 # pick random distractors from the same category
      

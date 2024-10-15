@@ -91,8 +91,8 @@ class CustomProgressBarLogger(Callback):
             total=self.n_epochs)
 
         self.style = {
-            'eval': 'white on black',
-            'train': 'grey37 on black',
+            'eval': '',
+            'train': 'dim',
         }
 
     def build_od(self, logs, loss, epoch, phase):
@@ -110,7 +110,7 @@ class CustomProgressBarLogger(Callback):
             row.add_column(
                 colname,
                 justify='left' if colname in ('phase', 'epoch')  else 'right',
-                ratio=1)
+                ratio=0.5 if colname in ('phase', 'epoch') else 1)
         if not header:
             row.add_row(
                 str(od.pop('epoch')),
@@ -121,7 +121,7 @@ class CustomProgressBarLogger(Callback):
     @staticmethod
     def format_metric_val(val):
         if not isinstance(val, str):
-            return f'{val: 4.3f}'
+            return f'{val: 4.2f}'
         else:
             return val
 
