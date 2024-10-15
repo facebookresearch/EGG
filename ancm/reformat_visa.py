@@ -1,7 +1,7 @@
 import os
 import argparse
 import torch
-import math
+import random
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -36,8 +36,8 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, cat
             # remove the category column
             # the concept should be picked as its own distractor
             distractors = np.delete(data_distractors.iloc[:, 1:], [concept_i], axis=0)
-            distractors = distractors.sample(n=n_distractors)
-            distractors = np.array(distractors, dtype='int')
+            distractor_ids = np.random.choice(distractors.shape[0], n_distractors, replace=False)
+            distractors = distractors[distractor_ids,:]
                 
             for distractor_k, distractor_pos in enumerate(distractor_pos):
                 if distractor_pos == target_pos:
@@ -65,6 +65,7 @@ def is_unique(s):
 
 def reformat(n_distractors, n_samples, category=None, seed=42):
     np.random.seed(seed)
+    random.seed(seed)
     ds = 'homonyms' if category is not None else 'no-homonyms'
     visa = pd.read_csv(f"data/visa-{ds}.csv")
 
@@ -107,8 +108,8 @@ def reformat(n_distractors, n_samples, category=None, seed=42):
 
 
 def main():
-    n_distractors, n_samples = parse_args()
-    reformat(n_distractors, n_samples)
+    n_distractors, n_samples, category = parse_args()
+    reformat(n_distractors, n_samples, category)
 
 
 if __name__ == '__main__':
