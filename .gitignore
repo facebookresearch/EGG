@@ -7,7 +7,7 @@ __pycache__/
 *.swp
 *.swo
 
-data/input_data/*.npz
+*.npz
 .idea/
 # C extensions
 *.so

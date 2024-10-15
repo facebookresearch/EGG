@@ -13,6 +13,8 @@ from archs import (
     SenderReinforce, ReceiverReinforce, loss_reinforce
 )
 
+from custom_callbacks import CustomProgressBarLogger
+
 import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.util import (
@@ -24,13 +26,11 @@ from egg.zoo.objects_game.util import (
 )
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_distractors", type=int, default=4, help="Number of distractor objects for the receiver (default: 4)")
     parser.add_argument("--n_samples", type=int, default=5, help="Number of samples (sets of target+distractor concepts) per target concept")
     parser.add_argument("--load_data_path", type=str, default=None, help="Path to .npz data file to load")
-    # parser.add_argument("--shuffle_train_data", action="store_true", default=False, help="Shuffle train data before every epoch (default: False)")
     parser.add_argument("--sender_hidden", type=int, default=50, help="Size of the hidden layer of Sender (default: 50)")
     parser.add_argument("--receiver_hidden", type=int, default=50, help="Size of the hidden layer of Receiver (default: 50)")
     parser.add_argument("--sender_embedding", type=int, default=10, help="Dimensionality of the embedding hidden layer for Sender (default: 10)")
@@ -39,12 +39,11 @@ def parse_args():
     parser.add_argument("--receiver_cell", type=str, default="lstm", help="Type of the cell used for Receiver {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--sender_lr", type=float, default=1e-1, help="Learning rate for Sender's parameters (default: 1e-1)")
     parser.add_argument("--receiver_lr", type=float, default=1e-1, help="Learning rate for Receiver's parameters (default: 1e-1)")
-    parser.add_argument("--lr_scheduler", type=str, default=None, help="LR scheduler (linear or by default None)")
+    parser.add_argument("--lr_scheduler", type=float, default=None, help="LR scheduler (LR multiplier or by default None)")
     parser.add_argument("--temperature", type=float, default=1.0, help="GS temperature for the sender (default: 1.0)")
     parser.add_argument("--mode", type=str, default="rf", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training (default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
-    parser.add_argument("--dump_data_folder", type=str, default=None, help="Folder where file with dumped data will be created")
     parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
 
@@ -62,12 +61,10 @@ def parse_args():
     perceptual_dimensions = [2 for _ in range(n_attributes)]
     args.perceptual_dimensions = perceptual_dimensions
 
-    # if dump_data_folder or dump_msg folger is not provided, fix a folger
-    if args.dump_data_folder is None or args.dump_msg_folder is None:
-        parent_folder = f'runs/run-{args.n_distractors+1}d-{args.n_epochs}ep-{args.vocab_size}vocab'
-        data_dir = os.makedirs(os.path.join(parent_folder, 'data'), exist_ok=True)
+    # if dump_msg_folder is not provided, fix a folder
+    if args.dump_msg_folder is None:
+        parent_folder = f'runs/run-{args.n_distractors+1}d-{args.n_samples}s-{args.n_epochs}ep-{args.vocab_size}words-{args.mode}'
         msg_dir = os.makedirs(os.path.join(parent_folder, 'msg'), exist_ok=True)
-        args.dump_data_folder = data_dir
         args.dump_msg_folder = msg_dir
 
     return args
@@ -82,10 +79,8 @@ def main():
     data_loader = VectorsLoader(
         batch_size=args.batch_size,
         shuffle_train_data=True,
-        dump_data_folder=args.dump_data_folder,
         load_data_path=args.load_data_path,
-        seed=42,
-    )
+        seed=42)
 
     train_data, validation_data, test_data = data_loader.get_iterators()
 
@@ -140,22 +135,26 @@ def main():
 
     else:
         raise NotImplementedError(f"Unknown training mode, {args.mode}")
-    
-    if args.lr_scheduler == 'linear':
-        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=0.001, total_iters=args.n_epochs)
 
-    callbacks = [core.ConsoleLogger(as_json=True)]
+    if args.lr_scheduler is not None:
+        scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=args.lr_scheduler, total_iters=args.n_epochs)
+
+    callbacks = [
+        CustomProgressBarLogger(
+            n_epochs=args.n_epochs,
+            train_data_len=len(train_data),
+            test_data_len=len(validation_data))
+    ]
     if args.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
-        optimizer_scheduler=scheduler, 
+        optimizer_scheduler=scheduler,
         train_data=train_data,
         validation_data=validation_data,
-        callbacks=callbacks,
-    )
-   
+        callbacks=callbacks)
+
     t_start = time.monotonic()
     trainer.train(n_epochs=args.n_epochs)
     t_end = time.monotonic()
@@ -255,13 +254,6 @@ def main():
                 f.write(f"Messagses: 'msg' : msg_count: {str(sorted_msgs)}\n")
                 f.write(f"\nAccuracy: {accuracy}")
 
-    training_time = timedelta(seconds=t_end-t_start)
-    sec_per_epoch = training_time.seconds / args.n_epochs
-    minutes, seconds = divmod(sec_per_epoch, 60)
-
-    print('')
-    print('Total training time:', str(training_time).split('.', maxsplit=1)[0])
-    print(f'Training time per epoch: {int(minutes):02}:{int(seconds):02}')
 
 if __name__ == '__main__':
     main()

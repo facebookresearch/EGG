@@ -11,35 +11,17 @@ from egg.zoo.objects_game.util import compute_binomial
 
 
 class VectorsLoader:
-    def __init__(
-        self,
-        batch_size=32,
-        shuffle_train_data=True,
-        dump_data_folder=None,
-        load_data_path=None,
-        seed=42,
-    ):
-
+    def __init__(self, batch_size=32, shuffle_train_data=True, load_data_path=None, seed=42):
         self.perceptual_dimensions = None
         self._n_features = None
-        self.n_distractors = None  # n_distractors
-
+        self.n_distractors = None
         self.batch_size = batch_size
-        self.train_samples = None  # train_samples
-        self.validation_samples = None  # validation_samples
-        self.test_samples = None  # test_samples
+        self.train_samples = None
+        self.validation_samples = None
+        self.test_samples = None
         self.seed = seed
-
         self.shuffle_train_data = shuffle_train_data
-
         self.load_data_path = load_data_path
-
-        self.dump_data_folder = (
-            pathlib.Path(dump_data_folder) if dump_data_folder is not None else None
-        )
-
-        # seed = seed if seed else np.random.randint(0, 2 ** 31)
-        self.random_state = np.random.RandomState(seed)
 
     @property
     def n_features(self):
@@ -51,9 +33,6 @@ class VectorsLoader:
 
     def upd_cl_options(self, opts):
         opts.perceptual_dimensions = self.perceptual_dimensions
-        # opts.train_samples = self.train_samples
-        # opts.validation_samples = self.validation_samples
-        # opts.test_samples = self.test_samples
         opts.n_distractors = self.n_distractors
 
     def load_data(self, data_file):
@@ -115,41 +94,21 @@ class VectorsLoader:
             drop_last=True,
             shuffle=self.shuffle_train_data,
             worker_init_fn=seed_worker,
-            generator=g,
-        )
+            generator=g)
         validation_it = data.DataLoader(
             valid_dataset,
             batch_size=self.batch_size,
             collate_fn=self.collate,
             drop_last=True,
             worker_init_fn=seed_worker,
-            generator=g,
-        )
+            generator=g)
         test_it = data.DataLoader(
             test_dataset,
             batch_size=self.batch_size,
             collate_fn=self.collate,
             drop_last=True,
             worker_init_fn=seed_worker,
-            generator=g,
-        )
-
-        if self.dump_data_folder:
-            self.dump_data_folder.mkdir(exist_ok=True)
-            path = (
-                self.dump_data_folder
-                / f"{self.n_distractors}_distractors"
-            )
-            np.savez_compressed(
-                path,
-                train=train[0],
-                train_labels=train[1],
-                valid=valid[0],
-                valid_labels=valid[1],
-                test=test[0],
-                test_labels=test[1],
-                n_distractors=self.n_distractors,
-            )
+            generator=g)
 
         return train_it, validation_it, test_it
 
