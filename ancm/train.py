@@ -3,9 +3,6 @@ import argparse
 import torch
 import numpy as np
 
-import time
-from datetime import timedelta
-
 from reformat_visa import reformat
 from features import VectorsLoader
 from archs import (
@@ -155,9 +152,7 @@ def main():
         validation_data=validation_data,
         callbacks=callbacks)
 
-    t_start = time.monotonic()
     trainer.train(n_epochs=args.n_epochs)
-    t_end = time.monotonic()
 
     if args.evaluate:
         is_gs = args.mode == "gs"
