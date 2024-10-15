@@ -92,7 +92,7 @@ class CustomProgressBarLogger(Callback):
 
         self.style = {
             'eval': '',
-            'train': 'dim',
+            'train': 'grey58',
         }
 
     def build_od(self, logs, loss, epoch, phase):

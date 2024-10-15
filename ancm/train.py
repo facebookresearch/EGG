@@ -1,6 +1,7 @@
 import os
 import argparse
 import torch
+import random
 import numpy as np
 
 from reformat_visa import reformat
@@ -80,6 +81,10 @@ def main():
         shuffle_train_data=True,
         load_data_path=args.load_data_path,
         seed=args.seed)
+
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
     train_data, validation_data, test_data = data_loader.get_iterators()
 
