@@ -4,7 +4,7 @@ import torch
 import random
 import numpy as np
 
-from reformat_visa import reformat
+from reformat_visa import reformat, get_filename
 from features import VectorsLoader
 from archs import (
     SenderGS, ReceiverGS, loss_gs,
@@ -28,6 +28,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_distractors", type=int, default=4, help="Number of distractor objects for the receiver (default: 4)")
     parser.add_argument("--n_samples", type=int, default=5, help="Number of samples (sets of target+distractor concepts) per target concept")
+    parser.add_argument("--category", type=str, default=None, help="Category of concepts to be included in the dataset. If category isn't specified, all concepts are included")
     parser.add_argument("--load_data_path", type=str, default=None, help="Path to .npz data file to load")
     parser.add_argument("--sender_hidden", type=int, default=50, help="Size of the hidden layer of Sender (default: 50)")
     parser.add_argument("--receiver_hidden", type=int, default=50, help="Size of the hidden layer of Receiver (default: 50)")
@@ -51,9 +52,9 @@ def parse_args():
 
     # if load_data_path is not provided, generate the data and load it
     if args.load_data_path is None:
-        args.load_data_path = f'data/input_data/visa-{args.n_distractors+1}-{args.n_samples}.npz'
+        args.load_data_path = get_filename(args.n_distractors, args.n_samples, args.category, True)
         if not os.path.isfile(args.load_data_path):
-            reformat(args.n_distractors, args.n_samples)
+            reformat(args.n_distractors, args.n_samples, args.category)
 
     # perceptual_dimensions default val
     dataset = np.load(args.load_data_path)
@@ -63,7 +64,7 @@ def parse_args():
 
     # if dump_msg_folder is not provided, fix a folder
     if args.dump_msg_folder is None:
-        parent_folder = f'runs/run-{args.n_distractors+1}d-{args.n_samples}s-{args.n_epochs}ep-{args.vocab_size}words-{args.mode}'
+        parent_folder = f'runs/run-{args.category}-{args.n_distractors+1}d-{args.n_samples}s-{args.n_epochs}ep-{args.vocab_size}words'
         msg_dir = os.makedirs(os.path.join(parent_folder, 'msg'), exist_ok=True)
         args.dump_msg_folder = msg_dir
 

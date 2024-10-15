@@ -11,45 +11,32 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", type=int, default=4)
     parser.add_argument("-s", type=int, default=5)
+    parser.add_argument("-c", type=str, default=None)
     args = parser.parse_args()
     n_distractors = args.d
     n_samples = args.s
     return n_distractors, n_samples
 
 
-def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, data_distractors=None):
-    if data_distractors is None:  # if no df for distractors is provided, use df for concepts
+def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, category=None, data_distractors=None):
+    if data_distractors is None:
         data_distractors = data_concepts
 
     labels = []
     categories = data_concepts.iloc[:,0]
     data_concepts = np.array(data_concepts.iloc[:,1:].values, dtype='int')
-    data_reshaped = torch.empty((len(data_concepts)*n_samples, n_distractors + 1, n_features), dtype=torch.float32)
+    data_reshaped = torch.empty((len(data_concepts)*n_samples, n_distractors + 1, n_features))
     for concept_i in range(len(data_concepts)):
-        category = categories.iloc[concept_i]  # data_concepts.iloc[concept_i,0]
         for sample_j in range(n_samples):
             target_pos = np.random.randint(0, n_distractors+1)
             distractor_pos = [i for i in range(n_distractors) if i != target_pos]
             data_reshaped[concept_i + sample_j, target_pos, :] = torch.tensor(data_concepts[concept_i])
-
-            if False and sample_j <= math.floor(sample_j / n_samples / 6) \
-                    and len(data_distractors[data_distractors.category == category]) >= math.ceil(0.5 * n_samples) \
-                    and len(data_distractors[data_distractors.category == category]) >= n_distractors: 
-                # if there are sufficiently many concepts in the category,
-                # pick random distractors from the same category
-     
-                distractors = data_distractors[data_distractors.category == category] 
-                distractors = distractors.sample(n=n_distractors).iloc[:, 1:]
-                distractors = np.array(distractors, dtype='int')
-            
-            else:  #  sample_j <= math.floor(sample_j / n_samples):
                
-                # randomly pick distractors
-                distractors = data_distractors.iloc[:, 1:]  # remove the category column
-                distractors = distractors.sample(n=n_distractors)
-                distractors = np.array(distractors, dtype='int')
+            # randomly pick distractors
+            distractors = data_distractors.iloc[:, 1:]  # remove the category column
+            distractors = distractors.sample(n=n_distractors)
+            distractors = np.array(distractors, dtype='int')
                 
-
             for distractor_k, distractor_pos in enumerate(distractor_pos):
                 if distractor_pos == target_pos:
                     continue
@@ -60,13 +47,31 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, dat
     return data_reshaped, labels
 
 
-def reformat(n_distractors, n_samples):
-    np.random.seed(42)
-    visa = pd.read_csv("data/visa.csv")
+def get_filename(n_distractors, n_samples, category=None, extension=False):
+    filename = f"data/input_data/visa-{n_distractors+1}-{n_samples}" 
+    if category:
+        filename += f'-{category}'
+    if extension:
+        filename += '.npz'
+    return filename
 
-    # features = visa.iloc[:, 1:].values
-    # textlabels = visa.iloc[:, :1].values
-    # categories = visa.iloc[:, 1:2].values
+
+def is_unique(s):
+    a = s.to_numpy()
+    return (a[0] == a).all()
+
+
+def reformat(n_distractors, n_samples, category=None, seed=42):
+    np.random.seed(seed)
+    ds = 'homonyms' if category is not None else 'no-homonyms'
+    visa = pd.read_csv(f"data/visa-{ds}.csv")
+
+    if category:
+        visa = visa[visa.category == category.lower()]
+   
+    for column in visa.columns:
+        if column != 'category' and is_unique(visa[column]):
+            del visa[column]
 
     features = visa.iloc[:, 1:]
     textlabels = visa.iloc[:, :1]
@@ -80,20 +85,23 @@ def reformat(n_distractors, n_samples):
     valid_size = len(valid_features)
     test_size = len(test_features)
 
-    train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, train_features)
-    valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, valid_features)
-    test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, test_features)
+    train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, category)
+    valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, category)
+    test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, category)
   
-    print('Exporting VISA...\n\n number of samples:')
-    print('train:', len(train_labels))
-    print('val:', len(valid_labels))
-    print('test:', len(test_labels))
+    print('Exporting VISA...\n\ncategory:', category if category else 'all', '\n\nnumber of samples:')
+    print('  train:', len(train_labels))
+    print('  val:', len(valid_labels))
+    print('  test:', len(test_labels))
 
-    os.makedirs('data/input_data', exist_ok=True)
-    np.savez(f"data/input_data/visa-{n_distractors+1}-{n_samples}", train=train, valid=valid, test=test,
+    print('\n\nNumber of features:', n_features)
+
+    filename = get_filename(n_distractors, n_samples, category)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    np.savez(filename, train=train, valid=valid, test=test,
              train_labels=train_labels, valid_labels=valid_labels, test_labels=test_labels,
              n_distractors=n_distractors)
-    print('dataset saved to ' + f"data/input_data/visa-{n_distractors+1}-{n_samples}.npz")
+    print('dataset saved to ' + f"{filename}.npz")
 
 
 def main():

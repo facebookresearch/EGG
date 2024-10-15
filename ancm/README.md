@@ -27,20 +27,46 @@ python3 train.py --n_distractors 4 --n_samples 30 --n_epochs 1000 --vocab_size 1
   --sender_hidden 50 --receiver_hidden 50 --evaluate --output_json --seed 42 --mode rf 
 ```
 
+Training only on concepts belonging to one of the categories:
+```bash
+python3 train.py --n_distractors 4 --n_samples 30 --category animals --n_epochs 5000 --vocab_size 30 --max_len 10 \
+  --batch_size 32 --sender_lr 1e-3 --receiver_lr 1e-3 --lr_decay 0.1 \
+  --sender_hidden 16 --receiver_hidden 16 --evaluate --output_json --mode rf --seed 42
+```
+
+| **Category** | **Num. concepts**  |
+|--------------|-------------------:|
+| animals      | 135                |
+| appliances   | 18                 |
+| artefacts    | 37                 |
+| clothing     | 40                 |
+| container    | 11                 |
+| device       | 8                  |
+| food         | 59                 |
+| home         | 49                 |
+| instruments  | 19                 |
+| material     | 4                  |
+| plants       | 7                  |
+| structures   | 26                 |
+| tools        | 27                 |
+| toys         | 3                  |
+| vehicles     | 37                 |
+| weapons      | 23                 |
+
 Training will automatically export the training data for a given number of distractors and samples (unless such dataset already exists in the `input_data/` directory).
 
 * LR scheduler: if multiplier value is provided, LR will be linearly scaled, multiplier determines LR value in the last epoch. 
 
 ## Exporting the data
 
-To get `data/visa.csv`:
+To get CSV files:
 ```bash
 python3 export_visa.py
 ```
 
 To manually export a NPZ file to the `data/input_data/` directory:
 ```bash
-python3 reformat_visa.py -d <num. distractors> -s <num. samples per concept>
+python3 reformat_visa.py -d <num. distractors> -s <num. samples per concept> -c <category, optional>
 ```
 
 A sample is a set of target concept + distractor concepts, sampled from the same category or the same categories (that can be changed by editing `reformat_visa.py`). Each concept can only be a target object in one of train/test/val, but it can be a distractor in any subset.

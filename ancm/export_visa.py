@@ -4,7 +4,8 @@ from collections import defaultdict
 import xml.etree.ElementTree as ET
 
 directory = 'data/visa_dataset/UK'
-concepts = {}
+concepts_no_homo = {}
+concepts_w_homo = {}
 homonyms = []
 for file in os.listdir(directory):
     if not os.path.isfile(os.path.join(directory, file)):
@@ -24,28 +25,43 @@ for file in os.listdir(directory):
         else:
             concept_name = concept.attrib['name'][:concept.attrib['name'].find('_(')]
 
-        if concept_name not in concepts and concept_name not in homonyms:
-            concepts[concept_name] = {
+        concepts_w_homo[concept_name] = {
+                'category': concept_category,
+                'attributes': attribute_dict,
+        }
+
+        # removing homonyms
+        if concept_name not in concepts_no_homo and concept_name not in homonyms:
+            concepts_no_homo[concept_name] = {
                 'category': concept_category,
                 'attributes': attribute_dict,
             }
         elif concept_name in homonyms:
             print('skipping', concept_name)
         else:
-             del concepts[concept_name]
+             del concepts_no_homo[concept_name]
              homonyms.append(concept_name)
              print('deleting', concept_name)
 
-all_attributes = set([k for cd in concepts.values() for k in cd['attributes'].keys()])
-output_dict = {
-    'concept': list(concepts.keys()),
-    'category': [cd['category'] for cd in concepts.values()],
-}
-for attribute in all_attributes:
-    output_dict[attribute] = [cd['attributes'][attribute] for cd in concepts.values()]
-output = pandas.DataFrame(output_dict)
-os.makedirs('data', exist_ok=True)
-output.to_csv('data/visa.csv', index=False)
+for ds, concepts in zip(('homonyms', 'no-homonyms'), (concepts_w_homo, concepts_no_homo)):
+    all_attributes = set([k for cd in concepts.values() for k in cd['attributes'].keys()])
+    output_dict = {
+        'concept': list(concepts.keys()),
+        'category': [cd['category'] for cd in concepts.values()],
+    }
+    for attribute in all_attributes:
+        attribute_values = [cd['attributes'][attribute] for cd in concepts.values()]
+        check = False
+        for val in attribute_values:
+            if val != attribute_values[0]:
+                check = True
+        if check:
+            output_dict[attribute] = attribute_values
+    output = pandas.DataFrame(output_dict)
+    os.makedirs('data', exist_ok=True)
+    output.to_csv(f'data/visa-{ds}.csv', index=False)
 
-print('number of concepts:', len(output))
-print('number of attributes:', len(output.columns) - 2)
+    print('')
+    print(f'visa-{ds}')
+    print('number of concepts:', len(output))
+    print('number of attributes:', len(output.columns) - 2)
