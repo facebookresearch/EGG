@@ -4,11 +4,17 @@
 
 
 ## TODO
-- [ ] Run for more epochs...
 - [x] Make sure Reinforce is implemented correctly
-- [ ] Run GS for more epochs
+- [ ] Run GS for more epochs...
+- [ ] Run Reinforce more epochs...
 - [ ] Reinforce: Gibbs sampling? How to implement it using the wrapper?
 - [ ] Reinforce: length cost = 1e-2 by default.
+
+## Setup
+```bash
+python3 -m pip install -r requirements.txt
+cd .. && python3 -m pip install --editable egg/ && cd ancm/
+```
 
 ## Training
 ```bash
@@ -16,9 +22,9 @@ run_commands/train.sh
 ```
 
 ```bash
-python3 train.py --n_distractors 4 --n_samples 30 --n_epochs 100 --vocab_size 100 --max_len 10 \
-  --batch_size 32 --sender_lr 1e-2 --receiver_lr 1e-2 --lr_scheduler 0.1 \
-  --sender_hidden 50 --receiver_hidden 50 --evaluate --output_json --mode rf 
+python3 train.py --n_distractors 4 --n_samples 30 --n_epochs 1000 --vocab_size 100 --max_len 10 \
+  --batch_size 32 --sender_lr 1e-1 --receiver_lr 1e-1 --lr_decay 0.05 \
+  --sender_hidden 50 --receiver_hidden 50 --evaluate --output_json --seed 42 --mode rf 
 ```
 
 Training will automatically export the training data for a given number of distractors and samples (unless such dataset already exists in the `input_data/` directory).

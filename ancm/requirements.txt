@@ -5,7 +5,7 @@ cloudpickle==3.0.0
 dataclasses==0.6
 docker-pycreds==0.4.0
 editdistance==0.8.1
--e git+ssh://git@github.com/francijnk/EGG.git@1e77577d391b31d0c6579609d1ed7004c9ab8020#egg=EGG
+-e git+ssh://git@github.com/francijnk/EGG.git@c1fd67fa7986b1b1e17f8de1a13c9c1337d5cc32#egg=EGG
 exceptiongroup==1.2.2
 filelock==3.16.1
 fsspec==2024.9.0
@@ -59,7 +59,6 @@ threadpoolctl==3.5.0
 tomli==2.0.2
 torch==2.4.1
 torchvision==0.19.1
-tqdm==4.66.5
 triton==3.0.0
 typing_extensions==4.12.2
 tzdata==2024.2
