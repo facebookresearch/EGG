@@ -32,8 +32,10 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, cat
             distractor_pos = [i for i in range(n_distractors) if i != target_pos]
             data_reshaped[concept_i + sample_j, target_pos, :] = torch.tensor(data_concepts[concept_i])
                
-            # randomly pick distractors
-            distractors = data_distractors.iloc[:, 1:]  # remove the category column
+            # randomly pick other distractors
+            # remove the category column
+            # the concept should be picked as its own distractor
+            distractors = np.delete(data_distractors.iloc[:, 1:], [concept_i], axis=0)
             distractors = distractors.sample(n=n_distractors)
             distractors = np.array(distractors, dtype='int')
                 

@@ -5,6 +5,8 @@
 
 ## TODO
 - [x] Make sure Reinforce is implemented correctly
+- [x] Single category data + training
+- [ ] Allow resampling of distractors (e.g. **X** A B A C)? 
 - [ ] Run GS for more epochs...
 - [ ] Run Reinforce more epochs...
 - [ ] Reinforce: Gibbs sampling? How to implement it using the wrapper?
