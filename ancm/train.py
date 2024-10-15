@@ -44,6 +44,7 @@ def parse_args():
     parser.add_argument("--mode", type=str, default="rf", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training (default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
+    parser.add_argument("--metrics_step", type=int, default=1, help="Specify the numper of epochs between which metrics are printed")
     parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
@@ -151,7 +152,8 @@ def main():
             n_epochs=args.n_epochs,
             print_train_metrics=True,
             train_data_len=len(train_data),
-            test_data_len=len(validation_data))
+            test_data_len=len(validation_data),
+            step=args.metrics_step)
     ]
     if args.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
