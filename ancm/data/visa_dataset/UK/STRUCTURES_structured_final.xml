@@ -1,0 +1,479 @@
+<concepts category="structures">
+<concept name="beehive">
+<texture_material>
+    made_of_wax
+</texture_material>
+<colour_patterns>
+    is_orange
+</colour_patterns>
+<parts>
+    has_holes
+</parts>
+</concept>
+<concept name="bridge">
+<shape_size>
+    is_large
+    is_high
+    is_tall
+    is_long
+</shape_size>
+<texture_material>
+    made_of_steel
+    made_of_wood
+    made_of_concrete
+    made_of_stone<no_evidence/>
+</texture_material>
+</concept>
+<concept name="cage">
+<shape_size>
+    different_shapes
+    is_box_shaped<no_evidence/>
+</shape_size>
+<parts>
+    has_bars
+    has_wires
+</parts>
+<texture_material>
+    made_of_plastic<no_evidence/>
+    made_of_metal
+</texture_material>
+<colour_patterns>
+    different_colours
+    is_silver
+</colour_patterns>
+</concept>
+<concept name="fence">
+<colour_patterns>
+    is_silver
+    is_brown
+</colour_patterns>
+<parts>
+    has_wires
+    has_columns
+    has_bars
+</parts>
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+</concept>
+<concept name="pier">
+<parts>
+    has_bridge
+    has_pillars_(columns)
+    has_walkway
+    has_railings
+</parts>
+<shape_size>
+    is_large
+    is_high
+    is_tall
+    is_long
+</shape_size>
+<texture_material>
+    made_of_wood
+</texture_material>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+</concept>
+<concept name="pyramid">
+<parts>
+    has_tombs<no_evidence/>
+</parts>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+<texture_material>
+    made_of_limestone
+    made_of_stone
+</texture_material>
+<shape_size>
+    is_triangular
+    is_large
+    is_pyramid_shaped
+    is_tall
+</shape_size>
+</concept>
+<concept name="wall">
+<texture_material>
+    made_of_brick
+    made_of_stone
+</texture_material>
+<parts>
+    has_walls
+</parts>
+<colour_patterns>
+    is_red
+    is_grey
+    is_brown
+</colour_patterns>
+</concept>
+<subcategory name="buildings">
+<concept name="apartment">
+<parts>
+    has_room<no_evidence/>
+    has_walls
+    has_balcony
+    has_door<no_evidence/>
+    has_windows
+    has_floor
+</parts>
+<texture_material>
+    made_of_brick<no_evidence/>
+    made_of_concrete<no_evidence/>
+    made_of_stone<no_evidence/>
+</texture_material>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+</concept>
+<concept name="barn">
+<parts>
+    has_roof
+    has_hay_loft<no_evidence/>
+    has_gate
+    has_door
+    has_floor<no_evidence/>
+    has_walls
+</parts>
+<shape_size>
+    is_large
+</shape_size>
+<texture_material>
+    made_of_wood
+</texture_material>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+</concept>
+<concept name="basement">
+<colour_patterns>
+    is_brown
+    is_white
+</colour_patterns>
+<parts>
+    has_basement
+    has_walls
+    has_room
+    has_floor
+</parts>
+<texture_material>
+    made_of_brick
+    made_of_stone
+    made_of_concrete
+</texture_material>
+</concept>
+<concept name="bedroom">
+<parts>
+    has_walls
+    has_floor
+    has_windows<no_evidence/>
+    has_bed
+    has_door
+</parts>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+</concept>
+<concept name="building">
+<parts>
+    has_room<no_evidence/>
+    has_elevator<no_evidence/>
+    has_roof
+    has_walls
+    has_curtain_walls<no_evidence/>
+    has_door<no_evidence/>
+    has_windows
+    has_stairs<no_evidence/>
+    has_many_floors
+</parts>
+<colour_patterns>
+    is_grey
+    is_white
+    different_colours
+</colour_patterns>
+<texture_material>
+    made_of_brick
+    made_of_concrete
+    made_of_stone
+</texture_material>
+<shape_size>
+    is_tall
+    is_large
+</shape_size>
+</concept>
+<concept name="bungalow">
+<parts>
+    has_stairs<no_evidence/>
+    has_room<no_evidence/>
+    has_roof
+    has_walls
+    has_balcony
+    has_tiled_roof
+    has_chimney
+    has_floor<no_evidence/>
+    has_door
+    has_windows
+</parts>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+<texture_material>
+    made_of_wood
+    made_of_brick
+</texture_material>
+</concept>
+<concept name="cabin">
+<parts>
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+    has_walls
+    has_chimney
+    has_door
+    has_windows
+</parts>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+<texture_material>
+    made_of_logs
+    made_of_wood
+</texture_material>
+</concept>
+<concept name="cathedral">
+<parts>
+    has_benches<no_evidence/>
+    has_windows
+    has_alter<no_evidence/>
+    has_roof
+    has_spire
+    has_door
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+    has_walls
+    has_tombs<no_evidence/>
+</parts>
+<colour_patterns>
+    is_grey
+    has_carving
+</colour_patterns>
+<texture_material>
+    made_of_stone
+</texture_material>
+<shape_size>
+    is_large
+    is_tall
+</shape_size>
+</concept>
+<concept name="cellar">
+<!-- wine cellar -->
+<parts>
+    has_basement
+    has_room
+    has_floor
+    has_walls
+    has_barrels
+    has_bottles
+</parts>
+<texture_material>
+    made_of_stone<no_evidence/>
+    made_of_brick<no_evidence/>
+    made_of_concrete<no_evidence/>
+</texture_material>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+</concept>
+<concept name="chapel">
+<parts>
+    has_roof
+    has_spire
+    has_benches
+    has_door
+    has_alter<no_evidence/>
+    has_windows
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+    has_walls
+</parts>
+</concept>
+<concept name="church">
+<parts>
+    has_roof
+    has_spire
+    has_benches<no_evidence/>
+    has_door
+    has_alter<no_evidence/>
+    has_windows
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+    has_walls
+</parts>
+<texture_material>
+    made_of_stone
+</texture_material>
+</concept>
+<concept name="cottage">
+<parts>
+    has_stairs<no_evidence/>
+    has_room<no_evidence/>
+    has_roof
+    has_walls
+    has_balcony
+    has_tiled_roof
+    has_chimney
+    has_floor<no_evidence/>
+    has_door
+    has_windows
+</parts>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+<texture_material>
+    made_of_wood
+    made_of_brick
+</texture_material>
+</concept>
+<concept name="garage">
+<parts>
+    has_walls
+    has_roof
+    has_gate
+    has_floor<no_evidence/>
+</parts>
+<colour_patterns>
+    is_brown
+    is_white
+    different_colours
+</colour_patterns>
+<texture_material>
+    made_of_brick
+    made_of_metal
+    made_of_concrete<no_evidence/>
+    made_of_stone<no_evidence/>
+</texture_material>
+</concept>
+<concept name="house">
+<texture_material>
+    made_of_concrete
+    made_of_brick
+    made_of_stone<no_evidence/>
+</texture_material>
+<parts>
+    has_stairs<no_evidence/>
+    has_walls
+    has_windows
+    has_room<no_evidence/>
+    has_roof
+    has_chimney
+    has_balcony
+    has_tiled_roof
+    has_many_floors
+    has_door
+</parts>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+</concept>
+<concept name="hut">
+<parts>
+    has_roof
+    has_walls
+    has_thatch_roof
+    has_door<no_evidence/>
+    has_windows
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+</parts>
+<texture_material>
+    made_of_wood
+</texture_material>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+</concept>
+<concept name="inn">
+<parts>
+    has_stairs<no_evidence/>
+    has_room<no_evidence/>
+    has_tiled_roof
+    has_roof
+    has_chimney
+    has_door
+    has_many_floors
+    has_many_bedrooms<no_evidence/>
+    has_windows
+    has_walls
+</parts>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+<shape_size>
+    is_large
+</shape_size>
+<texture_material>
+    made_of_brick
+    made_of_concrete
+    made_of_stone<no_evidence/>
+</texture_material>
+</concept>
+<concept name="shack">
+<parts>
+    has_roof
+    has_walls
+    has_thatch_roof
+    has_door<no_evidence/>
+    has_windows
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+</parts>
+<texture_material>
+    made_of_wood
+</texture_material>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+</concept>
+<concept name="shed">
+<parts>
+    has_windows
+    has_roof
+    has_walls
+    has_door
+    has_room<no_evidence/>
+    has_floor<no_evidence/>
+</parts>
+<colour_patterns>
+    is_brown
+</colour_patterns>
+<texture_material>
+    made_of_wood
+</texture_material>
+</concept>
+<concept name="skyscraper">
+<parts>
+    has_roof
+    has_curtain_walls
+    has_stairs<no_evidence/>
+    has_door
+    has_elevator<no_evidence/>
+    has_many_floors
+    has_windows
+    has_room<no_evidence/>
+</parts>
+<shape_size>
+    is_tall
+</shape_size>
+<texture_material>
+    made_of_stone
+    made_of_glass
+    made_of_steel
+    made_of_concrete
+</texture_material>
+<colour_patterns>
+    different_colours
+</colour_patterns>
+</concept>
+</subcategory>
+</concepts>

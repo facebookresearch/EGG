@@ -1,0 +1,4984 @@
+<concepts category="animals">
+<subcategory name="mammals">
+<concept name="bat_(animal)">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_chases<no_evidence/>
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fruits<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+</shape_size>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_teeth
+	has_feet
+	has_eyes
+	has_wings
+	has_nose
+	has_2_legs
+	has_fur
+	has_ears
+	has_2_arms
+	has_tongue<no_evidence/>
+	has_toes
+	has_claws<no_evidence/>
+	has_paws
+</anatomy>
+<colour_patterns>
+	is_red
+	is_grey
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="bear">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_climbs
+	beh_-_swims
+	beh_-_runs
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_anything
+</diet>
+<shape_size>
+	is_tall
+	is_large
+</shape_size>
+<anatomy>
+	has_mouth
+	has_head
+	has_nose
+	has_tail<no_evidence/>
+	has_claws
+	has_jaws
+	has_neck
+	has_snout
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_fur
+	has_ears
+	has_paws
+	has_feet
+	has_tongue
+</anatomy>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="beaver">
+<anatomy>
+	has_mouth
+	has_head
+	has_paws
+	has_claws
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_webbed_feet
+	has_eyes
+	has_4_legs
+	has_nose
+	has_fur
+	has_ears
+	has_whiskers
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_carrots
+	beh_-_eats_fruits
+</diet>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_chews_on_wood
+	beh_-_eats
+	beh_-_swims
+	beh_-_walks
+</behaviour>
+</concept>
+<concept name="chimp">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_climbs_trees<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_eats_bananas<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+</colour_patterns>
+<anatomy>
+	has_fingers
+	has_toes
+	has_mouth
+	has_head
+	has_snout
+	has_jaws
+	has_neck
+	has_feet
+	has_teeth
+	has_eyes
+	has_2_arms
+	has_nose
+	has_fur
+	has_ears
+	has_hands
+	has_2_legs
+	has_tongue
+</anatomy>
+</concept>
+<concept name="coyote">
+<behaviour>
+    beh_-_walks
+    beh_-_runs
+    beh_-_eats
+</behaviour>
+<colour_patterns>
+    is_beige
+    is_grey
+    is_black
+    is_brown
+</colour_patterns>
+<anatomy>
+    has_mouth
+    has_head
+    has_4_legs
+    has_whiskers
+    has_claws
+    has_jaws
+    has_neck
+    has_snout
+    has_tail
+    has_teeth
+    has_eyes
+    has_nose
+    has_fur
+    has_ears
+    has_paws
+    has_feet
+    has_tongue<no_evidence/>
+</anatomy>
+<diet>
+    beh_-_eats_animals
+    beh_-_drinks_water<no_evidence/>
+</diet>
+<shape_size>
+    is_slender
+</shape_size>
+</concept>
+<concept name="dog">
+<anatomy>
+	has_mouth
+	has_head
+	has_whiskers
+	has_claws
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_feet
+	has_tongue
+</anatomy>
+<behaviour>
+	beh_-_walks
+	beh_-_runs
+	beh_-_eats<no_evidence/>
+	beh_-_chases
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="elephant">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_tusks
+	has_neck
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_hair
+	has_large_ears
+	has_ears
+	has_trunk
+	has_tongue<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+</colour_patterns>
+</concept>
+<concept name="fox">
+<shape_size>
+	is_slender
+</shape_size>
+<behaviour>
+	beh_-_runs
+	beh_-_walks
+	beh_-_eats<no_evidence/>
+</behaviour>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_feet
+	has_tongue
+	has_tail
+	has_claws
+	has_whiskers
+</anatomy>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_grass
+</diet>
+<colour_patterns>
+	is_red
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="gorilla">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_eats_leaves
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+</colour_patterns>
+<anatomy>
+	has_fingers
+	has_toes
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_feet
+	has_eyes
+	has_2_arms
+	has_nose
+	has_2_legs
+	has_fur
+	has_ears
+	has_hands
+	has_tongue
+	has_teeth<no_evidence/>
+</anatomy>
+<shape_size>
+	is_tall
+	is_large
+</shape_size>
+</concept>
+<concept name="hyena">
+<anatomy>
+    has_mouth
+    has_head
+    has_jaws
+    has_neck
+    has_snout
+    has_tail
+    has_4_legs
+    has_eyes
+    has_nose
+    has_fur
+    has_ears
+    has_paws
+    has_feet
+    has_mane
+    has_teeth<no_evidence/>
+    has_tongue<no_evidence/>
+    has_claws<no_evidence/>
+</anatomy>
+<diet>
+    beh_-_eats_animals
+    beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+    has_black_spots
+    has_spots
+    is_black
+    has_stripes
+    is_brown
+</colour_patterns>
+<behaviour>
+    beh_-_eats
+    beh_-_walks
+    beh_-_chases
+    beh_-_runs
+</behaviour>
+<shape_size>
+    is_slender
+</shape_size>
+</concept>
+<concept name="mole_(animal)">
+<behaviour>
+	beh_-_digs_holes
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+</behaviour>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears<no_evidence/>
+	has_paws
+	has_claws
+	has_whiskers
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="raccoon">
+<anatomy>
+	has_mouth
+	has_head
+	has_paws
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_toes
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_climbs
+	beh_-_swims<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_nuts<no_evidence/>
+	beh_-_eats_fruits<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	has_stripes
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="skunk">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_feet
+	has_bushy_tail
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_sprays_when_in_danger<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_nuts<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+	beh_-_eats_leaves<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	has_stripes
+	is_white
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="ungulates">
+<concept name="bison">
+<anatomy>
+	has_jaws
+	has_hump
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_horns
+	has_eyes
+	has_fur
+	has_ears
+	has_beard
+	has_mane
+	has_hair
+	has_nose
+	has_mouth
+	has_4_hooves
+	has_feet
+	has_tongue<no_evidence/>
+	has_teeth<no_evidence/>
+	has_head
+</anatomy>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+</concept>
+<concept name="buffalo">
+<anatomy>
+	has_jaws
+	has_hump
+	has_neck
+	has_tail
+	has_4_legs
+	has_horns
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_4_hooves
+	has_feet
+	has_snout
+	has_mouth
+	has_tongue<no_evidence/>
+	has_teeth<no_evidence/>
+	has_head
+</anatomy>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_grass
+</diet>
+</concept>
+<concept name="bull">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+	beh_-_travels_in_herds
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_hay
+</diet>
+<shape_size>
+	is_large
+</shape_size>
+<anatomy>
+	has_jaws
+	has_hump
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_horns
+	has_teeth<no_evidence/>
+	has_eyes
+	has_feet
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_4_hooves
+	has_tongue<no_evidence/>
+	has_testicles
+	has_head
+</anatomy>
+<colour_patterns>
+	is_red
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="calf">
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_4_hooves
+	has_feet
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_suckles_milk
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_red
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="camel">
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_walks
+	beh_-_runs
+	beh_-_eats<no_evidence/>
+</behaviour>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_long_neck
+	has_tail
+	has_4_legs
+	has_eyes
+	has_4_hooves
+	has_feet
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_hump
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<shape_size>
+	is_large
+	is_tall
+</shape_size>
+<diet>
+	beh_-_eats_grass<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="caribou">
+<anatomy>
+	has_jaws
+	has_hump
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_eyes
+	has_antlers
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_4_hooves
+	has_feet
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+<concept name="cow">
+<anatomy>
+	has_jaws
+	has_neck
+	has_tail
+	has_4_legs
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_4_hooves
+	has_feet
+	has_udder
+	has_mouth
+	has_snout
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_grass
+</diet>
+<colour_patterns>
+	has_spots
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+	beh_-_produces_milk<no_evidence/>
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+<concept name="deer">
+<anatomy>
+	has_jaws
+	has_antlers
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_4_hooves
+	has_feet
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_plants
+	beh_-_eats_fruits
+	beh_-_eats_nuts
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	has_white_spots
+	is_brown
+	is_white
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs
+</behaviour>
+</concept>
+<concept name="donkey">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_carries
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<anatomy>
+	has_jaws
+	has_neck
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_feet
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_snout
+	has_4_hooves
+	has_nose
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+<concept name="elk">
+<behaviour>
+	beh_-_walks
+	beh_-_runs
+	beh_-_eats
+	beh_-_travels_in_herds
+</behaviour>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<anatomy>
+	has_jaws
+	has_hump
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_eyes
+	has_antlers
+	has_nose
+	has_fur
+	has_ears
+	has_4_hooves
+	has_feet
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_mane
+	has_head
+</anatomy>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_grass<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+</diet>
+</concept>
+<concept name="fawn">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water
+	beh_-_eats_leaves
+</diet>
+<colour_patterns>
+	is_red
+	has_spots
+	is_white
+	is_brown
+</colour_patterns>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_4_hooves
+	has_feet
+	has_nose
+	has_fur
+	has_ears
+	has_eyes
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+</concept>
+<concept name="giraffe">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_long_neck
+	has_tail
+	has_4_legs
+	has_horns
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_4_hooves
+	has_feet
+	has_tongue
+	has_hair
+	has_teeth<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_leaves
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	has_spots
+	is_orange
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<shape_size>
+	is_large
+	is_tall
+</shape_size>
+</concept>
+<concept name="goat">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_horns
+	has_eyes
+	has_feet
+	has_nose
+	has_fur
+	has_ears
+	has_beard
+	has_wool
+	has_4_hooves
+	has_udder<no_evidence/>
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+	beh_-_climbs<no_evidence/>
+</behaviour>
+</concept>
+<concept name="horse">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water
+	beh_-_eats_hay<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+</shape_size>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_hair
+	has_ears
+	has_mane
+	has_4_hooves
+	has_feet
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="lamb">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_tail
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_wool
+	has_4_hooves
+	has_feet
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_suckles_milk
+</diet>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="moose">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_4_hooves
+	has_feet
+	has_antlers
+	has_nose
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_tongue<no_evidence/>
+	has_udder<no_evidence/>
+	has_head
+	has_hump
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_eats_leaves
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+<concept name="ox">
+<anatomy>
+	has_jaws
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_horns
+	has_feet
+	has_teeth<no_evidence/>
+	has_4_hooves
+	has_fur
+	has_ears
+	has_mane
+	has_hair
+	has_dewlap
+	has_tongue<no_evidence/>
+	has_eyes
+	has_neck
+	has_nose
+	has_head
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_eats_hay
+	beh_-_eats_plants<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+<concept name="pig">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth<no_evidence/>
+	has_eyes
+	has_4_hooves
+	has_curly_tail
+	has_nose
+	has_hair
+	has_fur
+	has_ears
+	has_tongue<no_evidence/>
+	has_udder
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_brown
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="pony">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_hair
+	has_ears
+	has_mane
+	has_4_hooves
+	has_feet
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_eats_hay<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="sheep">
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_produces_milk<no_evidence/>
+	beh_-_eats
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<anatomy>
+	has_jaws
+	has_snout
+	has_mouth
+	has_eyes
+	has_tail<no_evidence/>
+	has_4_legs
+	has_horns
+	has_feet
+	has_teeth<no_evidence/>
+	has_nose
+	has_fur
+	has_ears
+	has_wool
+	has_4_hooves
+	has_tongue
+	has_udder<no_evidence/>
+	has_head
+	has_neck
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="zebra">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_hair
+	has_ears
+	has_mane
+	has_4_hooves
+	has_feet
+	has_tongue<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_white
+	has_stripes
+</colour_patterns>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_runs<no_evidence/>
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+</concept>
+</subcategory>
+<subcategory name="felines">
+<concept name="cat">
+<anatomy>
+	has_head
+	has_mouth
+	has_whiskers
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_eyes
+	has_paws
+	has_feet
+	has_tongue
+	has_claws
+	has_teeth<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_walks
+	beh_-_eats<no_evidence/>
+	beh_-_climbs<no_evidence/>
+	beh_-_climbs_trees<no_evidence/>
+	beh_-_chases<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_fish
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_mice<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<shape_size>
+	is_slender
+</shape_size>
+</concept>
+<concept name="cheetah">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_chases<no_evidence/>
+	beh_-_runs<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_animals
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	has_black_spots
+	has_spots
+	is_black
+</colour_patterns>
+<anatomy>
+	has_mouth
+	has_head
+	has_whiskers
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_feet
+	has_tongue
+	has_claws
+</anatomy>
+<shape_size>
+	is_slender
+</shape_size>
+</concept>
+<concept name="cougar">
+<behaviour>
+	beh_-_runs<no_evidence/>
+	beh_-_walks
+	beh_-_climbs<no_evidence/>
+	beh_-_chases<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+</anatomy>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<shape_size>
+	is_slender
+</shape_size>
+</concept>
+<concept name="leopard">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_mouth
+	has_head
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue
+	has_claws
+	has_whiskers
+</anatomy>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_animals
+</diet>
+<shape_size>
+	is_slender
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_climbs
+	beh_-_climbs_trees
+	beh_-_chases<no_evidence/>
+	beh_-_runs<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<colour_patterns>
+	has_black_spots
+	has_spots
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="lion">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_beard
+	has_paws
+	has_mane
+	has_tongue
+	has_claws
+	has_whiskers
+</anatomy>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<shape_size>
+	is_slender
+</shape_size>
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_chases<no_evidence/>
+	beh_-_runs
+</behaviour>
+<colour_patterns>
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="panther">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_climbs<no_evidence/>
+	beh_-_climbs_trees<no_evidence/>
+	beh_-_chases<no_evidence/>
+	beh_-_runs<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue
+	has_claws
+	has_whiskers
+</anatomy>
+<shape_size>
+	is_slender
+</shape_size>
+<diet>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	has_black_spots
+	has_spots
+	is_yellow
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+<concept name="tiger">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_ruff
+	has_tongue
+	has_claws
+	has_whiskers
+</anatomy>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	has_stripes
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_chases<no_evidence/>
+	beh_-_runs<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<shape_size>
+	is_slender
+</shape_size>
+</concept>
+</subcategory>
+<subcategory name="rodents">
+<concept name="chipmunk">
+<behaviour>
+	beh_-_eats
+	beh_-_hops<no_evidence/>
+	beh_-_climbs<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_peanuts
+	beh_-_eats_nuts
+	beh_-_eats_garbage
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_grey
+	is_black
+	has_stripes
+	is_brown
+	is_white
+</colour_patterns>
+<anatomy>
+	has_toes
+	has_mouth
+	has_paws
+	has_head
+	has_snout
+	has_whiskers
+	has_jaws<no_evidence/>
+	has_bushy_tail
+	has_neck
+	has_tail
+	has_feet
+	has_eyes
+	has_4_legs
+	has_nose
+	has_fur
+	has_ears
+	has_hands
+	has_claws
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="gopher">
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_eats_nuts
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_red
+	is_grey
+	is_black
+	has_stripes
+	is_brown
+</colour_patterns>
+<anatomy>
+	has_toes
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_bushy_tail
+	has_neck
+	has_snout
+	has_tail
+	has_feet
+	has_eyes
+	has_4_legs
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_claws
+	has_whiskers
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="groundhog">
+<anatomy>
+	has_mouth
+	has_head
+	has_paws
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_claws
+	has_whiskers
+	has_tongue<no_evidence/>
+	has_teeth<no_evidence/>
+	has_toes
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_grass
+</diet>
+<colour_patterns>
+	is_beige
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="hamster">
+<behaviour>
+	beh_-_walks
+	beh_-_eats
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_nuts<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<anatomy>
+	has_mouth
+	has_head
+	has_paws
+	has_jaws<no_evidence/>
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_claws
+	has_whiskers
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+	has_toes
+	has_neck<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="hare">
+<behaviour>
+	beh_-_hops
+	beh_-_eats
+	beh_-_runs
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_carrots<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+<anatomy>
+	has_mouth
+	has_head
+	has_feet
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_eyes
+	has_nose
+	has_fur
+	has_large_ears
+	has_ears
+	has_paws
+	has_claws
+	has_whiskers
+	has_teeth<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+</concept>
+<concept name="mouse">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_tongue<no_evidence/>
+	has_claws
+	has_paws
+	has_whiskers
+	has_toes
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_peanuts<no_evidence/>
+	beh_-_eats_nuts
+	beh_-_eats_corn<no_evidence/>
+	beh_-_eats_cheese<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="rabbit">
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_large_ears
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+</anatomy>
+<behaviour>
+	beh_-_hops
+	beh_-_eats
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_eats_plants
+	beh_-_eats_hay
+	beh_-_eats_leaves<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_beige
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="porcupine">
+<anatomy>
+	has_mouth
+	has_head
+	has_whiskers
+	has_jaws<no_evidence/>
+	has_quills
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws
+	has_toes
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_eats_plants
+	beh_-_eats_leaves
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="rat">
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_cereals<no_evidence/>
+	beh_-_eats_anything<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+</diet>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_climbs
+	beh_-_swims<no_evidence/>
+</behaviour>
+<anatomy>
+	has_mouth
+	has_head
+	has_jaws<no_evidence/>
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_teeth
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+	has_toes
+</anatomy>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="squirrel">
+<anatomy>
+	has_toes
+	has_mouth
+	has_head
+	has_feet
+	has_jaws<no_evidence/>
+	has_bushy_tail
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws
+	has_whiskers
+</anatomy>
+<behaviour>
+	beh_-_hops
+	beh_-_eats
+	beh_-_climbs
+	beh_-_climbs_trees
+	beh_-_jumps
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_nuts
+	beh_-_eats_plants
+</diet>
+<colour_patterns>
+	is_red
+	is_grey
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="marine_mammals">
+<!-- including semi-aquatic marine mammals -->
+<concept name="dolphin">
+<anatomy>
+	has_jaws
+	has_fins
+	has_tail
+	has_eyes
+	has_ears
+	has_blowhole
+	has_beak
+	has_fluke
+	has_tongue
+	has_flippers
+	has_mouth
+	has_head
+	has_teeth<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_swims
+	beh_-_swims_in_schools
+	beh_-_jumps
+	beh_-_eats<no_evidence/>
+</behaviour>
+<shape_size>
+	is_sleek
+	is_long
+</shape_size>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+</colour_patterns>
+</concept>
+<concept name="mink">
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_head
+	has_teeth<no_evidence/>
+	has_tail
+	has_feet
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws<no_evidence/>
+	has_whiskers
+	has_toes
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_chases<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_rodents<no_evidence/>
+</diet>
+<shape_size>
+	is_sleek
+</shape_size>
+</concept>
+<concept name="otter">
+<shape_size>
+	is_sleek
+</shape_size>
+<anatomy>
+	has_jaws
+	has_neck
+	has_snout
+	has_mouth
+	has_head
+	has_teeth<no_evidence/>
+	has_tail
+	has_4_legs
+	has_webbed_feet
+	has_eyes
+	has_nose
+	has_fur
+	has_ears
+	has_paws
+	has_tongue<no_evidence/>
+	has_claws<no_evidence/>
+	has_whiskers
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_chases<no_evidence/>
+	beh_-_swims
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="platypus">
+<anatomy>
+	has_jaws
+	has_claws<no_evidence/>
+	has_neck
+	has_4_legs
+	has_eyes
+	has_nose
+	has_fur
+	has_ears<no_evidence/>
+	has_webbed_feet
+	has_large_beak
+	has_beak
+	has_snout
+	has_mouth
+	has_head
+	has_tongue
+	has_tail
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="seal">
+<anatomy>
+	has_jaws
+	has_snout
+	has_tail
+	has_teeth<no_evidence/>
+	has_nose
+	has_fur
+	has_ears<no_evidence/>
+	has_eyes
+	has_flippers
+	has_whiskers
+	has_blubber
+	has_tongue<no_evidence/>
+	has_mouth
+	has_head
+	has_neck<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_jumps<no_evidence/>
+	beh_-_crawls
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+<concept name="walrus">
+<anatomy>
+	has_jaws
+	has_tusks
+	has_neck
+	has_snout
+	has_tail
+	has_blubber
+	has_eyes
+	has_nose
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_flippers
+	has_claws
+	has_whiskers
+	has_mouth
+	has_head
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+</behaviour>
+<shape_size>
+	is_large
+</shape_size>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="whale">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_spouts_water
+</behaviour>
+<anatomy>
+	has_jaws
+	has_fins
+	has_tail
+	has_teeth<no_evidence/>
+	has_blubber
+	has_eyes
+	has_ears<no_evidence/>
+	has_fluke
+	has_mouth
+	has_head
+	has_tongue<no_evidence/>
+	has_flippers
+	has_blowhole<no_evidence/>
+</anatomy>
+<shape_size>
+	is_long
+	is_large
+	is_sleek
+</shape_size>
+<diet>
+  	beh_-_drinks_water
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="amphibians">
+<concept name="frog">
+<anatomy>
+	has_4_legs
+	has_feet
+	has_mouth
+	has_head
+	has_ears<no_evidence/>
+	has_eyes
+	has_webbed_feet
+	has_warts
+	has_toes
+	has_tongue<no_evidence/>
+</anatomy>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_flies<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+	is_chubby
+</shape_size>
+<behaviour>
+	beh_-_hops
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_jumps
+</behaviour>
+<colour_patterns>
+	is_red
+	is_green
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="salamander">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_crawls
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_yellow
+	is_black
+	is_orange
+</colour_patterns>
+<anatomy>
+	has_4_legs
+	has_feet
+	has_eyes
+	has_mouth
+	has_head
+	has_nose
+	has_toes
+	has_tongue<no_evidence/>
+	has_tail
+</anatomy>
+<shape_size>
+	is_slender
+	is_sleek
+	is_small
+</shape_size>
+</concept>
+<concept name="toad">
+<behaviour>
+	beh_-_hops<no_evidence/>
+	beh_-_eats<no_evidence/>
+	beh_-_jumps<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+	is_chubby
+</shape_size>
+<anatomy>
+	has_4_legs
+	has_feet
+	has_mouth
+	has_head
+	has_ears<no_evidence/>
+	has_eyes
+	has_warts
+	has_toes
+	has_tongue<no_evidence/>
+</anatomy>
+<colour_patterns>
+	is_green
+	is_yellow
+	is_brown
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="birds">
+<concept name="blackbird">
+<anatomy>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_breast
+	has_tail_feathers
+	has_long_tail
+	has_neck
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_talons
+	has_beak
+	has_2_legs
+	has_claws
+	has_ears<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_worms
+</diet>
+<colour_patterns>
+	is_black
+	is_orange
+</colour_patterns>
+</concept>
+<concept name="bluejay">
+<shape_size>
+	is_small
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_eats_nuts
+	beh_-_eats_seeds<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_blue
+	has_stripes
+	is_white
+</colour_patterns>
+<anatomy>
+	has_head
+	has_toes
+	has_crest
+	has_breast
+	has_tail_feathers	
+	has_long_tail
+	has_neck
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_beak
+	has_2_legs
+	has_claws
+	has_tongue<no_evidence/>
+	has_ears<no_evidence/>
+</anatomy>
+</concept>
+<concept name="budgie">
+<anatomy>
+	has_tongue<no_evidence/>
+	has_toes
+	has_tail_feathers	
+	has_long_tail
+	has_neck
+	has_breast
+	has_feet
+	has_eyes
+	has_feathers
+	has_wings
+	has_head
+	has_2_legs
+	has_claws
+	has_ears<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_seeds<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<colour_patterns>
+    is_colourful
+	is_blue
+	is_green
+	is_yellow
+	has_stripes
+	is_white
+</colour_patterns>
+</concept>
+<concept name="buzzard">
+<behaviour>
+	beh_-_flies
+	beh_-_hunts
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_rodents
+	beh_-_eats_small_animals
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	has_patterns
+	is_brown
+	is_white
+</colour_patterns>
+<anatomy>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_tail_feathers	
+	has_tail
+	has_breast
+	has_talons
+	has_neck
+	has_beak
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+	has_ears<no_evidence/>
+</anatomy>
+</concept>
+<concept name="canary">
+<behaviour>
+	beh_-_eats
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds
+</diet>
+<colour_patterns>
+	is_orange
+	is_white
+	is_yellow
+</colour_patterns>
+<anatomy>
+	has_ears<no_evidence/>
+	has_head
+	has_toes
+	has_tongue<no_evidence/>
+	has_feet
+	has_tail_feathers<not_sure/>
+	has_tail
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="chickadee">
+<behaviour>
+	beh_-_eats
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_seeds
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_brown
+	is_grey
+	is_yellow
+	is_black
+	is_white
+</colour_patterns>
+<anatomy>
+	has_head
+	has_toes
+	has_feet
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_beak
+	has_2_legs
+	has_claws
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="chicken">
+<behaviour>
+	beh_-_pecks
+	beh_-_eats
+	beh_-_walks<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_seeds
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<anatomy>
+	has_head
+	has_toes
+	has_dewlap
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_beak
+	has_feet
+	has_2_legs
+	has_claws
+	has_comb
+	has_tongue<no_evidence/>
+	has_ears<no_evidence/>
+</anatomy>
+<colour_patterns>
+	is_red
+	is_black
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="crow">
+<anatomy>
+	has_head
+	has_toes
+	has_tongue<no_evidence/>
+	has_feet
+	has_beak
+	has_neck
+	has_breast
+	has_2_legs
+	has_tail
+	has_tail_feathers
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_ears<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_flies
+	beh_-_eats
+</behaviour>
+<diet>
+	beh_-_eats_dead_flesh<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+</colour_patterns>
+</concept>
+<concept name="dove">
+<anatomy>
+	has_head
+	has_toes
+	has_feet
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_beak
+	has_2_legs
+	has_claws
+	has_tongue<no_evidence/>
+	has_ears<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_white
+</colour_patterns>
+</concept>  
+<concept name="duck">
+<anatomy>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_webbed_feet
+	has_beak
+	has_2_legs
+	has_ears<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_flies
+	beh_-_waddles
+</behaviour>
+<diet>
+    beh_-_drinks_water
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_grass<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_green
+	is_black
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="eagle">
+<anatomy>
+	has_head
+	has_toes
+	has_feet
+	has_beak
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_talons
+	has_beak
+	has_2_legs
+	has_tongue
+	has_claws
+	has_ears<no_evidence/>
+</anatomy>
+<behaviour>
+ 	beh_-_hunts
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_yellow
+	is_black
+	is_brown
+	is_white
+	is_grey
+</colour_patterns>
+</concept>
+<concept name="emu">
+<anatomy>
+	has_head
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_beak
+	has_2_legs
+	has_crest
+	has_toes
+	has_tongue<no_evidence/>
+	has_claws
+	has_talons
+	has_ears<no_evidence/>
+</anatomy>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+	is_tall
+</shape_size>
+<behaviour>
+	beh_-_runs<no_evidence/>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+</behaviour>
+<colour_patterns>
+	is_grey
+	is_blue
+	is_black
+	is_orange
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="falcon">
+<anatomy>
+	has_head
+	has_toes
+	has_feet
+	has_beak
+	has_tail_feathers
+	has_long_tail
+	has_neck
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_talons
+	has_eyes
+	has_2_legs
+	has_claws
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_flies
+	beh_-_hunts<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_reptiles<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_rodents<no_evidence/>
+</diet>
+<colour_patterns>
+	has_black_spots
+	is_yellow
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="finch">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_feet
+	has_tail
+	has_tail_feathers
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_flies<no_evidence/>
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_seeds
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	has_red_breast
+	is_grey
+	is_colourful
+	is_orange
+	is_white
+	is_yellow
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="flamingo">
+<shape_size>
+	is_tall
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_walks
+	beh_-_flies<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_shrimp<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_white
+	is_pink
+</colour_patterns>
+<anatomy>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_beak
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_webbed_feet
+	has_2_legs
+	has_ears<no_evidence/>
+</anatomy>
+</concept>
+<concept name="goose">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_tail
+	has_tail_feathers
+	has_long_neck
+	has_webbed_feet
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_swims
+	beh_-_flies
+	beh_-_waddles
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_grass
+</diet>
+<colour_patterns>
+	is_black
+	is_grey
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="hawk">
+<anatomy>
+	has_head
+	has_toes
+	has_beak
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_talons
+	has_2_legs
+	has_claws
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_hunts
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="nightingale">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_tail_feathers
+	has_tail
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+</anatomy>
+<behaviour>
+	beh_-_flies<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="oriole">
+<behaviour>
+	beh_-_flies<no_evidence/>
+	beh_-_eats
+</behaviour>
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_feet
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_tail
+	has_tail_feathers<not_sure/>
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+</anatomy>
+<diet>
+	beh_-_eats_fruits
+	beh_-_eats_nectar<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_orange
+	is_white
+	is_yellow
+</colour_patterns>
+</concept>
+<concept name="ostrich">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_beak
+	has_long_neck
+	has_breast
+	has_2_legs
+	has_tail_feathers
+	has_tail
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_talons
+	has_feet
+</anatomy>
+<behaviour>
+	beh_-_runs<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<shape_size>
+	is_large
+	is_tall
+</shape_size>
+<diet>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_grey
+	is_white
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="owl">
+<anatomy>
+	has_head
+	has_toes
+	has_neck
+	has_tail
+	has_tail_feathers
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_talons
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_crest
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_hunts<no_evidence/>
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_rodents<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_yellow
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="parakeet">
+<anatomy>
+	has_head
+	has_toes
+	has_tail_feathers
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_tongue<no_evidence/>
+	has_long_tail
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds
+</diet>
+<colour_patterns>
+    is_colourful
+	is_red
+	is_grey
+	is_blue
+	is_green
+	is_yellow
+	is_black
+	is_orange
+	is_white
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="partridge">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_flies<no_evidence/>
+</behaviour>
+<anatomy>
+	has_beak
+	has_feet
+	has_2_legs
+	has_head
+	has_toes
+	has_tail_feathers
+	has_tail
+	has_breast
+	has_ears
+	has_crest
+	has_tongue<no_evidence/>
+	has_claws
+	has_eyes
+	has_feathers
+	has_wings
+</anatomy>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_brown
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+<concept name="peacock">
+<anatomy>
+	has_head
+	has_toes
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_crest
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_fans_tail_feathers
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+</diet>
+<colour_patterns>
+	is_colourful
+	is_blue
+	is_green
+	is_yellow
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="pelican">
+<anatomy>
+	has_head
+	has_toes
+	has_long_neck
+	has_tail
+	has_tail_feathers
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_webbed_feet
+	has_beak
+	has_2_legs
+	has_tongue<no_evidence/>
+	has_pouch
+</anatomy>
+<behaviour>
+	beh_-_swims
+	beh_-_flies
+	beh_-_waddles
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_orange
+	is_white
+</colour_patterns>
+</concept>
+<concept name="penguin">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_waddles
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_yellow
+	is_black
+	is_orange
+	is_white
+</colour_patterns>
+<anatomy>
+	has_head
+	has_toes
+	has_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_flippers
+	has_feet
+	has_ears<no_evidence/>
+	has_webbed_feet
+	has_beak
+	has_2_legs
+	has_crest
+	has_tongue<no_evidence/>
+</anatomy>
+</concept>
+<concept name="pheasant">
+<anatomy>
+	has_head
+	has_toes
+	has_tail_feathers
+	has_long_neck
+	has_long_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_dewlap
+	has_crest
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_red
+	is_grey
+	is_colourful
+	is_blue
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="pigeon">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+	has_tail_feathers
+	has_tail
+</anatomy>
+<behaviour>
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_grey
+	is_green
+	is_purple
+	is_red
+	is_white
+</colour_patterns>
+</concept>
+<concept name="raven">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_talons
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+	has_tail_feathers
+	has_tail
+</anatomy>
+<behaviour>
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_rodents<no_evidence/>
+	beh_-_eats_dead_flesh<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+</colour_patterns>
+</concept>
+<concept name="robin">
+<anatomy>
+	has_neck
+	has_feet
+	has_eyes
+	has_feathers
+	has_wings
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_head
+	has_toes
+	has_tail_feathers
+	has_tongue<no_evidence/>
+	has_long_tail
+	has_claws
+	has_breast
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fruits<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_yellow
+	is_black
+</colour_patterns>
+</concept>
+<concept name="rooster">
+<anatomy>
+	has_head
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_dewlap
+	has_toes
+	has_tongue<no_evidence/>
+	has_claws
+	has_comb
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_pecks<no_evidence/>
+	beh_-_walks
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_red
+	is_colourful
+	is_black
+	is_orange
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="seagull">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_toes
+	has_neck
+	has_webbed_feet
+	has_beak
+	has_breast
+	has_2_legs
+	has_tail_feathers
+	has_tail
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+</anatomy>
+<behaviour>
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_swims
+	beh_-_waddles
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_eats_rodents<no_evidence/>
+	beh_-_eats_dead_flesh<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_grey
+	is_orange
+	is_white
+	is_yellow
+</colour_patterns>
+</concept>
+<concept name="sparrow">
+<anatomy>
+	has_head
+	has_tail_feathers
+	has_neck
+	has_breast
+	has_eyes
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_toes
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_seeds
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="starling">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_tail
+	has_tail_feathers
+	has_neck
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_head
+	has_beak
+	has_2_legs
+	has_toes
+	has_claws
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fruits<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_orange
+	has_spots
+	is_white
+</colour_patterns>
+</concept>
+<concept name="stork">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<shape_size>
+	is_tall
+</shape_size>
+<anatomy>
+	has_head
+	has_tail_feathers
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_webbed_feet
+	has_long_legs
+	has_beak
+	has_2_legs
+	has_toes
+	has_claws
+	has_tongue
+</anatomy>
+<colour_patterns>
+	is_red
+	is_black
+	is_orange
+	is_white
+</colour_patterns>
+</concept>
+<concept name="swan">
+<anatomy>
+	has_head
+	has_toes
+	has_long_neck
+	has_tail
+	has_tail_feathers
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_beak
+	has_feet
+	has_ears<no_evidence/>
+	has_webbed_feet<no_evidence/>
+	has_2_legs
+	has_tongue<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_waddles<no_evidence/>
+	beh_-_flies<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_plants<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_orange
+	is_white
+</colour_patterns>
+</concept>
+<concept name="turkey">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_walks
+	beh_-_fans_tail_feathers
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_eats_seeds<no_evidence/>
+</diet>
+<colour_patterns>
+	is_red
+	is_grey
+	is_colourful
+	is_blue
+	is_black
+	is_brown
+	is_pink
+</colour_patterns>
+<anatomy>
+	has_head
+	has_long_neck
+	has_tail
+	has_breast
+	has_eyes
+	has_feathers
+	has_wings
+	has_feet
+	has_ears<no_evidence/>
+	has_beak
+	has_2_legs
+	has_dewlap
+	has_tail_feathers
+	has_toes
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+</concept>
+<concept name="vulture">
+<anatomy>
+	has_head
+	has_toes<no_evidence/>
+	has_tongue<no_evidence/>
+	has_neck
+	has_large_beak
+	has_breast
+	has_ears<no_evidence/>
+	has_feet
+	has_2_legs
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws<no_evidence/>
+	has_tail
+	has_tail_feathers
+	has_talons<no_evidence/>
+</anatomy>
+<shape_size>
+	is_bald
+</shape_size>
+<diet>
+	beh_-_eats_dead_flesh<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	different_colours
+	is_black
+	is_brown
+	is_grey
+</colour_patterns>
+<behaviour>
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+</behaviour>
+</concept>
+<concept name="woodpecker">
+<anatomy>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+	has_head
+	has_neck
+	has_beak
+	has_breast
+	has_2_legs
+	has_toes
+	has_tail
+	has_tail_feathers
+	has_eyes
+	has_feathers
+	has_wings
+	has_claws
+	has_feet
+	has_crest
+</anatomy>
+<diet>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+</shape_size>
+<behaviour>
+	beh_-_puts_holes_in_trees
+	beh_-_flies<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_black
+	is_grey
+	is_red
+	has_stripes
+	is_white
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="invertebrates">
+<concept name="spider">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_crawls
+	beh_-_spins_webs
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<anatomy>
+	has_8_legs
+	has_eyes
+	has_hair
+	has_teeth
+	has_mouthparts
+	has_claws
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_eats_insects
+	beh_-_eats_flies
+</diet>
+<colour_patterns>
+	is_red
+	is_colourful
+	is_yellow
+	is_black
+	is_orange
+	is_brown
+	is_white
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="worm">
+<diet>
+	beh_-_eats_anything<no_evidence/>
+</diet>
+<shape_size>
+	is_sleek
+	is_slender
+	is_long
+	is_small
+</shape_size>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_slithers
+	beh_-_crawls
+</behaviour>
+<colour_patterns>
+	is_red
+	is_green
+	is_yellow
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="fish">
+<concept name="catfish">
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish
+	beh_-_eats_plants
+	beh_-_eats_small_animals
+</diet>
+<behaviour>
+	beh_-_swims
+	beh_-_eats<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_grey
+	has_black_spots
+	is_yellow
+</colour_patterns>
+<anatomy>
+	has_fins
+	has_eyes
+	has_gills
+	has_suction_cups
+	has_barbels
+	has_tail
+	has_mouth
+	has_head
+</anatomy>
+<shape_size>
+	is_sleek
+	is_long
+</shape_size>
+</concept>
+<concept name="cod">
+<anatomy>
+	has_teeth
+	has_eyes
+	has_mouth
+	has_head
+	has_scales
+	has_fins
+	has_gills
+	has_tail
+	has_barbels
+</anatomy>
+<behaviour>
+	beh_-_swims_in_schools<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<shape_size>
+	is_sleek
+</shape_size>
+<diet>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_orange
+	is_gold
+</colour_patterns>
+</concept>
+<concept name="eel">
+<diet>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+</diet>
+<behaviour>
+	beh_-_swims
+	beh_-_eats<no_evidence/>
+</behaviour>
+<colour_patterns>
+	has_spots
+	is_yellow
+	is_brown
+	is_grey
+</colour_patterns>
+<anatomy>
+	has_fins
+	has_teeth
+	has_eyes
+	has_gills
+	has_mouth
+	has_head
+</anatomy>
+<shape_size>
+	is_long
+	is_sleek
+</shape_size>
+</concept>
+<concept name="goldfish">
+<behaviour>
+	beh_-_swims_in_schools
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish_food<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+</diet>
+<colour_patterns>
+	is_gold
+	is_orange
+</colour_patterns>
+<anatomy>
+	has_scales
+	has_fins
+	has_tail
+	has_eyes
+	has_gills
+	has_mouth
+	has_head
+</anatomy>
+<shape_size>
+	is_sleek
+	is_small
+</shape_size>
+</concept>
+<concept name="guppy">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+</behaviour>
+<anatomy>
+	has_tail
+	has_head
+	has_scales
+	has_fins
+	has_gills
+	has_eyes
+	has_mouth
+</anatomy>
+<shape_size>
+	is_sleek
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_eats_water_plants<no_evidence/>
+</diet>
+<colour_patterns>
+	is_yellow
+	is_colourful
+	is_blue
+	is_black
+	has_patterns
+	is_grey
+	is_orange
+</colour_patterns>
+</concept>
+<concept name="mackerel">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims_in_schools
+</behaviour>
+<diet>
+	beh_-_eats_plankton<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<shape_size>
+	is_slender
+	is_sleek
+</shape_size>
+<anatomy>
+	has_scales
+	has_fins
+	has_tail
+	has_eyes
+	has_gills
+	has_mouth
+	has_head
+</anatomy>
+<colour_patterns>
+	is_grey
+	is_black
+</colour_patterns>
+</concept>
+<concept name="minnow">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims_in_schools
+</behaviour>
+<anatomy>
+	has_eyes
+	has_scales
+	has_fins
+	has_gills
+	has_tail
+	has_mouth
+	has_head
+</anatomy>
+<colour_patterns>
+	is_grey
+	is_blue
+	is_purple
+	is_gold
+</colour_patterns>
+<shape_size>
+	is_small
+	is_sleek
+</shape_size>
+<diet>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+</diet>
+</concept>
+<concept name="perch">
+<anatomy>
+	has_scales
+	has_fins
+	has_gills
+	has_tail
+	has_mouth
+	has_head
+	has_eyes
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<shape_size>
+	is_sleek
+</shape_size>
+<diet>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<colour_patterns>
+	is_black
+	is_grey
+	is_orange
+	has_stripes
+	is_yellow
+</colour_patterns>
+</concept>
+<concept name="salmon">
+<anatomy>
+	has_scales
+	has_fins
+	has_tail
+	has_eyes
+	has_gills
+	has_mouth
+	has_head
+</anatomy>
+<shape_size>
+	is_sleek
+</shape_size>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims_in_schools<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_pink
+	is_white
+</colour_patterns>
+</concept>
+<concept name="sardine">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims_in_schools
+</behaviour>
+<diet>
+	beh_-_eats_plankton<no_evidence/>
+</diet>
+<shape_size>
+	is_sleek
+	is_small
+</shape_size>
+<anatomy>
+	has_scales
+	has_fins
+	has_gills
+	has_tail
+	has_mouth
+	has_head
+	has_eyes
+</anatomy>
+<colour_patterns>
+	is_grey
+</colour_patterns>
+</concept>
+<concept name="trout">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims_in_schools<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<shape_size>
+	is_sleek
+</shape_size>
+<anatomy>
+	has_scales
+	has_fins
+	has_gills
+	has_tail
+	has_mouth
+	has_head
+	has_eyes
+</anatomy>
+<colour_patterns>
+	is_black
+	is_grey
+	has_spots
+	is_yellow
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="tuna">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+	is_sleek
+</shape_size>
+<anatomy>
+	has_scales
+	has_fins
+	has_tail
+	has_eyes
+	has_gills
+	has_mouth
+	has_head
+</anatomy>
+<colour_patterns>
+	is_grey
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="crustaceans">
+<concept name="crab">
+<anatomy>
+	has_shell
+	has_eyes
+	has_8_legs
+	has_claws
+	has_mouthparts
+	has_gills
+</anatomy>
+<behaviour>
+	beh_-_walks
+	beh_-_eats<no_evidence/>
+	beh_-_swims<no_evidence/>
+	beh_-_walks_sideways<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_red
+	is_grey
+	is_orange
+	is_brown
+	is_pink
+</colour_patterns>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+ <concept name="lobster">
+<behaviour>
+	beh_-_swims
+	beh_-_eats<no_evidence/>
+	beh_-_walks<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_red
+	is_orange
+	is_pink
+</colour_patterns>
+<anatomy>
+	has_shell
+	has_tail
+	has_antennae
+	has_eyes
+	has_8_legs
+	has_gills
+	has_mouthparts
+	has_claws
+	has_compound_eyes<no_evidence/>
+</anatomy>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+</concept>
+<concept name="shrimp">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<anatomy>
+	has_claws<no_evidence/>
+	has_tail
+	has_feet
+	has_shell
+	has_antennae
+	has_compound_eyes<no_evidence/>
+	has_eyes
+	has_many_legs
+	has_gills<no_evidence/>
+	has_mouthparts<no_evidence/>
+	has_shell
+</anatomy>
+<colour_patterns>
+	is_white
+	is_pink
+</colour_patterns>
+<shape_size>
+	is_sleek
+	is_small
+</shape_size>
+</concept>
+</subcategory>
+<subcategory name="molluscs">
+<concept name="octopus">
+<anatomy>
+	has_eyes
+	has_tentacles
+	has_beak<no_evidence/>
+	has_suction_cups
+	has_gills<no_evidence/>
+	has_head
+</anatomy>
+<diet>
+	beh_-_eats_fish<no_evidence/>
+	beh_-_eats_crabs<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+	is_sleek
+</shape_size>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+	beh_-_shoots_ink<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_blue
+	is_orange
+	is_brown
+	is_white
+	is_pink
+</colour_patterns>
+</concept>
+<concept name="snail">
+<anatomy>
+	has_shell
+	has_tail
+	has_eyes
+	has_tentacles
+</anatomy>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_crawls<no_evidence/>
+	beh_-_swims<no_evidence/>
+</behaviour>
+<shape_size>
+	is_small
+	is_sleek
+</shape_size>
+<colour_patterns>
+	is_yellow
+	is_black
+	is_orange
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="squid">
+<anatomy>
+	has_fins
+	has_eyes
+	has_gills<no_evidence/>
+	has_beak<no_evidence/>
+	has_suction_cups
+	has_tentacles
+	has_head
+</anatomy>
+<behaviour>
+	beh_-_shoots_ink<no_evidence/>
+	beh_-_swims
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_animals<no_evidence/>
+	beh_-_eats_fish<no_evidence/>
+</diet>
+<shape_size>
+	is_large
+	is_sleek
+</shape_size>
+<colour_patterns>
+	is_blue
+	is_orange
+	is_white
+	is_pink
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="insects">
+<concept name="ant">
+<behaviour>
+	beh_-_travels_in_herds
+	beh_-_bites<no_evidence/>
+	beh_-_eats
+	beh_-_crawls
+	beh_-_pollinates_flowers
+</behaviour>
+<anatomy>
+	has_antennae
+	has_compound_eyes
+	has_6_legs
+	has_mouthparts
+</anatomy>
+<shape_size>
+	is_small
+	is_slender
+</shape_size>
+<colour_patterns>
+	is_red
+	is_black
+	is_orange
+	is_brown
+</colour_patterns>
+<diet>
+	beh_-_eats_anything<no_evidence/>
+</diet>
+</concept>
+<concept name="beetle">
+<anatomy>
+	has_shell
+	has_antennae
+	has_wings
+	has_6_legs
+	has_mouthparts
+	has_compound_eyes<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_pollinates_flowers
+	beh_-_crawls
+	beh_-_flies<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<diet>
+	beh_-_eats_grass<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_worms<no_evidence/>
+	beh_-_eats_leaves<no_evidence/>
+	has_compound_eyes<no_evidence/>
+</diet>
+<colour_patterns>
+	is_red
+	is_grey
+	is_blue
+	is_yellow
+	is_black
+	is_orange
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="butterfly">
+<anatomy>
+	has_antennae
+	has_wings
+	has_6_legs
+	has_mouthparts<no_evidence/>
+	has_compound_eyes<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_pollinates_flowers
+	beh_-_flies
+	beh_-_eats<no_evidence/>
+	beh_-_flaps_wings<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_nectar
+</diet>
+<colour_patterns>
+	is_colourful
+	has_patterns
+</colour_patterns>
+<shape_size>
+	is_small
+</shape_size>
+</concept>
+<concept name="caterpillar">
+<behaviour>
+	beh_-_crawls<no_evidence/>
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_plants
+	beh_-_eats_leaves
+</diet>
+<shape_size>
+	is_small
+	is_sleek
+	is_long
+</shape_size>
+<anatomy>
+	has_antennae<no_evidence/>
+	has_eyes<no_evidence/>
+	has_prolegs
+	has_setae
+	has_mandibles<no_evidence/>
+	has_spiracles
+</anatomy>
+<parts>
+	has_legs
+</parts>
+<colour_patterns>
+	different_colours
+	is_green
+	is_black
+	has_stripes
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="cockroach">
+<behaviour>
+	beh_-_crawls
+	beh_-_eats<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_garbage
+</diet>
+<colour_patterns>
+	is_red
+	is_black
+	is_brown
+</colour_patterns>
+<anatomy>
+	has_shell
+	has_wings<no_evidence/>
+	has_antennae
+	has_6_legs
+	has_compound_eyes<no_evidence/>
+	has_mouthparts<no_evidence/>
+</anatomy>
+<shape_size>
+	is_small
+	is_slender
+</shape_size>
+</concept>
+<concept name="flea">
+<anatomy>
+	has_antennae
+	has_eyes
+	has_6_legs
+	has_mouthparts
+	has_claws
+</anatomy>
+<shape_size>
+	is_small
+</shape_size>
+<behaviour>
+	beh_-_bites<no_evidence/>
+	beh_-_hops<no_evidence/>
+	beh_-_eats<no_evidence/>
+	beh_-_sucks_blood<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_red
+	is_orange
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="grasshopper">
+<anatomy>
+	has_antennae
+	has_compound_eyes
+	has_wings
+	has_6_legs
+	has_claws
+	has_mouthparts
+</anatomy>
+<diet>
+	beh_-_eats_leaves
+	beh_-_eats_grass<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+	is_slender
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_hops<no_evidence/>
+	beh_-_jumps<no_evidence/>
+</behaviour>
+<colour_patterns>
+	is_green
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="hornet">
+<behaviour>
+	beh_-_pollinates_flowers
+	beh_-_crawls
+	beh_-_flies
+	beh_-_stings<no_evidence/>
+	beh_-_eats
+</behaviour>
+<diet>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_plants
+</diet>
+<colour_patterns>
+	is_yellow
+	is_black
+	has_stripes
+</colour_patterns>
+<anatomy>
+	has_antennae
+	has_compound_eyes
+	has_stinger
+	has_wings
+	has_hair
+	has_6_legs
+	has_mouthparts
+</anatomy>
+<shape_size>
+	is_small
+	is_slender
+</shape_size>
+</concept>
+<concept name="housefly">
+<behaviour>
+	beh_-_eats
+	beh_-_crawls
+	beh_-_flies<no_evidence/>
+	beh_-_pollinates_flowers
+</behaviour>
+<shape_size>
+	is_small
+</shape_size>
+<anatomy>
+	has_antennae
+	has_hair
+	has_compound_eyes
+	has_6_legs
+	has_wings
+	has_mouthparts<no_evidence/>
+</anatomy>
+<colour_patterns>
+	is_green
+	is_red
+	is_black
+	is_grey
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="moth">
+<anatomy>
+	has_antennae
+	has_compound_eyes
+	has_wings
+	has_6_legs<no_evidence/>
+	has_mouthparts
+	has_claws
+</anatomy>
+<diet>
+	beh_-_eats_nectar
+	beh_-_eats_clothing<no_evidence/>
+</diet>
+<shape_size>
+	is_small
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_pollinates_flowers
+	beh_-_crawls
+	beh_-_flies
+</behaviour>
+<colour_patterns>
+	is_colourful
+	has_patterns
+</colour_patterns>
+</concept>
+<concept name="wasp">
+<behaviour>
+	beh_-_eats
+	beh_-_pollinates_flowers
+	beh_-_stings<no_evidence/>
+	beh_-_crawls
+	beh_-_flies
+</behaviour>
+<diet>
+	beh_-_eats_nectar
+</diet>
+<shape_size>
+	is_small
+	is_slender
+</shape_size>
+<anatomy>
+	has_antennae
+	has_stinger
+	has_wings
+	has_hair
+	has_6_legs
+	has_compound_eyes
+	has_mouthparts
+	has_claws
+</anatomy>
+<colour_patterns>
+	is_yellow
+	is_black
+	has_stripes
+	is_orange
+</colour_patterns>
+</concept>
+</subcategory>
+<subcategory name="reptiles">
+<concept name="alligator">
+<anatomy>
+	has_powerful_jaws
+	has_snout
+	has_4_legs
+	has_feet
+	has_claws
+	has_nose
+	has_teeth
+	has_neck
+	has_mouth
+	has_eyes
+	has_head
+	has_tongue
+	has_tail
+	has_scales
+	has_toes
+	has_ears<no_evidence/>
+</anatomy>
+<colour_patterns>
+	is_grey
+	is_green
+	is_black
+	is_brown
+</colour_patterns>
+<behaviour>
+	beh_-_eats
+	beh_-_swims
+	beh_-_crawls
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_small_animals<no_evidence/>
+</diet>
+<shape_size>
+	is_long
+	is_large
+</shape_size>
+</concept>
+<concept name="crocodile">
+<behaviour>
+	beh_-_eats
+	beh_-_swims
+	beh_-_crawls
+</behaviour>
+<colour_patterns>
+	is_grey
+	is_green
+	is_black
+	is_brown
+</colour_patterns>
+<anatomy>
+	has_neck
+	has_scales
+	has_claws
+	has_head
+	has_powerful_jaws
+	has_4_legs
+	has_feet
+	has_snout
+	has_teeth
+	has_toes
+	has_tongue
+	has_nose
+	has_mouth
+	has_warts
+	has_tail
+	has_ears<no_evidence/>
+</anatomy>
+<shape_size>
+	is_large
+	is_long
+</shape_size>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_small_animals<no_evidence/>
+</diet>
+</concept>
+<concept name="iguana">
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_crawls
+	beh_-_swims
+</behaviour>
+<diet>
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_plants<no_evidence/>
+</diet>
+<shape_size>
+	is_long
+</shape_size>
+<anatomy>
+	has_scales
+	has_jaws
+	has_neck
+	has_snout
+	has_4_legs
+	has_feet
+	has_eyes
+	has_mouth
+	has_head
+	has_nose
+	has_dewlap
+	has_tail
+	has_claws
+	has_comb
+	has_teeth<no_evidence/>
+	has_ears<no_evidence/>
+	has_tongue<no_evidence/>
+</anatomy>
+<colour_patterns>
+	is_green
+	is_brown
+	is_yellow
+</colour_patterns>
+</concept>
+<concept name="python">
+<anatomy>
+	has_scales
+	has_head
+	has_jaws
+	has_snout
+	has_teeth<no_evidence/>
+	has_eyes
+	has_nose
+	has_mouth
+	has_tongue<no_evidence/>
+</anatomy>
+<behaviour>
+	beh_-_bites<no_evidence/>
+	beh_-_eats<no_evidence/>
+	beh_-_slithers
+	beh_-_constricts_prey
+</behaviour>
+<colour_patterns>
+	is_green
+	is_yellow
+	is_black
+	is_orange
+	is_brown
+</colour_patterns>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<shape_size>
+	is_slender
+	is_long
+</shape_size>
+</concept>
+<concept name="rattlesnake">
+<behaviour>
+	beh_-_bites<no_evidence/>
+	beh_-_eats<no_evidence/>
+	beh_-_slithers
+</behaviour>
+<diet>
+	beh_-_eats_small_animals<no_evidence/>
+	beh_-_drinks_water<no_evidence/>
+</diet>
+<shape_size>
+	is_long
+	is_slender
+</shape_size>
+<anatomy>
+	has_scales
+	has_jaws
+	has_snout
+	has_tail
+	has_teeth<no_evidence/>
+	has_eyes
+	has_mouth
+	has_head
+	has_nose
+	has_tongue
+	has_rattle_on_tail
+</anatomy>
+<colour_patterns>
+	is_grey
+	has_spots
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="tortoise">
+<anatomy>
+	has_scales
+	has_jaws
+	has_shell
+	has_neck
+	has_snout
+	has_tail
+	has_4_legs
+	has_feet
+	has_eyes
+	has_retractable_head<no_evidence/>
+	has_mouth
+	has_head
+	has_nose
+	has_tongue<no_evidence/>
+	has_claws
+</anatomy>
+<shape_size>
+	is_chubby
+</shape_size>
+<behaviour>
+	beh_-_eats
+	beh_-_walks_slowly<no_evidence/>
+</behaviour>
+<diet>
+	beh_-_eats_grass
+	beh_-_drinks_water<no_evidence/>
+	beh_-_eats_insects<no_evidence/>
+	beh_-_eats_plants
+	beh_-_eats_leaves
+</diet>
+<colour_patterns>
+	is_grey
+	is_black
+	is_brown
+	has_spots
+</colour_patterns>
+</concept>
+<concept name="turtle">
+<anatomy>
+	has_scales
+	has_jaws
+	has_shell
+	has_neck
+	has_snout
+	has_tail
+	has_eyes
+	has_mouth
+	has_head
+	has_nose
+	has_flippers
+	has_claws<no_evidence/>
+	has_tongue
+</anatomy>
+<shape_size>
+	is_chubby
+</shape_size>
+<behaviour>
+	beh_-_eats<no_evidence/>
+	beh_-_swims
+</behaviour>
+<diet>
+	beh_-_drinks_water
+	beh_-_eats_plants<no_evidence/>
+</diet>
+<colour_patterns>
+	is_grey
+	is_green
+	is_yellow
+	is_black
+	is_orange
+</colour_patterns>
+</concept>
+</subcategory>
+</concepts>
