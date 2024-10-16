@@ -137,26 +137,18 @@ class CustomProgressBarLogger(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         od = self.build_od(logs, loss, epoch, 'train')
-        if self.print_train_metrics and (epoch + 1 == self.step or self.step == 1):
+        if self.print_train_metrics and (epoch == self.step or self.step == 1):
             self.live.update(self.generate_live_table(od))
-        if (epoch + 1) % self.step == 0:
+        if epoch % self.step == 0:
             row = self.get_row(od)
             self.console.print(row)
         
-        if self.test_data_len > 0 or self.step == 0 or (epoch + 1) % self.step != 0:
+        if self.test_data_len == 0 or self.step == 0 or epoch % self.step != 0:
             self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
-
-            # if the datalen is zero update with the one epoch just ended
-            if self.test_data_len == 0:
-                self.test_data_len = self.progress.tasks[self.p].completed
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
-        if (epoch + 1) % self.step == 0:
+        if epoch % self.step == 0:
             self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
-
-            # if the datalen is zero update with the one epoch just ended
-            if self.test_data_len == 0:
-                self.test_data_len = self.progress.tasks[self.p].completed
 
         od = self.build_od(logs, loss, epoch, 'eval')
         if not self.print_train_metrics and epoch == 1:
@@ -165,10 +157,11 @@ class CustomProgressBarLogger(Callback):
         self.console.print(row)
 
     def on_train_end(self):
+        self.progress.update(self.p, completed=self.n_epochs, cur_epoch=epoch)
         self.live.stop()
 
 
-class ProtocolSizeCallback(Callback):
+class LexiconSizeCallback(Callback):
     def __init__(self):
         pass
 
@@ -179,5 +172,9 @@ class ProtocolSizeCallback(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         if logs.message is not None:
-            lexicon_size = torch.unique(logs.message, dim=0).shape[0]
+            if logs.message.dim() == 3:
+                message = logs.message.argmax(-1)
+            else:
+                message = logs.message
+            lexicon_size = torch.unique(message, dim=0).shape[0]
             logs.aux['lexicon_size'] = int(lexicon_size)

@@ -11,7 +11,7 @@ from archs import (
     SenderReinforce, ReceiverReinforce, loss_reinforce
 )
 
-from custom_callbacks import CustomProgressBarLogger, ProtocolSizeCallback
+from custom_callbacks import CustomProgressBarLogger, LexiconSizeCallback
 
 import egg.core as core
 from egg.core.util import move_to
@@ -153,7 +153,7 @@ def main():
         callbacks = [core.ConsoleLogger(print_train_loss=False)]
     else:
         callbacks = [
-            ProtocolSizeCallback(),
+            LexiconSizeCallback(),
             CustomProgressBarLogger(
                 n_epochs=args.n_epochs,
                 print_train_metrics=True,
