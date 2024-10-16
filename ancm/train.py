@@ -48,7 +48,6 @@ def parse_args():
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
-    parser.add_argument("--validate_freq", type=int, default=1, help="Validation frequency (epochs)")
 
     args = core.init(parser)
 
