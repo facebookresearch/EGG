@@ -55,7 +55,6 @@ class CustomProgressBarLogger(Callback):
         train_data_len: int = 0,
         test_data_len: int = 0,
         print_train_metrics = True,
-        step=1,
     ):
         """
         :param n_epochs: total number of epochs
@@ -68,7 +67,6 @@ class CustomProgressBarLogger(Callback):
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
         self.print_train_metrics = print_train_metrics
-        self.step = step
 
         self.progress = EpochProgress(
             TextColumn(
@@ -139,9 +137,8 @@ class CustomProgressBarLogger(Callback):
         od = self.build_od(logs, loss, epoch, 'train')
         if self.print_train_metrics and epoch == 1:
             self.live.update(self.generate_live_table(od))
-        if epoch == 1 or epoch % self.step == 0:
-            row = self.get_row(od)
-            self.console.print(row)
+        row = self.get_row(od)
+        self.console.print(row)
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
@@ -150,12 +147,11 @@ class CustomProgressBarLogger(Callback):
         if self.test_data_len == 0:
             self.test_data_len = self.progress.tasks[self.p].completed
 
-        if epoch == 1 or epoch % self.step == 0:
-            od = self.build_od(logs, loss, epoch, 'eval')
-            if not self.print_train_metrics and epoch == 1:
-                self.live.update(self.generate_live_table(od))
-            row = self.get_row(od)
-            self.console.print(row)
+        od = self.build_od(logs, loss, epoch, 'eval')
+        if not self.print_train_metrics and epoch == 1:
+            self.live.update(self.generate_live_table(od))
+        row = self.get_row(od)
+        self.console.print(row)
 
     def on_train_end(self):
         self.live.stop()
