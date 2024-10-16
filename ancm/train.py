@@ -11,7 +11,7 @@ from archs import (
     SenderReinforce, ReceiverReinforce, loss_reinforce
 )
 
-from custom_callbacks import CustomProgressBarLogger
+from custom_callbacks import CustomProgressBarLogger, ProtocolSizeCallback
 
 import egg.core as core
 from egg.core.util import move_to
@@ -34,6 +34,8 @@ def parse_args():
     parser.add_argument("--receiver_hidden", type=int, default=50, help="Size of the hidden layer of Receiver (default: 50)")
     parser.add_argument("--sender_embedding", type=int, default=10, help="Dimensionality of the embedding hidden layer for Sender (default: 10)")
     parser.add_argument("--receiver_embedding", type=int, default=10, help="Dimensionality of the embedding hidden layer for Receiver (default: 10)")
+    parser.add_argument("--sender_entropy_coeff", type=float, default=0.01)
+    parser.add_argument("--receiver_entropy_coeff", type=float, default=0.001)
     parser.add_argument("--sender_cell", type=str, default="lstm", help="Type of the cell used for Sender {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--receiver_cell", type=str, default="lstm", help="Type of the cell used for Receiver {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--sender_lr", type=float, default=1e-1, help="Learning rate for Sender's parameters (default: 1e-1)")
@@ -131,8 +133,8 @@ def main():
             cell=args.receiver_cell)
         game = core.SenderReceiverRnnReinforce(
             sender, receiver, loss_reinforce,
-            sender_entropy_coeff=0.01,
-            receiver_entropy_coeff=0.001,
+            sender_entropy_coeff=args.sender_entropy_coeff,
+            receiver_entropy_coeff=args.receiver_entropy_coeff,
             length_cost=args.length_cost)
         optimizer = torch.optim.RMSprop([
             {"params": game.sender.parameters(), "lr": args.sender_lr},
@@ -148,14 +150,16 @@ def main():
         scheduler = None
 
     if args.simple_logging:
-        callbacks = [core.ConsoleLogger(print_train_loss=True)]
+        callbacks = [core.ConsoleLogger(print_train_loss=False)]
     else:
         callbacks = [
+            ProtocolSizeCallback(),
             CustomProgressBarLogger(
                 n_epochs=args.n_epochs,
                 print_train_metrics=True,
                 train_data_len=len(train_data),
-                test_data_len=len(validation_data))
+                test_data_len=len(validation_data),
+                step=args.validation_freq)
         ]
     if args.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))

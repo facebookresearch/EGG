@@ -1,7 +1,5 @@
-# import logging
-# from tqdm import tqdm
 import torch
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 from rich.live import Live
@@ -55,6 +53,7 @@ class CustomProgressBarLogger(Callback):
         train_data_len: int = 0,
         test_data_len: int = 0,
         print_train_metrics = True,
+        step=1,
     ):
         """
         :param n_epochs: total number of epochs
@@ -67,6 +66,7 @@ class CustomProgressBarLogger(Callback):
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
         self.print_train_metrics = print_train_metrics
+        self.step = step
 
         self.progress = EpochProgress(
             TextColumn(
@@ -100,7 +100,7 @@ class CustomProgressBarLogger(Callback):
         od["epoch"] = epoch
         od['phase'] = phase
         od["loss"] = loss
-        aux = {k: float(torch.mean(v)) for k, v in logs.aux.items()}
+        aux = {k: float(torch.mean(v)) if isinstance(v, torch.Tensor) else v for k, v in logs.aux.items()}
         od.update(aux)
         return od
  
@@ -120,7 +120,9 @@ class CustomProgressBarLogger(Callback):
 
     @staticmethod
     def format_metric_val(val):
-        if not isinstance(val, str):
+        if isinstance(val, int):
+            return str(val)
+        elif not isinstance(val, str):
             return f'{val: 4.2f}'
         else:
             return val
@@ -135,17 +137,26 @@ class CustomProgressBarLogger(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         od = self.build_od(logs, loss, epoch, 'train')
-        if self.print_train_metrics and epoch == 1:
+        if self.print_train_metrics and (epoch + 1 == self.step or self.step == 1):
             self.live.update(self.generate_live_table(od))
-        row = self.get_row(od)
-        self.console.print(row)
+        if (epoch + 1) % self.step == 0:
+            row = self.get_row(od)
+            self.console.print(row)
+        
+        if self.test_data_len > 0 or self.step == 0 or (epoch + 1) % self.step != 0:
+            self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
+
+            # if the datalen is zero update with the one epoch just ended
+            if self.test_data_len == 0:
+                self.test_data_len = self.progress.tasks[self.p].completed
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
-        self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
+        if (epoch + 1) % self.step == 0:
+            self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
 
-        # if the datalen is zero update with the one epoch just ended
-        if self.test_data_len == 0:
-            self.test_data_len = self.progress.tasks[self.p].completed
+            # if the datalen is zero update with the one epoch just ended
+            if self.test_data_len == 0:
+                self.test_data_len = self.progress.tasks[self.p].completed
 
         od = self.build_od(logs, loss, epoch, 'eval')
         if not self.print_train_metrics and epoch == 1:
@@ -155,3 +166,18 @@ class CustomProgressBarLogger(Callback):
 
     def on_train_end(self):
         self.live.stop()
+
+
+class ProtocolSizeCallback(Callback):
+    def __init__(self):
+        pass
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs.message is not None:
+            lexicon_size = torch.unique(logs.message, dim=0).shape[0]
+            logs.aux['lexicon_size'] = int(lexicon_size)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs.message is not None:
+            lexicon_size = torch.unique(logs.message, dim=0).shape[0]
+            logs.aux['lexicon_size'] = int(lexicon_size)
