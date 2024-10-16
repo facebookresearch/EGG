@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
 
     args = core.init(parser)
 
@@ -147,14 +148,17 @@ def main():
     else:
         scheduler = None
 
-    callbacks = [
-        CustomProgressBarLogger(
-            n_epochs=args.n_epochs,
-            print_train_metrics=True,
-            train_data_len=len(train_data),
-            test_data_len=len(validation_data),
-            step=args.metrics_step)
-    ]
+    if args.simple_logging:
+        callbacks = [core.ConsoleLogger(print_train_loss=True)]
+    else:
+        callbacks = [
+            CustomProgressBarLogger(
+                n_epochs=args.n_epochs,
+                print_train_metrics=True,
+                train_data_len=len(train_data),
+                test_data_len=len(validation_data),
+                step=args.metrics_step)
+        ]
     if args.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
     trainer = core.Trainer(
