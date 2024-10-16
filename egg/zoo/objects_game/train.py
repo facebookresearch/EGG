@@ -48,7 +48,7 @@ def get_params(params):
     parser.add_argument(
         "--n_distractors",
         type=int,
-        default=4,
+        default=3,
         help="Number of distractor objects for the receiver (default: 3)",
     )
     parser.add_argument(
@@ -60,7 +60,7 @@ def get_params(params):
     parser.add_argument(
         "--validation_samples",
         type=float,
-        default=1e3,
+        default=1e4,
         help="Number of tuples in validation data (default: 1e4)",
     )
     parser.add_argument(

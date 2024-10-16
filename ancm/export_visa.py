@@ -3,7 +3,7 @@ import pandas
 from collections import defaultdict
 import xml.etree.ElementTree as ET
 
-directory = 'visa_dataset/UK'
+directory = 'visa_dataset/visa_dataset/UK'
 concepts = {}
 homonyms = []
 for file in os.listdir(directory):
@@ -15,7 +15,7 @@ for file in os.listdir(directory):
         concept_dict = defaultdict(int)
         for category in concept:
             attributes = [a.strip() for a in category.text.split()
-                          if a.strip()]  # and not a.startswith('beh')]
+                          if a.strip() and "inbeh" not in a.strip()]
             for a in attributes:
                 concept_dict[a] = 1
         if concept.attrib['name'].find('_(') == -1:
@@ -25,8 +25,10 @@ for file in os.listdir(directory):
 
         if concept_name not in concepts and concept_name not in homonyms:
             concepts[concept_name] = concept_dict
+            homonyms.append(concept_name)
         elif concept_name in homonyms:
             print('skipping', concept_name)
+            del concepts[concept_name]
         else:
             del concepts[concept_name]
             homonyms.append(concept_name)
@@ -37,7 +39,8 @@ output_dict = {'concept': list(concepts.keys())}
 for attribute in all_attributes:
     output_dict[attribute] = [cd[attribute] for cd in concepts.values()]
 output = pandas.DataFrame(output_dict)
-output.to_csv('visa.csv', index=False)
+#output.to_csv('visa.csv', index=False)
 
+#print(output)
 print('number of concepts:', len(output))
 print('number of attributes:', len(output.columns) - 1)

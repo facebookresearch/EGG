@@ -17,6 +17,7 @@ from egg.zoo.channel.archs import Receiver, Sender
 from egg.zoo.channel.features import OneHotLoader, UniformLoader
 
 
+
 def get_params(params):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -28,7 +29,7 @@ def get_params(params):
     parser.add_argument(
         "--batches_per_epoch",
         type=int,
-        default=1000,
+        default=100,
         help="Number of batches per epoch (default: 1000)",
     )
 
@@ -222,6 +223,14 @@ def main(params):
         probs=probs,
     )
 
+    counter = 0
+    for batches in train_loader:
+        if counter == 0:
+            print(batches)
+        counter += 1
+    
+    print(counter)
+
     # single batches with 1s on the diag
     test_loader = UniformLoader(opts.n_features)
 
@@ -311,7 +320,7 @@ def main(params):
 
     trainer.train(n_epochs=opts.n_epochs)
 
-    game.logging_strategy = LoggingStrategy.maximal()  # now log everything
+    #game.logging_strategy = LoggingStrategy.maximal()  # now log everything
     dump(trainer.game, opts.n_features, device, False)
     core.close()
 

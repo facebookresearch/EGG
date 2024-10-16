@@ -113,6 +113,7 @@ class VectorsLoader:
         valid_data, tuple_dict = self._fill_split(
             data, self.validation_samples, tuple_dict
         )
+        print(train_data)
         test_data, _ = self._fill_split(data, self.test_samples, tuple_dict)
         return train_data, valid_data, test_data
 

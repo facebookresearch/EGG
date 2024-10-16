@@ -22,6 +22,7 @@ class Receiver(nn.Module):
         self.fc1 = nn.Linear(n_features, linear_units)
 
     def forward(self, x, _input, _aux_input=None):
+        print(_input[0].shape)
         embedded_input = self.fc1(_input).tanh()
         energies = torch.matmul(embedded_input, torch.unsqueeze(x, dim=-1))
         return energies.squeeze()
