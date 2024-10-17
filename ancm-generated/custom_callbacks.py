@@ -79,7 +79,7 @@ class CustomProgressBarLogger(Callback):
                 justify="right"),
             BarColumn(bar_width=None),
             "[progress.percentage]{task.percentage:>3.1f}%", "•",
-            EpochProgress.TransferSpeedColumn(), "•",
+            CustomProgress.TransferSpeedColumn(), "•",
             TimeElapsedColumn(), "•",
             TimeRemainingColumn(elapsed_when_finished=True),
             use_info_table=False)
