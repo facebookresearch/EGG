@@ -11,7 +11,11 @@ from archs import (
     SenderReinforce, ReceiverReinforce, loss_reinforce
 )
 
-from custom_callbacks import CustomProgressBarLogger, LexiconSizeCallback
+from custom_callbacks import (
+    CustomProgressBarLogger,
+    LexiconSizeCallback,
+    AlignmentCallback,
+)
 
 import egg.core as core
 from egg.core.util import move_to
@@ -93,10 +97,10 @@ def main():
     train_data, validation_data, test_data = data_loader.get_iterators()
 
     if args.mode.lower() == "gs":
-        sender = SenderGS(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
-        receiver = ReceiverGS(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
+        _sender = SenderGS(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
+        _receiver = ReceiverGS(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
         sender = core.RnnSenderGS(
-            sender,
+            _sender,
             args.vocab_size,
             args.sender_embedding,
             args.sender_hidden,
@@ -104,7 +108,7 @@ def main():
             max_len=args.max_len,
             temperature=args.temperature)
         receiver = core.RnnReceiverGS(
-            receiver,
+            _receiver,
             args.vocab_size,
             args.receiver_embedding,
             args.receiver_hidden,
@@ -116,17 +120,17 @@ def main():
         ])
 
     elif args.mode.lower() == 'rf':
-        sender = SenderReinforce(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
-        receiver = ReceiverReinforce(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
+        _sender = SenderReinforce(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
+        _receiver = ReceiverReinforce(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
         sender = core.RnnSenderReinforce(
-            sender,
+            _sender,
             args.vocab_size,
             args.sender_embedding,
             args.sender_hidden,
             cell=args.sender_cell,
             max_len=args.max_len)
         receiver = core.RnnReceiverReinforce(
-            core.ReinforceWrapper(receiver),
+            core.ReinforceWrapper(_receiver),
             args.vocab_size,
             args.receiver_embedding,
             args.receiver_hidden,
@@ -154,6 +158,7 @@ def main():
     else:
         callbacks = [
             LexiconSizeCallback(),
+            AlignmentCallback(_sender, _receiver, device, args.validation_freq, args.batch_size),
             CustomProgressBarLogger(
                 n_epochs=args.n_epochs,
                 print_train_metrics=True,

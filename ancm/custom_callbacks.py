@@ -16,6 +16,11 @@ from rich.progress import (
 from rich.table import Table
 from rich.text import Text
 
+import math
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.stats import pearsonr
+
 from egg.core import Callback
 from egg.core.interaction import Interaction
 
@@ -178,3 +183,37 @@ class LexiconSizeCallback(Callback):
                 message = logs.message
             lexicon_size = torch.unique(message, dim=0).shape[0]
             logs.aux['lexicon_size'] = int(lexicon_size)
+
+
+class AlignmentCallback(Callback):
+    def __init__(self, sender, receiver, device, step, bs=32):
+        self.sender = sender
+        self.receiver = receiver
+        self.device = device
+        self.step = step
+        self.bs = bs
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        object_data = logs.sender_input.to(self.device)
+        n_batches = math.ceil(object_data.size()[0]/self.bs)
+
+        sender_embeddings, receiver_embeddings = None, None
+        for batch in [object_data[self.bs*y:self.bs*(y+1),:] for y in range(n_batches)]:
+            with torch.no_grad():
+                b_sender_embeddings = self.sender.fc1(batch).tanh().numpy()
+                b_receiver_embeddings = self.receiver.fc1(batch).tanh().numpy()
+                if sender_embeddings is None:
+                    sender_embeddings = b_sender_embeddings
+                    receiver_embeddings = b_receiver_embeddings
+                else:
+                    sender_embeddings = np.concatenate((sender_embeddings, b_sender_embeddings))
+                    receiver_embeddings = np.concatenate((receiver_embeddings, b_receiver_embeddings))
+
+        sender_sims = cosine_similarity(sender_embeddings)
+        receiver_sims = cosine_similarity(receiver_embeddings)
+        r = pearsonr(sender_sims.ravel(), receiver_sims.ravel())
+        logs.aux['alignment'] = r.statistic * 100
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch % self.step == 0:
+            self.on_validation_end(loss, logs, epoch)
