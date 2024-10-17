@@ -99,7 +99,7 @@ class CustomProgressBarLogger(Callback):
         )
         self.test_p = self.progress.add_task(
             description="",
-            mode="Test",
+            mode="Eval",
             cur_epoch=0,
             n_epochs=self.n_epochs,
             start=False,
@@ -205,7 +205,7 @@ class CustomProgressBarLogger(Callback):
             visible=False,
             cur_epoch=epoch,
             n_epochs=self.n_epochs,
-            mode="Test")
+            mode="Eval")
 
         self.progress.start_task(self.test_p)
         self.progress.update(self.test_p, visible=True)
