@@ -1,7 +1,5 @@
-# import logging
-# from tqdm import tqdm
 import torch
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 from rich.live import Live
@@ -17,6 +15,11 @@ from rich.progress import (
 )
 from rich.table import Table
 from rich.text import Text
+
+import math
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.stats import pearsonr
 
 from egg.core import Callback
 from egg.core.interaction import Interaction
@@ -102,7 +105,7 @@ class CustomProgressBarLogger(Callback):
         od["epoch"] = epoch
         od['phase'] = phase
         od["loss"] = loss
-        aux = {k: float(torch.mean(v)) for k, v in logs.aux.items()}
+        aux = {k: float(torch.mean(v)) if isinstance(v, torch.Tensor) else v for k, v in logs.aux.items()}
         od.update(aux)
         return od
  
@@ -122,7 +125,9 @@ class CustomProgressBarLogger(Callback):
 
     @staticmethod
     def format_metric_val(val):
-        if not isinstance(val, str):
+        if isinstance(val, int):
+            return str(val)
+        elif not isinstance(val, str):
             return f'{val: 4.2f}'
         else:
             return val
@@ -137,25 +142,78 @@ class CustomProgressBarLogger(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         od = self.build_od(logs, loss, epoch, 'train')
-        if self.print_train_metrics and epoch == 1:
+        if self.print_train_metrics and (epoch == self.step or self.step == 1):
             self.live.update(self.generate_live_table(od))
-        if epoch == 1 or epoch % self.step == 0:
+        if epoch % self.step == 0:
             row = self.get_row(od)
             self.console.print(row)
+        
+        if self.test_data_len == 0 or self.step == 0 or epoch % self.step != 0:
+            self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
-        self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
+        if epoch % self.step == 0:
+            self.progress.update(self.p, refresh=True, advance=1, cur_epoch=epoch)
 
-        # if the datalen is zero update with the one epoch just ended
-        if self.test_data_len == 0:
-            self.test_data_len = self.progress.tasks[self.p].completed
-
-        if epoch == 1 or epoch % self.step == 0:
-            od = self.build_od(logs, loss, epoch, 'eval')
-            if not self.print_train_metrics and epoch == 1:
-                self.live.update(self.generate_live_table(od))
-            row = self.get_row(od)
-            self.console.print(row)
+        od = self.build_od(logs, loss, epoch, 'eval')
+        if not self.print_train_metrics and epoch == 1:
+            self.live.update(self.generate_live_table(od))
+        row = self.get_row(od)
+        self.console.print(row)
 
     def on_train_end(self):
+        self.progress.update(self.p, completed=self.n_epochs, cur_epoch=epoch)
         self.live.stop()
+
+
+class LexiconSizeCallback(Callback):
+    def __init__(self):
+        pass
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs.message is not None:
+            lexicon_size = torch.unique(logs.message, dim=0).shape[0]
+            logs.aux['lexicon_size'] = int(lexicon_size)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs.message is not None:
+            if logs.message.dim() == 3:
+                message = logs.message.argmax(-1)
+            else:
+                message = logs.message
+            lexicon_size = torch.unique(message, dim=0).shape[0]
+            logs.aux['lexicon_size'] = int(lexicon_size)
+
+
+class AlignmentCallback(Callback):
+    def __init__(self, sender, receiver, device, step, bs=32):
+        self.sender = sender
+        self.receiver = receiver
+        self.device = device
+        self.step = step
+        self.bs = bs
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        object_data = logs.sender_input.to(self.device)
+        n_batches = math.ceil(object_data.size()[0]/self.bs)
+
+        sender_embeddings, receiver_embeddings = None, None
+        for batch in [object_data[self.bs*y:self.bs*(y+1),:] for y in range(n_batches)]:
+            with torch.no_grad():
+                b_sender_embeddings = self.sender.fc1(batch).tanh().numpy()
+                b_receiver_embeddings = self.receiver.fc1(batch).tanh().numpy()
+                if sender_embeddings is None:
+                    sender_embeddings = b_sender_embeddings
+                    receiver_embeddings = b_receiver_embeddings
+                else:
+                    sender_embeddings = np.concatenate((sender_embeddings, b_sender_embeddings))
+                    receiver_embeddings = np.concatenate((receiver_embeddings, b_receiver_embeddings))
+
+        sender_sims = cosine_similarity(sender_embeddings)
+        receiver_sims = cosine_similarity(receiver_embeddings)
+        r = pearsonr(sender_sims.ravel(), receiver_sims.ravel())
+        logs.aux['alignment'] = r.statistic * 100
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        if epoch % self.step == 0:
+            self.on_validation_end(loss, logs, epoch)

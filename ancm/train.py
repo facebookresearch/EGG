@@ -11,7 +11,11 @@ from archs import (
     SenderReinforce, ReceiverReinforce, loss_reinforce
 )
 
-from custom_callbacks import CustomProgressBarLogger
+from custom_callbacks import (
+    CustomProgressBarLogger,
+    LexiconSizeCallback,
+    AlignmentCallback,
+)
 
 import egg.core as core
 from egg.core.util import move_to
@@ -34,6 +38,8 @@ def parse_args():
     parser.add_argument("--receiver_hidden", type=int, default=50, help="Size of the hidden layer of Receiver (default: 50)")
     parser.add_argument("--sender_embedding", type=int, default=10, help="Dimensionality of the embedding hidden layer for Sender (default: 10)")
     parser.add_argument("--receiver_embedding", type=int, default=10, help="Dimensionality of the embedding hidden layer for Receiver (default: 10)")
+    parser.add_argument("--sender_entropy_coeff", type=float, default=0.01)
+    parser.add_argument("--receiver_entropy_coeff", type=float, default=0.001)
     parser.add_argument("--sender_cell", type=str, default="lstm", help="Type of the cell used for Sender {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--receiver_cell", type=str, default="lstm", help="Type of the cell used for Receiver {rnn, gru, lstm} (default: lstm)")
     parser.add_argument("--sender_lr", type=float, default=1e-1, help="Learning rate for Sender's parameters (default: 1e-1)")
@@ -44,10 +50,10 @@ def parse_args():
     parser.add_argument("--mode", type=str, default="rf", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training (default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
-    parser.add_argument("--metrics_step", type=int, default=1, help="Specify the numper of epochs between which metrics are printed")
     parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
 
     args = core.init(parser)
 
@@ -91,10 +97,10 @@ def main():
     train_data, validation_data, test_data = data_loader.get_iterators()
 
     if args.mode.lower() == "gs":
-        sender = SenderGS(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
-        receiver = ReceiverGS(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
+        _sender = SenderGS(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
+        _receiver = ReceiverGS(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
         sender = core.RnnSenderGS(
-            sender,
+            _sender,
             args.vocab_size,
             args.sender_embedding,
             args.sender_hidden,
@@ -102,7 +108,7 @@ def main():
             max_len=args.max_len,
             temperature=args.temperature)
         receiver = core.RnnReceiverGS(
-            receiver,
+            _receiver,
             args.vocab_size,
             args.receiver_embedding,
             args.receiver_hidden,
@@ -114,25 +120,25 @@ def main():
         ])
 
     elif args.mode.lower() == 'rf':
-        sender = SenderReinforce(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
-        receiver = ReceiverReinforce(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
+        _sender = SenderReinforce(n_features=data_loader.n_features, n_hidden=args.sender_hidden)
+        _receiver = ReceiverReinforce(n_features=data_loader.n_features, linear_units=args.receiver_hidden)
         sender = core.RnnSenderReinforce(
-            sender,
+            _sender,
             args.vocab_size,
             args.sender_embedding,
             args.sender_hidden,
             cell=args.sender_cell,
             max_len=args.max_len)
         receiver = core.RnnReceiverReinforce(
-            core.ReinforceWrapper(receiver),
+            core.ReinforceWrapper(_receiver),
             args.vocab_size,
             args.receiver_embedding,
             args.receiver_hidden,
             cell=args.receiver_cell)
         game = core.SenderReceiverRnnReinforce(
             sender, receiver, loss_reinforce,
-            sender_entropy_coeff=0.01,
-            receiver_entropy_coeff=0.001,
+            sender_entropy_coeff=args.sender_entropy_coeff,
+            receiver_entropy_coeff=args.receiver_entropy_coeff,
             length_cost=args.length_cost)
         optimizer = torch.optim.RMSprop([
             {"params": game.sender.parameters(), "lr": args.sender_lr},
@@ -147,14 +153,19 @@ def main():
     else:
         scheduler = None
 
-    callbacks = [
-        CustomProgressBarLogger(
-            n_epochs=args.n_epochs,
-            print_train_metrics=True,
-            train_data_len=len(train_data),
-            test_data_len=len(validation_data),
-            step=args.metrics_step)
-    ]
+    if args.simple_logging:
+        callbacks = [core.ConsoleLogger(print_train_loss=False)]
+    else:
+        callbacks = [
+            LexiconSizeCallback(),
+            AlignmentCallback(_sender, _receiver, device, args.validation_freq, args.batch_size),
+            CustomProgressBarLogger(
+                n_epochs=args.n_epochs,
+                print_train_metrics=True,
+                train_data_len=len(train_data),
+                test_data_len=len(validation_data),
+                step=args.validation_freq)
+        ]
     if args.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
     trainer = core.Trainer(

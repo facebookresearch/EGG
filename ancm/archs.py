@@ -28,7 +28,7 @@ class ReceiverGS(nn.Module):
 def loss_gs(_sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     acc = (receiver_output.argmax(dim=1) == _labels).detach().float()
     loss = F.cross_entropy(receiver_output, _labels, reduction="none")
-    return loss, {"acc": acc * 100}
+    return loss, {"accuracy": acc * 100}
 
 
 # Reinforce
@@ -49,11 +49,11 @@ class ReceiverReinforce(nn.Module):
 
     def forward(self, x, _input, _aux_input=None):
         embedded_input = self.fc1(_input).tanh()
-        dots = torch.matmul(embedded_input, torch.unsqueeze(x, dim=-1))
-        dots = dots.squeeze()
-        return self.logsoft(dots)
+        energies = torch.matmul(embedded_input, torch.unsqueeze(x, dim=-1))
+        energies = energies.squeeze()
+        return self.logsoft(energies)
 
 
 def loss_reinforce(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
-    acc = (receiver_output.argmax() == _labels).detach().float()
+    acc = (receiver_output == _labels).detach().float()
     return -acc, {'accuracy': acc * 100}
