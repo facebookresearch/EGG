@@ -113,9 +113,8 @@ def check_args(args):
     args.n_features = len(args.perceptual_dimensions)
 
     # can't set data loading and data dumping at the same time
-    assert not (
-        args.load_data_path and args.dump_data_folder
-    ), "Cannot set folder to dump data while setting path to vectors to be loaded. Are you trying to dump the same vectors that you are loading?"
+    if args.load_data_path:
+        args.dump_data_folder = None
 
     args.dump_results_folder = (
         pathlib.Path(args.dump_results_folder) if args.dump_results_folder is not None else None
@@ -344,9 +343,8 @@ def main(params):
     sec_per_epoch = training_time.seconds / opts.n_epochs
     minutes, seconds = divmod(sec_per_epoch, 60)
 
-    print('')
-    print('Total training time:', str(training_time).split('.', maxsplit=1)[0])
-    print(f'Training time per epoch: {int(minutes):02}:{int(seconds):02}')
+    print('| Total training time:', str(training_time).split('.', maxsplit=1)[0])
+    print(f'| Training time per epoch: {int(minutes):02}:{int(seconds):02}')
 
 if __name__ == "__main__":
     import sys
