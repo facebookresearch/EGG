@@ -4,6 +4,7 @@ import torch
 import random
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 
@@ -15,7 +16,8 @@ def parse_args():
     args = parser.parse_args()
     n_distractors = args.d
     n_samples = args.s
-    return n_distractors, n_samples
+    category = args.c
+    return n_distractors, n_samples, category
 
 
 def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, category=None, data_distractors=None):
@@ -26,7 +28,7 @@ def reshape_make_tensor(data_concepts, n_distractors, n_features, n_samples, cat
     categories = data_concepts.iloc[:,0]
     data_concepts = np.array(data_concepts.iloc[:,1:].values, dtype='int')
     data_reshaped = torch.empty((len(data_concepts)*n_samples, n_distractors + 1, n_features))
-    for concept_i in range(len(data_concepts)):
+    for concept_i in tqdm(range(len(data_concepts))):
         for sample_j in range(n_samples):
             target_pos = np.random.randint(0, n_distractors+1)
             distractor_pos = [i for i in range(n_distractors) if i != target_pos]
@@ -91,6 +93,7 @@ def reformat(n_distractors, n_samples, category=None, seed=42):
     train, train_labels = reshape_make_tensor(train_features, n_distractors, n_features, n_samples, category)
     valid, valid_labels = reshape_make_tensor(valid_features, n_distractors, n_features, n_samples, category)
     test, test_labels = reshape_make_tensor(test_features, n_distractors, n_features, n_samples, category)
+    test_1s, test_1s_labels = reshape_make_tensor(test_features, n_distractors, n_features, 1, category)
   
     print('Exporting VISA...\n\ncategory:', category if category else 'all', '\n\nnumber of samples:')
     print('  train:', len(train_labels))
@@ -101,9 +104,9 @@ def reformat(n_distractors, n_samples, category=None, seed=42):
 
     filename = get_filename(n_distractors, n_samples, category)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    np.savez(filename, train=train, valid=valid, test=test,
+    np.savez(filename, train=train, valid=valid, test=test, test_1s=test_1s,
              train_labels=train_labels, valid_labels=valid_labels, test_labels=test_labels,
-             n_distractors=n_distractors)
+             test_1s_labels=test_1s_labels, n_distractors=n_distractors)
     print('dataset saved to ' + f"{filename}.npz")
 
 

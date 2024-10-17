@@ -7,10 +7,9 @@
 - [x] Make sure Reinforce is implemented correctly
 - [x] Single category data + training
 - [ ] Allow resampling of distractors (e.g. **X** A B A C)? 
-- [ ] Run GS for more epochs...
-- [ ] Run Reinforce more epochs...
-- [ ] Reinforce: Gibbs sampling? How to implement it using the wrapper?
-- [ ] Reinforce: length cost = 1e-2 by default.
+- [ ] Implement noise, run training for different noise levels
+- [ ] Measures of compositionality
+- [ ] Check different seeds, how much does randomness matter?
 
 ## Setup
 ```bash
@@ -19,22 +18,39 @@ cd .. && python3 -m pip install --editable egg/ && cd ancm/
 ```
 
 ## Training
+
+To generate a dataset for a given set of perceptual dimensions:
 ```bash
-run_commands/train.sh
+python3 train.py --perceptual_dimensions '[4, 4, 4, 4, 4]' --n_distractors 4 \
+  --vocab_size 12 --n_epochs 10 --max_len 5 --length_cost 0.001 \
+  --train_samples 1e5 --sender_cell lstm --receiver_cell lstm \
+  --sender_hidden 50 --receiver_hidden 50 --sender_embedding 10 --receiver_embedding 10 \
+  --sender_lr 1e-3 --receiver_lr 2e-4 --sender_entropy_coeff 0.01 --receiver_entropy_coeff 0.001 \
+  --mode rf --evaluate --output_json --dump_data_folder data/input_data/ --dump_results_folder runs/ --filename baseline
 ```
 
+To use an existing NPZ dataset:
 ```bash
-python3 train.py --n_distractors 4 --n_samples 30 --n_epochs 1000 --vocab_size 100 --max_len 10 \
-  --batch_size 32 --sender_lr 1e-1 --receiver_lr 1e-1 --lr_decay 0.05 \
-  --sender_hidden 50 --receiver_hidden 50 --evaluate --output_json --seed 42 --mode rf 
+python3 train.py --load_input_data data/input_data/visa-5-200.npz --n_distractors 4 \
+  --vocab_size 12 --n_epochs 15 --max_len 5 --length_cost 0.001 \
+  --train_samples 1e5 --sender_cell lstm --receiver_cell lstm \
+  --sender_hidden 50 --receiver_hidden 50 --sender_embedding 10 --receiver_embedding 10 \
+  --sender_lr 1e-3 --receiver_lr 2e-4 --sender_entropy_coeff 0.01 --receiver_entropy_coeff 0.001 \
+  --mode rf --evaluate --output_json --dump_data_folder data/ --dump_results_folder runs/ --filename baseline
 ```
 
-Training only on concepts belonging to one of the categories:
+## Data
+
+Exporting VISA to CSV:
 ```bash
-python3 train.py --n_distractors 4 --n_samples 30 --category animals --n_epochs 5000 --vocab_size 30 --max_len 10 \
-  --batch_size 32 --sender_lr 1e-3 --receiver_lr 1e-3 --lr_decay 0.1 \
-  --sender_hidden 16 --receiver_hidden 16 --evaluate --output_json --mode rf --seed 42
+python3 data/export_visa.py
 ```
+
+Exporting CSV to NPZ:
+```
+python3 reformat_visa.py -d <num. distractors> -s <num. samples> [-c <a category>]
+```
+A sample is a set of target concept + distractor concepts, sampled from the same category or the same categories (that can be changed by editing `reformat_visa.py`). 
 
 | **Category** | **Num. concepts**  |
 |--------------|-------------------:|
@@ -55,23 +71,13 @@ python3 train.py --n_distractors 4 --n_samples 30 --category animals --n_epochs 
 | vehicles     | 37                 |
 | weapons      | 23                 |
 
-Training will automatically export the training data for a given number of distractors and samples (unless such dataset already exists in the `input_data/` directory).
 
-* LR scheduler: if multiplier value is provided, LR will be linearly scaled, multiplier determines LR value in the last epoch. 
+## Results
 
-## Exporting the data
-
-To get CSV files:
-```bash
-python3 export_visa.py
-```
-
-To manually export a NPZ file to the `data/input_data/` directory:
-```bash
-python3 reformat_visa.py -d <num. distractors> -s <num. samples per concept> -c <category, optional>
-```
-
-A sample is a set of target concept + distractor concepts, sampled from the same category or the same categories (that can be changed by editing `reformat_visa.py`). Each concept can only be a target object in one of train/test/val, but it can be a distractor in any subset.
-
-
-
+Generated data:
+- BASELINE: 
+  - acc: 96.07
+  - 402 unique messages for 636 unique objects 
+  - MI: 8.22
+  - alignment: 93.91 
+  - training time: ~10 min (cezary)
