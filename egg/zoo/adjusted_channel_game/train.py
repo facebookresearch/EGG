@@ -3,6 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+""" TODO
+- adjust message (add a new symbol instead of another with some probability)
+- measure compositionality (topographic similarity between message and feature vectors. topsim + other one)
+- find how long it takes to run a proper experiment (even without using VISA it appears to take very long and haven't seen good accuracy yet) 
+
+"""
 import argparse
 import json
 import os
@@ -10,16 +16,13 @@ import os
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
-import pandas as pd
-
-import sys
-sys.path.append("C:\\Users\\franc\\Documents\\GitHub\\ANCM_EGG\\egg")
+import pandas as pd 
 
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
 from egg.core import LoggingStrategy
 from egg.zoo.adjusted_channel_game.archs import Receiver, Sender
-from egg.zoo.adjusted_channel_game.features import OneHotLoader
+from egg.zoo.adjusted_channel_game.features import OneHotLoaderFromList, OneHotLoader, UniformLoader
 from egg.zoo.adjusted_channel_game.reformat_visa import reformat
 
 
@@ -32,7 +35,12 @@ def get_params(params):
         default=None,
         help="Path to .npz data file to load",
     )
-
+    parser.add_argument(
+        "--n_features",
+        type=int,
+        default=10,
+        help='Dimensionality of the "concept" space (default: 10)',
+    )
     parser.add_argument(
         "--batches_per_epoch",
         type=int,
@@ -72,13 +80,13 @@ def get_params(params):
     parser.add_argument(
         "--sender_embedding",
         type=int,
-        default=10,
+        default=25,
         help="Dimensionality of the embedding hidden layer for Sender (default: 10)",
     )
     parser.add_argument(
         "--receiver_embedding",
         type=int,
-        default=10,
+        default=25,
         help="Dimensionality of the embedding hidden layer for Receiver (default: 10)",
     )
     parser.add_argument(
@@ -105,7 +113,6 @@ def get_params(params):
         default=1e-1,
         help="The entropy regularisation coefficient for Receiver (default: 1e-1)",
     )
-
     parser.add_argument(
         "--probs",
         type=str,
@@ -149,6 +156,8 @@ def get_params(params):
 
     return args
 
+def adjust_message():
+    pass
 
 def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     acc = (receiver_output.argmax(dim=1) == sender_input.argmax(dim=1)).detach().float()
@@ -192,22 +201,42 @@ def main(params):
     device = torch.device("cuda" if opts.cuda else "cpu")
     opts.max_len -= 1
 
-    train_list, valid_list, test_list = reformat()
-    n_features = len(train_list[0]) # check how many features there are
+    if opts.load_data_path:
+        train_list, valid_list, test_list = reformat()
+        n_features = len(train_list[0]) # check how many features there are
+        train_data = OneHotLoaderFromList(
+            seed= opts.random_seed,
+            one_hot_list=train_list,
+            batches_per_epoch=opts.batches_per_epoch,
+            batch_size=opts.batch_size
+        )
 
-    train_data = OneHotLoader(
-        seed= opts.random_seed,
-        one_hot_list=train_list,
-        batches_per_epoch=opts.batches_per_epoch,
-        batch_size=opts.batch_size
-    )
+        test_data = OneHotLoaderFromList(
+            seed= opts.random_seed,
+            one_hot_list=valid_list,
+            batches_per_epoch=opts.batches_per_epoch,
+            batch_size=opts.batch_size
+        )
 
-    validation_data = OneHotLoader(
-        seed= opts.random_seed,
-        one_hot_list=valid_list,
+    else:
+        if opts.probs == "uniform":
+            probs = np.ones(opts.n_features)
+        elif opts.probs == "powerlaw":
+            probs = 1 / np.arange(1, opts.n_features + 1, dtype=np.float32)
+        else:
+            probs = np.array([float(x) for x in opts.probs.split(",")], dtype=np.float32)
+        probs /= probs.sum()
+
+        train_data = OneHotLoader(
+        n_features=opts.n_features,
+        batch_size=opts.batch_size,
         batches_per_epoch=opts.batches_per_epoch,
-        batch_size=opts.batch_size
+        probs=probs
     )
+         # single batches with 1s on the diag
+        test_data = UniformLoader(opts.n_features)
+        n_features = opts.n_features
+
     
     sender = Sender(n_features=n_features, n_hidden=opts.sender_hidden)
 
@@ -222,6 +251,7 @@ def main(params):
     )
     
     receiver = Receiver(n_features=n_features, n_hidden=opts.receiver_hidden)
+
     receiver = core.RnnReceiverDeterministic(
         receiver,
         opts.vocab_size,
@@ -232,6 +262,7 @@ def main(params):
     )
 
     empty_logger = LoggingStrategy.minimal()
+
     game = core.SenderReceiverRnnReinforce(
         sender,
         receiver,
@@ -261,14 +292,14 @@ def main(params):
         game=game,
         optimizer=optimizer,
         train_data=train_data,
-        validation_data=validation_data,
+        validation_data=test_data,
         callbacks=callbacks,
     )
 
     trainer.train(n_epochs=opts.n_epochs)
 
-    game.logging_strategy = LoggingStrategy.maximal()  # now log everything
-    dump(trainer.game, n_features, device, False)
+    #game.logging_strategy = LoggingStrategy.maximal()  # now log everything
+    dump(trainer.game, n_features, device, True)
     core.close()
 
 
