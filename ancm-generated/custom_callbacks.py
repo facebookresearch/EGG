@@ -13,13 +13,14 @@ from rich.progress import (
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
-from rich.table import Table
+from rich.table import Table, Column
 from rich.text import Text
 
-import math
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.stats import pearsonr
+from util import compute_alignment
+# import math
+# import numpy as np
+# from sklearn.metrics.pairwise import cosine_similarity
+# from scipy.stats import pearsonr
 
 from egg.core.callbacks import Callback, CustomProgress
 from egg.core.interaction import Interaction
@@ -80,7 +81,6 @@ class CustomProgressBarLogger(Callback):
             BarColumn(bar_width=None),
             "[progress.percentage]{task.percentage:>3.1f}%", "•",
             CustomProgress.TransferSpeedColumn(), "•",
-            TimeElapsedColumn(), "•",
             TimeRemainingColumn(elapsed_when_finished=True),
             use_info_table=False)
         self.live = Live(self.generate_live_table())
@@ -88,6 +88,14 @@ class CustomProgressBarLogger(Callback):
 
         self.live.start()
 
+        self.test_p = self.progress.add_task(
+            description="",
+            mode="Validate",
+            cur_epoch=0,
+            n_epochs=self.n_epochs,
+            start=False,
+            visible=False,
+            total=self.test_data_len)
         self.train_p = self.progress.add_task(
             description="",
             mode="Train",
@@ -95,20 +103,10 @@ class CustomProgressBarLogger(Callback):
             n_epochs=self.n_epochs,
             start=False,
             visible=False,
-            total=self.train_data_len,
-        )
-        self.test_p = self.progress.add_task(
-            description="",
-            mode="Eval",
-            cur_epoch=0,
-            n_epochs=self.n_epochs,
-            start=False,
-            visible=False,
-            total=self.test_data_len,
-        )
-
+            total=self.train_data_len)
+ 
         self.style = {
-            'eval': '',
+            'validate': '',
             'train': 'grey58',
         }
 
@@ -122,7 +120,8 @@ class CustomProgressBarLogger(Callback):
         return od
  
     def get_row(self, od, header=False):
-        row = Table(expand=True, box=None, show_header=header, show_footer=False)
+        row = Table(expand=True, box=None, show_header=header,
+                    show_footer=False, padding=(0,1), pad_edge=True)
         for colname in od.keys():
             row.add_column(
                 colname,
@@ -147,7 +146,7 @@ class CustomProgressBarLogger(Callback):
             return val
 
     def generate_live_table(self, od=None):
-        live_table = Table.grid(expand=True)
+        live_table = Table(expand=True, box=None, show_header=False, show_footer=False, padding=(0,0), pad_edge=True)
         if od:
             header = self.get_row(od=od, header=True)
             live_table.add_row(header)
@@ -205,7 +204,7 @@ class CustomProgressBarLogger(Callback):
             visible=False,
             cur_epoch=epoch,
             n_epochs=self.n_epochs,
-            mode="Eval")
+            mode="Validate")
 
         self.progress.start_task(self.test_p)
         self.progress.update(self.test_p, visible=True)
@@ -225,13 +224,14 @@ class CustomProgressBarLogger(Callback):
             visible=False,
             cur_epoch=epoch,
             n_epochs=self.n_epochs,
-            mode="Test")
+            mode="Validate")
 
-        od = self.build_od(logs, loss, epoch, 'eval')
+        od = self.build_od(logs, loss, epoch, 'validate')
         if not self.print_train_metrics and epoch == 1:
             self.live.update(self.generate_live_table(od))
         row = self.get_row(od)
         self.console.print(row)
+
 
     def on_train_end(self):
         self.progress.stop()
@@ -258,33 +258,16 @@ class LexiconSizeCallback(Callback):
 
 
 class AlignmentCallback(Callback):
-    def __init__(self, sender, receiver, device, step, bs=32):
+    def __init__(self, sender, receiver, dataloader, device, step, bs=32):
         self.sender = sender
         self.receiver = receiver
+        self.dataloader = dataloader
         self.device = device
         self.step = step
         self.bs = bs
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
-        object_data = logs.sender_input.to(self.device)
-        n_batches = math.ceil(object_data.size()[0]/self.bs)
-
-        sender_embeddings, receiver_embeddings = None, None
-        for batch in [object_data[self.bs*y:self.bs*(y+1),:] for y in range(n_batches)]:
-            with torch.no_grad():
-                b_sender_embeddings = self.sender.fc1(batch).tanh().numpy()
-                b_receiver_embeddings = self.receiver.fc1(batch).tanh().numpy()
-                if sender_embeddings is None:
-                    sender_embeddings = b_sender_embeddings
-                    receiver_embeddings = b_receiver_embeddings
-                else:
-                    sender_embeddings = np.concatenate((sender_embeddings, b_sender_embeddings))
-                    receiver_embeddings = np.concatenate((receiver_embeddings, b_receiver_embeddings))
-
-        sender_sims = cosine_similarity(sender_embeddings)
-        receiver_sims = cosine_similarity(receiver_embeddings)
-        r = pearsonr(sender_sims.ravel(), receiver_sims.ravel())
-        logs.aux['alignment'] = r.statistic * 100
+        logs.aux['alignment'] = compute_alignment(self.dataloader, self.sender, self.receiver, self.device, self.bs)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['alignment'] = None

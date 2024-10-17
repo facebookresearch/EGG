@@ -5,13 +5,20 @@
 
 from __future__ import print_function
 
+import os
 import argparse
 import operator
 import pathlib
+import json
+import uuid
+import time
+from datetime import timedelta
 
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.stats import pearsonr
 
 import egg.core as core
 from egg.core.util import move_to
@@ -19,16 +26,16 @@ from egg.zoo.objects_game.features import VectorsLoader
 from egg.zoo.objects_game.util import (
     compute_baseline_accuracy,
     compute_mi_input_msgs,
-    dump_sender_receiver,
     entropy,
     mutual_info,
+    dump_sender_receiver,
 )
 
+from util import compute_alignment, is_jsonable
 from archs import (
     SenderGS, ReceiverGS, loss_gs,
     SenderReinforce, ReceiverReinforce, loss_reinforce,
 )
-
 from custom_callbacks import (
     CustomProgressBarLogger,
     LexiconSizeCallback,
@@ -43,7 +50,7 @@ def get_params(params):
     input_data.add_argument("--perceptual_dimensions", type=str, default="[4, 4, 4, 4, 4]", help="Number of features for every perceptual dimension")
     input_data.add_argument("--load_data_path", type=str, default=None, help="Path to .npz data file to load")
     parser.add_argument("--n_distractors", type=int, default=3, help="Number of distractor objects for the receiver (default: 3)")
-    parser.add_argument("--train_samples", type=float, default=1e5, help="Number of tuples in training data (default: 1e6)")
+    parser.add_argument("--train_samples", type=float, default=1e5, help="Number of tuples in training data (default: 1e5)")
     parser.add_argument("--validation_samples", type=float, default=1e3, help="Number of tuples in validation data (default: 1e4)")
     parser.add_argument("--test_samples", type=float, default=1e3, help="Number of tuples in test data (default: 1e3)")
     parser.add_argument("--data_seed", type=int, default=42, help="Seed for random creation of train, validation and test tuples (default: 42)")
@@ -65,8 +72,9 @@ def get_params(params):
     parser.add_argument("--mode", type=str, default="gs", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {gs only at the moment}" "(default: rf)")
     parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
-    parser.add_argument("--dump_data_folder", type=str, default=None, help="Folder where file with dumped data will be created")
-    parser.add_argument("--dump_msg_folder", type=str, default=None, help="Folder where file with dumped messages will be created")
+    parser.add_argument("--dump_data_folder", type=str, default='data/input_data/', help="Folder where file with dumped data will be created")
+    parser.add_argument("--dump_results_folder", type=str, default='runs', help="Folder where file with dumped messages will be created")
+    parser.add_argument("--filename", type=str, default=None, help="Filename (no extension)")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
 
@@ -76,12 +84,18 @@ def get_params(params):
     check_args(args)
     print(args)
 
+    if args.filename is None:
+        args.filename = str(uuid.uuid4())
+
     return args
 
 
 def check_args(args):
     args.train_samples, args.validation_samples, args.test_samples = (
         int(args.train_samples), int(args.validation_samples), int(args.test_samples))
+
+    if args.dump_data_folder is not None:
+        os.makedirs(os.path.dirname(args.dump_data_folder), exist_ok=True)
 
     try:
         args.perceptual_dimensions = eval(args.perceptual_dimensions)
@@ -103,13 +117,13 @@ def check_args(args):
         args.load_data_path and args.dump_data_folder
     ), "Cannot set folder to dump data while setting path to vectors to be loaded. Are you trying to dump the same vectors that you are loading?"
 
-    args.dump_msg_folder = (
-        pathlib.Path(args.dump_msg_folder) if args.dump_msg_folder is not None else None
+    args.dump_results_folder = (
+        pathlib.Path(args.dump_results_folder) if args.dump_results_folder is not None else None
     )
 
-    if (not args.evaluate) and args.dump_msg_folder:
+    if (not args.evaluate) and args.dump_results_folder:
         print(
-            "| WARNING --dump_msg_folder was set without --evaluate. Evaluation will not be performed nor any results will be dumped. Please set --evaluate"
+            "| WARNING --dump_results_folder was set without --evaluate. Evaluation will not be performed nor any results will be dumped. Please set --evaluate"
         )
 
 
@@ -210,7 +224,7 @@ def main(params):
     else:
         callbacks = [
             LexiconSizeCallback(),
-            AlignmentCallback(_sender, _receiver, device, opts.validation_freq, opts.batch_size),
+            AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
             CustomProgressBarLogger(
                 n_epochs=opts.n_epochs,
                 print_train_metrics=True,
@@ -229,6 +243,8 @@ def main(params):
         train_data=train_data,
         validation_data=validation_data,
         callbacks=callbacks)
+
+    t_start = time.monotonic()
     trainer.train(n_epochs=opts.n_epochs)
 
     if opts.evaluate:
@@ -253,7 +269,10 @@ def main(params):
             tensor_accuracy = receiver_outputs.argmax(dim=1) == labels
         else:
             tensor_accuracy = receiver_outputs == labels
-        accuracy = torch.mean(tensor_accuracy.float()).item()
+        accuracy = torch.mean(tensor_accuracy.float()).item() * 100
+       
+        alignment = compute_alignment(
+            test_data, _receiver, _sender, device, opts.batch_size)
 
         unique_dict = {}
 
@@ -266,31 +285,19 @@ def main(params):
                 unique_dict[target] = True
 
         print(f"| Accuracy on test set: {accuracy}")
+        print(f"| Speaker-listener alignment: {alignment}")
 
         compute_mi_input_msgs(sender_inputs, messages)
 
-        print(f"entropy sender inputs {entropy(sender_inputs)}")
-        print(f"mi sender inputs msgs {mutual_info(sender_inputs, messages)}")
+        print(f"| Entropy of sender inputs: {entropy(sender_inputs)}")
+        print(f"| Mutual information: {mutual_info(sender_inputs, messages)}")
+        print(f"| Saving results to {opts.dump_results_folder/opts.filename}...")
 
-        if opts.dump_msg_folder:
-            opts.dump_msg_folder.mkdir(exist_ok=True)
+        if opts.dump_results_folder:
+            opts.dump_results_folder.mkdir(exist_ok=True)
             msg_dict = {}
 
-            output_msg = (
-                f"messages_{opts.perceptual_dimensions}_vocab_{opts.vocab_size}"
-                f"_maxlen_{opts.max_len}_bsize_{opts.batch_size}"
-                f"_n_distractors_{opts.n_distractors}_train_size_{opts.train_samples}"
-                f"_valid_size_{opts.validation_samples}_test_size_{opts.test_samples}"
-                f"_slr_{opts.sender_lr}_rlr_{opts.receiver_lr}_lrdecay_{opts.lr_decay}_"
-                f"shidden_{opts.sender_hidden}_rhidden_{opts.receiver_hidden}_"
-                f"semb_{opts.sender_embedding}_remb_{opts.receiver_embedding}_"
-                f"sentropy_{opts.sender_entropy_coeff}_rentropy_{opts.receiver_entropy_coeff}_"
-                f"mode_{opts.mode}_seed_{opts.random_seed}_"
-                f"scell_{opts.sender_cell}_rcell_{opts.receiver_cell}.msg"
-            )
-
-            output_file = opts.dump_msg_folder / output_msg
-            with open(output_file, "w") as f:
+            with open(opts.dump_results_folder / f'{opts.filename}-messages.msg', 'w') as f:
                 f.write(f"{opts}\n")
                 for (
                     sender_input,
@@ -318,16 +325,28 @@ def main(params):
                     else:
                         msg_dict[message] = 1
 
-                sorted_msgs = sorted(
-                    msg_dict.items(), key=operator.itemgetter(1), reverse=True
-                )
-                f.write(
-                    f"\nUnique target vectors seen by sender: {len(unique_dict.keys())}\n"
-                )
-                f.write(f"Unique messages produced by sender: {len(msg_dict.keys())}\n")
-                f.write(f"Messagses: 'msg' : msg_count: {str(sorted_msgs)}\n")
-                f.write(f"\nAccuracy: {accuracy}")
+            sorted_msgs = sorted(msg_dict.items(), key=operator.itemgetter(1), reverse=True)
 
+            with open(opts.dump_results_folder / f'{opts.filename}-results.txt', 'w') as f:
+                f.write(f"Unique target vectors seen by sender: {len(unique_dict.keys())}\n")
+                f.write(f"Unique messages produced by sender: {len(msg_dict.keys())}\n")
+                f.write(f"\nAccuracy: {accuracy}")
+                f.write(f"\nEntropy (sender inputs): {entropy(sender_inputs)}")
+                f.write(f"\nMutual Information: {mutual_info(sender_inputs, messages)}")
+                f.write(f"\nEmbedding alignment: {alignment}")
+                f.write(f"\n\nMessagses + counts:\n{str(sorted_msgs)}\n")
+
+            with open(opts.dump_results_folder / f'{opts.filename}-opts.json', 'w') as f:
+                opts_dict = {k: v for k, v in vars(opts).items() if is_jsonable(v)}
+                json.dump(opts_dict, f, indent=4)
+
+    training_time = timedelta(seconds=time.monotonic()-t_start)
+    sec_per_epoch = training_time.seconds / opts.n_epochs
+    minutes, seconds = divmod(sec_per_epoch, 60)
+
+    print('')
+    print('Total training time:', str(training_time).split('.', maxsplit=1)[0])
+    print(f'Training time per epoch: {int(minutes):02}:{int(seconds):02}')
 
 if __name__ == "__main__":
     import sys
