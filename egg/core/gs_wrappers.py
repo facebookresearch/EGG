@@ -350,14 +350,13 @@ class RnnSenderGS(nn.Module):
 
             prev_hidden = h_t
             e_t = self.embedding(x)
-            sequence.append(x)
+            sequence.append(x) 
 
         sequence = torch.stack(sequence).permute(1, 0, 2)
 
         eos = torch.zeros_like(sequence[:, 0, :]).unsqueeze(1)
         eos[:, 0, 0] = 1
         sequence = torch.cat([sequence, eos], dim=1)
-
         return sequence
 
 
