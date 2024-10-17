@@ -1,0 +1,1093 @@
+<concepts category="vehicles">
+<concept name="subway">
+<inbeh>
+    inbeh_-_moves<no_evidence/>
+</inbeh>
+<texture_material>
+    is_shiny
+</texture_material>
+<parts>
+    has_windows
+    has_light
+    has_windshield
+    has_windshield_wiper
+    has_cabin
+    has_door
+    has_engine<no_evidence/>
+    has_roof
+    has_seat<no_evidence/>
+    has_brakes<no_evidence/>
+    has_mirror
+</parts>
+<shape_size>
+    is_rectangular
+    is_long
+</shape_size>
+<color_patterns>
+    is_red
+    is_gray
+    is_white
+    different_colors
+</color_patterns>
+</concept>
+<concept name="train">
+<inbeh>
+    inbeh_-_moves<no_evidence/>
+</inbeh>
+<parts>
+    has_light
+    has_windows
+    has_windshield
+    has_windshield_wiper
+    has_door
+    has_engine<no_evidence/>
+    has_roof
+    has_seat<no_evidence/>
+    has_brakes<no_evidence/>
+    has_mirror
+</parts>
+<shape_size>
+    is_rectangular
+    is_long
+</shape_size>
+<color_patterns>
+    is_black
+    is_white
+    is_blue
+    is_red
+    is_yellow
+    is_gray
+</color_patterns>
+</concept>
+<concept name="sled">
+<parts>
+    has_frame
+    has_seat
+    has_skids
+    has_draw_bar
+</parts>
+<inbeh>
+    inbeh_-_drawn_by_horse
+    inbeh_-_drawn_by_dog
+    inbeh_-_rides_on_snow
+</inbeh>
+<texture_material>
+    made_of_plastic
+    made_of_wood
+</texture_material>
+<color_patterns>
+    is_red
+    is_brown
+</color_patterns>
+</concept>
+<concept name="sleigh">
+<parts>
+    has_frame
+    has_seat
+    has_skids
+    has_draw_bar
+</parts>
+<inbeh>
+    inbeh_-_drawn_by_horse
+    inbeh_-_drawn_by_dog
+    inbeh_-_rides_on_snow
+</inbeh>
+<texture_material>
+    made_of_plastic
+    made_of_wood
+</texture_material>
+<color_patterns>
+    is_red
+    is_brown
+</color_patterns>
+</concept>
+<subcategory name="aircraft">
+<concept name="airplane">
+<color_patterns>
+    different_colors
+    is_red
+    is_white
+</color_patterns>
+<parts>
+    has_nose
+    has_cabin
+    has_windows
+    has_wheels
+    has_turbines
+    has_door
+    has_wings
+    has_seat<no_evidence/>
+    has_engine<no_evidence/>
+    has_light<no_evidence/>
+    has_rudder
+    has_fins
+    has_handle<no_evidence/>
+    has_brakes<no_evidence/>
+    has_propeller
+    has_tail
+    has_windshield
+    has_windshield_wiper
+</parts>
+<shape_size>
+    is_long
+    is_large
+</shape_size>
+<texture_material>
+    made_of_metal
+</texture_material>
+<inbeh>
+    inbeh_-_hovers
+    inbeh_-_flies
+    inbeh_-_rolls
+</inbeh>
+</concept>
+<concept name="balloon">
+<texture_material>
+    made_of_nylon
+    made_of_fabrics
+</texture_material>
+<inbeh>
+    inbeh_-_flies_in_the_wind
+    inbeh_-_floats
+</inbeh>
+<parts>
+    has_seams
+    has_basket
+    has_burner<no_evidence/>
+    has_rope
+</parts>
+<shape_size>
+    is_oval
+    is_large
+    is_ovoid
+</shape_size>
+<color_patterns>
+    different_colors
+    is_colorful
+    is_blue
+    is_yellow
+    is_blue
+</color_patterns>
+</concept>
+<concept name="helicopter">
+<texture_material>
+    made_of_metal
+</texture_material>
+<inbeh>
+    inbeh_-_flies
+    inbeh_-_hovers
+</inbeh>
+<parts>
+    has_nose
+    has_seat<no_evidence/>
+    has_propeller
+    has_windows
+    has_blades
+    has_engine<no_evidence/>
+    has_wheels
+    has_skids
+    has_rudder<no_evidence/>
+    has_tail
+    has_fins
+    has_door
+    has_light<no_evidence/>
+    has_handle<no_evidence/>
+    has_cabin
+</parts>
+<shape_size>
+    is_large
+</shape_size>
+<color_patterns>
+    different_colors
+    is_black
+    is_white
+</color_patterns>
+</concept>
+<concept name="jet">
+<inbeh>
+    inbeh_-_flies
+    inbeh_-_hovers
+    inbeh_-_rolls
+</inbeh>
+<parts>
+    has_seat<no_evidence/>
+    has_windows
+    has_engine
+    has_wheels
+    has_fins
+    has_tail
+    has_light<no_evidence/>
+    has_nose
+    has_windshield
+    has_windshield_wiper
+    has_brakes<no_evidence/>
+    has_door
+    has_wings
+    has_handle<no_evidence/>
+    has_cabin
+    has_turbines
+    has_tail
+    has_rudder
+    has_propeller
+</parts>
+<shape_size>
+    is_large
+    is_long
+</shape_size>
+<color_patterns>
+    different_colors
+    is_blue
+    is_red
+    is_white
+</color_patterns>
+<texture_material>
+    made_of_metal
+</texture_material>
+</concept>
+</subcategory>
+<subcategory name="wheeled_vehicle">
+<concept name="ambulance">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<shape_size>
+    is_box_shaped
+    is_large
+</shape_size>
+<parts>
+    has_handle
+    has_coachwork
+    has_bumper
+    has_flashing_lights
+    has_siren
+    has_windshield
+    has_windshield_wiper
+    has_windows
+    has_cargo_space
+    has_4_wheels
+    has_door
+    has_number_plate
+    has_mirror
+    has_tinted_windows
+    has_seat<no_evidence/>
+    has_engine<no_evidence/>
+    has_brakes<no_evidence/>
+    has_bonnet
+    has_light
+    has_steering_wheel<no_evidence/>
+    has_roof
+</parts>
+<texture_material>
+    made_of_metal
+</texture_material>
+<color_patterns>
+    different_colors
+    is_red
+    is_black
+    has_stripe
+    is_white
+    is_yellow
+</color_patterns>
+</concept>
+<concept name="bike">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_step-through_frame
+    has_fork
+    has_2_wheels
+    has_chain
+    has_gears
+    has_handlebar
+    has_bell
+    has_brakes
+    has_seat
+    has_pedals
+    has_spokes
+</parts>
+<texture_material>
+    made_of_metal
+</texture_material>
+<color_patterns>
+    different_colors
+    is_black
+    is_red
+    is_gray
+    is_silver
+</color_patterns>
+</concept>
+<concept name="tricycle">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_plastic
+    made_of_metal
+</texture_material>
+<parts>
+    has_seat
+    has_handlebar
+    has_3_wheels
+    has_step-through_frame
+    has_mudguard
+    has_pedals
+    has_cabin
+    has_fork
+</parts>
+<color_patterns>
+    different_colors
+    is_black
+    is_red
+    is_colorful
+</color_patterns>
+</concept>
+<concept name="trolley">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_handle
+    has_handlebar
+    has_wheels
+    has_platform
+</parts>
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+<color_patterns>
+    is_black
+    is_brown
+</color_patterns>
+</concept>
+<concept name="truck">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_handle
+    has_coachwork
+    has_steering_wheel<no_evidence/>
+    has_seat<no_evidence/>
+    has_windows
+    has_engine<no_evidence/>
+    has_wheels
+    has_bumper
+    has_mirror
+    has_number_plate
+    has_bonnet
+    has_windshield_wiper
+    has_windshield
+    has_light
+    has_cabin
+    has_trailer
+    has_container
+    has_brakes<no_evidence/>
+    has_door
+    has_roof
+</parts>
+<shape_size>
+    is_large
+    is_rectangular
+</shape_size>
+<color_patterns>
+    different_colors
+    is_red
+    is_blue
+    is_white
+    is_yellow
+</color_patterns>
+</concept>
+<concept name="unicycle">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_seat
+    has_1_wheel
+    has_frame
+    has_fork
+    has_pedals
+</parts>
+<texture_material>
+    made_of_metal
+</texture_material>
+<color_patterns>
+    different_colors
+    is_black
+</color_patterns>
+</concept>
+<concept name="van">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_coachwork
+    has_handle
+    has_steering_wheel<no_evidence/>
+    has_seat<no_evidence/>
+    has_windows
+    has_roof
+    has_engine<no_evidence/>
+    has_4_wheels
+    has_bonnet
+    has_windshield
+    has_windshield_wiper
+    has_light
+    has_mirror
+    has_number_plate
+    has_bumper
+    has_cargo_space
+    has_brakes<no_evidence/>
+    has_door
+    has_bonnet
+</parts>
+<shape_size>
+    is_large
+    is_rectangular
+</shape_size>
+<color_patterns>
+    is_red
+    is_black
+    is_white
+</color_patterns>
+</concept>
+<concept name="wagon">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+    inbeh_-_drawn_by_horse<no_evidence/>
+</inbeh>
+<parts>
+    has_handle
+    has_draw_bar
+    has_seat
+    has_wheels
+    has_container
+</parts>
+<color_patterns>
+    is_gray
+    is_brown
+</color_patterns>
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+</concept>
+<concept name="wheelbarrow">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+<parts>
+    has_handle
+    has_draw_bar
+    has_wheels
+    has_container
+</parts>
+<color_patterns>
+    different_colors
+    is_red
+    is_black
+    is_green
+</color_patterns>
+</concept>
+<concept name="buggy">
+<parts>
+    has_wheels
+    has_seat<no_evidence/>
+    has_roof
+    has_bars
+    has_container
+</parts>
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+    inbeh_-_drawn_by_horse
+</inbeh>
+<texture_material>
+    made_of_wood
+</texture_material>
+<color_patterns>
+    different_colors
+    is_black
+    is_white
+</color_patterns>
+</concept>
+<concept name="bus">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_coachwork
+    has_bumper
+    has_seat<no_evidence/>
+    has_windows
+    has_windshield
+    has_windshield_wiper
+    has_engine<no_evidence/>
+    has_wheels
+    has_mirror
+    has_light
+    has_brakes<no_evidence/>
+    has_door
+    has_deck<no_evidence/>
+    has_steering_wheel<no_evidence/>
+    has_roof
+    has_number_plate
+</parts>
+<shape_size>
+    is_large
+    is_rectangular
+</shape_size>
+<color_patterns>
+    is_white
+    different_colors
+    is_red
+    is_black
+    is_blue
+</color_patterns>
+</concept>
+<concept name="car">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_4_wheels
+    has_steering_wheel
+    has_seat<no_evidence/>
+    has_windows
+    has_engine<no_evidence/>
+    has_mirror
+    has_light
+    has_number_plate
+    has_bonnet
+    has_trunk
+    has_windshield_wiper
+    has_roof
+    has_windshield
+    has_bumper
+    has_handle
+    has_brakes<no_evidence/>
+    has_door
+    has_belts
+</parts>
+<color_patterns>
+    different_colors
+    is_black
+    is_red
+    is_gray
+    is_blue
+    is_white
+</color_patterns>
+</concept>
+<concept name="cart">
+<texture_material>
+    made_of_wood
+    made_of_metal
+</texture_material>
+<parts>
+    has_frame
+    has_wheels
+    has_container
+    has_handle
+    has_handlebar
+</parts>
+<inbeh>
+    inbeh_-_rolls
+</inbeh>
+<color_patterns>
+    different_colors
+    is_gray
+    is_silver
+    is_brown
+</color_patterns>
+</concept>
+<concept name="dunebuggy">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_4_wheels
+    has_frame
+    has_handle
+    has_seat
+    has_engine<no_evidence/>
+    has_light
+    has_belts
+    has_steering_wheel
+    has_brakes<no_evidence/>
+</parts>
+<shape_size>
+    is_large
+</shape_size>
+<color_patterns>
+    different_colors
+    is_red
+    is_black
+    is_yellow
+</color_patterns>
+</concept>
+<concept name="jeep">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_coachwork
+    has_4_wheels
+    has_handle
+    has_steering_wheel
+    has_seat<no_evidence/>
+    has_windows
+    has_roof
+    has_engine<no_evidence/>
+    has_light
+    has_mirror
+    has_number_plate
+    has_trunk
+    has_bonnet
+    has_spare_tire
+    has_windshield
+    has_windshield_wiper
+    has_bumper
+    has_brakes<no_evidence/>
+    has_door
+</parts>
+<shape_size>
+    is_large
+</shape_size>
+<color_patterns>
+    different_colors
+    is_black
+    is_green
+    is_white
+</color_patterns>
+</concept>
+<concept name="limousine">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_number_plate
+    has_coachwork
+    has_bumper
+    has_windows
+    has_windshield
+    has_windshield_wiper
+    has_door
+    has_tinted_windows
+    has_4_wheels
+    has_bonnet
+    has_handle
+    has_light
+    has_steering_wheel<no_evidence/>
+    has_roof
+    has_seat<no_evidence/>
+    has_brakes<no_evidence/>
+    has_trunk
+    has_mirror
+</parts>
+<shape_size>
+    is_long
+</shape_size>
+<color_patterns>
+    is_black
+    is_white
+</color_patterns>
+<texture_material>
+    made_of_metal
+</texture_material>
+</concept>
+<concept name="motorcycle">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_frame
+    has_fork<no_evidence/>
+    has_seat
+    has_engine<no_evidence/>
+    has_2_wheels
+    has_light
+    has_exhaust_pipe
+    has_stand
+    has_mudguard
+    has_handlebar
+    has_tank
+    has_windshield
+    has_mirror
+    has_brakes<no_evidence/>
+</parts>
+<texture_material>
+    made_of_steel
+    made_of_aluminum
+</texture_material>
+<color_patterns>
+    different_colors
+    is_red
+    is_black
+    is_blue
+    is_white
+</color_patterns>
+</concept>
+<concept name="scooter">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<parts>
+    has_step-through_frame
+    has_fork<no_evidence/>
+    has_seat
+    has_engine<no_evidence/>
+    has_2_wheels
+    has_mirror
+    has_brakes
+    has_light
+    has_exhaust_pipe
+    has_stand
+    has_mudguard
+    has_handlebar
+    has_floorboard
+</parts>
+<texture_material>
+    made_of_plastic
+    made_of_metal
+</texture_material>
+<color_patterns>
+    different_colors
+    is_red
+    is_black
+    is_white
+</color_patterns>
+</concept>
+<concept name="taxi">
+<parts>
+    has_coachwork
+    has_bumper
+    has_4_wheels
+    has_handle
+    has_steering_wheel<no_evidence/>
+    has_door
+    has_seat<no_evidence/>
+    has_windows
+    has_windshield
+    has_windshield_wiper
+    has_roof
+    has_engine<no_evidence/>
+    has_sign_on_roof
+    has_brakes<no_evidence/>
+    has_bonnet
+    has_light
+    has_trunk
+    has_mirror
+    has_number_plate
+</parts>
+<color_patterns>
+    is_yellow
+</color_patterns>
+<texture_material>
+    made_of_metal
+</texture_material>
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+</concept>
+<concept name="tractor">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_metal
+</texture_material>
+<parts>
+    has_coachwork
+    has_bumper
+    has_4_wheels
+    has_engine<no_evidence/>
+    has_steering_wheel
+    has_light
+    has_bonnet
+    has_brakes
+    has_loader
+    has_seat
+</parts>
+<shape_size>
+    is_large
+</shape_size>
+<color_patterns>
+    is_red
+    is_black
+    is_green
+    is_blue
+    different_colors
+</color_patterns>
+</concept>
+<concept name="trailer">
+<color_patterns>
+    is_white
+</color_patterns>
+<parts>
+    has_handle
+    has_windows
+    has_roof
+    has_wheels
+    has_draw_bar
+    has_door
+    has_light<no_evidence/>
+</parts>
+<inbeh>
+    inbeh_-_drawn_by_car
+    inbeh_-_rolls<no_evidence/>
+</inbeh>
+<texture_material>
+    made_of_aluminum
+</texture_material>
+<shape_size>
+    is_rectangular
+</shape_size>
+</concept>
+</subcategory>
+<subcategory name="watercraft">
+<concept name="boat">
+<texture_material>
+    made_of_steel
+    made_of_fiberglass
+</texture_material>
+<parts>
+    has_seat<no_evidence/>
+    has_windows
+    has_engine<no_evidence/>
+    has_railings
+    has_mast
+    has_keel<no_evidence/>
+    has_stern
+    has_bow
+    has_sails
+</parts>
+<inbeh>
+    inbeh_-_floats
+</inbeh>
+<shape_size>
+    is_large
+    has_pointed_end
+    is_long
+</shape_size>
+<color_patterns>
+    different_colors
+    is_white
+</color_patterns>
+</concept>
+<concept name="canoe">
+<texture_material>
+    made_of_plastic
+    made_of_wood
+    made_of_aluminum
+    made_of_bark
+    made_of_fiberglass
+    made_of_logs
+</texture_material>
+<parts>
+    has_seat
+    has_paddle
+</parts>
+<shape_size>
+    has_pointed_end
+</shape_size>
+<color_patterns>
+    different_colors
+    is_red
+    is_brown
+    is_blue
+</color_patterns>
+<inbeh>
+    inbeh_-_floats<no_evidence/>
+</inbeh>
+</concept>
+<concept name="ship">
+<parts>
+    has_deck
+    has_windows
+    has_engine<no_evidence/>
+    has_cabin<no_evidence/>
+    has_rope
+    has_rudder<no_evidence/>
+    has_mast
+    has_door<no_evidence/>
+    has_light
+    has_railings
+    has_keel<no_evidence/>
+</parts>
+<color_patterns>
+    is_white
+</color_patterns>
+<shape_size>
+    is_large
+    has_pointed_end
+</shape_size>
+<inbeh>
+    inbeh_-_floats<no_evidence/>
+</inbeh>
+</concept>
+<concept name="yacht">
+<inbeh>
+    inbeh_-_swims
+    inbeh_-_floats
+</inbeh>
+<parts>
+    has_deck
+    has_seat<no_evidence/>
+    has_windows
+    has_sails
+    has_engine<no_evidence/>
+    has_boom
+    has_keel<no_evidence/>
+    has_rudder<no_evidence/>
+    has_railings
+    has_rope
+    has_mast
+    has_door<no_evidence/>
+    has_cabin
+</parts>
+
+<shape_size>
+    is_large
+    is_tall
+    has_pointed_end
+</shape_size>
+<color_patterns>
+    different_colors
+    is_white
+</color_patterns>
+</concept>
+<concept name="raft">
+<inbeh>
+    inbeh_-_floats
+</inbeh>
+<parts>
+    has_seat
+    has_oar
+    has_rope
+    has_paddle
+</parts>
+<texture_material>
+    made_of_wood
+    made_of_rubber
+</texture_material>
+<color_patterns>
+    different_colors
+    is_yellow
+    is_blue
+</color_patterns>
+</concept>
+<concept name="sailboat">
+<inbeh>
+    inbeh_-_swims
+    inbeh_-_floats
+</inbeh>
+<parts>
+    has_deck
+    has_door<no_evidence/>
+    has_keel<no_evidence/>
+    has_rudder<no_evidence/>
+    has_railings
+    has_rope
+    has_sails
+    has_mast
+    has_boom
+    has_seat<no_evidence/>
+    has_sunroof
+    has_cabin<no_evidence/>
+</parts>
+<shape_size>
+    is_tall
+    has_pointed_end
+</shape_size>
+<color_patterns>
+    different_colors
+    is_white
+</color_patterns>
+</concept>
+<concept name="submarine">
+<shape_size>
+    is_large
+    is_oval
+    is_long
+</shape_size>
+<parts>
+    has_periscope
+    has_engine<no_evidence/>
+    has_antenna
+    has_snorkel
+    has_rudder
+    has_deck
+    has_door<no_evidence/>
+    has_fins
+    has_keel<no_evidence/>
+</parts>
+<texture_material>
+    made_of_plastic
+    made_of_steel
+    made_of_titanium
+</texture_material>
+<inbeh>
+    inbeh_-_swims
+    inbeh_-_floats
+    inbeh_-_dives
+    inbeh_-_submerges
+</inbeh>
+<color_patterns>
+    is_black
+    is_gray
+</color_patterns>
+</concept>
+</subcategory>
+<subcategory name="military_vehicle">
+<concept name="tank_(army)">
+<inbeh>
+    inbeh_-_rolls<no_evidence/>
+    inbeh_-_moves<no_evidence/>
+</inbeh>
+<parts>
+    has_coachwork
+    has_wheels
+    has_steering_wheel<no_evidence/>
+    has_engine<no_evidence/>
+    has_tracks
+    has_muzzle
+    has_brakes<no_evidence/>
+    has_roof
+    has_gun
+</parts>
+<color_patterns>
+    is_green
+    is_brown
+</color_patterns>
+<texture_material>
+    made_of_steel
+</texture_material>
+<shape_size>
+    is_large
+</shape_size>
+</concept>
+</subcategory>
+</concepts>
