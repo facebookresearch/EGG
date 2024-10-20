@@ -27,6 +27,7 @@ from util import (
     dump_sender_receiver,
     compute_alignment,
     compute_mi_input_msgs,
+    compute_top_sim,
     is_jsonable,
 )
 from archs import (
@@ -39,6 +40,7 @@ from custom_callbacks import (
     CustomProgressBarLogger,
     LexiconSizeCallback,
     AlignmentCallback,
+    TopographicRhoCallback,
 )
 
 
@@ -221,6 +223,7 @@ def main(params):
         callbacks = [
             LexiconSizeCallback(),
             AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
+            TopographicRhoCallback(opts.perceptual_dimensions),
             CustomProgressBarLogger(
                 n_epochs=opts.n_epochs,
                 print_train_metrics=True,
@@ -271,10 +274,12 @@ def main(params):
         f1 =  f1_score(labels, preds, average='micro').item() * 100
         alignment = compute_alignment(
             test_data, _receiver, _sender, device, opts.batch_size)
+        top_sim = compute_top_sim(sender_inputs, messages, opts.perceptual_dimensions)
 
         output_dict['results']['accuracy'] = accuracy
         output_dict['results']['f1-micro'] = f1
         output_dict['results']['embedding_alignment'] = alignment
+        output_dict['results']['topographic_rho'] = top_sim
 
         unique_dict = {}
         for elem in sender_inputs:
@@ -292,6 +297,7 @@ def main(params):
         mi = f"{mi_result['mi']:.3f}"
         entropy_inp_dim = f"{[round(x, 3) for x in mi_result['entropy_inp_dim']]}"
         mi_dim = f'{[round(x, 3) for x in mi_result["mi_dim"]]}'
+        t_rho = f'{top_sim:.3f}'
 
         # If we applied noise during training,
         # compute results after disabling noise in the test phase as well
@@ -311,10 +317,12 @@ def main(params):
                 else receiver_outputs2
             accuracy2 = torch.mean((preds2 == labels2).float()).item() * 100
             f12 =  f1_score(labels2, preds2, average='micro').item() * 100
+            top_sim2 = compute_top_sim(sender_inputs2, messages2, opts.perceptual_dimensions)
 
             output_dict['results-no-noise']['accuracy'] = accuracy2
             output_dict['results-no-noise']['f1-micro'] = f12
             output_dict['results-no-noise']['embedding_alignment'] = alignment
+            output_dict['results-no-noise']['topographic_rho'] = top_sim2
 
             acc_str = f'{accuracy:.2f} / {accuracy2:.2f}'
             f1_str = f'{f1:.2f} / {f12:.2f}'
@@ -324,6 +332,7 @@ def main(params):
             entropy_inp += f" / {mi_result2['entropy_inp']:.3f}"
             mi += f" / {mi_result2['mi']:.3f}"
             mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
+            t_rho += f" / {top_sim2:.3f}"
 
             if not opts.simple_logging:
                 print("|")
@@ -333,10 +342,7 @@ def main(params):
             f1_str = f'{f1:.2f}'
             print(f"|\n|\033[1m Results\033[0m\n|")
 
-        align = 22
-        print("|   Accuracy:", acc_str)
-        print("| F1 (micro):", f1_str)
-        print("|")
+        align = 23
         print("|" + "H(msg) =".rjust(align), entropy_msg)
         print("|" + "H(target objs) =".rjust(align), entropy_inp)
         print("|" + "I(target objs; msg) =".rjust(align), mi)
@@ -349,7 +355,11 @@ def main(params):
             print("|" + "H(target objs) =".rjust(align) + entropy_inp_dim, "(for each dimension)")
             print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(for each dimension)")
         print('|')
-        print(f"| Speaker-listener embedding alignment: {alignment:.2f}")
+        print("|" + "Accuracy:".rjust(align), acc_str)
+        print("|" + "F1 (micro):".rjust(align), f1_str)
+        print("|")
+        print("|" + "Embedding alignment:".rjust(align) + f" {alignment:.2f}")
+        print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
 
         if opts.dump_results_folder:
             opts.dump_results_folder.mkdir(exist_ok=True)
@@ -396,8 +406,8 @@ def main(params):
             lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
                 else '{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
             print("|")
-            print("| Num. of unique target objects:", len(unique_dict.keys()))
-            print("| Lexicon size:", lexicon_size)
+            print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
+            print("|" + "Lexicon size:".rjust(align), lexicon_size)
             print("|")
 
             output_dict['results']['unique_targets'] = len(unique_dict.keys())
@@ -421,7 +431,7 @@ def main(params):
 
             print(f"| Results saved to {opts.dump_results_folder/opts.filename}-results.json")
 
-    print('|\n| Total training time:', time_total)
+    print('| Total training time:', time_total)
     print('| Training time per epoch:', time_per_epoch)
 
 if __name__ == "__main__":

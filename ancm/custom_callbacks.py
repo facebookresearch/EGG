@@ -18,7 +18,7 @@ from rich.progress import (
 from rich.table import Table, Column
 from rich.text import Text
 
-from util import compute_alignment
+from util import compute_top_sim, compute_alignment
 
 from egg.core.callbacks import Callback, CustomProgress
 from egg.core.interaction import Interaction
@@ -280,6 +280,23 @@ class LexiconSizeCallback(Callback):
                 message = logs.message
             lexicon_size = torch.unique(message, dim=0).shape[0]
             logs.aux['lexicon_size'] = int(lexicon_size)
+
+
+class TopographicRhoCallback(Callback):
+    def __init__(self, perceptual_dimensions):
+        self.perceptual_dimensions = perceptual_dimensions
+
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs is not None:
+            sender_inputs, messages = [], []
+            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
+                sender_inputs.extend(zip(*logs.sender_input))
+            else:
+                sender_inputs.extend(logs.sender_input)
+            logs.aux['topographic_rho'] = compute_top_sim(logs.sender_input, logs.message)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        logs.aux['topographic_rho'] = None
 
 
 class AlignmentCallback(Callback):
