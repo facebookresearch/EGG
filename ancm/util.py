@@ -80,8 +80,13 @@ def compute_top_sim(sender_inputs, messages, dimensions=None):
 
     onehot = []
     for i, dim in enumerate(dimensions):
-        oh = np.eye(dim, dtype='uint8')[obj_tensor[:,i].int()-1]
-        onehot.append(oh)
+        if dim > 3:
+            # one-hot encode categorical dimensions
+            oh = np.eye(dim, dtype='uint8')[obj_tensor[:,i].int()-1]
+            onehot.append(oh)
+        else:
+            # binary dimensions need not be transformed
+            onehot.append(obj_tensor[:,i:i+1])
     onehot = np.concatenate(onehot, axis=1)
 
     messages = [msg.argmax(dim=1).tolist() if msg.dim() == 2

@@ -79,6 +79,7 @@ def get_params(params):
     parser.add_argument("--filename", type=str, default=None, help="Filename (no extension)")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
+    parser.add_argument("--no_rho", action="store_true", default=False, help="Disable computing topographic rho during training")
 
     args = core.init(parser, params)
 
@@ -223,7 +224,6 @@ def main(params):
         callbacks = [
             LexiconSizeCallback(),
             AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
-            TopographicRhoCallback(opts.perceptual_dimensions),
             CustomProgressBarLogger(
                 n_epochs=opts.n_epochs,
                 print_train_metrics=True,
@@ -233,6 +233,8 @@ def main(params):
                 dump_results_folder=opts.dump_results_folder,
                 filename=opts.filename)
         ]
+    if not opts.no_rho:
+        callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
 
