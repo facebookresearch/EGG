@@ -3,14 +3,6 @@
 > Emergence of Linguistic Communication from Referential Games with Symbolic and Pixel Input
 
 
-## TODO
-- [x] Make sure Reinforce is implemented correctly
-- [x] Single category data + training
-- [ ] Allow resampling of distractors (e.g. **X** A B A C)? 
-- [ ] Implement noise, run training for different noise levels
-- [ ] Measures of compositionality
-- [ ] Check different seeds, how much does randomness matter?
-
 ## Setup
 ```bash
 python3 -m pip install -r requirements.txt

@@ -13,28 +13,27 @@ import json
 import uuid
 import time
 from datetime import timedelta
+from collections import defaultdict
 
-import numpy as np
-import torch.nn.functional as F
 import torch.utils.data
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.stats import pearsonr
+from sklearn.metrics import f1_score
 
 import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.features import VectorsLoader
-from egg.zoo.objects_game.util import (
-    compute_baseline_accuracy,
-    compute_mi_input_msgs,
-    entropy,
-    mutual_info,
-    dump_sender_receiver,
-)
 
-from util import compute_alignment, is_jsonable
+from trainers import Trainer
+from util import (
+    dump_sender_receiver,
+    compute_alignment,
+    compute_mi_input_msgs,
+    is_jsonable,
+)
 from archs import (
-    SenderGS, ReceiverGS, loss_gs,
-    SenderReinforce, ReceiverReinforce, loss_reinforce,
+    SenderGS, ReceiverGS,
+    loss_gs, SenderReceiverRnnGS,
+    SenderReinforce, ReceiverReinforce,
+    loss_reinforce, SenderReceiverRnnReinforce
 )
 from custom_callbacks import (
     CustomProgressBarLogger,
@@ -55,6 +54,7 @@ def get_params(params):
     parser.add_argument("--test_samples", type=float, default=1e3, help="Number of tuples in test data (default: 1e3)")
     parser.add_argument("--data_seed", type=int, default=42, help="Seed for random creation of train, validation and test tuples (default: 42)")
     parser.add_argument("--seed", type=int, default=42, help="Seed for training reproducibility (default: 42)")
+    parser.add_argument("--erasure_pr", type=float, default=0., help="Probability of erasing a symbol (default: 0.0)")
     parser.add_argument("--no_shuffle", action="store_false", default=True, help="Do not shuffle train data before every epoch (default: False)")
     parser.add_argument("--sender_hidden", type=int, default=50, help="Size of the hidden layer of Sender (default: 50)")
     parser.add_argument("--receiver_hidden", type=int, default=50, help="Size of the hidden layer of Receiver (default: 50)")
@@ -96,6 +96,9 @@ def check_args(args):
 
     if args.dump_data_folder is not None:
         os.makedirs(os.path.dirname(args.dump_data_folder), exist_ok=True)
+
+    if args.dump_results_folder is not None:
+        os.makedirs(os.path.dirname(args.dump_results_folder), exist_ok=True)
 
     try:
         args.perceptual_dimensions = eval(args.perceptual_dimensions)
@@ -147,23 +150,9 @@ def main(params):
 
     data_loader.upd_cl_options(opts)
 
-    if opts.max_len > 1:
-        baseline_msg = 'Cannot yet compute "smart" baseline value for messages of length greater than 1'
-    else:
-        baseline_msg = (
-            f"\n| Baselines measures with {opts.n_distractors} distractors and messages of max_len = {opts.max_len}:\n"
-            f"| Dummy random baseline: accuracy = {1 / (opts.n_distractors + 1)}\n"
-        )
-        if -1 not in opts.perceptual_dimensions:
-            baseline_msg += f'| "Smart" baseline with perceptual_dimensions {opts.perceptual_dimensions} = {compute_baseline_accuracy(opts.n_distractors, opts.max_len, *opts.perceptual_dimensions)}\n'
-        else:
-            baseline_msg += f'| Data was loaded froman external file, thus no perceptual_dimension vector was provided, "smart baseline" cannot be computed\n'
-
-    print(baseline_msg)
-
     if opts.mode.lower() == "gs":
-        _sender = Sender(n_features=data_loader.n_features, n_hidden=opts.sender_hidden)
-        _receiver = Receiver(n_features=data_loader.n_features, linear_units=opts.receiver_hidden)
+        _sender = SenderGS(n_features=data_loader.n_features, n_hidden=opts.sender_hidden)
+        _receiver = ReceiverGS(n_features=data_loader.n_features, linear_units=opts.receiver_hidden)
         sender = core.RnnSenderGS(
             _sender,
             opts.vocab_size,
@@ -174,11 +163,16 @@ def main(params):
             temperature=opts.temperature)
         receiver = core.RnnReceiverGS(
             _receiver,
-            opts.vocab_size,
+            opts.vocab_size + 1,
             opts.receiver_embedding,
             opts.receiver_hidden,
             cell=opts.receiver_cell)
-        game = core.SenderReceiverRnnGS(sender, receiver, loss)
+        game = SenderReceiverRnnGS(
+            sender, receiver, loss_gs,
+            opts.max_len, opts.vocab_size, opts.erasure_pr,
+            length_cost=opts.length_cost,
+            device=device,
+            seed=opts.seed)
         optimizer = torch.optim.Adam([
             {"params": game.sender.parameters(), "lr": opts.sender_lr},
             {"params": game.receiver.parameters(), "lr": opts.receiver_lr},
@@ -196,15 +190,18 @@ def main(params):
             max_len=opts.max_len)
         receiver = core.RnnReceiverReinforce(
             core.ReinforceWrapper(_receiver),
-            opts.vocab_size,
+            opts.vocab_size + 1,
             opts.receiver_embedding,
             opts.receiver_hidden,
             cell=opts.receiver_cell)
-        game = core.SenderReceiverRnnReinforce(
+        game = SenderReceiverRnnReinforce(
             sender, receiver, loss_reinforce,
+            opts.max_len, opts.vocab_size, opts.erasure_pr,
             sender_entropy_coeff=opts.sender_entropy_coeff,
             receiver_entropy_coeff=opts.receiver_entropy_coeff,
-            length_cost=opts.length_cost)
+            length_cost=opts.length_cost,
+            device=device,
+            seed=opts.seed)
         optimizer = torch.optim.RMSprop([
             {"params": game.sender.parameters(), "lr": opts.sender_lr},
             {"params": game.receiver.parameters(), "lr": opts.receiver_lr},
@@ -229,13 +226,14 @@ def main(params):
                 print_train_metrics=True,
                 train_data_len=len(train_data),
                 test_data_len=len(validation_data),
-                step=opts.validation_freq)
+                step=opts.validation_freq,
+                dump_results_folder=opts.dump_results_folder,
+                filename=opts.filename)
         ]
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
 
-
-    trainer = core.Trainer(
+    trainer = Trainer(
         game=game,
         optimizer=optimizer,
         optimizer_scheduler=scheduler,
@@ -245,36 +243,40 @@ def main(params):
 
     t_start = time.monotonic()
     trainer.train(n_epochs=opts.n_epochs)
+    training_time = timedelta(seconds=time.monotonic()-t_start)
+    sec_per_epoch = training_time.seconds / opts.n_epochs
+    minutes, seconds = divmod(sec_per_epoch, 60)
+
+    time_total = str(training_time).split('.', maxsplit=1)[0]
+    time_per_epoch = f'{int(minutes):02}:{int(seconds):02}'
 
     if opts.evaluate:
-        is_gs = opts.mode == "gs"
-        (
-            sender_inputs,
-            messages,
-            receiver_inputs,
-            receiver_outputs,
-            labels,
-        ) = dump_sender_receiver(
-            game, test_data, is_gs, variable_length=True, device=device
-        )
+        output_dict = defaultdict(dict)
+
+        # Standard evaluation – same setting as during training
+        sender_inputs, messages, receiver_inputs, receiver_outputs, labels = \
+            dump_sender_receiver(
+                game, test_data, opts.mode == 'gs', apply_noise=opts.erasure_pr != 0,
+                variable_length=True, device=device)
 
         receiver_outputs = move_to(receiver_outputs, device)
-        labels = move_to(labels, device)
-
         receiver_outputs = torch.stack(receiver_outputs)
+        labels = move_to(labels, device)
         labels = torch.stack(labels)
 
-        if opts.mode.lower() == 'gs':
-            tensor_accuracy = receiver_outputs.argmax(dim=1) == labels
-        else:
-            tensor_accuracy = receiver_outputs == labels
-        accuracy = torch.mean(tensor_accuracy.float()).item() * 100
-       
+        preds = receiver_outputs.argmax(dim=1) if opts.mode.lower() == 'gs' \
+            else receiver_outputs
+
+        accuracy = torch.mean((preds == labels).float()).item() * 100
+        f1 =  f1_score(labels, preds, average='micro').item() * 100
         alignment = compute_alignment(
             test_data, _receiver, _sender, device, opts.batch_size)
 
-        unique_dict = {}
+        output_dict['results']['accuracy'] = accuracy
+        output_dict['results']['f1-micro'] = f1
+        output_dict['results']['embedding_alignment'] = alignment
 
+        unique_dict = {}
         for elem in sender_inputs:
             target = ""
             for dim in elem:
@@ -283,68 +285,144 @@ def main(params):
             if target not in unique_dict:
                 unique_dict[target] = True
 
-        print(f"| Accuracy on test set: {accuracy}")
-        print(f"| Speaker-listener alignment: {alignment}")
+        mi_result = compute_mi_input_msgs(sender_inputs, messages)
+        output_dict['results'].update(mi_result)
+        entropy_msg = f"{mi_result['entropy_msg']:.3f}"
+        entropy_inp = f"{mi_result['entropy_inp']:.3f}"
+        mi = f"{mi_result['mi']:.3f}"
+        entropy_inp_dim = f"{[round(x, 3) for x in mi_result['entropy_inp_dim']]}"
+        mi_dim = f'{[round(x, 3) for x in mi_result["mi_dim"]]}'
 
-        compute_mi_input_msgs(sender_inputs, messages)
+        # If we applied noise during training,
+        # compute results after disabling noise in the test phase as well
+        if opts.erasure_pr != 0:
+            sender_inputs2, messages2, receiver_inputs2, \
+                receiver_outputs2, labels2 = dump_sender_receiver(
+                    game, test_data, opts.mode.lower() == 'gs',
+                    apply_noise=opts.erasure_pr == 0,
+                    variable_length=True, device=device)
 
-        print(f"| Entropy of sender inputs: {entropy(sender_inputs)}")
-        print(f"| Mutual information: {mutual_info(sender_inputs, messages)}")
-        print(f"| Saving results to {opts.dump_results_folder/opts.filename}...")
+            receiver_outputs2 = move_to(receiver_outputs2, device)
+            receiver_outputs2 = torch.stack(receiver_outputs2)
+            labels2 = move_to(labels2, device)
+            labels2 = torch.stack(labels2)
+
+            preds2 = receiver_outputs2.argmax(dim=1) if opts.mode.lower() == 'gs' \
+                else receiver_outputs2
+            accuracy2 = torch.mean((preds2 == labels2).float()).item() * 100
+            f12 =  f1_score(labels2, preds2, average='micro').item() * 100
+
+            output_dict['results-no-noise']['accuracy'] = accuracy2
+            output_dict['results-no-noise']['f1-micro'] = f12
+            output_dict['results-no-noise']['embedding_alignment'] = alignment
+
+            acc_str = f'{accuracy:.2f} / {accuracy2:.2f}'
+            f1_str = f'{f1:.2f} / {f12:.2f}'
+            mi_result2 = compute_mi_input_msgs(sender_inputs2, messages2)
+            output_dict['results-no-noise'].update(mi_result2)
+            entropy_msg += f" / {mi_result2['entropy_msg']:.3f}"
+            entropy_inp += f" / {mi_result2['entropy_inp']:.3f}"
+            mi += f" / {mi_result2['mi']:.3f}"
+            mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
+
+            if not opts.simple_logging:
+                print("|")
+            print(f"|\033[1m Results (with noise / without noise)\033[0m\n|")
+        else:
+            acc_str = f'{accuracy:.2f}'
+            f1_str = f'{f1:.2f}'
+            print(f"|\n|\033[1m Results\033[0m\n|")
+
+        align = 22
+        print("|   Accuracy:", acc_str)
+        print("| F1 (micro):", f1_str)
+        print("|")
+        print("|" + "H(msg) =".rjust(align), entropy_msg)
+        print("|" + "H(target objs) =".rjust(align), entropy_inp)
+        print("|" + "I(target objs; msg) =".rjust(align), mi)
+        print("|\n| Separately for each object vector dimension")
+        if opts.erasure_pr != 0:
+            print("|" + "H(target objs) =".rjust(align), entropy_inp_dim)
+            print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(with noise)")
+            print("|" + "I(target objs; msg) =".rjust(align), mi_dim2, "(no noise)")
+        else:
+            print("|" + "H(target objs) =".rjust(align) + entropy_inp_dim, "(for each dimension)")
+            print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(for each dimension)")
+        print('|')
+        print(f"| Speaker-listener embedding alignment: {alignment:.2f}")
 
         if opts.dump_results_folder:
             opts.dump_results_folder.mkdir(exist_ok=True)
-            msg_dict = {}
 
-            with open(opts.dump_results_folder / f'{opts.filename}-messages.msg', 'w') as f:
-                f.write(f"{opts}\n")
-                for (
-                    sender_input,
-                    message,
-                    receiver_input,
-                    receiver_output,
-                    label,
-                ) in zip(
-                    sender_inputs, messages, receiver_inputs, receiver_outputs, labels
-                ):
-                    sender_input = ",".join(map(str, sender_input.tolist()))
-                    message = ",".join(map(str, message.tolist()))
-                    distractors_list = receiver_input.tolist()
-                    receiver_input = "; ".join(
-                        [",".join(map(str, elem)) for elem in distractors_list]
-                    )
-                    if is_gs:
-                        receiver_output = receiver_output.argmax()
-                    f.write(
-                        f"{sender_input} -> {receiver_input} -> {message} -> {receiver_output} (label={label.item()})\n"
-                    )
+            output_dict = {'results': {}, 'messages': {}}
+            messages_dict = {}
 
-                    if message in msg_dict:
-                        msg_dict[message] += 1
-                    else:
-                        msg_dict[message] = 1
+            msg_dict = defaultdict(int)
+            for sender_input, message, receiver_input, receiver_output, label \
+                    in zip(sender_inputs, messages, receiver_inputs, receiver_outputs, labels):
+                target_vec = ','.join([str(int(x)) for x in sender_input.tolist()])
+                message = ','.join([str(int(x)) for x in message.tolist()])
+                candidate_vex = [','.join([str(int(x)) for x in candidate])
+                                 for candidate in receiver_input.tolist()]
+                message_log = {
+                    'target_vec': target_vec,
+                    'candidate_vex': candidate_vex,
+                    'message': message}
+                if opts.erasure_pr != 0:
+                    message_log['message_no_noise'] = None
+                message_log['label'] = label.item()
+
+                m_key = f'{target_vec}#' + ';'.join(candidate_vex)
+                messages_dict[m_key] = message_log
+                msg_dict[message] += 1
 
             sorted_msgs = sorted(msg_dict.items(), key=operator.itemgetter(1), reverse=True)
 
-            with open(opts.dump_results_folder / f'{opts.filename}-results.txt', 'w') as f:
-                f.write(f"Unique target vectors seen by sender: {len(unique_dict.keys())}\n")
-                f.write(f"Unique messages produced by sender: {len(msg_dict.keys())}\n")
-                f.write(f"\nAccuracy: {accuracy}")
-                f.write(f"\nEntropy (sender inputs): {entropy(sender_inputs)}")
-                f.write(f"\nMutual Information: {mutual_info(sender_inputs, messages)}")
-                f.write(f"\nEmbedding alignment: {alignment}")
-                f.write(f"\n\nMessagses + counts:\n{str(sorted_msgs)}\n")
+            if opts.erasure_pr != 0:
+                msg_dict2 = defaultdict(int)
+                for sender_input, message, receiver_input, receiver_output, label \
+                        in zip(sender_inputs2, messages2, receiver_inputs2, receiver_outputs2, labels2):
+                    target_vec = ','.join([str(int(x)) for x in sender_input.tolist()])
+                    candidate_vex = [','.join([str(int(c)) for c in candidate])
+                                     for candidate in receiver_input.tolist()]
+                    message = ','.join([str(int(x)) for x in message.tolist()])
 
-            with open(opts.dump_results_folder / f'{opts.filename}-opts.json', 'w') as f:
-                opts_dict = {k: v for k, v in vars(opts).items() if is_jsonable(v)}
-                json.dump(opts_dict, f, indent=4)
+                    m_key = f'{target_vec}#' + ';'.join(candidate_vex)
+                    messages_dict[m_key]['message_no_noise'] = message
+                    msg_dict2[message] += 1
 
-    training_time = timedelta(seconds=time.monotonic()-t_start)
-    sec_per_epoch = training_time.seconds / opts.n_epochs
-    minutes, seconds = divmod(sec_per_epoch, 60)
+                sorted_msgs2 = sorted(msg_dict2.items(), key=operator.itemgetter(1), reverse=True)
 
-    print('| Total training time:', str(training_time).split('.', maxsplit=1)[0])
-    print(f'| Training time per epoch: {int(minutes):02}:{int(seconds):02}')
+            lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
+                else '{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
+            print("|")
+            print("| Num. of unique target objects:", len(unique_dict.keys()))
+            print("| Lexicon size:", lexicon_size)
+            print("|")
+
+            output_dict['results']['unique_targets'] = len(unique_dict.keys())
+            output_dict['results']['unique_msg'] = len(msg_dict.keys())
+            if opts.erasure_pr != 0:
+                output_dict['results']['unique_msg_no_noise'] = len(msg_dict2.keys())
+            output_dict['results']['embedding_alignment'] = alignment
+            output_dict['messages'] = [v for v in messages_dict.values()]
+            output_dict['message_counts'] = sorted_msgs
+            if opts.erasure_pr != 0:
+                output_dict['message_counts_no_noise'] = sorted_msgs2
+                output_dict['erased_symbol'] = opts.vocab_size
+            opts_dict = {k: v for k, v in vars(opts).items() if is_jsonable(v)}
+            output_dict['opts'] = opts_dict
+            output_dict['training_time'] = {
+                'total': time_total,
+                'per_epoch': time_per_epoch}
+
+            with open(opts.dump_results_folder / f'{opts.filename}-results.json', 'w') as f:
+                json.dump(output_dict, f, indent=4)
+
+            print(f"| Results saved to {opts.dump_results_folder/opts.filename}-results.json")
+
+    print('|\n| Total training time:', time_total)
+    print('| Training time per epoch:', time_per_epoch)
 
 if __name__ == "__main__":
     import sys
