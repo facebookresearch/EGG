@@ -1,4 +1,6 @@
 import torch
+import pandas as pd
+
 from collections import OrderedDict, defaultdict
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
@@ -17,10 +19,6 @@ from rich.table import Table, Column
 from rich.text import Text
 
 from util import compute_alignment
-# import math
-# import numpy as np
-# from sklearn.metrics.pairwise import cosine_similarity
-# from scipy.stats import pearsonr
 
 from egg.core.callbacks import Callback, CustomProgress
 from egg.core.interaction import Interaction
@@ -60,6 +58,8 @@ class CustomProgressBarLogger(Callback):
         test_data_len: int = 0,
         print_train_metrics = True,
         step=1,
+        dump_results_folder=None,
+        filename=None,
     ):
         """
         :param n_epochs: total number of epochs
@@ -72,7 +72,10 @@ class CustomProgressBarLogger(Callback):
         self.train_data_len = train_data_len
         self.test_data_len = test_data_len
         self.print_train_metrics = print_train_metrics
+        self.dump_results_folder = dump_results_folder
+        self.filename = filename
         self.step = step
+        self.history = defaultdict(lambda: defaultdict(dict))
 
         self.progress = CustomProgress(
             TextColumn(
@@ -105,10 +108,8 @@ class CustomProgressBarLogger(Callback):
             visible=False,
             total=self.train_data_len)
  
-        self.style = {
-            'validate': '',
-            'train': 'grey58',
-        }
+        self.style = defaultdict(str)
+        self.style.update({'train': 'grey58'})
 
     def build_od(self, logs, loss, epoch, phase):
         od = OrderedDict()
@@ -126,7 +127,7 @@ class CustomProgressBarLogger(Callback):
             row.add_column(
                 colname,
                 justify='left' if colname in ('phase', 'epoch')  else 'right',
-                ratio=0.5 if colname in ('phase', 'epoch') else 1)
+                ratio=0.5 if colname == 'epoch' else 1)
         if not header:
             row.add_row(
                 str(od.pop('epoch')),
@@ -179,6 +180,7 @@ class CustomProgressBarLogger(Callback):
         if epoch % self.step == 0:
             row = self.get_row(od)
             self.console.print(row)
+            self.history['train'][epoch] = od
         
         self.progress.stop_task(self.train_p)
         self.progress.update(self.train_p, visible=False)
@@ -201,7 +203,7 @@ class CustomProgressBarLogger(Callback):
             task_id=self.test_p,
             total=self.test_data_len,
             start=False,
-            visible=False,
+            visible=True,
             cur_epoch=epoch,
             n_epochs=self.n_epochs,
             mode="Validate")
@@ -226,16 +228,39 @@ class CustomProgressBarLogger(Callback):
             n_epochs=self.n_epochs,
             mode="Validate")
 
-        od = self.build_od(logs, loss, epoch, 'validate')
+        if epoch not in self.history['val']:
+            phase = 'val'
+            p_key = 'val'
+        else:
+            phase = 'val (no noise)'
+            p_key = 'val-no-noise'
+
+        od = self.build_od(logs, loss, epoch, phase)
         if not self.print_train_metrics and epoch == 1:
             self.live.update(self.generate_live_table(od))
         row = self.get_row(od)
         self.console.print(row)
-
+        self.history[p_key][epoch] = od
 
     def on_train_end(self):
         self.progress.stop()
         self.live.stop()
+
+        if self.dump_results_folder is not None:
+            history_dfs = []
+            history_keys = list(self.history.keys())
+            if history_keys:
+                key = history_keys[0]
+                od_keys = self.history[key][list(self.history[key].keys())[0]]
+                for key in self.history:
+                    df = pd.DataFrame({
+                        k: [self.history[key][epoch][k] for epoch in self.history[key]]
+                        for k in od_keys})
+                    history_dfs.append(df)
+                history_df = pd.concat(history_dfs)
+                dump_path = self.dump_results_folder / f'{self.filename}-training-history.csv'
+                history_df.to_csv(dump_path, index=False)
+                print(f"| Training history saved to {self.dump_results_folder/self.filename}-training-history.csv")
 
 
 class LexiconSizeCallback(Callback):
