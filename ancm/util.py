@@ -2,8 +2,9 @@ import json
 import torch
 import math
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from scipy.stats import pearsonr
+from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances
+from Levenshtein import distance
+from scipy.stats import pearsonr, spearmanr
 
 from archs import ErasureChannel
 
@@ -11,6 +12,14 @@ from typing import Optional
 
 from egg.core.util import move_to
 from egg.zoo.objects_game.util import mutual_info, entropy
+
+
+def is_jsonable(x):
+    try:
+        json.dumps(x)
+        return True
+    except (TypeError, OverflowError):
+        return False
 
 
 def compute_alignment(dataloader, sender, receiver, device, bs):
@@ -39,12 +48,65 @@ def compute_alignment(dataloader, sender, receiver, device, bs):
     return r.statistic * 100
 
 
-def is_jsonable(x):
-    try:
-        json.dumps(x)
-        return True
-    except (TypeError, OverflowError):
-        return False
+def compute_mi_input_msgs(sender_inputs, messages):
+    num_dimensions = len(sender_inputs[0])
+    each_dim = [[] for _ in range(num_dimensions)]
+    result = []
+    for i, _ in enumerate(each_dim):
+        for vector in sender_inputs:
+            each_dim[i].append(vector[i])  # only works for 1-D sender inputs
+
+    for i, dim_list in enumerate(each_dim):
+        result.append(round(mutual_info(messages, dim_list), 4))
+
+    return {
+        'entropy_msg': entropy(messages),
+        'entropy_inp': entropy(sender_inputs),
+        'mi': mutual_info(messages, sender_inputs),
+        'entropy_inp_dim': [entropy(elem) for elem in each_dim],
+        'mi_dim': result,
+    }
+
+
+def compute_top_sim(sender_inputs, messages, dimensions=None):
+    obj_tensor = torch.stack(sender_inputs) \
+        if isinstance(sender_inputs, list) else sender_inputs
+
+    if dimensions is None:
+        dimensions = []
+        for d in range(obj_tensor.size(1)):
+            dim = len(torch.unique(obj_tensor[:,d]))
+            dimensions.append(dim)
+
+    onehot = []
+    for i, dim in enumerate(dimensions):
+        oh = np.eye(dim, dtype='uint8')[obj_tensor[:,i].int()-1]
+        onehot.append(oh)
+    onehot = np.concatenate(onehot, axis=1)
+
+    messages = [msg.argmax(dim=1).tolist() if msg.dim() == 2
+                else msg.tolist() for msg in messages]
+
+    # Pairwise cosine similarity between object vectors
+    cos_sims = cosine_similarity(onehot)
+
+    # Pairwise Levenshtein distance between messages
+    lev_dists = np.ones((len(messages), len(messages)), dtype='int')
+    for i, msg_i in enumerate(messages):
+        for j, msg_j in enumerate(messages):
+            if i > j:
+                continue
+            elif i == j:
+                lev_dists[i][j] = 1
+            else:
+                m1 = [str(int(x)) for x in msg_i]
+                m2 = [str(int(x)) for x in msg_j]
+                dist = distance(m1, m2)
+                lev_dists[i][j] = dist
+                lev_dists[j][i] = dist
+
+    rho = spearmanr(cos_sims, lev_dists, axis=None).statistic * -1 
+    return rho
 
 
 def dump_sender_receiver(
@@ -135,23 +197,3 @@ def dump_sender_receiver(
     game.train(mode=train_state)
 
     return sender_inputs, messages, receiver_inputs, receiver_outputs, labels
-
-
-def compute_mi_input_msgs(sender_inputs, messages):
-    num_dimensions = len(sender_inputs[0])
-    each_dim = [[] for _ in range(num_dimensions)]
-    result = []
-    for i, _ in enumerate(each_dim):
-        for vector in sender_inputs:
-            each_dim[i].append(vector[i])  # only works for 1-D sender inputs
-
-    for i, dim_list in enumerate(each_dim):
-        result.append(round(mutual_info(messages, dim_list), 4))
-
-    return {
-        'entropy_msg': entropy(messages),
-        'entropy_inp': entropy(sender_inputs),
-        'mi': mutual_info(messages, sender_inputs),
-        'entropy_inp_dim': [entropy(elem) for elem in each_dim],
-        'mi_dim': result,
-    }
