@@ -527,7 +527,7 @@ class ErasureChannel(nn.Module):
                 combined = combined.expand(*message.size())
 
                 # for erased symbols – where should we put 0/1?
-                erased_digits = torch.cat((torch.zeros(1, 1, 12), torch.ones(1, 1, 1)), dim=2)
+                erased_digits = torch.cat((torch.zeros(1, 1, message.size(2)-1), torch.ones(1, 1, 1)), dim=2)
                 erased_digits = erased_digits.expand(1, message.size(1), message.size(2))
                 erased_digits = erased_digits.expand(*message.size())
 
