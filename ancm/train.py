@@ -329,6 +329,8 @@ def main(params):
                 print("|")
             print(f"|\033[1m Results (with noise / without noise)\033[0m\n|")
         else:
+            acc_str = f'{accuracy:.2f}'
+            f1_str = f'{f1:.2f}'
             print(f"|\n|\033[1m Results\033[0m\n|")
 
         align = 22
