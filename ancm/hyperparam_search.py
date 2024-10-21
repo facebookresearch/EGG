@@ -51,7 +51,7 @@ def transform(params):
     # maps (3, 6) to (8, 64), returns an integer
     output_dict['hidden_units'] = int(math.exp(params['hidden_units'] * math.log(2)))
 
-    # maps (2, 4) to (10^-2, 10^-4)
+    # maps (1, 6) to (10^-1, 10^-6)
     output_dict['length_cost'] = math.exp(-params['length_cost'] * math.log(10))
 
     return output_dict
