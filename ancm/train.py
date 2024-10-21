@@ -72,19 +72,21 @@ def get_params(params):
     parser.add_argument("--length_cost", type=float, default=1e-2, help="Message length cost")
     parser.add_argument("--temperature", type=float, default=1.0, help="GS temperature for the sender (default: 1.0)")
     parser.add_argument("--mode", type=str, default="gs", help="Selects whether Reinforce or GumbelSoftmax relaxation is used for training {gs only at the moment}" "(default: rf)")
-    parser.add_argument("--output_json", action="store_true", default=False, help="If set, egg will output validation stats in json format (default: False)")
     parser.add_argument("--evaluate", action="store_true", default=False, help="Evaluate trained model on test data")
     parser.add_argument("--dump_data_folder", type=str, default='data/input_data/', help="Folder where file with dumped data will be created")
     parser.add_argument("--dump_results_folder", type=str, default='runs', help="Folder where file with dumped messages will be created")
     parser.add_argument("--filename", type=str, default=None, help="Filename (no extension)")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
+    parser.add_argument("--no_rho", action="store_true", default=False, help="Disable computing topographic rho during training")
+    parser.add_argument("--silent", action="store_true", default=False, help="Do not print eval stats during training")
 
     args = core.init(parser, params)
 
     args.random_seed = args.seed
     check_args(args)
-    print(args)
+    if not args.silent:
+        print(args)
 
     if args.filename is None:
         args.filename = str(uuid.uuid4())
@@ -217,13 +219,14 @@ def main(params):
     else:
         scheduler = None
 
-    if opts.simple_logging:
+    if opts.silent:
+        callbacks = []
+    elif opts.simple_logging:
         callbacks = [core.ConsoleLogger(as_json=True)]
     else:
         callbacks = [
             LexiconSizeCallback(),
             AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
-            TopographicRhoCallback(opts.perceptual_dimensions),
             CustomProgressBarLogger(
                 n_epochs=opts.n_epochs,
                 print_train_metrics=True,
@@ -233,6 +236,8 @@ def main(params):
                 dump_results_folder=opts.dump_results_folder,
                 filename=opts.filename)
         ]
+    if not opts.no_rho:
+        callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
 
@@ -245,7 +250,10 @@ def main(params):
         callbacks=callbacks)
 
     t_start = time.monotonic()
-    trainer.train(n_epochs=opts.n_epochs)
+    if opts.silent or opts.simple_logging:
+        trainer.train(n_epochs=opts.n_epochs, second_val=False)
+    else:
+        trainer.train(n_epochs=opts.n_epochs, second_val=True)
     training_time = timedelta(seconds=time.monotonic()-t_start)
     sec_per_epoch = training_time.seconds / opts.n_epochs
     minutes, seconds = divmod(sec_per_epoch, 60)
@@ -334,37 +342,39 @@ def main(params):
             mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
             t_rho += f" / {top_sim2:.3f}"
 
-            if not opts.simple_logging:
-                print("|")
-            print(f"|\033[1m Results (with noise / without noise)\033[0m\n|")
+            if not opts.silent:
+                if not opts.simple_logging:
+                    print("|")
+                print(f"|\033[1m Results (with noise / without noise)\033[0m\n|")
         else:
             acc_str = f'{accuracy:.2f}'
             f1_str = f'{f1:.2f}'
-            print(f"|\n|\033[1m Results\033[0m\n|")
+            if not opts.silent:
+                print(f"|\n|\033[1m Results\033[0m\n|")
 
-        align = 23
-        print("|" + "H(msg) =".rjust(align), entropy_msg)
-        print("|" + "H(target objs) =".rjust(align), entropy_inp)
-        print("|" + "I(target objs; msg) =".rjust(align), mi)
-        print("|\n| Separately for each object vector dimension")
-        if opts.erasure_pr != 0:
-            print("|" + "H(target objs) =".rjust(align), entropy_inp_dim)
-            print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(with noise)")
-            print("|" + "I(target objs; msg) =".rjust(align), mi_dim2, "(no noise)")
-        else:
-            print("|" + "H(target objs) =".rjust(align) + entropy_inp_dim, "(for each dimension)")
-            print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(for each dimension)")
-        print('|')
-        print("|" + "Accuracy:".rjust(align), acc_str)
-        print("|" + "F1 (micro):".rjust(align), f1_str)
-        print("|")
-        print("|" + "Embedding alignment:".rjust(align) + f" {alignment:.2f}")
-        print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
+        if not opts.silent:
+            align = 23
+            print("|" + "H(msg) =".rjust(align), entropy_msg)
+            print("|" + "H(target objs) =".rjust(align), entropy_inp)
+            print("|" + "I(target objs; msg) =".rjust(align), mi)
+            print("|\n| Separately for each object vector dimension")
+            if opts.erasure_pr != 0:
+                print("|" + "H(target objs) =".rjust(align), entropy_inp_dim)
+                print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(with noise)")
+                print("|" + "I(target objs; msg) =".rjust(align), mi_dim2, "(no noise)")
+            else:
+                print("|" + "H(target objs) =".rjust(align) + entropy_inp_dim, "(for each dimension)")
+                print("|" + "I(target objs; msg) =".rjust(align), mi_dim, "(for each dimension)")
+            print('|')
+            print("|" + "Accuracy:".rjust(align), acc_str)
+            print("|" + "F1 (micro):".rjust(align), f1_str)
+            print("|")
+            print("|" + "Embedding alignment:".rjust(align) + f" {alignment:.2f}")
+            print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
 
         if opts.dump_results_folder:
             opts.dump_results_folder.mkdir(exist_ok=True)
 
-            output_dict = {'results': {}, 'messages': {}}
             messages_dict = {}
 
             msg_dict = defaultdict(int)
@@ -405,10 +415,11 @@ def main(params):
 
             lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
                 else '{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
-            print("|")
-            print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
-            print("|" + "Lexicon size:".rjust(align), lexicon_size)
-            print("|")
+            if not opts.silent:
+                print("|")
+                print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
+                print("|" + "Lexicon size:".rjust(align), lexicon_size)
+                print("|")
 
             output_dict['results']['unique_targets'] = len(unique_dict.keys())
             output_dict['results']['unique_msg'] = len(msg_dict.keys())
@@ -429,10 +440,12 @@ def main(params):
             with open(opts.dump_results_folder / f'{opts.filename}-results.json', 'w') as f:
                 json.dump(output_dict, f, indent=4)
 
-            print(f"| Results saved to {opts.dump_results_folder/opts.filename}-results.json")
+            if not opts.silent:
+                print(f"| Results saved to {opts.dump_results_folder/opts.filename}-results.json")
 
-    print('| Total training time:', time_total)
-    print('| Training time per epoch:', time_per_epoch)
+    if not opts.silent:
+        print('| Total training time:', time_total)
+        print('| Training time per epoch:', time_per_epoch)
 
 if __name__ == "__main__":
     import sys
