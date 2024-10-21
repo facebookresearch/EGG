@@ -1,0 +1,396 @@
+<concepts category="instruments">
+<subcategory name="musical_instruments">
+<concept name="accordion">
+<parts>
+	has_buttons
+	has_keys
+	has_keyboard
+	has_bellows
+	has_grille
+</parts>
+<shape_size>
+	is_box_shaped
+</shape_size>
+<texture_material>
+	made_of_plastic
+	made_of_wood
+	is_shiny
+</texture_material>
+<colour_patterns>
+	is_black
+	is_silver
+	is_white
+</colour_patterns>
+</concept>
+<concept name="bagpipe">
+<parts>
+	has_pipes
+	has_reed<no_evidence/>
+	has_tubing
+	has_chanter
+	has_rope
+	has_bag
+	has_hole
+</parts>
+<texture_material>
+	made_of_wood
+	made_of_different_fabrics
+</texture_material>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="banjo">
+<parts>
+	has_strings
+	has_rest_(musical)
+	has_pegs
+	has_board
+	has_bridge_(musical)
+	has_tail_piece
+	has_headstock
+	has_round_body
+	has_membrane
+</parts>
+<shape_size>
+	is_hollow
+</shape_size>
+<texture_material>
+	made_of_wood
+	made_of_metal
+</texture_material>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="cello">
+<texture_material>
+	is_shiny
+	has_f_holes
+	made_of_wood
+</texture_material>
+<parts>
+	has_4_strings
+	has_bridge_(musical)
+	has_pegs
+	has_pin
+	has_board
+	has_scroll
+	has_tail_piece
+	has_curved_body
+</parts>
+<shape_size>
+	is_hollow
+</shape_size>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="clarinet">
+<parts>
+	has_keys
+	has_mouthpiece
+	has_reed
+	has_tubing
+	has_bell
+	has_ligature
+	has_hole
+</parts>
+<shape_size>
+	has_cylindrical_bore
+	is_long
+	is_straight
+</shape_size>
+<texture_material>
+	made_of_plastic
+	made_of_wood
+</texture_material>
+<colour_patterns>
+	is_black
+	is_silver
+</colour_patterns>
+</concept>
+<concept name="drum">
+<texture_material>
+	made_of_leather
+	made_of_wood
+	made_of_metal
+	made_of_brass
+</texture_material>
+<parts>
+	has_membrane_(drumhead)
+	has_screws
+	has_rope
+</parts>
+<shape_size>
+	is_cylindrical
+	is_goblet_shaped
+	is_hollow
+	is_round
+</shape_size>
+<colour_patterns>
+	is_black
+	has_patterns
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="flute">
+<parts>
+	has_keys
+	has_tubing
+	has_hole
+</parts>
+<colour_patterns>
+	is_silver
+	is_brown
+</colour_patterns>
+<texture_material>
+	made_of_metal
+</texture_material>
+<shape_size>
+	is_straight
+	is_long
+</shape_size>
+</concept>
+<concept name="guitar">
+<shape_size>
+	is_hollow
+</shape_size>
+<colour_patterns>
+	is_black
+	has_rosette
+	is_brown
+</colour_patterns>
+<parts>
+	has_6_strings
+	has_board
+	has_bridge_(musical)
+	has_pegs
+	has_saddle
+	has_headstock
+	has_curved_body
+	has_hole
+</parts>
+<texture_material>
+	made_of_wood
+</texture_material>
+</concept>
+<concept name="harmonica">
+<parts>
+	has_reed<no_evidence/>
+	has_hole
+</parts>
+<colour_patterns>
+	is_silver
+</colour_patterns>
+<shape_size>
+	is_rectangular
+</shape_size>
+<texture_material>
+	is_shiny
+	made_of_metal
+</texture_material>
+</concept>
+<concept name="harp">
+<parts>
+	has_strings
+	has_pin
+	has_column
+</parts>
+<colour_patterns>
+	is_brown
+</colour_patterns>
+<texture_material>
+	made_of_wood
+</texture_material>
+</concept>
+<concept name="harpsichord">
+<parts>
+	has_keys
+	has_keyboard
+	has_lid
+	has_stick
+	has_legs
+	has_case
+</parts>
+<texture_material>
+	made_of_wood
+</texture_material>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="keyboard_(musical)">
+<parts>
+	has_keyboard
+	has_keys
+	has_buttons
+	has_case
+</parts>
+<texture_material>
+	made_of_plastic
+</texture_material>
+<shape_size>
+	is_rectangular
+</shape_size>
+<colour_patterns>
+	is_white
+	is_black
+</colour_patterns>
+</concept>
+<concept name="piano">
+<parts>
+	has_keys
+	has_case
+	has_lid<no_evidence/>
+	has_stick<no_evidence/>
+	has_legs<no_evidence/>
+	has_panel<no_evidence/>
+	has_pedals<no_evidence/>
+</parts>
+<texture_material>
+	made_of_wood
+</texture_material>
+<colour_patterns>
+	is_black
+	is_brown
+	is_white
+</colour_patterns>
+</concept>
+<concept name="saxophone">
+<parts>
+	has_keys
+	has_mouthpiece
+	has_reed
+	has_ligature
+	has_bell
+	has_brace<no_evidence/>
+	has_cork
+</parts>
+<shape_size>
+	has_conical_bore
+</shape_size>
+<texture_material>
+	is_shiny
+	made_of_brass
+</texture_material>
+<colour_patterns>
+	is_gold
+</colour_patterns>
+</concept>
+<concept name="trombone">
+<texture_material>
+	is_shiny
+	made_of_brass
+</texture_material>
+<parts>
+	has_mouthpiece
+	has_bell
+	has_tubing
+	has_knob
+	has_counterweight
+	has_brace
+	has_slide
+</parts>
+<shape_size>
+	has_cylindrical_bore
+</shape_size>
+<colour_patterns>
+	is_gold
+</colour_patterns>
+</concept>
+<concept name="trumpet">
+<parts>
+	has_buttons
+	has_valves
+	has_mouthpiece
+	has_tubing
+	has_bell
+	has_ring<no_evidence/>
+	has_brace<no_evidence/>
+	has_slide
+</parts>
+<shape_size>
+	has_cylindrical_bore
+</shape_size>
+<texture_material>
+	is_shiny
+	made_of_brass
+</texture_material>
+<colour_patterns>
+	is_gold
+</colour_patterns>
+</concept>
+<concept name="tuba">
+<parts>
+	has_buttons
+	has_valves
+	has_mouthpiece
+	has_bell
+	has_tubing
+</parts>
+<shape_size>
+	has_conical_bore
+</shape_size>
+<texture_material>
+	is_shiny
+	made_of_brass
+</texture_material>
+<colour_patterns>
+	is_gold
+	is_silver
+</colour_patterns>
+</concept>
+<concept name="violin">
+<texture_material>
+	is_shiny
+	has_f_holes
+	made_of_wood
+</texture_material>
+<parts>
+	has_scroll
+	has_4_strings
+	has_pegs
+	has_board
+	has_bridge_(musical)
+	has_tail_piece
+	has_curved_body
+	has_rest_(musical)
+</parts>
+<shape_size>
+	is_hollow
+</shape_size>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="whistle">
+<shape_size>
+	is_hollow<no_evidence/>
+</shape_size>
+<parts>
+	has_mouthpiece
+	has_strap
+	has_ring
+	has_ball_inside<no_evidence/>
+	has_slots
+</parts>
+<texture_material>
+	made_of_brass
+	made_of_plastic
+	is_shiny
+</texture_material>
+<colour_patterns>
+	different_colours
+	is_silver
+</colour_patterns>
+</concept>
+</subcategory>
+</concepts>

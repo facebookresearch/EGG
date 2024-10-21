@@ -18,17 +18,17 @@ except ImportError:
 import torch
 from torch.utils.data import DataLoader
 
-from .batch import Batch
-from .callbacks import (
+from egg.core.batch import Batch
+from egg.core.callbacks import (
     Callback,
     Checkpoint,
     CheckpointSaver,
     ConsoleLogger,
     TensorboardLogger,
 )
-from .distributed import get_preemptive_checkpoint_dir
-from .interaction import Interaction
-from .util import get_opts, move_to
+from egg.core.distributed import get_preemptive_checkpoint_dir
+from egg.core.interaction import Interaction
+from egg.core.util import get_opts, move_to
 
 try:
     from torch.cuda.amp import GradScaler, autocast
@@ -163,7 +163,7 @@ class Trainer:
         else:
             self.scaler = None
 
-    def eval(self, data=None):
+    def eval(self, data=None, apply_noise=False):
         mean_loss = 0.0
         interactions = []
         n_batches = 0
@@ -174,7 +174,7 @@ class Trainer:
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
                 batch = batch.to(self.device)
-                optimized_loss, interaction = self.game(*batch)
+                optimized_loss, interaction = self.game(*batch, apply_noise=apply_noise)
                 if (
                     self.distributed_context.is_distributed
                     and self.aggregate_interaction_logs
@@ -263,14 +263,14 @@ class Trainer:
         full_interaction = Interaction.from_iterable(interactions)
         return mean_loss.item(), full_interaction
 
-    def train(self, n_epochs):
+    def train(self, n_epochs, second_val=False):
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
-        def wrap_tqdm(fn, n):
+        def wrap_tqdm(fn, total):
             opts = get_opts()
-            if opts.tqdm:
-                return tqdm(fn, total=n)
+            if opts.simple_logging and not opts.silent:
+                return tqdm(fn, total=total)
             else:
                 return fn
 
@@ -289,6 +289,7 @@ class Trainer:
                 and self.validation_freq > 0
                 and (epoch + 1) % self.validation_freq == 0
             ):
+                # Primary validation
                 for callback in self.callbacks:
                     callback.on_validation_begin(epoch + 1)
                 validation_loss, validation_interaction = self.eval()
@@ -297,6 +298,17 @@ class Trainer:
                     callback.on_validation_end(
                         validation_loss, validation_interaction, epoch + 1
                     )
+
+                # Secondary validation
+                if second_val:
+                    for callback in self.callbacks:
+                        callback.on_validation_begin(epoch + 1)
+                    validation_loss_2, validation_interaction_2 = self.eval(apply_noise=True)
+
+                    for callback in self.callbacks:
+                        callback.on_validation_end(
+                            validation_loss_2, validation_interaction_2, epoch + 1
+                        )
 
             if self.should_stop:
                 for callback in self.callbacks:

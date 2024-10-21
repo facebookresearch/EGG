@@ -1,0 +1,149 @@
+<concepts category="device">
+<concept name="candle">
+<shape_size>
+	different_shapes
+	is_cylindrical
+</shape_size>
+<parts>
+	has_wick
+</parts>
+<texture_material>
+	made_of_wax
+</texture_material>
+<colour_patterns>
+	different_colours
+</colour_patterns>
+</concept>
+<concept name="clock">
+<parts>
+	has_hands_(clock)
+	has_face_(clock)
+	has_symbols
+</parts>
+<shape_size>
+	is_round
+</shape_size>
+<texture_material>
+	made_of_metal
+</texture_material>
+<colour_patterns>
+	different_colours
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+<concept name="crane_(machine)">
+<colour_patterns>
+	is_red
+	is_grey
+	different_colours
+</colour_patterns>
+<parts>
+	has_hook<no_evidence/>
+	has_rope
+	has_job
+	has_boom
+	has_brace
+</parts>
+<shape_size>
+	is_tall
+</shape_size>
+<texture_material>
+	made_of_iron
+	made_of_steel
+</texture_material>
+</concept>
+<concept name="elevator">
+<shape_size>
+	is_large
+	is_box_shaped
+</shape_size>
+<parts>
+	has_keys
+	has_door
+	has_light<no_evidence/>
+	has_engine<no_evidence/>
+	has_push-buttons<no_evidence/>
+</parts>
+<texture_material>
+	made_of_steel
+	made_of_metal
+	made_of_glass
+</texture_material>
+<colour_patterns>
+	is_silver
+</colour_patterns>
+</concept>
+<concept name="key">
+<colour_patterns>
+	is_silver
+	is_black
+</colour_patterns>
+<parts>
+	has_prongs
+	has_blade
+	has_bow(head)
+	has_hole
+	has_plastic_head
+</parts>
+<texture_material>
+	is_shiny
+	made_of_metal
+</texture_material>
+<shape_size>
+	has_ridges
+	different_shapes
+	is_small
+	is_flat
+</shape_size>
+</concept>
+<concept name="lantern">
+<parts>
+	has_light<no_evidence/>
+	has_candle<no_evidence/>
+	has_stand
+</parts>
+<texture_material>
+	made_of_glass
+	made_of_metal
+</texture_material>
+<colour_patterns>
+	is_black
+	is_brown
+</colour_patterns>
+</concept>
+<concept name="microscope">
+<parts>
+	has_lenses
+	has_plug<no_evidence/>
+	has_light<no_evidence/>
+	has_eyepieces
+	has_arm
+</parts>
+<texture_material>
+	made_of_metal
+</texture_material>
+<colour_patterns>
+	is_black
+	is_white
+</colour_patterns>
+</concept>
+<concept name="wheel">
+<parts>
+	has_spokes
+	has_shield
+	has_rims
+</parts>
+<shape_size>
+	is_round
+</shape_size>
+<texture_material>
+	made_of_rubber
+	made_of_metal
+</texture_material>
+<colour_patterns>
+	is_silver
+	is_black
+</colour_patterns>
+</concept>
+</concepts>
