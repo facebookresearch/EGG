@@ -118,7 +118,7 @@ def main():
     optimizer = BayesianOptimization(
         f=func,
         pbounds=pbounds,
-        random_state=seed,
+        random_state=None,
         allow_duplicate_points=True,
         verbose=2)
 
