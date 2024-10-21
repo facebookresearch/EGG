@@ -52,25 +52,24 @@ class Observer:
             logger.update(event, instance)
 
 
-def game(sender_lr, receiver_lr_multiplier, vocab_size,
-         hidden_units, length_cost, run_id):
+def game(slr, rlr_multiplier, vocab_size, hidden_units, length_cost, run_id):
 
-    # global seed
+    global seed
 
     assert type(vocab_size) == int
     assert type(hidden_units) == int
 
-    # random_number = random.randint(0, 1000)
+    random_number = random.randint(0, 1000)
 
     params = [
         f'--vocab_size {vocab_size}',
         f'--sender_lr {slr}',
-        f'--receiver_lr {rlr_multiplier * sender_lr}',
+        f'--receiver_lr {rlr_multiplier * slr}',
         f'--erasure_pr 0.0',
         f'--length_cost {length_cost}',
         f'--sender_hidden {hidden_units}',
         f'--receiver_hidden {hidden_units}',
-        f'--random_seed 42',  # {random_number}',
+        f'--random_seed {random_number}',
         f'--filename {run_id}',
         '--sender_embedding 10',
         '--receiver_embedding 10',
@@ -104,10 +103,9 @@ def game(sender_lr, receiver_lr_multiplier, vocab_size,
     return results['results']['accuracy']
 
 
-def func(sender_lr, receiver_lr_multiplier, vocab_size,
-         hidden_units, length_cost):
+def func(slr, rlr_multiplier, vocab_size, hidden_units, length_cost):
     global run_count
-    acc =  game(sender_lr, receiver_lr_multiplier, int(vocab_size),
+    acc =  game(slr, rlr_multiplier, int(vocab_size),
                 int(hidden_units), length_cost, run_count)
     run_count += 1
     return acc
@@ -115,13 +113,13 @@ def func(sender_lr, receiver_lr_multiplier, vocab_size,
 
 def main():
     os.makedirs('search', exist_ok=True)
-    # random.seed(seed)
+    random.seed(seed)
 
     optimizer = BayesianOptimization(
         f=func,
         pbounds=pbounds,
         random_state=seed,
-        allow_duplicate_points=False,
+        allow_duplicate_points=True,
         verbose=2)
 
     optimizer.set_gp_params(alpha=1e-3, n_restarts_optimizer=5)
