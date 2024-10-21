@@ -136,7 +136,7 @@ def game(slr, rlr, vocab_size, hidden_units, length_cost, run_id):
         '--sender_embedding 10',
         '--receiver_embedding 10',
         '--dump_results_folder search/',
-        '--n_epochs 2',
+        '--n_epochs 10',
         '--max_len 5',
         '--sender_entropy_coeff 0.01',
         '--receiver_entropy_coeff 0.001',
@@ -206,7 +206,9 @@ def main():
 
     results_json = JSONLogger(path='search/search_results.json') 
     results_json.update = types.MethodType(transform_update_json, results_json)
-    logger_json = JSONLogger(path='search/search.log')
+
+    # logger for saving values without transformation (for resuming the search)
+    logger_json = JSONLogger(path='search/search_log.json')
 
     # create an Observer instance with both loggers
     observer = Observer(total=init_points+n_iter, loggers=[logger_json, results_json, logger_screen])
