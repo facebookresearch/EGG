@@ -93,7 +93,7 @@ def transform_update_json(self, event, instance):
         data['params'] = transform(data['params'])
         data['params']['rlr'] = data['params']['slr'] * data['params']['rlr_multiplier']
 
-        with open(self._path, 'w') as f:
+        with open(self._path, 'a') as f:
             f.write(json.dumps(data) + "\n")
 
 
