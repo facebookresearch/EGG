@@ -263,13 +263,13 @@ class Trainer:
         full_interaction = Interaction.from_iterable(interactions)
         return mean_loss.item(), full_interaction
 
-    def train(self, n_epochs):
+    def train(self, n_epochs, second_val=False):
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
         def wrap_tqdm(fn, total):
             opts = get_opts()
-            if opts.simple_logging:
+            if opts.simple_logging and not opts.silent:
                 return tqdm(fn, total=total)
             else:
                 return fn
@@ -300,14 +300,15 @@ class Trainer:
                     )
 
                 # Secondary validation
-                for callback in self.callbacks:
-                    callback.on_validation_begin(epoch + 1)
-                validation_loss_2, validation_interaction_2 = self.eval(apply_noise=True)
+                if second_val:
+                    for callback in self.callbacks:
+                        callback.on_validation_begin(epoch + 1)
+                    validation_loss_2, validation_interaction_2 = self.eval(apply_noise=True)
 
-                for callback in self.callbacks:
-                    callback.on_validation_end(
-                        validation_loss_2, validation_interaction_2, epoch + 1
-                    )
+                    for callback in self.callbacks:
+                        callback.on_validation_end(
+                            validation_loss_2, validation_interaction_2, epoch + 1
+                        )
 
             if self.should_stop:
                 for callback in self.callbacks:

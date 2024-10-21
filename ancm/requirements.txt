@@ -5,7 +5,6 @@ cloudpickle==3.0.0
 dataclasses==0.6
 docker-pycreds==0.4.0
 editdistance==0.8.1
--e git+ssh://git@github.com/francijnk/EGG.git@5b2c21969a667148287d1f33066c94a5d9fc6b1e#egg=EGG
 exceptiongroup==1.2.2
 filelock==3.16.1
 fsspec==2024.9.0
