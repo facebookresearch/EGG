@@ -23,7 +23,7 @@ pbounds = {
     'rlr_multiplier': (-1, 1),  # transformed to (0.1, 10)
     'vocab_size': (1, 2),       # transformed to (10, 100)
     'hidden_units': (3, 6),     # transformed to (8, 64)
-    'length_cost': (2, 4),      # transformed to (10^-2, 10^-4)
+    'length_cost': (1, 6),      # transformed to (10^-1, 10^-6)
 }
 
 init_points = 8
