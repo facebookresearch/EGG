@@ -6,12 +6,13 @@ from sklearn.metrics.pairwise import cosine_similarity, pairwise_distances
 from Levenshtein import distance
 from scipy.stats import pearsonr, spearmanr
 
-from archs import ErasureChannel
+from ancm.archs import ErasureChannel
 
 from typing import Optional
 
 from egg.core.util import move_to
 from egg.zoo.objects_game.util import mutual_info, entropy
+#from egg.zoo.language_bottleneck.intervention import entropy, mutual_info
 
 
 def is_jsonable(x):
@@ -112,6 +113,46 @@ def compute_top_sim(sender_inputs, messages, dimensions=None):
 
     rho = spearmanr(cos_sims, lev_dists, axis=None).statistic * -1 
     return rho
+
+def compute_posdis(sender_inputs, messages):
+    gaps = torch.zeros(messages.size(1))
+    non_constant_positions = 0.0
+
+    for j in range(messages.size(1)):
+        symbol_mi = []
+        h_j = None
+        for i in range(sender_inputs.size(1)):
+            x, y = sender_inputs[:, i], sender_inputs[:, j]
+            info = mutual_info(x, y)
+            symbol_mi.append(info)
+
+            if h_j is None:
+                h_j = entropy(y)
+
+        symbol_mi.sort(reverse=True)
+
+        if h_j > 0.0:
+            gaps[j] = (symbol_mi[0] - symbol_mi[1]) / h_j
+            non_constant_positions += 1
+
+    score = gaps.sum() / non_constant_positions
+    return score.item()
+
+def histogram(strings, vocab_size):
+    batch_size = strings.size(0)
+
+    histogram = torch.zeros(batch_size, vocab_size, device=strings.device)
+
+    for v in range(vocab_size):
+        histogram[:, v] = strings.eq(v).sum(dim=-1)
+
+    return histogram
+
+
+
+def compute_bosdis(sender_inputs, messages, vocab_size):
+    histograms = histogram(messages, vocab_size)
+    return compute_posdis(sender_inputs, histograms[:, 1:])
 
 
 def dump_sender_receiver(

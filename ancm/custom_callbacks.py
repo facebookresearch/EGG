@@ -18,7 +18,7 @@ from rich.progress import (
 from rich.table import Table, Column
 from rich.text import Text
 
-from util import compute_top_sim, compute_alignment
+from ancm.util import compute_top_sim, compute_alignment, compute_posdis, compute_bosdis
 
 from egg.core.callbacks import Callback, CustomProgress
 from egg.core.interaction import Interaction
@@ -297,6 +297,37 @@ class TopographicRhoCallback(Callback):
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['topographic_rho'] = None
+
+class PosDisCallback(Callback):
+    def __init__(self):
+        pass
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs is not None:
+            sender_inputs, messages = [], []
+            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
+                sender_inputs.extend(zip(*logs.sender_input))
+            else:
+                sender_inputs.extend(logs.sender_input)
+            logs.aux['pos_dis'] = compute_posdis(logs.sender_input, logs.message)
+    
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        logs.aux['pos_dis'] = None
+
+class BosDisCallback(Callback):
+    def __init__(self):
+        pass
+    def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
+        if logs is not None:
+            sender_inputs, messages = [], []
+            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
+                sender_inputs.extend(zip(*logs.sender_input))
+            else:
+                sender_inputs.extend(logs.sender_input)
+            logs.aux['pos_dis'] = compute_bosdis(logs.sender_input, logs.message)
+
+    def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
+        logs.aux['bos_dis'] = None
+    
 
 
 class AlignmentCallback(Callback):

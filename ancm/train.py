@@ -22,25 +22,29 @@ import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.features import VectorsLoader
 
-from trainers import Trainer
-from util import (
+from ancm.trainers import Trainer
+from ancm.util import (
     dump_sender_receiver,
     compute_alignment,
     compute_mi_input_msgs,
     compute_top_sim,
+    compute_posdis,
+    compute_bosdis,
     is_jsonable,
 )
-from archs import (
+from ancm.archs import (
     SenderGS, ReceiverGS,
     loss_gs, SenderReceiverRnnGS,
     SenderReinforce, ReceiverReinforce,
     loss_reinforce, SenderReceiverRnnReinforce
 )
-from custom_callbacks import (
+from ancm.custom_callbacks import (
     CustomProgressBarLogger,
     LexiconSizeCallback,
     AlignmentCallback,
     TopographicRhoCallback,
+    PosDisCallback,
+    BosDisCallback
 )
 
 
@@ -234,7 +238,9 @@ def main(params):
                 test_data_len=len(validation_data),
                 step=opts.validation_freq,
                 dump_results_folder=opts.dump_results_folder,
-                filename=opts.filename)
+                filename=opts.filename),
+            PosDisCallback(),
+            BosDisCallback()
         ]
     if not opts.no_rho:
         callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
@@ -283,11 +289,15 @@ def main(params):
         alignment = compute_alignment(
             test_data, _receiver, _sender, device, opts.batch_size)
         top_sim = compute_top_sim(sender_inputs, messages, opts.perceptual_dimensions)
+        pos_dis = compute_posdis(sender_input, messages)
+        bos_dis = compute_posdis(sender_input, messages, opts.vocab_size)
 
         output_dict['results']['accuracy'] = accuracy
         output_dict['results']['f1-micro'] = f1
         output_dict['results']['embedding_alignment'] = alignment
         output_dict['results']['topographic_rho'] = top_sim
+        output_dict['results']['pos_dis'] = pos_dis
+        output_dict['results']['bos_dis'] = bos_dis
 
         unique_dict = {}
         for elem in sender_inputs:
@@ -306,6 +316,8 @@ def main(params):
         entropy_inp_dim = f"{[round(x, 3) for x in mi_result['entropy_inp_dim']]}"
         mi_dim = f'{[round(x, 3) for x in mi_result["mi_dim"]]}'
         t_rho = f'{top_sim:.3f}'
+        p_dis = f'{pos_dis:.3f}'
+        b_dis = f'{bos_dis:.3f}'
 
         # If we applied noise during training,
         # compute results after disabling noise in the test phase as well
@@ -326,11 +338,15 @@ def main(params):
             accuracy2 = torch.mean((preds2 == labels2).float()).item() * 100
             f12 =  f1_score(labels2, preds2, average='micro').item() * 100
             top_sim2 = compute_top_sim(sender_inputs2, messages2, opts.perceptual_dimensions)
+            pos_dis2 = compute_posdis(sender_inputs2, messages2)
+            bos_dis2 = compute_posdis(sender_inputs2, messages2, opts.vocab_size)
 
             output_dict['results-no-noise']['accuracy'] = accuracy2
             output_dict['results-no-noise']['f1-micro'] = f12
             output_dict['results-no-noise']['embedding_alignment'] = alignment
             output_dict['results-no-noise']['topographic_rho'] = top_sim2
+            output_dict['results-no-noise']['pos_dis'] = pos_dis2
+            output_dict['results-no-noise']['bos_dis'] = bos_dis2
 
             acc_str = f'{accuracy:.2f} / {accuracy2:.2f}'
             f1_str = f'{f1:.2f} / {f12:.2f}'
@@ -341,6 +357,9 @@ def main(params):
             mi += f" / {mi_result2['mi']:.3f}"
             mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
             t_rho += f" / {top_sim2:.3f}"
+            p_dis = f'{pos_dis2:.3f}'
+            b_dis = f'{bos_dis2:.3f}'
+
 
             if not opts.silent:
                 if not opts.simple_logging:
@@ -448,6 +467,7 @@ def main(params):
         print('| Training time per epoch:', time_per_epoch)
 
 if __name__ == "__main__":
+
     import sys
 
     main(sys.argv[1:])
