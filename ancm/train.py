@@ -55,7 +55,6 @@ def get_params(params):
     parser.add_argument("--validation_samples", type=float, default=1e3, help="Number of tuples in validation data (default: 1e4)")
     parser.add_argument("--test_samples", type=float, default=1e3, help="Number of tuples in test data (default: 1e3)")
     parser.add_argument("--data_seed", type=int, default=42, help="Seed for random creation of train, validation and test tuples (default: 42)")
-    parser.add_argument("--seed", type=int, default=42, help="Seed for training reproducibility (default: 42)")
     parser.add_argument("--erasure_pr", type=float, default=0., help="Probability of erasing a symbol (default: 0.0)")
     parser.add_argument("--no_shuffle", action="store_false", default=True, help="Do not shuffle train data before every epoch (default: False)")
     parser.add_argument("--sender_hidden", type=int, default=50, help="Size of the hidden layer of Sender (default: 50)")
@@ -83,7 +82,6 @@ def get_params(params):
 
     args = core.init(parser, params)
 
-    args.random_seed = args.seed
     check_args(args)
     if not args.silent:
         print(args)
@@ -176,7 +174,7 @@ def main(params):
             opts.max_len, opts.vocab_size, opts.erasure_pr,
             length_cost=opts.length_cost,
             device=device,
-            seed=opts.seed)
+            seed=opts.random_seed)
         optimizer = torch.optim.Adam([
             {"params": game.sender.parameters(), "lr": opts.sender_lr},
             {"params": game.receiver.parameters(), "lr": opts.receiver_lr},
@@ -205,7 +203,7 @@ def main(params):
             receiver_entropy_coeff=opts.receiver_entropy_coeff,
             length_cost=opts.length_cost,
             device=device,
-            seed=opts.seed)
+            seed=opts.random_seed)
         optimizer = torch.optim.RMSprop([
             {"params": game.sender.parameters(), "lr": opts.sender_lr},
             {"params": game.receiver.parameters(), "lr": opts.receiver_lr},
