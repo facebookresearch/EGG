@@ -12,8 +12,7 @@ from typing import Optional
 
 from egg.core.util import move_to
 from egg.zoo.objects_game.util import mutual_info, entropy
-#from egg.zoo.language_bottleneck.intervention import entropy, mutual_info
-
+from egg.zoo.language_bottleneck.intervention import entropy as entropy1, mutual_info as mutual_info1
 
 def is_jsonable(x):
     try:
@@ -21,7 +20,6 @@ def is_jsonable(x):
         return True
     except (TypeError, OverflowError):
         return False
-
 
 def compute_alignment(dataloader, sender, receiver, device, bs):
     all_features = dataloader.dataset.list_of_tuples
@@ -69,6 +67,7 @@ def compute_mi_input_msgs(sender_inputs, messages):
     }
 
 
+
 def compute_top_sim(sender_inputs, messages, dimensions=None):
     obj_tensor = torch.stack(sender_inputs) \
         if isinstance(sender_inputs, list) else sender_inputs
@@ -114,20 +113,36 @@ def compute_top_sim(sender_inputs, messages, dimensions=None):
     rho = spearmanr(cos_sims, lev_dists, axis=None).statistic * -1 
     return rho
 
-def compute_posdis(sender_inputs, messages):
-    gaps = torch.zeros(messages.size(1))
-    non_constant_positions = 0.0
 
-    for j in range(messages.size(1)):
+
+def compute_posdis(sender_inputs, messages):
+    attributes = []
+    strings = []
+    for sender_input in sender_inputs:
+        attributes.append(sender_input)
+
+    messages = [msg.argmax(dim=1).tolist() if msg.dim() == 2
+                else msg.tolist() for msg in messages]
+    for message in messages:
+        strings.append(message)
+    
+    attributes = torch.stack(attributes, dim=0)
+    strings = torch.tensor(strings, dtype=torch.float32)
+
+
+    gaps = torch.zeros(strings.size(1))
+    non_constant_positions = 0.0
+    for j in range(strings.size(1)):
         symbol_mi = []
         h_j = None
-        for i in range(sender_inputs.size(1)):
-            x, y = sender_inputs[:, i], sender_inputs[:, j]
-            info = mutual_info(x, y)
+        for i in range(attributes.size(1)):
+            x, y = attributes[:, i], strings[:, j]
+            info = mutual_info1(x, y)
             symbol_mi.append(info)
 
             if h_j is None:
-                h_j = entropy(y)
+                h_j = entropy1(y)
+                
 
         symbol_mi.sort(reverse=True)
 
@@ -138,16 +153,20 @@ def compute_posdis(sender_inputs, messages):
     score = gaps.sum() / non_constant_positions
     return score.item()
 
-def histogram(strings, vocab_size):
-    batch_size = strings.size(0)
+def histogram(messages, vocab_size):
+    messages = torch.stack(messages) \
+        if isinstance(messages, list) else messages
 
-    histogram = torch.zeros(batch_size, vocab_size, device=strings.device)
+    # Create a histogram with size [batch_size, vocab_size] initialized with zeros
+    histogram = torch.zeros(messages.size(0), vocab_size)
 
-    for v in range(vocab_size):
-        histogram[:, v] = strings.eq(v).sum(dim=-1)
+    if messages.dim() > 2:
+        messages = messages.view(messages.size(0), -1)
+    
+    # Count occurrences of each value in strings and store them in histogram
+    histogram.scatter_add_(1, messages.long(), torch.ones_like(messages, dtype=torch.float))
 
     return histogram
-
 
 
 def compute_bosdis(sender_inputs, messages, vocab_size):

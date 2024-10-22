@@ -308,14 +308,18 @@ class PosDisCallback(Callback):
                 sender_inputs.extend(zip(*logs.sender_input))
             else:
                 sender_inputs.extend(logs.sender_input)
-            logs.aux['pos_dis'] = compute_posdis(logs.sender_input, logs.message)
+            if isinstance(logs.message, list) or isinstance(logs.message, tuple):
+                messages.extend(zip(*logs.message))
+            else:
+                messages.extend(logs.message)
+            logs.aux['pos_dis'] = compute_posdis(sender_inputs, messages)
     
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['pos_dis'] = None
 
 class BosDisCallback(Callback):
-    def __init__(self):
-        pass
+    def __init__(self, vocab_size):
+        self.vocab_size = vocab_size
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if logs is not None:
             sender_inputs, messages = [], []
@@ -323,7 +327,11 @@ class BosDisCallback(Callback):
                 sender_inputs.extend(zip(*logs.sender_input))
             else:
                 sender_inputs.extend(logs.sender_input)
-            logs.aux['pos_dis'] = compute_bosdis(logs.sender_input, logs.message)
+            if isinstance(logs.message, list) or isinstance(logs.message, tuple):
+                messages.extend(zip(*logs.message))
+            else:
+                messages.extend(logs.message)
+            logs.aux['bos_dis'] = compute_bosdis(sender_inputs, messages, self.vocab_size)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['bos_dis'] = None

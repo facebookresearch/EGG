@@ -240,7 +240,7 @@ def main(params):
                 dump_results_folder=opts.dump_results_folder,
                 filename=opts.filename),
             PosDisCallback(),
-            BosDisCallback()
+            BosDisCallback(opts.vocab_size)
         ]
     if not opts.no_rho:
         callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
@@ -289,9 +289,14 @@ def main(params):
         alignment = compute_alignment(
             test_data, _receiver, _sender, device, opts.batch_size)
         top_sim = compute_top_sim(sender_inputs, messages, opts.perceptual_dimensions)
-        pos_dis = compute_posdis(sender_input, messages)
-        bos_dis = compute_posdis(sender_input, messages, opts.vocab_size)
-
+        #pos_dis = 0
+        #bos_dis = 0
+        #for message in messages:
+        pos_dis = compute_posdis(sender_inputs, messages)
+        bos_dis = compute_bosdis(sender_inputs, messages, opts.vocab_size)
+        #pos_dis = pos_dis/len(messages)
+        #bos_dis = bos_dis/len(messages)
+    
         output_dict['results']['accuracy'] = accuracy
         output_dict['results']['f1-micro'] = f1
         output_dict['results']['embedding_alignment'] = alignment
@@ -339,7 +344,7 @@ def main(params):
             f12 =  f1_score(labels2, preds2, average='micro').item() * 100
             top_sim2 = compute_top_sim(sender_inputs2, messages2, opts.perceptual_dimensions)
             pos_dis2 = compute_posdis(sender_inputs2, messages2)
-            bos_dis2 = compute_posdis(sender_inputs2, messages2, opts.vocab_size)
+            bos_dis2 = compute_bosdis(sender_inputs2, messages2, opts.vocab_size)
 
             output_dict['results-no-noise']['accuracy'] = accuracy2
             output_dict['results-no-noise']['f1-micro'] = f12
@@ -390,6 +395,8 @@ def main(params):
             print("|")
             print("|" + "Embedding alignment:".rjust(align) + f" {alignment:.2f}")
             print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
+            print("|" + "PosDis:".rjust(align) + f" {p_dis}")
+            print("|" + "BosDis:".rjust(align) + f" {b_dis}")
 
         if opts.dump_results_folder:
             opts.dump_results_folder.mkdir(exist_ok=True)
@@ -439,6 +446,9 @@ def main(params):
                 print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
                 print("|" + "Lexicon size:".rjust(align), lexicon_size)
                 print("|")
+                print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
+                print("|" + "PosDis:".rjust(align) + f" {p_dis}")
+                print("|" + "BosDis:".rjust(align) + f" {b_dis}")
 
             output_dict['results']['unique_targets'] = len(unique_dict.keys())
             output_dict['results']['unique_msg'] = len(msg_dict.keys())
