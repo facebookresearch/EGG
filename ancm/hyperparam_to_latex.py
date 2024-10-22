@@ -10,11 +10,11 @@ with open('search/search_log.json') as fp:
         output += f'{data["target"]:.2f} & '
         params = transform(data['params'])
         params = (
-            f'{params["slr"]:.5f}',
-            f'{params["slr"] * params["rlr_multiplier"]:.5f}',
+            f'\\lrate{{{params["slr"]:.5f}}}',
+            f'\\lrate{{{params["slr"] * params["rlr_multiplier"]:.5f}}}',
             str(int(params['vocab_size'])),
             str(int(params['hidden_units'])),
-            f'{params["length_cost"]:.7f}',
+            f'\\lrate{{{params["length_cost"] * params["lc_multiplier"]:.7f}}}' if params["lc_multiplier"] != 0 else '0',
         )
         output += ' & '.join(params)
         output += ' \\\\'

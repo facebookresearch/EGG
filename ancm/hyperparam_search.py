@@ -19,15 +19,16 @@ from bayes_opt.logger import JSONLogger, ScreenLogger
 
 
 pbounds = {
-    'slr': (2, 4),              # transformed to (10^-2, 10^-4)
-    'rlr_multiplier': (-1, 1),  # transformed to (0.1, 10)
-    'vocab_size': (1, 2),       # transformed to (10, 100)
-    'hidden_units': (3, 6),     # transformed to (8, 64)
-    'length_cost': (1, 6),      # transformed to (10^-1, 10^-6)
+    'slr': (2, 4),               # transformed to (10^-2, 10^-4)
+    'rlr_multiplier': (-1, 1),   # transformed to (0.1, 10)
+    'vocab_size': (1, 2),        # transformed to (10, 100)
+    'hidden_units': (3, 6),      # transformed to (8, 64)
+    'length_cost': (1, 6),       # transformed to (10^-1, 10^-6)
+    'lc_multiplier': (0, 1),     # transformed to {0, 1}
 }
 
-init_points = 8
-n_iter = 32
+init_points = 12
+n_iter = 24
 
 run_count = 1
 seed = 42
@@ -53,6 +54,9 @@ def transform(params):
 
     # maps (1, 6) to (10^-1, 10^-6)
     output_dict['length_cost'] = math.exp(-params['length_cost'] * math.log(10))
+
+    # maps (0, 1) to {0, 1}
+    output_dict['lc_multiplier'] = round(params['lc_multiplier'])
 
     return output_dict
 
@@ -92,6 +96,7 @@ def transform_update_json(self, event, instance):
 
         data['params'] = transform(data['params'])
         data['params']['rlr'] = data['params']['slr'] * data['params']['rlr_multiplier']
+        data['params']['lc'] = float(data['params']['length_cost'] * data['params']['lc_multiplier'])
 
         with open(self._path, 'a') as f:
             f.write(json.dumps(data) + "\n")
@@ -128,7 +133,7 @@ def game(slr, rlr, vocab_size, hidden_units, length_cost, run_id):
         f'--sender_lr {slr}',
         f'--receiver_lr {rlr}',
         f'--erasure_pr 0.0',
-        f'--length_cost {length_cost}',
+        f'--length_cost {float(length_cost)}',
         f'--sender_hidden {hidden_units}',
         f'--receiver_hidden {hidden_units}',
         f'--random_seed {random_number}',
@@ -165,14 +170,15 @@ def game(slr, rlr, vocab_size, hidden_units, length_cost, run_id):
     return results['results']['accuracy']
 
 
-def func(slr, rlr_multiplier, vocab_size, hidden_units, length_cost):
+def func(slr, rlr_multiplier, vocab_size, hidden_units, length_cost, lc_multiplier):
     global run_count
     params = {
         'slr': slr,
         'rlr_multiplier': rlr_multiplier,
         'vocab_size': vocab_size,
         'hidden_units': hidden_units,
-        'length_cost': length_cost}
+        'length_cost': length_cost,
+        'lc_multiplier': lc_multiplier}
     params = transform(params)
 
     acc =  game(
@@ -180,7 +186,7 @@ def func(slr, rlr_multiplier, vocab_size, hidden_units, length_cost):
         params['slr'] * params['rlr_multiplier'],
         params['vocab_size'],
         params['hidden_units'],
-        params['length_cost'],
+        float(params['length_cost'] * params['lc_multiplier']),
         run_count)
 
     run_count += 1
@@ -194,8 +200,8 @@ def main():
     optimizer = BayesianOptimization(
         f=func,
         pbounds=pbounds,
-        random_state=10,
-        allow_duplicate_points=True,
+        random_state=seed,
+        allow_duplicate_points=False,
         verbose=2)
 
     optimizer.set_gp_params(alpha=1e-3, n_restarts_optimizer=5)
