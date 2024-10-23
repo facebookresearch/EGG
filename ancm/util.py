@@ -145,6 +145,7 @@ def compute_posdis(sender_inputs, messages):
     score = gaps.sum() / non_constant_positions
     return score.item()
 
+
 def histogram(messages, vocab_size):
     messages = [msg.argmax(dim=1) if msg.dim() == 2
                 else msg for msg in messages]
@@ -152,11 +153,15 @@ def histogram(messages, vocab_size):
     messages = torch.stack(messages) \
         if isinstance(messages, list) else messages
 
+    # Handle messages with added noise
+    if vocab_size in messages:
+        vocab_size += 1
+
     # Create a histogram with size [batch_size, vocab_size] initialized with zeros
     histogram = torch.zeros(messages.size(0), vocab_size)
 
     if messages.dim() > 2:
-        messages = messages.view(messages.size(0), -1)
+       messages = messages.view(messages.size(0), -1)
     
     # Count occurrences of each value in strings and store them in histogram
     histogram.scatter_add_(1, messages.long(), torch.ones_like(messages, dtype=torch.float))
