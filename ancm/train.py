@@ -428,7 +428,7 @@ def main(params):
 
             sorted_msgs = sorted(msg_dict.items(), key=operator.itemgetter(1), reverse=True)
 
-            if opts.erasure_pr != 0:
+            if opts.erasure_pr != 0.:
                 msg_dict2 = defaultdict(int)
                 for sender_input, message, receiver_input, receiver_output, label \
                         in zip(sender_inputs2, messages2, receiver_inputs2, receiver_outputs2, labels2):
@@ -443,7 +443,7 @@ def main(params):
 
                 sorted_msgs2 = sorted(msg_dict2.items(), key=operator.itemgetter(1), reverse=True)
 
-            lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
+            lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr == 0 \
                 else f'{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
             if not opts.silent:
                 print("|")
