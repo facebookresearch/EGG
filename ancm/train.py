@@ -82,7 +82,7 @@ def get_params(params):
     parser.add_argument("--filename", type=str, default=None, help="Filename (no extension)")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
-    parser.add_argument("--no_rho", action="store_true", default=False, help="Disable computing topographic rho during training")
+    parser.add_argument("--no_compositionality_metrics", action="store_true", default=False, help="Disable computing topographic rho during training")
     parser.add_argument("--silent", action="store_true", default=False, help="Do not print eval stats during training")
 
     args = core.init(parser, params)
@@ -231,22 +231,28 @@ def main(params):
         callbacks = [
             LexiconSizeCallback(),
             AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
-            CustomProgressBarLogger(
-                n_epochs=opts.n_epochs,
-                print_train_metrics=True,
-                train_data_len=len(train_data),
-                test_data_len=len(validation_data),
-                step=opts.validation_freq,
-                dump_results_folder=opts.dump_results_folder,
-                filename=opts.filename),
+       ]
+
+    if not opts.no_compositionality_metrics:
+        callbacks.extend([
+            TopographicRhoCallback(opts.perceptual_dimensions),
             PosDisCallback(),
-            BosDisCallback(opts.vocab_size)
-        ]
-    if not opts.no_rho:
-        callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
+            BosDisCallback(opts.vocab_size),
+        ])
+
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
 
+    if not opts.silent and not opts.simple_logging:
+        callbacks.append(CustomProgressBarLogger(
+            n_epochs=opts.n_epochs,
+            print_train_metrics=True,
+            train_data_len=len(train_data),
+            test_data_len=len(validation_data),
+            step=opts.validation_freq,
+            dump_results_folder=opts.dump_results_folder,
+            filename=opts.filename))
+ 
     trainer = Trainer(
         game=game,
         optimizer=optimizer,
@@ -256,7 +262,7 @@ def main(params):
         callbacks=callbacks)
 
     t_start = time.monotonic()
-    if opts.silent or opts.simple_logging:
+    if opts.silent or opts.simple_logging or opts.erasure_pr == 0.:
         trainer.train(n_epochs=opts.n_epochs, second_val=False)
     else:
         trainer.train(n_epochs=opts.n_epochs, second_val=True)
@@ -440,7 +446,7 @@ def main(params):
                 sorted_msgs2 = sorted(msg_dict2.items(), key=operator.itemgetter(1), reverse=True)
 
             lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
-                else '{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
+                else f'{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
             if not opts.silent:
                 print("|")
                 print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))

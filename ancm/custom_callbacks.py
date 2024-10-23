@@ -107,7 +107,7 @@ class CustomProgressBarLogger(Callback):
             start=False,
             visible=False,
             total=self.train_data_len)
- 
+
         self.style = defaultdict(str)
         self.style.update({'train': 'grey58'})
 
@@ -119,7 +119,7 @@ class CustomProgressBarLogger(Callback):
         aux = {k: float(torch.mean(v)) if isinstance(v, torch.Tensor) else v for k, v in logs.aux.items()}
         od.update(aux)
         return od
- 
+
     def get_row(self, od, header=False):
         row = Table(expand=True, box=None, show_header=header,
                     show_footer=False, padding=(0,1), pad_edge=True)
@@ -137,7 +137,7 @@ class CustomProgressBarLogger(Callback):
 
     @staticmethod
     def format_metric_val(val):
-        if val is None:
+        if val is None or val !=  val:
             return '–'
         elif isinstance(val, int):
             return str(val)
@@ -181,7 +181,7 @@ class CustomProgressBarLogger(Callback):
             row = self.get_row(od)
             self.console.print(row)
             self.history['train'][epoch] = od
-        
+
         self.progress.stop_task(self.train_p)
         self.progress.update(self.train_p, visible=False)
 
@@ -288,54 +288,34 @@ class TopographicRhoCallback(Callback):
 
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if logs is not None:
-            sender_inputs, messages = [], []
-            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
-                sender_inputs.extend(zip(*logs.sender_input))
-            else:
-                sender_inputs.extend(logs.sender_input)
             logs.aux['topographic_rho'] = compute_top_sim(logs.sender_input, logs.message)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['topographic_rho'] = None
 
+
 class PosDisCallback(Callback):
     def __init__(self):
         pass
+
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if logs is not None:
-            sender_inputs, messages = [], []
-            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
-                sender_inputs.extend(zip(*logs.sender_input))
-            else:
-                sender_inputs.extend(logs.sender_input)
-            if isinstance(logs.message, list) or isinstance(logs.message, tuple):
-                messages.extend(zip(*logs.message))
-            else:
-                messages.extend(logs.message)
-            logs.aux['pos_dis'] = compute_posdis(sender_inputs, messages)
-    
+            logs.aux['pos_dis'] = compute_posdis(logs.sender_input, logs.message)
+
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['pos_dis'] = None
+
 
 class BosDisCallback(Callback):
     def __init__(self, vocab_size):
         self.vocab_size = vocab_size
+
     def on_validation_end(self, loss: float, logs: Interaction, epoch: int):
         if logs is not None:
-            sender_inputs, messages = [], []
-            if isinstance(logs.sender_input, list) or isinstance(logs.sender_input, tuple):
-                sender_inputs.extend(zip(*logs.sender_input))
-            else:
-                sender_inputs.extend(logs.sender_input)
-            if isinstance(logs.message, list) or isinstance(logs.message, tuple):
-                messages.extend(zip(*logs.message))
-            else:
-                messages.extend(logs.message)
-            logs.aux['bos_dis'] = compute_bosdis(sender_inputs, messages, self.vocab_size)
+            logs.aux['bos_dis'] = compute_bosdis(logs.sender_input, logs.message, self.vocab_size)
 
     def on_epoch_end(self, loss: float, logs: Interaction, epoch: int):
         logs.aux['bos_dis'] = None
-    
 
 
 class AlignmentCallback(Callback):

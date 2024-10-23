@@ -114,21 +114,13 @@ def compute_top_sim(sender_inputs, messages, dimensions=None):
     return rho
 
 
-
 def compute_posdis(sender_inputs, messages):
-    attributes = []
-    strings = []
-    for sender_input in sender_inputs:
-        attributes.append(sender_input)
+    messages = [msg.argmax(dim=1) if msg.dim() == 2
+                else msg for msg in messages]
+    strings = torch.nn.utils.rnn.pad_sequence(messages, batch_first=True)
 
-    messages = [msg.argmax(dim=1).tolist() if msg.dim() == 2
-                else msg.tolist() for msg in messages]
-    for message in messages:
-        strings.append(message)
-    
-    attributes = torch.stack(attributes, dim=0)
-    strings = torch.tensor(strings, dtype=torch.float32)
-
+    attributes = torch.stack(sender_inputs) \
+        if isinstance(sender_inputs, list) else sender_inputs
 
     gaps = torch.zeros(strings.size(1))
     non_constant_positions = 0.0
@@ -154,6 +146,9 @@ def compute_posdis(sender_inputs, messages):
     return score.item()
 
 def histogram(messages, vocab_size):
+    messages = [msg.argmax(dim=1) if msg.dim() == 2
+                else msg for msg in messages]
+    messages = torch.nn.utils.rnn.pad_sequence(messages, batch_first=True)
     messages = torch.stack(messages) \
         if isinstance(messages, list) else messages
 
