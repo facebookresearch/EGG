@@ -22,25 +22,29 @@ import egg.core as core
 from egg.core.util import move_to
 from egg.zoo.objects_game.features import VectorsLoader
 
-from trainers import Trainer
-from util import (
+from ancm.trainers import Trainer
+from ancm.util import (
     dump_sender_receiver,
     compute_alignment,
     compute_mi_input_msgs,
     compute_top_sim,
+    compute_posdis,
+    compute_bosdis,
     is_jsonable,
 )
-from archs import (
+from ancm.archs import (
     SenderGS, ReceiverGS,
     loss_gs, SenderReceiverRnnGS,
     SenderReinforce, ReceiverReinforce,
     loss_reinforce, SenderReceiverRnnReinforce
 )
-from custom_callbacks import (
+from ancm.custom_callbacks import (
     CustomProgressBarLogger,
     LexiconSizeCallback,
     AlignmentCallback,
     TopographicRhoCallback,
+    PosDisCallback,
+    BosDisCallback
 )
 
 
@@ -77,7 +81,7 @@ def get_params(params):
     parser.add_argument("--filename", type=str, default=None, help="Filename (no extension)")
     parser.add_argument("--debug", action="store_true", default=False, help="Run egg/objects_game with pdb enabled")
     parser.add_argument("--simple_logging", action="store_true", default=False, help="Use console logger instead of progress bar")
-    parser.add_argument("--no_rho", action="store_true", default=False, help="Disable computing topographic rho during training")
+    parser.add_argument("--no_compositionality_metrics", action="store_true", default=False, help="Disable computing topographic rho during training")
     parser.add_argument("--silent", action="store_true", default=False, help="Do not print eval stats during training")
 
     args = core.init(parser, params)
@@ -225,20 +229,28 @@ def main(params):
         callbacks = [
             LexiconSizeCallback(),
             AlignmentCallback(_sender, _receiver, test_data, device, opts.validation_freq, opts.batch_size),
-            CustomProgressBarLogger(
-                n_epochs=opts.n_epochs,
-                print_train_metrics=True,
-                train_data_len=len(train_data),
-                test_data_len=len(validation_data),
-                step=opts.validation_freq,
-                dump_results_folder=opts.dump_results_folder,
-                filename=opts.filename)
-        ]
-    if not opts.no_rho:
-        callbacks.append(TopographicRhoCallback(opts.perceptual_dimensions))
+       ]
+
+    if not opts.no_compositionality_metrics:
+        callbacks.extend([
+            TopographicRhoCallback(opts.perceptual_dimensions),
+            PosDisCallback(),
+            BosDisCallback(opts.vocab_size),
+        ])
+
     if opts.mode.lower() == "gs":
         callbacks.append(core.TemperatureUpdater(agent=sender, decay=0.9, minimum=0.1))
 
+    if not opts.silent and not opts.simple_logging:
+        callbacks.append(CustomProgressBarLogger(
+            n_epochs=opts.n_epochs,
+            print_train_metrics=True,
+            train_data_len=len(train_data),
+            test_data_len=len(validation_data),
+            step=opts.validation_freq,
+            dump_results_folder=opts.dump_results_folder,
+            filename=opts.filename))
+ 
     trainer = Trainer(
         game=game,
         optimizer=optimizer,
@@ -248,7 +260,7 @@ def main(params):
         callbacks=callbacks)
 
     t_start = time.monotonic()
-    if opts.silent or opts.simple_logging:
+    if opts.silent or opts.simple_logging or opts.erasure_pr == 0.:
         trainer.train(n_epochs=opts.n_epochs, second_val=False)
     else:
         trainer.train(n_epochs=opts.n_epochs, second_val=True)
@@ -281,11 +293,20 @@ def main(params):
         alignment = compute_alignment(
             test_data, _receiver, _sender, device, opts.batch_size)
         top_sim = compute_top_sim(sender_inputs, messages, opts.perceptual_dimensions)
-
+        #pos_dis = 0
+        #bos_dis = 0
+        #for message in messages:
+        pos_dis = compute_posdis(sender_inputs, messages)
+        bos_dis = compute_bosdis(sender_inputs, messages, opts.vocab_size)
+        #pos_dis = pos_dis/len(messages)
+        #bos_dis = bos_dis/len(messages)
+    
         output_dict['results']['accuracy'] = accuracy
         output_dict['results']['f1-micro'] = f1
         output_dict['results']['embedding_alignment'] = alignment
         output_dict['results']['topographic_rho'] = top_sim
+        output_dict['results']['pos_dis'] = pos_dis
+        output_dict['results']['bos_dis'] = bos_dis
 
         unique_dict = {}
         for elem in sender_inputs:
@@ -304,6 +325,8 @@ def main(params):
         entropy_inp_dim = f"{[round(x, 3) for x in mi_result['entropy_inp_dim']]}"
         mi_dim = f'{[round(x, 3) for x in mi_result["mi_dim"]]}'
         t_rho = f'{top_sim:.3f}'
+        p_dis = f'{pos_dis:.3f}'
+        b_dis = f'{bos_dis:.3f}'
 
         # If we applied noise during training,
         # compute results after disabling noise in the test phase as well
@@ -324,11 +347,15 @@ def main(params):
             accuracy2 = torch.mean((preds2 == labels2).float()).item() * 100
             f12 =  f1_score(labels2, preds2, average='micro').item() * 100
             top_sim2 = compute_top_sim(sender_inputs2, messages2, opts.perceptual_dimensions)
+            pos_dis2 = compute_posdis(sender_inputs2, messages2)
+            bos_dis2 = compute_bosdis(sender_inputs2, messages2, opts.vocab_size)
 
             output_dict['results-no-noise']['accuracy'] = accuracy2
             output_dict['results-no-noise']['f1-micro'] = f12
             output_dict['results-no-noise']['embedding_alignment'] = alignment
             output_dict['results-no-noise']['topographic_rho'] = top_sim2
+            output_dict['results-no-noise']['pos_dis'] = pos_dis2
+            output_dict['results-no-noise']['bos_dis'] = bos_dis2
 
             acc_str = f'{accuracy:.2f} / {accuracy2:.2f}'
             f1_str = f'{f1:.2f} / {f12:.2f}'
@@ -339,6 +366,9 @@ def main(params):
             mi += f" / {mi_result2['mi']:.3f}"
             mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
             t_rho += f" / {top_sim2:.3f}"
+            p_dis = f'{pos_dis2:.3f}'
+            b_dis = f'{bos_dis2:.3f}'
+
 
             if not opts.silent:
                 if not opts.simple_logging:
@@ -369,6 +399,8 @@ def main(params):
             print("|")
             print("|" + "Embedding alignment:".rjust(align) + f" {alignment:.2f}")
             print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
+            print("|" + "PosDis:".rjust(align) + f" {p_dis}")
+            print("|" + "BosDis:".rjust(align) + f" {b_dis}")
 
         if opts.dump_results_folder:
             opts.dump_results_folder.mkdir(exist_ok=True)
@@ -412,12 +444,15 @@ def main(params):
                 sorted_msgs2 = sorted(msg_dict2.items(), key=operator.itemgetter(1), reverse=True)
 
             lexicon_size = str(len(msg_dict.keys())) if opts.erasure_pr != 0 \
-                else '{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
+                else f'{len(msg_dict.keys())} / {len(msg_dict2.keys())}'
             if not opts.silent:
                 print("|")
                 print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
                 print("|" + "Lexicon size:".rjust(align), lexicon_size)
                 print("|")
+                print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
+                print("|" + "PosDis:".rjust(align) + f" {p_dis}")
+                print("|" + "BosDis:".rjust(align) + f" {b_dis}")
 
             output_dict['results']['unique_targets'] = len(unique_dict.keys())
             output_dict['results']['unique_msg'] = len(msg_dict.keys())
@@ -446,6 +481,7 @@ def main(params):
         print('| Training time per epoch:', time_per_epoch)
 
 if __name__ == "__main__":
+
     import sys
 
     main(sys.argv[1:])

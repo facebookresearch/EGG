@@ -490,7 +490,7 @@ class ErasureChannel(nn.Module):
     def forward(self, message, message_length=None, apply_noise=False):
         # GS: append 0 vector representing Pr[erased_symbol] for all messages
         if message.dim() == 3:
-            message = torch.cat([message, torch.zeros((32, 6, 1))], dim=2)
+            message = torch.cat([message, torch.zeros((message.size(0), message.size(1), 1))], dim=2)
 
         if self.p != 0 and apply_noise:
 

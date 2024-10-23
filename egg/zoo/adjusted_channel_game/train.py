@@ -3,23 +3,38 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+""" TODO
+- adjust message (add a new symbol instead of another with some probability)
+- measure compositionality (topographic similarity between message and feature vectors. topsim + other one)
+- find how long it takes to run a proper experiment (even without using VISA it appears to take very long and haven't seen good accuracy yet) 
+
+"""
 import argparse
 import json
+import os
 
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
+import pandas as pd 
 
 import egg.core as core
 from egg.core import EarlyStopperAccuracy
-from egg.core.interaction import LoggingStrategy
-from egg.zoo.channel.archs import Receiver, Sender
-from egg.zoo.channel.features import OneHotLoader, UniformLoader
-
+from egg.core import LoggingStrategy
+from egg.zoo.adjusted_channel_game.archs import Receiver, Sender
+from egg.zoo.adjusted_channel_game.features import OneHotLoaderFromList, OneHotLoader, UniformLoader
+from egg.zoo.adjusted_channel_game.reformat_visa import reformat
 
 
 def get_params(params):
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--load_data_path",
+        type=str,
+        default=None,
+        help="Path to .npz data file to load",
+    )
     parser.add_argument(
         "--n_features",
         type=int,
@@ -29,10 +44,15 @@ def get_params(params):
     parser.add_argument(
         "--batches_per_epoch",
         type=int,
-        default=100,
+        default=1000,
         help="Number of batches per epoch (default: 1000)",
     )
-
+    parser.add_argument(
+        "--shuffle_train_data",
+        action="store_true",
+        default=False,
+        help="Shuffle train data before every epoch (default: False)",
+    )
     parser.add_argument(
         "--sender_hidden",
         type=int,
@@ -58,54 +78,29 @@ def get_params(params):
         help="Number hidden layers of receiver. Only in reinforce (default: 1)",
     )
     parser.add_argument(
-        "--receiver_num_heads",
-        type=int,
-        default=8,
-        help="Number of attention heads for Transformer Receiver (default: 8)",
-    )
-    parser.add_argument(
-        "--sender_num_heads",
-        type=int,
-        default=8,
-        help="Number of self-attention heads for Transformer Sender (default: 8)",
-    )
-    parser.add_argument(
         "--sender_embedding",
         type=int,
-        default=10,
+        default=25,
         help="Dimensionality of the embedding hidden layer for Sender (default: 10)",
     )
     parser.add_argument(
         "--receiver_embedding",
         type=int,
-        default=10,
+        default=25,
         help="Dimensionality of the embedding hidden layer for Receiver (default: 10)",
     )
-
-    parser.add_argument("--causal_sender", default=False, action="store_true")
-    parser.add_argument("--causal_receiver", default=False, action="store_true")
-
-    parser.add_argument(
-        "--sender_generate_style",
-        type=str,
-        default="in-place",
-        choices=["standard", "in-place"],
-        help="How the next symbol is generated within the TransformerDecoder (default: in-place)",
-    )
-
     parser.add_argument(
         "--sender_cell",
         type=str,
-        default="rnn",
-        help="Type of the cell used for Sender {rnn, gru, lstm, transformer} (default: rnn)",
+        default="lstm",
+        help="Type of the cell used for Sender {rnn, gru, lstm, transformer} (default: lstm)",
     )
     parser.add_argument(
         "--receiver_cell",
         type=str,
-        default="rnn",
-        help="Type of the model used for Receiver {rnn, gru, lstm, transformer} (default: rnn)",
+        default="lstm",
+        help="Type of the model used for Receiver {rnn, gru, lstm, transformer} (default: lstm)",
     )
-
     parser.add_argument(
         "--sender_entropy_coeff",
         type=float,
@@ -118,7 +113,6 @@ def get_params(params):
         default=1e-1,
         help="The entropy regularisation coefficient for Receiver (default: 1e-1)",
     )
-
     parser.add_argument(
         "--probs",
         type=str,
@@ -145,10 +139,25 @@ def get_params(params):
         help="Early stopping threshold on accuracy (default: 0.9999)",
     )
 
+    parser.add_argument(
+        "--dump_data_folder",
+        type=str,
+        default=None,
+        help="Folder where file with dumped data will be created",
+    )
+    parser.add_argument(
+        "--data_seed",
+        type=int,
+        default=111,
+        help="Seed for random creation of train, validation and test tuples (default: 111)",
+    )
+
     args = core.init(parser, params)
 
     return args
 
+def adjust_message():
+    pass
 
 def loss(sender_input, _message, _receiver_input, receiver_output, _labels, _aux_input):
     acc = (receiver_output.argmax(dim=1) == sender_input.argmax(dim=1)).detach().float()
@@ -167,9 +176,6 @@ def dump(game, n_features, device, gs_mode):
     )
 
     unif_acc = 0.0
-    powerlaw_acc = 0.0
-    powerlaw_probs = 1 / np.arange(1, n_features + 1, dtype=np.float32)
-    powerlaw_probs /= powerlaw_probs.sum()
 
     for i in range(interaction.size):
         sender_input = interaction.sender_input[i]
@@ -180,8 +186,6 @@ def dump(game, n_features, device, gs_mode):
         output_symbol = receiver_output.argmax()
         acc = (input_symbol == output_symbol).float().item()
 
-        unif_acc += acc
-        powerlaw_acc += powerlaw_probs[input_symbol] * acc
         print(
             f'input: {input_symbol.item()} -> message: {",".join([str(x.item()) for x in message])} -> output: {output_symbol.item()}',
             flush=True,
@@ -189,102 +193,76 @@ def dump(game, n_features, device, gs_mode):
 
     unif_acc /= n_features
 
-    print(f"Mean accuracy wrt uniform distribution is {unif_acc}")
-    print(f"Mean accuracy wrt powerlaw distribution is {powerlaw_acc}")
-    print(json.dumps({"powerlaw": powerlaw_acc, "unif": unif_acc}))
-
 
 def main(params):
     opts = get_params(params)
     print(opts, flush=True)
 
-    # For compatibility, after https://github.com/facebookresearch/EGG/pull/130
-    # the meaning of `length` changed a bit. Before it included the EOS symbol; now
-    # it doesn't. To ensure that hyperparameters/CL arguments do not change,
-    # we subtract it here.
+    device = torch.device("cuda" if opts.cuda else "cpu")
     opts.max_len -= 1
 
-    device = opts.device
+    if opts.load_data_path:
+        train_list, valid_list, test_list = reformat()
+        n_features = len(train_list[0]) # check how many features there are
+        train_data = OneHotLoaderFromList(
+            seed= opts.random_seed,
+            one_hot_list=train_list,
+            batches_per_epoch=opts.batches_per_epoch,
+            batch_size=opts.batch_size
+        )
 
-    if opts.probs == "uniform":
-        probs = np.ones(opts.n_features)
-    elif opts.probs == "powerlaw":
-        probs = 1 / np.arange(1, opts.n_features + 1, dtype=np.float32)
+        test_data = OneHotLoaderFromList(
+            seed= opts.random_seed,
+            one_hot_list=valid_list,
+            batches_per_epoch=opts.batches_per_epoch,
+            batch_size=opts.batch_size
+        )
+
     else:
-        probs = np.array([float(x) for x in opts.probs.split(",")], dtype=np.float32)
-    probs /= probs.sum()
+        if opts.probs == "uniform":
+            probs = np.ones(opts.n_features)
+        elif opts.probs == "powerlaw":
+            probs = 1 / np.arange(1, opts.n_features + 1, dtype=np.float32)
+        else:
+            probs = np.array([float(x) for x in opts.probs.split(",")], dtype=np.float32)
+        probs /= probs.sum()
 
-    print("the probs are: ", probs, flush=True)
-
-    train_loader = OneHotLoader(
+        train_data = OneHotLoader(
         n_features=opts.n_features,
         batch_size=opts.batch_size,
         batches_per_epoch=opts.batches_per_epoch,
-        probs=probs,
+        probs=probs
+    )
+         # single batches with 1s on the diag
+        test_data = UniformLoader(opts.n_features)
+        n_features = opts.n_features
+
+    
+    sender = Sender(n_features=n_features, n_hidden=opts.sender_hidden)
+
+    sender = core.RnnSenderReinforce(
+        sender,
+        opts.vocab_size,
+        opts.sender_embedding,
+        opts.sender_hidden,
+        cell=opts.sender_cell,
+        max_len=opts.max_len,
+        num_layers=opts.sender_num_layers,
+    )
+    
+    receiver = Receiver(n_features=n_features, n_hidden=opts.receiver_hidden)
+
+    receiver = core.RnnReceiverDeterministic(
+        receiver,
+        opts.vocab_size,
+        opts.receiver_embedding,
+        opts.receiver_hidden,
+        cell=opts.receiver_cell,
+        num_layers=opts.receiver_num_layers,
     )
 
-    counter = 0
-    for batches in train_loader:
-        if counter == 0:
-            print(batches)
-        counter += 1
-    
-    print(counter)
-
-    # single batches with 1s on the diag
-    test_loader = UniformLoader(opts.n_features)
-
-    if opts.sender_cell == "transformer":
-        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_embedding)
-        sender = core.TransformerSenderReinforce(
-            agent=sender,
-            vocab_size=opts.vocab_size,
-            embed_dim=opts.sender_embedding,
-            max_len=opts.max_len,
-            num_layers=opts.sender_num_layers,
-            num_heads=opts.sender_num_heads,
-            hidden_size=opts.sender_hidden,
-            generate_style=opts.sender_generate_style,
-            causal=opts.causal_sender,
-        )
-    else:
-        sender = Sender(n_features=opts.n_features, n_hidden=opts.sender_hidden)
-
-        sender = core.RnnSenderReinforce(
-            sender,
-            opts.vocab_size,
-            opts.sender_embedding,
-            opts.sender_hidden,
-            cell=opts.sender_cell,
-            max_len=opts.max_len,
-            num_layers=opts.sender_num_layers,
-        )
-    if opts.receiver_cell == "transformer":
-        receiver = Receiver(
-            n_features=opts.n_features, n_hidden=opts.receiver_embedding
-        )
-        receiver = core.TransformerReceiverDeterministic(
-            receiver,
-            opts.vocab_size,
-            opts.max_len,
-            opts.receiver_embedding,
-            opts.receiver_num_heads,
-            opts.receiver_hidden,
-            opts.receiver_num_layers,
-            causal=opts.causal_receiver,
-        )
-    else:
-        receiver = Receiver(n_features=opts.n_features, n_hidden=opts.receiver_hidden)
-        receiver = core.RnnReceiverDeterministic(
-            receiver,
-            opts.vocab_size,
-            opts.receiver_embedding,
-            opts.receiver_hidden,
-            cell=opts.receiver_cell,
-            num_layers=opts.receiver_num_layers,
-        )
-
     empty_logger = LoggingStrategy.minimal()
+
     game = core.SenderReceiverRnnReinforce(
         sender,
         receiver,
@@ -313,19 +291,19 @@ def main(params):
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
-        train_data=train_loader,
-        validation_data=test_loader,
+        train_data=train_data,
+        validation_data=test_data,
         callbacks=callbacks,
     )
 
     trainer.train(n_epochs=opts.n_epochs)
 
     #game.logging_strategy = LoggingStrategy.maximal()  # now log everything
-    dump(trainer.game, opts.n_features, device, False)
+    dump(trainer.game, n_features, device, True)
     core.close()
+
 
 
 if __name__ == "__main__":
     import sys
-
     main(sys.argv[1:])
