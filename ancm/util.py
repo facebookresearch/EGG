@@ -12,7 +12,6 @@ from typing import Optional
 
 from egg.core.util import move_to
 from egg.zoo.objects_game.util import mutual_info, entropy
-from egg.zoo.language_bottleneck.intervention import entropy as entropy1, mutual_info as mutual_info1
 
 def is_jsonable(x):
     try:
@@ -129,11 +128,11 @@ def compute_posdis(sender_inputs, messages):
         h_j = None
         for i in range(attributes.size(1)):
             x, y = attributes[:, i], strings[:, j]
-            info = mutual_info1(x, y)
+            info = mutual_info(x, y)
             symbol_mi.append(info)
 
             if h_j is None:
-                h_j = entropy1(y)
+                h_j = entropy(y)
                 
 
         symbol_mi.sort(reverse=True)

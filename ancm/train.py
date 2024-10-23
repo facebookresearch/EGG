@@ -366,8 +366,8 @@ def main(params):
             mi += f" / {mi_result2['mi']:.3f}"
             mi_dim2 = f"{[round(x, 3) for x in mi_result2['mi_dim']]}"
             t_rho += f" / {top_sim2:.3f}"
-            p_dis = f'{pos_dis2:.3f}'
-            b_dis = f'{bos_dis2:.3f}'
+            p_dis += f' / {pos_dis2:.3f}'
+            b_dis += f' / {bos_dis2:.3f}'
 
 
             if not opts.silent:
@@ -449,10 +449,6 @@ def main(params):
                 print("|")
                 print("|" + "Unique target objects:".rjust(align), len(unique_dict.keys()))
                 print("|" + "Lexicon size:".rjust(align), lexicon_size)
-                print("|")
-                print("|" + "Topographic rho:".rjust(align) + f" {t_rho}")
-                print("|" + "PosDis:".rjust(align) + f" {p_dis}")
-                print("|" + "BosDis:".rjust(align) + f" {b_dis}")
 
             output_dict['results']['unique_targets'] = len(unique_dict.keys())
             output_dict['results']['unique_msg'] = len(msg_dict.keys())
