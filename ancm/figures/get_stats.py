@@ -13,11 +13,13 @@ print('')
 results = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 results_nn = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
+data_long = defaultdict(list)
 for d in os.listdir('runs/'):
     directory = os.path.join('runs', d)
     if not d.startswith('erasure') or not os.path.isdir(directory):
         continue
     erasure_pr = float(d.strip('erasure_pr_'))
+
 
     for file in os.listdir(directory):
         if file.endswith('json'):
@@ -53,6 +55,26 @@ for d in os.listdir('runs/'):
             else:
                 results_nn[max_len][erasure_pr]['unique_msg_no_noise'] = results[max_len][erasure_pr]['unique_msg']
 
+            data_long['max_len'].append(max_len)
+            data_long['erasure_pr'].append(erasure_pr)
+            data_long['accuracy'].append(data['results']['accuracy']/100)
+            data_long['embedding_alignment'].append(data['results']['embedding_alignment']/100)
+            data_long['topographic_rho'].append(data['results']['topographic_rho'])
+            data_long['pos_dis'].append(data['results']['pos_dis'])
+            data_long['bos_dis'].append(data['results']['bos_dis'])
+            data_long['unique_msg'].append(data['results']['unique_msg'])
+            data_long['unique_targets'].append(data['results']['unique_targets'])
+            if 'unique_msg_no_noise' in data['results']:
+                data_long['unique_msg_no_noise'].append(data['results']['unique_msg_no_noise'])
+            else:
+                data_long['unique_msg_no_noise'].append(data['results']['unique_msg'])
+
+data_long = sorted(data_long, key=lambda x: int(x['max_len']))
+data_long = pd.melt(
+    pd.DataFrame(data_long),
+    id_vars='max_len erasure_pr'.split(),
+    value_vars=None, var_name='metric', value_name='value', ignore_index=True)
+data_long.to_csv('figures/test_long.csv', index=False)
 
 aggregated = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
 for max_len in results:
@@ -72,11 +94,3 @@ os.makedirs('figures/data/', exist_ok=True)
 with open('figures/data/means-noise.json', 'w') as fp:
     json.dump(aggregated, fp, indent=4)
 
-#for key in () 
-#for max_len in results:
-    
-#    dict_means = {'metric': [k for k in results[5][0.0]]}
-#    df_means = pd.DataFrame({'metric': })
-#    df_ci
-#    fname = f'figures/data/max_len_{max_len}.csv'
-            

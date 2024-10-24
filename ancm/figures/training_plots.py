@@ -5,6 +5,7 @@ import numpy as np
 from scipy import stats
 from collections import defaultdict
 import seaborn as sns
+import style
 
 
 confidence = 0.95
@@ -34,11 +35,6 @@ for d in os.listdir('runs/'):
         all_dfs[(max_len, erasure_pr)].append(df)
 
 
-
-print('')
-for max_len, erasure_pr in all_dfs:
-    print(max_len, erasure_pr, len(all_dfs[(max_len, erasure_pr)]))
-
 metrics = 'accuracy length alignment topographic_rho pos_dis bos_dis'.split()
 
 comp_long = defaultdict(list)
@@ -61,21 +57,25 @@ for max_len, erasure_pr in all_dfs:
                     acc_long['erasure_pr'].append(erasure_pr)
                     acc_long['max_len'].append(max_len)
                     acc_long['metric'].append('accuracy')
-                    acc_long['value'].append(v)
+                    acc_long['accuracy'].append(v)
 
             # mean = np.mean(vals) 
             # stde = stats.sem(vals)
             # ci = stde * stats.t.ppf((1+confidence) / 2., len(vals)-1)
 
 hue_order = ['topographic_rho', 'pos_dis', 'bos_dis', 'accuracy']
-# sns.set_palette(sns.color_palette("husl", 4))
-
+sns.set_palette(sns.color_palette("husl", 4))
 plot = sns.relplot(
     data=comp_long, row='max_len', col='erasure_pr',
-    x='epoch', y='value', hue='metric', kind='line', errorbar=None)
+    x='epoch', y='value', hue='metric', kind='line', errorbar=None, facet_kws=dict(margin_titles=True, legend_out=True))
+plot.set_titles("{col_name}")
 plot.savefig("figures/training_compositionality.png") 
 
-acc_plot = sns.relplot(
-    data=acc_long, row='max_len', col='erasure_pr', x='epoch', y='value', kind='line', errorbar=('se',2))
+sns.set_palette(sns.husl_palette(4, 0.76))
+acc_plot = sns.relplot(legend=True,
+    data=acc_long, row='max_len', col='erasure_pr', x='epoch', y='accuracy', kind='line', errorbar=('se',2),facet_kws=dict(margin_titles=True))
+acc_plot.set_titles("{col_name}")
 acc_plot.savefig("figures/training_accuracy.png") 
+
+# sns.set_palette(sns.hls_palette(3, h=0.2))
 

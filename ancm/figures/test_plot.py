@@ -5,6 +5,7 @@ import numpy as np
 from scipy import stats
 from collections import defaultdict
 import seaborn as sns
+import style
 
 with open('figures/data/means-noise.json') as fp:
     data = json.load(fp)
@@ -29,12 +30,13 @@ for row in rows:
 df = pd.DataFrame(rows)
 print(df)
 
-plot = sns.FacetGrid(df, col="metric", sharey=False)
-plot.map_dataframe(sns.lineplot,
-    x="erasure_pr", y="value", 
-    errorbar=("se", 2),
-    hue="max_len")
-plot.add_legend()
+df = pd.read_csv('figures/test_long.csv')
+df = df.sort_values('max_len')
+df.max_len = df.max_len.apply(str)
+comp_df = df[(df.metric.isin('accuracy topographic_rho pos_dis bos_dis'.split()))]
+
+#sns.set_palette(sns.color_palette("Set2", 3))
+plot = sns.relplot(comp_df, col='metric', x='erasure_pr', y='value', kind='line', errorbar=('se',2), row='max_len', hue='max_len', facet_kws=dict(margin_titles=True), legend=False)
 plot.savefig("figures/test_plot.png") 
 
 
