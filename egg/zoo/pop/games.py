@@ -90,7 +90,7 @@ def build_senders_receivers(
                 vision_module=find_module_from_name(vision_modules, module_name)[0],
                 input_dim=find_module_from_name(vision_modules, module_name)[
                     1
-                ],  # TODO Matéo: repeated twice :/ think about optimising
+                ],
                 vocab_size=opts.vocab_size,
                 name=module_name,
                 non_linearity=opts.non_linearity,
@@ -113,7 +113,6 @@ def build_senders_receivers(
             for module_name in vision_model_names_receiver
         ]
     elif opts.com_channel == "simplicial":
-        # assert vision_model_names_senders == vision_model_names_receiver == 1, "For now simplicial communication channel only supports one sender and one receiver"
         senders = [
             SimplicialWrapper(
                 vision_module=find_module_from_name(vision_modules, module_name)[0],

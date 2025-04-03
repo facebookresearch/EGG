@@ -4,13 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-
-# import json
-
 import egg.core as core
 from egg.core import ConsoleLogger
 
-# from egg.core.callbacks import WandbLogger
 from egg.zoo.pop.data import get_dataloader
 from egg.zoo.pop.game_callbacks import (
     BestStatsTracker,
@@ -18,7 +14,6 @@ from egg.zoo.pop.game_callbacks import (
     WandbLogger,
 )
 from egg.zoo.pop.games import build_game, build_second_game
-from egg.zoo.pop.LARC import LARC
 from egg.zoo.pop.utils import add_weight_decay, get_common_opts, path_to_parameters, metadata_opener
 
 from pathlib import Path
@@ -84,7 +79,9 @@ def main(params):
     )
 
     if opts.use_larc:
-        optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
+        raise NotImplementedError(
+            "LARC is not implemented yet."
+        )
 
     callbacks = [
         ConsoleLogger(as_json=True, print_train_loss=True),
@@ -104,29 +101,6 @@ def main(params):
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
-
-    # Quick test -- now on hold as validation occurs before
-    # data_args = {
-    #     "image_size": opts.image_size,
-    #     "batch_size": opts.batch_size,
-    #     "dataset_name": opts.dataset_name,
-    #     "num_workers": opts.num_workers,
-    #     "use_augmentations": False,
-    #     "is_distributed": opts.distributed_context.is_distributed,
-    #     "seed": opts.random_seed,
-    # }
-
-    # i_test_loader = get_dataloader(training_set=False, **data_args)
-    # _, i_test_interaction = trainer.eval(i_test_loader)
-    # dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
-    # dump.update(dict(mode="VALIDATION_I_TEST"))
-    # print(json.dumps(dump), flush=True)
-
-    # if opts.checkpoint_dir:
-    #     output_path = Path(opts.checkpoint_dir)
-    #     output_path.mkdir(exist_ok=True, parents=True)
-    #     torch.save(i_test_interaction, output_path / "i_test_interaction")
-
     print("| FINISHED JOB")
 
 
