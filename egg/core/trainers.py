@@ -28,7 +28,7 @@ from .callbacks import (
 from .distributed import get_preemptive_checkpoint_dir
 from .interaction import Interaction
 from .util import get_opts, move_to
-
+from tqdm import tqdm
 try:
     from torch.cuda.amp import GradScaler, autocast
 except ImportError:
@@ -169,7 +169,7 @@ class Trainer:
         validation_data = self.validation_data if data is None else data
         self.game.eval()
         with torch.no_grad():
-            for batch in validation_data:
+            for batch in tqdm(validation_data):
                 if not isinstance(batch, Batch):
                     batch = Batch(*batch)
                 batch = batch.to(self.device)
@@ -206,7 +206,7 @@ class Trainer:
 
         self.optimizer.zero_grad()
 
-        for batch_id, batch in enumerate(self.train_data):
+        for batch_id, batch in tqdm(enumerate(self.train_data), total=len(self.train_data), desc="Training", leave=False):
             if not isinstance(batch, Batch):
                 batch = Batch(*batch)
             batch = batch.to(self.device)
@@ -226,9 +226,30 @@ class Trainer:
                 optimized_loss.backward()
 
             if batch_id % self.update_freq == self.update_freq - 1:
+                # TODO: remove this once done
+                grads = [
+                    param.grad.detach().flatten()
+                    for param in self.game.parameters()
+                    if param.grad is not None
+                ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("game_norm: ", norm.item())
+                # grads = [
+                #     param.grad.detach().flatten()
+                #     for param in self.game.agents_loss_sampler.senders.parameters()
+                #     if param.grad is not None
+                # ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("sender_norm: ", norm.item())
+                # grads = [
+                #     param.grad.detach().flatten()
+                #     for param in self.game.agents_loss_sampler.receivers.parameters()
+                #     if param.grad is not None
+                # ]
+                # norm = torch.cat(grads).norm() if len(grads) > 0 else 0
+                # print("receiver_norm: ", norm.item())
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)
-
                 if self.grad_norm:
                     torch.nn.utils.clip_grad_norm_(
                         self.game.parameters(), self.grad_norm
@@ -266,7 +287,7 @@ class Trainer:
         for callback in self.callbacks:
             callback.on_train_begin(self)
 
-        for epoch in range(self.start_epoch, n_epochs):
+        for epoch in tqdm(range(self.start_epoch, n_epochs)):
             for callback in self.callbacks:
                 callback.on_epoch_begin(epoch + 1)
 

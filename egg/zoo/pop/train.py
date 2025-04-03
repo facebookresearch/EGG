@@ -3,24 +3,47 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import json
-from pathlib import Path
-
 import torch
-
-# Mat : Here we make the links to the emcom_as_ssl parts that have not been changed and the pop parts that have
 import egg.core as core
+from egg.core import ConsoleLogger
+
 from egg.zoo.pop.data import get_dataloader
-from egg.zoo.pop.game_callbacks import get_callbacks
-from egg.zoo.pop.games import build_game
-from egg.zoo.emcom_as_ssl.LARC import LARC
-from egg.zoo.emcom_as_ssl.utils import add_weight_decay
-from egg.zoo.pop.utils import get_common_opts
+from egg.zoo.pop.game_callbacks import (
+    BestStatsTracker,
+    DistributedSamplerEpochSetter,
+    WandbLogger,
+)
+from egg.zoo.pop.games import build_game, build_second_game
+from egg.zoo.pop.utils import add_weight_decay, get_common_opts, path_to_parameters, metadata_opener
+
+from pathlib import Path
+import os
 
 
 def main(params):
-    opts = get_common_opts(params=params)
-    print(f"{opts}\n")
+    _path = ""
+    for param in params:
+        if "base_checkpoint_path" in param:
+            _path = param.rpartition('=')[2]
+            break
+
+    if _path == "":
+        # normal first training for all agents
+        opts = get_common_opts(params=params)
+        print(opts)
+        game = build_game(opts)
+    else :
+        # adding agents to a population of trained agents
+        f = open(path_to_parameters(_path))
+        opts = get_common_opts(metadata_opener(f, data_type="wandb", verbose=True) + params)
+        game = build_second_game(opts)
+
+    # deal with opts issues due to submitit module being replaced by sweep.py
+    # all checkpoint_dirs from a sweep were stored in the same folder, causing overwriting
+    # TODO : check for necessity before applying
+    opts.checkpoint_dir = Path(opts.checkpoint_dir) / os.environ["SLURM_JOB_ID"]
+    opts.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
     assert (
         not opts.batch_size % 2
     ), f"Batch size must be multiple of 2. Found {opts.batch_size} instead"
@@ -32,10 +55,8 @@ def main(params):
     )
     if not opts.distributed_context.is_distributed and opts.pdb:
         breakpoint()
-    if opts.use_distributed_negatives and not opts.distributed_context.is_distributed:
-        sys.exit("Distributed negatives cannot be used in non-distributed context")
 
-    train_loader = get_dataloader(
+    val_loader, train_loader = get_dataloader(
         dataset_dir=opts.dataset_dir,
         dataset_name=opts.dataset_name,
         image_size=opts.image_size,
@@ -45,73 +66,41 @@ def main(params):
         seed=opts.random_seed,
         use_augmentations=opts.use_augmentations,
         return_original_image=opts.return_original_image,
+        split_set=True,
+        similbatch_training=opts.similbatch_training,
+        shuffle=opts.shuffle,
     )
-
-    game = build_game(opts)
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")
 
-    optimizer = torch.optim.SGD(
-        model_parameters,
-        lr=opts.lr,
-        momentum=0.9,
-    )
+    optimizer = torch.optim.Adam(model_parameters, lr=opts.lr)
     optimizer_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=opts.n_epochs
     )
 
-    if (
-        opts.distributed_context.is_distributed
-        and opts.distributed_context.world_size > 2
-        and opts.use_larc
-    ):
-        optimizer = LARC(optimizer, trust_coefficient=0.001, clip=False, eps=1e-8)
+    if opts.use_larc:
+        raise NotImplementedError(
+            "LARC is not implemented yet."
+        )
 
-    callbacks = get_callbacks(
-        shared_vision=opts.shared_vision,
-        n_epochs=opts.n_epochs,
-        checkpoint_dir=opts.checkpoint_dir,
-        senders=game.agents_loss_sampler.senders,
-        train_gs_temperature=opts.train_gs_temperature,
-        minimum_gs_temperature=opts.minimum_gs_temperature,
-        update_gs_temp_frequency=opts.update_gs_temp_frequency,
-        gs_temperature_decay=opts.gs_temperature_decay,
-        is_distributed=opts.distributed_context.is_distributed,
-    )
+    callbacks = [
+        ConsoleLogger(as_json=True, print_train_loss=True),
+        BestStatsTracker(),
+        WandbLogger(opts),
+    ]
+
+    if opts.distributed_context.is_distributed:
+        callbacks.append(DistributedSamplerEpochSetter())
 
     trainer = core.Trainer(
         game=game,
         optimizer=optimizer,
         optimizer_scheduler=optimizer_scheduler,
         train_data=train_loader,
+        validation_data=val_loader,
         callbacks=callbacks,
     )
     trainer.train(n_epochs=opts.n_epochs)
-
-    data_args = {
-        "image_size": opts.image_size,
-        "batch_size": opts.batch_size,
-        "dataset_name": "imagenet",
-        "num_workers": opts.num_workers,
-        "use_augmentations": False,
-        "is_distributed": opts.distributed_context.is_distributed,
-        "seed": opts.random_seed,
-    }
-    # Here be error due to imagenet not being allowed (follow up qu° : where are the tests during training ?)
-    # I also need to make sure printed torch has game information inside it
-    i_test_loader = get_dataloader(
-        dataset_name="cifar100", training_set=False, **data_args
-    )
-    _, i_test_interaction = trainer.eval(i_test_loader)
-    dump = dict((k, v.mean().item()) for k, v in i_test_interaction.aux.items())
-    dump.update(dict(mode="VALIDATION_I_TEST"))
-    print(json.dumps(dump), flush=True)
-
-    if opts.checkpoint_dir:
-        output_path = Path(opts.checkpoint_dir)
-        output_path.mkdir(exist_ok=True, parents=True)
-        torch.save(i_test_interaction, output_path / "i_test_interaction")
-
     print("| FINISHED JOB")
 
 

@@ -1,0 +1,53 @@
+{
+    "n_epochs": [
+        5
+    ],
+    "com_channel": [
+        "kmeans"
+    ],
+    "path_to_kmeans": [
+        "/home/mmahaut/projects/exps/tmlr/kmeans"
+    ],
+    "remove_auxlogits": [
+        false
+    ],
+    "dataset_dir": [
+        "/projects/colt/imagenet21k_resized/imagenet21k_train/"
+    ],
+    "dataset_name": [
+        "imagenet_ood"
+    ],
+    "checkpoint_dir": [
+        "/home/mmahaut/projects/exps/tmlr/kmeans_ood"
+    ],
+    "is_single_class_batch": [
+        false
+    ],
+    "batch_size": [
+        64
+    ],
+    "block_com_layer": [
+        true
+    ],
+    "random_seed": [
+        111
+    ],
+    "vision_model_names_senders": [
+        "['vgg11']",
+        "['vit']",
+        "['resnet152']",
+        "['inception']",
+        "['dino']",
+        "['swin']",
+        "['virtex']"
+    ],
+    "vision_model_names_recvs": [
+        "['vgg11']",
+        "['vit']",
+        "['resnet152']",
+        "['inception']",
+        "['dino']",
+        "['swin']",
+        "['virtex']"
+    ]
+}

@@ -4,8 +4,13 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+from xmlrpc.client import Boolean
+
+import pathlib
 
 import egg.core as core
+import torch
+import json
 
 
 def get_data_opts(parser):
@@ -16,10 +21,22 @@ def get_data_opts(parser):
         default="./data",
         help="Dataset location",
     )
-
     group.add_argument(
         "--dataset_name",
-        choices=["cifar100", "imagenet"],
+        choices=[
+            "cifar100",
+            "ade20k",
+            "celeba",
+            "imagenet",
+            "gaussian_noise",
+            "inaturalist",
+            "imagenet_alive",
+            "imagenet_ood",
+            "places205",
+            "places365",
+            "imagenet_val",
+            "imagenet_train",
+        ],
         default="imagenet",
         help="Dataset used for training a model",
     )
@@ -29,11 +46,39 @@ def get_data_opts(parser):
     group.add_argument(
         "--num_workers", type=int, default=4, help="Workers used in the dataloader"
     )
-    parser.add_argument(
+    group.add_argument(
+        "--force_rank", type=int, default=None, help="Force rank for parallelising communication extraction"
+    )
+    group.add_argument(
+        "--split_dataset",
+        default=True,
+        action="store_false",
+        help="Split the dataset in train and test during communication extraction (at test time). default usage will then only use the test set, change extract_train_com to use the train set",
+    )
+    group.add_argument(
+        "--shuffle",
+        default=True,
+        action="store_false",
+        help="Shuffle the dataset. Default usage will shuffle the dataset. Should be turned off when extracting communication, to keep the order of the dataset",
+    )
+    group.add_argument(
+        "--extract_train_com",
+        default=False,
+        action="store_true",
+        help="Extract communication (at test time) on the train set instead of the test set",
+    )
+    group.add_argument("--use_augmentations", action="store_true", default=False)
+    group.add_argument(
         "--return_original_image",
         action="store_true",
         default=False,
         help="Dataloader will yield also the non-augmented version of the input images",
+    )
+    group.add_argument(
+        "--test_time_augment",
+        action="store_true",
+        default=False,
+        help="augmentations will be applied to the distractors, but not to the sender input",
     )
 
 
@@ -77,94 +122,218 @@ def get_gs_opts(parser):
     )
 
 
-def get_vision_module_opts(parser):  # Mat : Here we need a list of vision architectures
+def get_vision_module_opts(parser):
     group = parser.add_argument_group("vision module")
     group.add_argument(
-        "--sender_model_name",
+        "--vision_model_name",
         type=str,
-        default="resnet50",
-        choices=["resnet50", "resnet101", "resnet152", "inception", "deit"],
-        help="Model name for the sender encoder",
+        default="",
+        choices=[
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "vgg11",
+            "inception",
+            "vit",
+            "swin",
+            "dino",
+            "twins_svt",
+            "deit",
+            "xcit",
+            "resnext",
+            "mobilenet",
+            "densenet",
+            "virtex",
+            "fcn_resnet50",
+            "cait",
+            "levit",
+            "vit_clip",
+        ],
+        help="Model name for the encoder",
     )
     group.add_argument(
-        "--rcv_model_name",
-        type=str,
-        default="resnet50",
-        choices=["resnet50", "resnet101", "resnet152", "inception", "deit"],
-        help="Model name for the receiver encoder",
-    )
-    group.add_argument(
-        "--shared_vision",
+        "--retrain_vision",
         default=False,
         action="store_true",
-        help="If set, Sender and Receiver will share the vision encoder",
+        help="by default pretrained vision modules will be used, otherwise they will be trained from scratch",
+    )
+    # group.add_argument(
+    #     "--vision_model_names",
+    #     type=str,
+    #     default="[]",
+    #     help="Model names for the encoder of senders and receivers.",
+    # )
+    group.add_argument(
+        "--vision_model_names_senders",
+        type=str,
+        default="[]",
+        help="Model names for the encoder of senders.",
     )
     group.add_argument(
-        "--pretrain_vision",
-        default=False,
-        action="store_true",
-        help="If set, pretrained vision modules will be used",
+        "--vision_model_names_recvs",
+        type=str,
+        default="[]",
+        help="Model names for the encoder of receivers.",
     )
-    group.add_argument("--use_augmentations", action="store_true", default=False)
+    group.add_argument(
+        "--use_different_architectures",
+        default=True,
+        action="store_false",  # what's this ? shouldn't it be the opposite
+        help="Population game with different architectures.",
+    )
+
+
+def get_new_agents_opts(parser):
+    group = parser.add_argument_group("language transmission")
+    group.add_argument(
+        "--base_checkpoint_path",
+        type=str,
+        default="",
+        help="in the ease of transmission experiments, where to get the basic experiment weights",
+    )
+    group.add_argument(
+        "--additional_receivers",
+        type=str,
+        default="[]",
+        help="Model names for the encoders of receivers added to the experiment after training",
+    )
+    group.add_argument(
+        "--additional_senders",
+        type=str,
+        default="[]",
+        help="Model names for the encoders of senders added to the experiment after training to measure language transmission",
+    )
 
 
 def get_game_arch_opts(parser):
     group = parser.add_argument_group("game architecture")
+    # group.add_argument(
+    #     "--n_senders", type=int, default=1, help="Number of senders in the population"
+    # )
+    # group.add_argument(
+    #     "--n_recvs", type=int, default=1, help="Number of receivers in the population"
+    # )
     group.add_argument(
-        "--projection_hidden_dim",
-        type=int,
-        default=2048,
-        help="Projection head's hidden dimension for image features",
-    )
-    group.add_argument(
-        "--projection_output_dim",
-        type=int,
-        default=2048,
-        help="Projection head's output dimension for image features",
-    )
-    group.add_argument(
-        "--simclr_sender",
-        default=False,
-        action="store_true",
-        help="Use a simclr-like sender (no discreteness)",
-    )
-    group.add_argument(
-        "--discrete_evaluation_simclr",
-        default=False,
-        action="store_true",
-        help="Use a simclr-like sender argmaxing the message_like layer at test time",
-    )
-
-
-def get_loss_opts(parser):
-    group = parser.add_argument_group("loss")
-    group.add_argument(
-        "--loss_type",
-        type=str,
-        default="xent",
-        choices=["xent", "ntxent"],
-        help="Model name for loss function",
-    )
-    group.add_argument(
-        "--loss_temperature",
+        "--recv_temperature",
         type=float,
         default=0.1,
         help="Temperature for similarity computation in the loss fn. Ignored when similarity is 'dot'",
     )
     group.add_argument(
-        "--similarity",
+        "--recv_hidden_dim",
+        type=int,
+        default=2048,
+        help="Hidden dim of the non-linear projection of the distractors",
+    )
+    # Removed as it HAS to be the same as vocab_size so as to be able to apply cosine similarity
+    # group.add_argument(
+    #     "--recv_output_dim",
+    #     type=int,
+    #     default=2048,
+    #     help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
+    # )
+    group.add_argument(
+        "--non_linearity",
         type=str,
-        default="cosine",
-        choices=["cosine", "dot"],
-        help="Similarity function used in loss",
+        default=None,
+        choices=["sigmoid", "softmax"],
+        help="non_linearity for the continuous sender",
     )
     group.add_argument(
-        "--use_distributed_negatives",
-        default=False,
-        action="store_true",
-        help="Share negatives across GPUs (requires a distributed training setup)",
+        "--augmentation_type",
+        type=str,
+        default=None,
+        choices=["resize", "color_jitter", "grayscale", "gaussian_blur"],
+        help="augmentation type for the continuous sender",
+    )
+    group.add_argument(
+        "--com_channel",
+        type=str,
+        default="continuous",
+        choices=["gs", "reinforce", "lstm", "continuous", "simplicial", "kmeans"],
+        help="communication channel to use, the first three are discrete, the last one is continuous. rnn is multi-symbol",
     )
 
+    group.add_argument(
+        "--continuous_com",
+        default=False,
+        action="store_true",
+        help="legacy : use continuous communication channel",
+    )
+
+    group.add_argument(
+        "--noisy_channel",
+        type=float,
+        default=None,
+        help="variance of gaussian noise to add to the communication channel. If none is given, then no noise will be added",
+    )
+    group.add_argument(
+        "--keep_classification_layer",
+        default=False,
+        action="store_true",
+        help="instead of the finale layer's representation, use the pretrained architecture's chosen class as image encoders",
+    )
+    group.add_argument(
+        "--force_gumbel",
+        default=False,
+        action="store_true",
+        help="force non_discretised gumbel messages for both training and testing (only for continuous) ",
+    )
+    group.add_argument(
+        "--remove_auxlogits",
+        default=False,
+        action="store_true",
+        help="forces the inception model to be lauded without the auxiliary loss channel. This is to handle retro_compatibility with past models trained this way.",
+    )
+    group.add_argument(
+        "--block_com_layer",
+        default=False,
+        action="store_true",
+        help="blocks the communication layer from being used in the continuous sender and receiver (TODO, discrete sender). Used as baseline.",
+    )
+    group.add_argument(
+        "--aux_loss",
+        default=None,
+        type=str,
+        choices=["random", "best", "best_averaged", "random_kl", "chosen"],
+        help="auxiliary loss to reduce differences between sender messages on same input",
+    )
+    group.add_argument(
+        "--aux_loss_weight",
+        default=0.0,
+        type=float,
+        help="weight of the auxiliary loss (default: 0.0)",
+    )
+    group.add_argument(
+        "--is_single_class_batch",
+        default=False,
+        action="store_true",
+        help="if true, the batch will be composed of only one class, and the auxiliary loss will be computed on the same class",
+    )
+    group.add_argument(
+        "--similbatch_training",
+        default=False,
+        action="store_true",
+        help="if true, each will be composed of the batch_size closest image representations",
+    )
+    group.add_argument(
+        "--path_to_kmeans",
+        default=None,
+        type=str,
+        help="path to the kmeans model ending in .joblib or folder containing com modules named 'modelname_kmeans.joblib' with modelname replaced by one of the options from vision_model_name",
+    )
+    group.add_argument(
+        "--simplicial_temperature",
+        default=1.0,
+        type=float,
+        help="when communicating with simplicial messages, the temperature to use to sample the simplex",
+    )
+    group.add_argument(
+        "--simplicial_L",
+        default=10,
+        type=int,
+        help="when communicating with simplicial messages, the number of embedding chunks",
+    )
 
 def get_common_opts(params):
     parser = argparse.ArgumentParser()
@@ -187,11 +356,31 @@ def get_common_opts(params):
     get_data_opts(parser)
     get_gs_opts(parser)
     get_vision_module_opts(parser)
-    get_loss_opts(parser)
     get_game_arch_opts(parser)
+    get_new_agents_opts(parser)
 
     opts = core.init(arg_parser=parser, params=params)
     return opts
+
+
+def load(game, checkpoint):
+    game.load_state_dict(checkpoint.model_state_dict)
+    # game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
+    # if checkpoint.optimizer_scheduler_state_dict:
+    #     game.optimizer_scheduler.load_state_dict(
+    #         checkpoint.optimizer_scheduler_state_dict
+    #     )
+    # game.start_epoch = checkpoint.epoch
+
+
+def load_from_checkpoint(game, path):
+    """
+    Loads the game, agents, and optimizer state from a file
+    :param path: Path to the file
+    """
+    print(f"# loading trainer state from {path}")
+    checkpoint = torch.load(path)
+    load(game, checkpoint)
 
 
 def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
@@ -208,3 +397,56 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
         {"params": no_decay, "weight_decay": 0.0},
         {"params": decay, "weight_decay": weight_decay},
     ]
+
+
+def path_to_parameters(path, type="wandb"):
+    if type == "wandb":
+        _path = pathlib.Path(path)
+        # replace homedtcl with home
+        if _path.parts[1] == "homedtcl":
+            # unsupported operand type(s) for /: 'PosixPath' and 'tuple' in _path = pathlib.Path("/home") / _path.parts[2:]
+            _path = pathlib.Path("/home") / "/".join(_path.parts[2:])
+        earliest_run = sorted(_path.parent.glob("wandb/run-*"))[0]
+        return earliest_run / "files" / "wandb-metadata.json"
+        # return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
+    else:
+        # legacy from when submitit was in use and the parameters were saved in the .out file
+        old_game = pathlib.Path(path)
+        job_number = str(old_game.parents[0].stem)
+        all_out_files = [f for f in old_game.parents[1].glob(f"*{job_number}.out")]
+        assert (
+            len(all_out_files) == 1
+        ), f"did not find one out file (missing or duplicates) : {all_out_files}"
+        return all_out_files[0]
+
+
+def metadata_opener(file, data_type: str, verbose=False):
+    """
+    data_type : str in {"wandb", "nest"}
+    Mat : case match in python 3.10 will cover all of this in syntactic sugar
+    """
+    if (
+        data_type == "wandb"
+    ):  # TODO : using the yaml file instead would use load all params instead of non-defaults
+        meta = json.load(file)
+        return meta["args"]
+
+    if data_type == "nest":
+        # in nest, metadata are written as comments on the first line of the .out file
+        # TODO: only parameters used in the sweep json file are available here.
+        # All other parameters will be set to default values but will not appear here
+        # A future version of this opener should take into account the Namespace object on the following line
+        lines = file.readlines()
+        file.seek(0)  # reset file
+        for i in range(len(lines)):
+            if lines[i][0] == "#":
+                params = eval(lines[i][12:])  # Mat : injection liability
+                return params
+        if verbose:
+            print("failed to find metadata in file")
+        return []
+
+    else:
+        raise KeyError(
+            f"{data_type} is not a valid type for data_type in metadata_opener"
+        )
