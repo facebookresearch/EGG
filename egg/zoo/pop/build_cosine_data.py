@@ -1,11 +1,10 @@
-from egg.zoo.pop.data import ImagenetValDataset
 import torch
 from pathlib import Path
 import numpy as np
 from tqdm.auto import tqdm
-
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
+from egg.zoo.pop.data import ImagenetValDataset
 
 if __name__ == "__main__":
     # make cosine similarity matrix of imagenet validation set

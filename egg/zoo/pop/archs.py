@@ -7,11 +7,11 @@ import itertools
 from typing import Optional, Union
 from xmlrpc.client import Boolean
 
-import timm
-import numpy as np
 import torch
 import torch.nn as nn
 import torchvision
+import timm
+import numpy as np
 from egg.core.interaction import LoggingStrategy
 from egg.core.gs_wrappers import gumbel_softmax_sample
 from egg.core.reinforce_wrappers import RnnReceiverReinforce

@@ -237,6 +237,10 @@ def build_senders_receivers(
 
 
 def build_game(opts):
+    """
+    Builds a population game with the specified options.
+    :param opts: Options for the game, including agent architectures and communication channels.
+    """
     train_logging_strategy = LoggingStrategy(
         False, False, False, False, False, False, False
     )
@@ -278,7 +282,8 @@ def build_game(opts):
 
 def build_second_game(opts):
     """
-    used for retraining when adding a new agent to an existing population
+    Builds a game for retraining when adding new agents to an existing population.
+    :param opts: Options for the game, including additional agents and checkpoint paths.
     """
 
     pop_game = build_game(opts)

@@ -86,9 +86,7 @@ imood_class_ids = np.array(
 )
 class ClosestImagesSampler(torch.utils.data.sampler.Sampler):
     """
-    organises the dataset into batches of images with similar representations
-    use kmeans to cluster the dataset into n_clusters of batch_size
-    images within clusters have similar representations
+    Organizes the dataset into batches of images with similar representations using KMeans clustering.
     """
     def __init__(self, dataset, batch_size, model):
         self.n_clusters = len(dataset) // batch_size
@@ -143,7 +141,8 @@ class ClosestImagesSampler(torch.utils.data.sampler.Sampler):
 
 
 class SingleClassDatasetSampler(torch.utils.data.sampler.Sampler):
-    """Samples elements uniformly from a given class
+    """
+    Samples elements uniformly from a given class to create single-class batches.
     Arguments:
         num_samples: number of samples to draw
     """
@@ -308,6 +307,13 @@ def get_dataloader(
     similbatch_training: bool = False,
     shuffle: bool = True,
 ):
+    """
+    Returns a DataLoader for the specified dataset with optional augmentations and batching strategies.
+    :param dataset_dir: Path to the dataset directory.
+    :param dataset_name: Name of the dataset (e.g., 'cifar100', 'imagenet_val').
+    :param batch_size: Number of samples per batch.
+    :param image_size: Size of the images after resizing.
+    """
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
     seed_all(
         seed

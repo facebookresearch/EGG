@@ -11,6 +11,9 @@ from typing import Dict, Optional, Union
 import argparse
 
 class WandbLogger(WandbLogger):
+    """
+    Extends the default WandbLogger to include a custom save directory for logs.
+    """
     def __init__(
         self,
         opts: Union[argparse.ArgumentParser, Dict, str, None] = None,
@@ -28,6 +31,9 @@ class WandbLogger(WandbLogger):
 
 
 class BestStatsTracker(Callback):
+    """
+    Tracks the best and last training/validation accuracy and loss during training.
+    """
     def __init__(self):
         super().__init__()
 
@@ -49,6 +55,9 @@ class BestStatsTracker(Callback):
         # last_{train, val}_epoch useful for runs that end before the final epoch
 
     def on_epoch_end(self, loss, logs: Interaction, epoch: int):
+        """
+        Updates the best and last training statistics at the end of each epoch.
+        """
         if logs.aux["acc"].mean().item() > self.best_train_acc:
             self.best_train_acc = logs.aux["acc"].mean().item()
             self.best_train_epoch = epoch
@@ -59,6 +68,9 @@ class BestStatsTracker(Callback):
         self.last_train_loss = loss
 
     def on_validation_end(self, loss, logs: Interaction, epoch: int):
+        """
+        Updates the best and last validation statistics at the end of each validation step.
+        """
         if logs.aux["acc"].mean().item() > self.best_val_acc:
             self.best_val_acc = logs.aux["acc"].mean().item()
             self.best_val_epoch = epoch
@@ -69,6 +81,9 @@ class BestStatsTracker(Callback):
         self.last_val_loss = loss
 
     def on_train_end(self):
+        """
+        Prints the best and last training/validation statistics at the end of training.
+        """
         train_stats = dict(
             mode="best train acc",
             best_epoch=self.best_train_epoch,
@@ -92,6 +107,9 @@ class BestStatsTracker(Callback):
 
 
 class DistributedSamplerEpochSetter(Callback):
+    """
+    Ensures that the DistributedSampler is set to the correct epoch for distributed training.
+    """
     """A callback that sets the right epoch of a DistributedSampler instance."""
 
     def __init__(self):
@@ -107,6 +125,9 @@ class DistributedSamplerEpochSetter(Callback):
 
 
 class ConsoleLogger(Callback):
+    """
+    Logs training and validation metrics to the console in JSON or plain text format.
+    """
     def __init__(self, print_train_loss=False, as_json=False):
         self.print_train_loss = print_train_loss
         self.as_json = as_json

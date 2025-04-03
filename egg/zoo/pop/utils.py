@@ -157,12 +157,6 @@ def get_vision_module_opts(parser):
         action="store_true",
         help="by default pretrained vision modules will be used, otherwise they will be trained from scratch",
     )
-    # group.add_argument(
-    #     "--vision_model_names",
-    #     type=str,
-    #     default="[]",
-    #     help="Model names for the encoder of senders and receivers.",
-    # )
     group.add_argument(
         "--vision_model_names_senders",
         type=str,
@@ -178,7 +172,7 @@ def get_vision_module_opts(parser):
     group.add_argument(
         "--use_different_architectures",
         default=True,
-        action="store_false",  # what's this ? shouldn't it be the opposite
+        action="store_false", 
         help="Population game with different architectures.",
     )
 
@@ -207,12 +201,6 @@ def get_new_agents_opts(parser):
 
 def get_game_arch_opts(parser):
     group = parser.add_argument_group("game architecture")
-    # group.add_argument(
-    #     "--n_senders", type=int, default=1, help="Number of senders in the population"
-    # )
-    # group.add_argument(
-    #     "--n_recvs", type=int, default=1, help="Number of receivers in the population"
-    # )
     group.add_argument(
         "--recv_temperature",
         type=float,
@@ -225,13 +213,6 @@ def get_game_arch_opts(parser):
         default=2048,
         help="Hidden dim of the non-linear projection of the distractors",
     )
-    # Removed as it HAS to be the same as vocab_size so as to be able to apply cosine similarity
-    # group.add_argument(
-    #     "--recv_output_dim",
-    #     type=int,
-    #     default=2048,
-    #     help="Output dim of the non-linear projection of the distractors, used to compare with msg embedding",
-    # )
     group.add_argument(
         "--non_linearity",
         type=str,
@@ -336,6 +317,9 @@ def get_game_arch_opts(parser):
     )
 
 def get_common_opts(params):
+    """
+    Parses and returns common options for the game, including dataset, model, and training parameters.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--weight_decay",
@@ -365,18 +349,13 @@ def get_common_opts(params):
 
 def load(game, checkpoint):
     game.load_state_dict(checkpoint.model_state_dict)
-    # game.optimizer.load_state_dict(checkpoint.optimizer_state_dict)
-    # if checkpoint.optimizer_scheduler_state_dict:
-    #     game.optimizer_scheduler.load_state_dict(
-    #         checkpoint.optimizer_scheduler_state_dict
-    #     )
-    # game.start_epoch = checkpoint.epoch
 
 
 def load_from_checkpoint(game, path):
     """
-    Loads the game, agents, and optimizer state from a file
-    :param path: Path to the file
+    Loads the game state from a checkpoint file.
+    :param game: The game object to load the state into.
+    :param path: Path to the checkpoint file.
     """
     print(f"# loading trainer state from {path}")
     checkpoint = torch.load(path)
@@ -402,13 +381,10 @@ def add_weight_decay(model, weight_decay=1e-5, skip_name=""):
 def path_to_parameters(path, type="wandb"):
     if type == "wandb":
         _path = pathlib.Path(path)
-        # replace homedtcl with home
         if _path.parts[1] == "homedtcl":
-            # unsupported operand type(s) for /: 'PosixPath' and 'tuple' in _path = pathlib.Path("/home") / _path.parts[2:]
             _path = pathlib.Path("/home") / "/".join(_path.parts[2:])
         earliest_run = sorted(_path.parent.glob("wandb/run-*"))[0]
         return earliest_run / "files" / "wandb-metadata.json"
-        # return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
     else:
         # legacy from when submitit was in use and the parameters were saved in the .out file
         old_game = pathlib.Path(path)
@@ -422,8 +398,10 @@ def path_to_parameters(path, type="wandb"):
 
 def metadata_opener(file, data_type: str, verbose=False):
     """
-    data_type : str in {"wandb", "nest"}
-    Mat : case match in python 3.10 will cover all of this in syntactic sugar
+    Opens metadata files and extracts parameters based on the specified data type.
+    :param file: The metadata file to open.
+    :param data_type: The type of metadata (e.g., 'wandb', 'nest').
+    :param verbose: Whether to print debug information.
     """
     if (
         data_type == "wandb"
