@@ -38,17 +38,80 @@ The experiments in this repository replicate and extend the findings of the pape
    ```
 
 3. Run experiments:
-   - To train a population of agents:
+   - Use train.py or seq_train.py for training a population of agents.
      ```bash
      python train.py --params_path <path_to_params.json>
      ```
-   - To extract communication logs:
+   - To extract communication logs, this allows the construction of visualisations:
      ```bash
      python extract_com.py --base_checkpoint_path <path_to_checkpoint>
      ```
+   - Use scripts in sanity_checks/ for evaluating communication efficiency, alignment, and proximity.
+   - Use sweeper.py to automate hyperparameter sweeps.
 
-4. Analyze results:
-   - Use the provided scripts in `sanity_checks/` to evaluate communication efficiency, alignment, and proximity in the latent space.
+## Code Overview
+### Core Modules
+* games.py:
+
+Defines the main game logic, including the population game and agent sampling strategies.
+Implements loss functions and communication channel wrappers.
+* archs.py:
+
+Provides implementations for various agent architectures (e.g., ResNet, ViT).
+Includes wrappers for continuous communication and KMeans-based communication.
+* data.py:
+
+Handles dataset loading, augmentation, and batching.
+Implements custom datasets like GaussianNoiseDataset and ImagenetValDataset.
+* utils.py:
+
+Contains utility functions for parsing options, loading checkpoints, and managing metadata.
+* game_callbacks.py:
+
+Implements callbacks for logging, tracking best statistics, and integrating with WandB.
+
+### Sanity Checks
+* sae_proximity_counter.py:
+
+Analyzes the proximity of representations in the latent space using a Simplicial Autoencoder (SAE).
+* label_communication.py:
+
+Evaluates label agreement and communication efficiency across different models and datasets.
+* cluster_translator.py:
+
+Aligns clusters across models using KMeans and evaluates alignment accuracy.
+* transfer_classif.py:
+
+Tests transfer classification by training linear classifiers on representations from different agents.
+* test_classif.py:
+
+Trains and evaluates classifiers on representations from a single sender or multiple senders.
+
+### Training and Sweeping
+* train.py:
+
+Implements the main training loop for population-based communication experiments.
+Supports adding new agents to an existing population.
+* seq_train.py:
+
+Implements sequential training, where agents are added one by one to the population.
+* sweeper.py:
+
+Automates hyperparameter sweeps by generating and submitting SLURM jobs.
+* sequential_queue_tool.py:
+
+Generates sequential job scripts for running experiments with different parameter combinations.
+
+## Analysis and Evaluation
+* extract_com.py:
+
+Extracts communication logs and interactions for analysis.
+* build_cosine_data.py:
+
+Computes cosine similarity matrices for datasets to analyze inter-dataset relationships.
+* sanity_checks/closest_inter_dataset_clusters.py:
+
+Identifies the closest clusters across datasets using representations from trained agents.
 
 ## Contributing
 1. Fork the repository.
