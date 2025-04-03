@@ -47,6 +47,8 @@ with PyTorch. However, to get a taste of communication games without writing any
   * [`egg/zoo/objects_game`](/egg/zoo/objects_game): _Focus on What’s Informative and Ignore What’s not: Communication Strategies in a Referential Game._ Roberto Dessì, Diane Bouchacourt, Davide Crepaldi, Marco Baroni. NeurIPS Workshop on Emergent Communication 2019. A Sender/Receiver game where the Sender sees a target as a vector of discrete properties (*e.g.* [2, 4, 3, 1] for a game with 4 dimensions) and the Receiver has to recognize the target among a lineup of target+distractor(s).
   
   * [`egg/zoo/compo_vs_generalization`](egg/zoo/compo_vs_generalization) _Compositionality and Generalization in Emergent Languages._ Rahma Chaabouni, Eugene Kharitonov, Diane Bouchacourt, Emmanuel Dupoux, Marco Baroni. ACL 2020.
+
+  * [`egg/zoo/compo_vs_generalization_ood`](egg/zoo/compo_vs_generalization_ood) _Defending Compositionality in Emergent Languages._ Michal Auersperger, Pavel Pecina. NAACL SRW 2022.
   
   * [`egg/zoo/language_bottleneck`](/egg/zoo/language_bottleneck) _Entropy Minimization In Emergent Languages._ Eugene Kharitonov, Rahma Chaabouni, Diane Bouchacourt, Marco Baroni. ICML 2020. `egg/zoo/language_bottleneck` contains a set of games that study the information bottleneck property of the discrete communication channel. This poperty is illustrated in an EGG-based example of MNIST-based style transfer without an adversary ([notebook](/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb) / [colab](https://colab.research.google.com/github/facebookresearch/EGG/blob/main/egg/zoo/language_bottleneck/mnist-style-transfer-via-bottleneck.ipynb)).
 

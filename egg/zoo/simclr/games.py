@@ -5,7 +5,7 @@
 
 import torch
 
-from egg.core.continous_communication import SenderReceiverContinuousCommunication
+from egg.core.continuous_communication import SenderReceiverContinuousCommunication
 from egg.core.interaction import LoggingStrategy
 from egg.zoo.simclr.archs import (
     Receiver,
