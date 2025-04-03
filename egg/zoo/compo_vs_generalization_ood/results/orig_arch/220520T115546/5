@@ -1,0 +1,68 @@
+Namespace(batch_size=5120, checkpoint_dir=None, checkpoint_freq=0, cuda=True, data_scaler=60, device=device(type='cuda'), distributed_context=DistributedContext(is_distributed=False, rank=0, local_rank=0, world_size=1, mode='none'), distributed_port=18363, early_stopping_thr=0.99999, fp16=False, hidden=500, load_from_checkpoint=None, lr=0.001, max_len=3, n_attributes=2, n_epochs=2000, n_values=100, no_cuda=False, optimizer='adam', preemptable=False, random_seed=121, receiver='OrigReceiver', receiver_emb=30, sender='OrigSender', sender_emb=5, sender_entropy_coeff=0.5, stats_freq=0, tensorboard=False, tensorboard_dir='runs/', update_freq=1, validation_freq=1, vocab_size=100)
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.010204081423580647}, "uniform holdout": {"acc": 0.0, "acc_or": 0.016836734488606453}, "epoch": 1}
+{"loss": 3.0951006412506104, "acc": 0.00011332728900015354, "acc_or": 0.02107887528836727, "sender_entropy": 3.4536774158477783, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 1}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.020408162847161293}, "uniform holdout": {"acc": 0.0020408162381500006, "acc_or": 0.041326530277729034}, "epoch": 2}
+{"loss": 3.572690963745117, "acc": 0.002493200358003378, "acc_or": 0.05371713638305664, "sender_entropy": 3.4533843994140625, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 2}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.0357142835855484}, "uniform holdout": {"acc": 0.0, "acc_or": 0.09999999403953552}, "epoch": 3}
+{"loss": 8.911022186279297, "acc": 0.0033998186700046062, "acc_or": 0.11321396380662918, "sender_entropy": 2.6953632831573486, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 3}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.030612245202064514}, "uniform holdout": {"acc": 0.0010204081190750003, "acc_or": 0.4265305995941162}, "epoch": 4}
+{"loss": 8.198025703430176, "acc": 0.01654578372836113, "acc_or": 0.4388599395751953, "sender_entropy": 1.8185417652130127, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 4}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.040816325694322586}, "uniform holdout": {"acc": 0.0, "acc_or": 0.4999999701976776}, "epoch": 5}
+{"loss": 8.582723617553711, "acc": 0.019038984552025795, "acc_or": 0.5094061493873596, "sender_entropy": 1.8502269983291626, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 5}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.0714285671710968}, "uniform holdout": {"acc": 0.0, "acc_or": 0.4999999701976776}, "epoch": 6}
+{"loss": 9.221263885498047, "acc": 0.04238440468907356, "acc_or": 0.5211355686187744, "sender_entropy": 1.9234886169433594, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 6}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.10204081237316132}, "uniform holdout": {"acc": 0.0, "acc_or": 0.497959166765213}, "epoch": 7}
+{"loss": 8.843487739562988, "acc": 0.08771532028913498, "acc_or": 0.5432910323143005, "sender_entropy": 1.7906081676483154, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 7}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.089285708963871}, "uniform holdout": {"acc": 0.009183673188090324, "acc_or": 0.5020408034324646}, "epoch": 8}
+{"loss": 8.131799697875977, "acc": 0.18313689529895782, "acc_or": 0.5895285606384277, "sender_entropy": 1.6062556505203247, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 8}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.1301020383834839}, "uniform holdout": {"acc": 0.05306122079491615, "acc_or": 0.5127550959587097}, "epoch": 9}
+{"loss": 7.12555456161499, "acc": 0.351767897605896, "acc_or": 0.6703875660896301, "sender_entropy": 1.3694416284561157, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 9}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.17602039873600006}, "uniform holdout": {"acc": 0.1459183543920517, "acc_or": 0.545918345451355}, "epoch": 10}
+{"loss": 6.13814115524292, "acc": 0.5208522081375122, "acc_or": 0.7523232102394104, "sender_entropy": 1.156745195388794, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 10}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.1964285671710968}, "uniform holdout": {"acc": 0.295918345451355, "acc_or": 0.6178570985794067}, "epoch": 11}
+{"loss": 5.782403945922852, "acc": 0.6869900226593018, "acc_or": 0.8366953730583191, "sender_entropy": 1.0478737354278564, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 11}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.22704081237316132}, "uniform holdout": {"acc": 0.3653061091899872, "acc_or": 0.6586734652519226}, "epoch": 12}
+{"loss": 5.539920806884766, "acc": 0.7946509718894958, "acc_or": 0.8937556743621826, "sender_entropy": 1.0144273042678833, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 12}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.25255101919174194}, "uniform holdout": {"acc": 0.48061221837997437, "acc_or": 0.7290816307067871}, "epoch": 13}
+{"loss": 5.263697147369385, "acc": 0.8816863298416138, "acc_or": 0.939653217792511, "sender_entropy": 1.0033528804779053, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 13}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.2551020383834839}, "uniform holdout": {"acc": 0.7193877100944519, "acc_or": 0.8505101799964905}, "epoch": 14}
+{"loss": 4.642481803894043, "acc": 0.925883948802948, "acc_or": 0.9623753428459167, "sender_entropy": 0.9549750089645386, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 14}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.27040815353393555}, "uniform holdout": {"acc": 0.7908163070678711, "acc_or": 0.8923469185829163}, "epoch": 15}
+{"loss": 4.437150955200195, "acc": 0.9521758556365967, "acc_or": 0.9756913185119629, "sender_entropy": 0.9366298913955688, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 15}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.2908163070678711}, "uniform holdout": {"acc": 0.810204029083252, "acc_or": 0.9030612111091614}, "epoch": 16}
+{"loss": 4.206688404083252, "acc": 0.9660018086433411, "acc_or": 0.9828875660896301, "sender_entropy": 0.9293081164360046, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 16}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.28826528787612915}, "uniform holdout": {"acc": 0.8602040410041809, "acc_or": 0.9290816187858582}, "epoch": 17}
+{"loss": 3.9986040592193604, "acc": 0.9803943634033203, "acc_or": 0.9900838732719421, "sender_entropy": 0.9281619191169739, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 17}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3163265287876129}, "uniform holdout": {"acc": 0.8846938610076904, "acc_or": 0.9403060674667358}, "epoch": 18}
+{"loss": 3.8646442890167236, "acc": 0.9869673848152161, "acc_or": 0.9933703541755676, "sender_entropy": 0.9258369207382202, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 18}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.34183672070503235}, "uniform holdout": {"acc": 0.9153060913085938, "acc_or": 0.9566326141357422}, "epoch": 19}
+{"loss": 3.7167437076568604, "acc": 0.9938803315162659, "acc_or": 0.9969401359558105, "sender_entropy": 0.923194408416748, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 19}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.31377550959587097}, "uniform holdout": {"acc": 0.9142856597900391, "acc_or": 0.9571428298950195}, "epoch": 20}
+{"loss": 3.5447540283203125, "acc": 0.995693564414978, "acc_or": 0.997846782207489, "sender_entropy": 0.9250199198722839, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 20}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.32397958636283875}, "uniform holdout": {"acc": 0.9214285612106323, "acc_or": 0.9607142210006714}, "epoch": 21}
+{"loss": 3.4306650161743164, "acc": 0.9968268275260925, "acc_or": 0.9984134435653687, "sender_entropy": 0.9299657344818115, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 21}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3086734712123871}, "uniform holdout": {"acc": 0.9336734414100647, "acc_or": 0.96683669090271}, "epoch": 22}
+{"loss": 3.287621021270752, "acc": 0.9980734586715698, "acc_or": 0.9990367293357849, "sender_entropy": 0.9304925203323364, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 22}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.32397958636283875}, "uniform holdout": {"acc": 0.9357142448425293, "acc_or": 0.96683669090271}, "epoch": 23}
+{"loss": 3.1827120780944824, "acc": 0.9983000755310059, "acc_or": 0.9991500377655029, "sender_entropy": 0.9328479170799255, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 23}
+{"generalization hold out": {"acc": 0.010204081423580647, "acc_or": 0.37244898080825806}, "uniform holdout": {"acc": 0.9397958517074585, "acc_or": 0.9693877100944519}, "epoch": 24}
+{"loss": 3.0682718753814697, "acc": 0.9990933537483215, "acc_or": 0.9995467066764832, "sender_entropy": 0.9333445429801941, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 24}
+{"generalization hold out": {"acc": 0.005102040711790323, "acc_or": 0.35969388484954834}, "uniform holdout": {"acc": 0.949999988079071, "acc_or": 0.9749999642372131}, "epoch": 25}
+{"loss": 2.9427504539489746, "acc": 0.9993200302124023, "acc_or": 0.9996600151062012, "sender_entropy": 0.9326090216636658, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 25}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3316326439380646}, "uniform holdout": {"acc": 0.9520407915115356, "acc_or": 0.976020336151123}, "epoch": 26}
+{"loss": 2.8677175045013428, "acc": 0.9996600151062012, "acc_or": 0.9998300075531006, "sender_entropy": 0.9369333386421204, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 26}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.357142835855484}, "uniform holdout": {"acc": 0.951020359992981, "acc_or": 0.9755101799964905}, "epoch": 27}
+{"loss": 2.7802960872650146, "acc": 0.9995467066764832, "acc_or": 0.9997733235359192, "sender_entropy": 0.9415935277938843, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 27}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3443877398967743}, "uniform holdout": {"acc": 0.9530611634254456, "acc_or": 0.9765305519104004}, "epoch": 28}
+{"loss": 2.7076010704040527, "acc": 0.9995467066764832, "acc_or": 0.9997733235359192, "sender_entropy": 0.9441059827804565, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 28}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.375}, "uniform holdout": {"acc": 0.951020359992981, "acc_or": 0.9755101799964905}, "epoch": 29}
+{"loss": 2.606092929840088, "acc": 0.9997733235359192, "acc_or": 0.999886691570282, "sender_entropy": 0.9425743818283081, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 29}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.35969388484954834}, "uniform holdout": {"acc": 0.949999988079071, "acc_or": 0.9749999642372131}, "epoch": 30}
+{"loss": 2.5130765438079834, "acc": 0.9997733235359192, "acc_or": 0.999886691570282, "sender_entropy": 0.9456522464752197, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 30}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.34183672070503235}, "uniform holdout": {"acc": 0.9581632018089294, "acc_or": 0.9790815711021423}, "epoch": 31}
+{"loss": 2.4577958583831787, "acc": 0.9994333386421204, "acc_or": 0.9997166991233826, "sender_entropy": 0.9493435621261597, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 31}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3265306055545807}, "uniform holdout": {"acc": 0.9602040648460388, "acc_or": 0.980102002620697}, "epoch": 32}
+{"loss": 2.3646328449249268, "acc": 1.0, "acc_or": 1.0, "sender_entropy": 0.9480180740356445, "receiver_entropy": 0.0, "length": 4.0, "mode": "test", "epoch": 32}
+{"epoch": 32, "positional_disent": 0.7215229868888855, "bag_of_symbol_disent": 0.3658221364021301, "topographic_sim": 0.5736986681905397}
+{"epoch": 32, "positional_disent": 0.5568674206733704, "bag_of_symbol_disent": 0.7395817637443542, "topographic_sim": 0.7641046909199232}
+{"generalization hold out": {"acc": 0.0, "acc_or": 0.3265306055545807}, "uniform holdout": {"acc": 0.9602040648460388, "acc_or": 0.980102002620697}, "epoch": 32}

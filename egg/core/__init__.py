@@ -12,7 +12,7 @@ from .callbacks import (
     TemperatureUpdater,
     TensorboardLogger,
 )
-from .continous_communication import (
+from .continuous_communication import (
     ContinuousLinearReceiver,
     ContinuousLinearSender,
     SenderReceiverContinuousCommunication,

@@ -71,6 +71,55 @@ class Interaction:
     message_length: Optional[torch.Tensor]
     aux: Dict[str, torch.Tensor]
 
+    def __add__(self, other) -> "Interaction":
+        """
+        Defines the behaviour of the + operator between two Interaction objects
+        >>> i0 = Interaction(torch.zeros(1), None, None, {"a": torch.zeros(1), "b": torch.zeros(1)}, None, None, None, {})
+        >>> i1 = Interaction(torch.ones(1), None, None, {"b": torch.ones(1), "c": torch.ones(1)}, None, None, None, {})
+        >>> i2 = i0 + i1
+        >>> i2.sender_input
+        tensor([0., 1.])
+        >>> i2.aux_input["b"]
+        tensor([0., 1.])
+        >>> i2.aux_input["c"]
+        tensor([1.])
+        >>> i2.aux
+        {}
+        """
+
+        def _check_cat(lst):
+            if all(x is None for x in lst):
+                return None
+            # if some but not all are None: not good
+            if any(x is None for x in lst):
+                raise RuntimeError(
+                    "Appending empty and non-empty interactions logs. "
+                    "Normally this shouldn't happen!"
+                )
+            return torch.cat(lst, dim=0)
+
+        def _combine_aux_dicts(dict1, dict2):
+            new_dict = {}
+            keys = set(list(dict1.keys()) + list(dict2.keys()))
+            for k in keys:
+                if k in dict1 and k in dict2:
+                    new_dict[k] = torch.cat((dict1[k], dict2[k]))
+                else:
+                    new_dict[k] = dict1[k] if k in dict1 else dict2[k]
+            return new_dict
+
+        interactions = [self, other]
+        return Interaction(
+            sender_input=_check_cat([x.sender_input for x in interactions]),
+            receiver_input=_check_cat([x.receiver_input for x in interactions]),
+            labels=_check_cat([x.labels for x in interactions]),
+            aux_input=_combine_aux_dicts(self.aux_input, other.aux_input),
+            message=_check_cat([x.message for x in interactions]),
+            message_length=_check_cat([x.message_length for x in interactions]),
+            receiver_output=_check_cat([x.receiver_output for x in interactions]),
+            aux=_combine_aux_dicts(self.aux, other.aux),
+        )
+
     @property
     def size(self):
         interaction_fields = [
@@ -120,7 +169,8 @@ class Interaction:
         >>> c.size
         2
         >>> c
-        Interaction(sender_input=tensor([1., 1.]), ..., receiver_output=tensor([1., 1.]), message_length=None, aux={})
+        Interaction(sender_input=tensor([1., 1.]), receiver_input=None, labels=None, aux_input={}, \
+message=tensor([1., 1.]), receiver_output=tensor([1., 1.]), message_length=None, aux={})
         >>> d = Interaction(torch.ones(1), torch.ones(1), None, {}, torch.ones(1), torch.ones(1), None, {})
         >>> _ = Interaction.from_iterable((a, d)) # mishaped, should throw an exception
         Traceback (most recent call last):
@@ -280,4 +330,5 @@ def dump_interactions(
             )
 
     game.train(mode=train_state)
-    return interaction
+
+    return full_interaction
