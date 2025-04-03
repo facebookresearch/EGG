@@ -1,0 +1,71 @@
+{
+    "n_epochs": [
+        15
+    ],
+    "dataset_dir": [
+        "/projects/colt/ILSVRC2012/ILSVRC2012_img_val/"
+    ],
+    "dataset_name": [
+        "imagenet_val"
+    ],
+    "additional_receiver": [
+        "['levit']",
+        "['cait']"
+    ],
+    "base_checkpoint_path": [
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646399/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646412/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593629/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590158/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646407/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593632/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646403/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590153/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593633/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590147/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646410/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593636/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593627/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590150/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646405/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590142/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590144/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590136/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590138/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593628/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646413/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593631/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646401/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590133/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646404/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590157/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590159/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593635/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593626/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646411/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590160/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593638/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590152/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590154/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590156/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646406/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590146/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590148/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646414/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590151/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646402/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590141/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590145/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/646409/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590135/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590139/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593634/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/593625/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590140/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590132/final.tar",
+        "/home/mmahaut/projects/exps/tmlr/vocab_64/590134/final.tar"
+    ],
+    "image_size": [
+        384
+    ]
+}
