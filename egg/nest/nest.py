@@ -141,6 +141,7 @@ if __name__ == "__main__":
         slurm_constraint=args.constraint,
         nodes=args.nodes,
         tasks_per_node=args.tasks,
+        mem_gb=args.mem_gb,
     )
 
     if args.array:
