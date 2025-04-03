@@ -18,6 +18,8 @@ import torchvision
 import numpy as np
 from torch.utils.data import Subset
 from egg.zoo.pop.proximity_sampler import ProximitySampler
+import warnings
+
 
 # TODO: move table to its own file
 imood_class_ids = np.array(
@@ -320,6 +322,7 @@ def get_dataloader(
     augmentation_type=None,
     is_single_class_batch: bool = False,
     similbatch_training: bool = False,
+    shuffle: bool = True,
 ):
     # Param : split_set : if true will return a training and testing set. Otherwise will load train set only.
     seed_all(
@@ -353,17 +356,21 @@ def get_dataloader(
         raise NotImplementedError
         # train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
         # train_dataset = select_inanimate_idxs(train_dataset)
-    elif dataset_name == "imagenet_ood":
+    elif dataset_name in ["imagenet_ood", "imagenet_train"]:
         train_dataset = datasets.ImageFolder(dataset_dir, transform=transformations)
-        train_dataset = select_ood_idxs(train_dataset)
+        if dataset_name == "imagenet_ood":
+            train_dataset = select_ood_idxs(train_dataset)
     elif dataset_name == "places205":
         train_dataset = PlacesDataset(
             hub.load("hub://activeloop/places205"), transform=transformations
         )
-    # Editor asks for ADE20k, and CelebA
+    elif dataset_name == "places365":
+        train_dataset = datasets.Places365(
+            root=dataset_dir, split="train-standard", transform=transformations
+        )
     elif dataset_name == "ade20k":
         pass
-    elif dataset_name == "imagenet_val":
+    elif dataset_name in ["imagenet_val"]:
         # TODO Matéo : correct this so that path is not hardcoded
         train_dataset = ImagenetValDataset(
             dataset_dir,
@@ -397,13 +404,16 @@ def get_dataloader(
             # get indexes of test set
             assert dataset_name == "imagenet_val", "cosine_sim training only supported for imagenet_val dataset."
             train_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size, train_dataset.indices)
-            test_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size, test_dataset.indices)
+            test_sampler = ProximitySampler("~/projects/cos_sim_matrix.npy", batch_size, test_dataset.indices) # TODO: Test this works properly?
+            if shuffle:
+                warnings.warn("Shuffling is not supported with proximity sampler. Setting shuffle to False.")
+            shuffle = False
         else:
             test_sampler = None
         test_loader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=batch_size,
-            shuffle=(test_sampler is None),
+            shuffle=shuffle,
             generator=torch.Generator().manual_seed(seed),
             sampler=test_sampler,
             num_workers=num_workers,
@@ -417,7 +427,7 @@ def get_dataloader(
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_size=batch_size,
-            shuffle=(train_sampler is None),
+            shuffle=shuffle,
             generator=torch.Generator().manual_seed(seed),
             sampler=train_sampler,
             num_workers=num_workers,
@@ -430,10 +440,12 @@ def get_dataloader(
         return test_loader, train_loader
 
     else:
+        if is_single_class_batch:
+            train_sampler = SingleClassDatasetSampler(train_dataset, batch_size=batch_size)
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
             batch_size=batch_size,
-            shuffle=(train_sampler is None),
+            shuffle=shuffle,
             sampler=train_sampler,
             num_workers=num_workers,
             collate_fn=collate_fn_imood
@@ -554,7 +566,7 @@ class ImageTransformation:
                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
                 )
             )
-        elif dataset_name in ["cifar100", "inaturalist", "places205"]:
+        elif dataset_name in ["cifar100", "inaturalist", "places205", "places365"]:
             transformations.append(
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             )

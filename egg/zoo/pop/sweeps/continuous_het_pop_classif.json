@@ -36,10 +36,10 @@
         true
     ],
     "vision_model_names_senders": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vit_clip']"
     ],
     "vision_model_names_recvs": [
-        "['vgg11','vit','resnet152', 'inception']"
+        "['vit_clip']"
     ],
     "image_size": [
         384

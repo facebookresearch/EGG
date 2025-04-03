@@ -50,7 +50,7 @@ def get_opts(arguments):
     arg_parser.add_argument(
         "--time",
         type=str,
-        default="3-00:00:00",
+        default="6-00:00:00",
         help="time allocated for each job",
     )
     arg_parser.add_argument(
@@ -151,7 +151,7 @@ def write_sbatch(
 #SBATCH --qos={qos}
 #SBATCH --nodes=1
 #SBATCH --exclude=node044
-#SBATCH --nice=12
+#SBATCH --nice=0
 #SBATCH --ntasks-per-node=1
 #SBATCH --time={time}
 #SBATCH --mem={mem}

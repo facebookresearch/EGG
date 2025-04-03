@@ -5,6 +5,7 @@ from egg.zoo.pop.utils import load_from_checkpoint
 
 # import sys
 import pathlib
+import warnings
 
 # import glob
 import torch
@@ -183,6 +184,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda", force_rank=None
                 split_set=False,
                 augmentation_type=opts.augmentation_type,
                 is_single_class_batch=opts.is_single_class_batch,
+                shuffle=opts.shuffle,
             )
         else:
             test_loader, train_loader = get_dataloader(
@@ -198,6 +200,7 @@ def build_and_test_game(opts, exp_name, dump_dir, device="cuda", force_rank=None
                 split_set=True,
                 augmentation_type=opts.augmentation_type,
                 is_single_class_batch=opts.is_single_class_batch,
+                shuffle=opts.shuffle,
             )
         # run evaluation, collect resulting interactions
         interactions.append(

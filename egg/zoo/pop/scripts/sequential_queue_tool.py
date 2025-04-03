@@ -49,7 +49,7 @@ def write_sequential_jobs(
                 if not os.path.exists(outdir):
                     os.mkdir(outdir)
                 command_file.write(
-                    f"sudo {cuda} python3 egg/zoo/pop/train.py {' '.join(args)} \n"
+                    f"{cuda} python3 egg/zoo/pop/train.py {' '.join(args)} \n"
                 )
 
 
@@ -67,4 +67,4 @@ if __name__ == "__main__":
         gpu=None if len(args) == 1 else args[1],
     )
     print(f"experimental plan written to {command_file_path}, launching...")
-    os.system(f"sudo bash {command_file_path}")
+    os.system(f"bash {command_file_path}")

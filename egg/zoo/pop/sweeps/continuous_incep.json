@@ -30,7 +30,7 @@
         2048
     ],
     "dataset_dir": [
-        "/datasets/COLT/ILSVRC2012/ILSVRC2012_img_val/"
+        "/gpfs/projects/colt/ILSVRC2012/ILSVRC2012_img_val/"
     ],
     "dataset_name": [
         "imagenet_val"
@@ -39,15 +39,10 @@
         5.0
     ],
     "vision_model_names_senders": [
-        "['vit']",
-        "['inception']",
-        "['resnet152']",
-        "['vgg11']",
-        "['dino']",
-        "['swin']"
+        "['vit', 'inception', 'resnet152', 'vgg11', 'dino', 'swin', 'virtex', 'vit_clip']"
     ],
     "vision_model_names_recvs": [
-        "['clip_vit']"
+        "['vit', 'inception', 'resnet152', 'vgg11', 'dino', 'swin', 'virtex', 'vit_clip']"
     ],
     "image_size": [
         384

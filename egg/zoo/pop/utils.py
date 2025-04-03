@@ -33,7 +33,9 @@ def get_data_opts(parser):
             "imagenet_alive",
             "imagenet_ood",
             "places205",
+            "places365",
             "imagenet_val",
+            "imagenet_train",
         ],
         default="imagenet",
         help="Dataset used for training a model",
@@ -52,6 +54,12 @@ def get_data_opts(parser):
         default=True,
         action="store_false",
         help="Split the dataset in train and test during communication extraction (at test time). default usage will then only use the test set, change extract_train_com to use the train set",
+    )
+    group.add_argument(
+        "--shuffle",
+        default=True,
+        action="store_false",
+        help="Shuffle the dataset. Default usage will shuffle the dataset. Should be turned off when extracting communication, to keep the order of the dataset",
     )
     group.add_argument(
         "--extract_train_com",
@@ -398,7 +406,9 @@ def path_to_parameters(path, type="wandb"):
         if _path.parts[1] == "homedtcl":
             # unsupported operand type(s) for /: 'PosixPath' and 'tuple' in _path = pathlib.Path("/home") / _path.parts[2:]
             _path = pathlib.Path("/home") / "/".join(_path.parts[2:])
-        return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
+        earliest_run = sorted(_path.parent.glob("wandb/run-*"))[0]
+        return earliest_run / "files" / "wandb-metadata.json"
+        # return _path.parent / "wandb" / "latest-run" / "files" / "wandb-metadata.json"
     else:
         # legacy from when submitit was in use and the parameters were saved in the .out file
         old_game = pathlib.Path(path)

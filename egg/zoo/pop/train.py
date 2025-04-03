@@ -73,6 +73,7 @@ def main(params):
         return_original_image=opts.return_original_image,
         split_set=True,
         similbatch_training=opts.similbatch_training,
+        shuffle=opts.shuffle,
     )
 
     model_parameters = add_weight_decay(game, opts.weight_decay, skip_name="bn")

@@ -15,7 +15,7 @@
         false
     ],
     "batch_size": [
-        16
+        64
     ],
     "random_seed": [
         111

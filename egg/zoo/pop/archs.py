@@ -92,7 +92,7 @@ def get_model(name, pretrained, aux_logits=True):
         ),
         "levit":(
             timm.create_model,
-            {"model_name": "levit_384", "pretrained": pretrained},
+            {"model_name": "levit_384.fb_dist_in1k", "pretrained": pretrained},
         ),
         "vit_clip":(
             timm.create_model,
@@ -140,13 +140,19 @@ def initialize_vision_module(
         n_features = model.head.in_features
         model.head = nn.Identity()
 
-    elif name in ["swin","cait"]:
+    elif name == "swin":
         n_features = model.head.in_features
         model.head.fc = torch.nn.Identity()
+
+    elif name == "cait":
+        n_features = model.head.in_features
+        model.head = torch.nn.Identity()
 
     elif name == "levit":
         n_features = model.head.linear.in_features
         model.head.linear = torch.nn.Identity()
+        model.head_dist.linear = torch.nn.Identity()
+
 
     elif name == "dino":
         n_features = 384  # ... could go and get that somehow instead of hardcoding ?
@@ -223,6 +229,12 @@ class Sender(nn.Module):
         else:
             raise RuntimeError("Unknown vision module for the Sender")
 
+        if vision_module == "levit":
+            warning.warn("levit will automatically resize the input to 224x224, which may be different from the original input size")
+            self.vision_module = nn.Sequential(
+                torchvision.transforms.Resize((224, 224)),
+                self.vision_module
+            )
     def init_com_layer(self, input_dim, vocab_size):
         self.fc = nn.Sequential(
             nn.Linear(input_dim, vocab_size),
@@ -305,6 +317,7 @@ class ContinuousSender(Sender):
         super(Sender, self).__init__()
         self.name = name
         self.init_vision_module(vision_module, input_dim)
+        
         self.init_com_layer(
             input_dim, vocab_size, get_non_linearity(non_linearity), block_com_layer
         )
@@ -362,6 +375,12 @@ class Receiver(nn.Module):
             self.vision_module, input_dim = initialize_vision_module(vision_module)
         else:
             raise RuntimeError("Unknown vision module for the Receiver")
+        if vision_module == "levit":
+            warning.warn("levit will automatically resize the input to 224x224, which may be different from the original input size")
+            self.vision_module = nn.Sequential(
+                torchvision.transforms.Resize((224, 224)),
+                self.vision_module
+            )
         self.fc = (
             nn.Identity()
             if block_com_layer
