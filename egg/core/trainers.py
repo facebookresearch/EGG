@@ -228,6 +228,7 @@ class Trainer:
             if batch_id % self.update_freq == self.update_freq - 1:
                 if self.scaler:
                     self.scaler.unscale_(self.optimizer)
+                    
                 if self.grad_norm:
                     torch.nn.utils.clip_grad_norm_(
                         self.game.parameters(), self.grad_norm
