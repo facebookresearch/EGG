@@ -1,0 +1,59 @@
+{
+    "n_epochs": [
+        7
+    ],
+    "fp16": [
+        false
+    ],
+    "no_cuda": [
+        false
+    ],
+    "batch_size": [
+        64
+    ],
+    "lr": [
+        0.0001
+    ],
+    "com_channel": [
+        "continuous"
+    ],
+    "simplicial_temperature": [
+        1
+    ],
+    "simplicial_L": [
+        2
+    ],
+    "non_linearity": [
+        "sigmoid"
+    ],
+    "force_gumbel": [
+        false
+    ],
+    "vocab_size": [
+        64
+    ],
+    "random_seed": [
+        111
+    ],
+    "recv_hidden_dim": [
+        2048
+    ],
+    "dataset_dir": [
+        "/projects/colt/ILSVRC2012/ILSVRC2012_img_val/"
+    ],
+    "dataset_name": [
+        "imagenet_val"
+    ],
+    "gs_temperature": [
+        5.0
+    ],
+    "vision_model_names_senders": [
+        "['vit_clip', 'dino', 'vit', 'vgg11', 'virtex', 'inception', 'resnet152', 'swin']"
+    ],
+    "vision_model_names_recvs": [
+        "['vgg11', 'vit_clip', 'virtex', 'swin', 'inception', 'vit', 'resnet152', 'dino']"
+    ],
+    "image_size": [
+        384
+    ]
+}
